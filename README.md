@@ -3,10 +3,10 @@ Iomrascálaí
 
 Iomrascálaí ([see here for the pronunciation](https://raw.githubusercontent.com/ujh/iomrascalai/master/pronunciation.mp4)) is an AI for the game of Go/Weiqi/Baduk written in Rust. It is an exercise to help me learn Rust.
 
-Todo
-====
+Development
+===========
 
-1. Write it ;)
+See the [Trello board](https://trello.com/b/NU4MXbao/iomrascalai) for planned features.
 
 License
 =======
