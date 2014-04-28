@@ -11,4 +11,4 @@ Todo
 License
 =======
 
-Iomrascálaí is licensed under GPL v3
+Iomrascálaí is licensed under GPL v3. See the [LICENSE file](https://github.com/ujh/iomrascalai/blob/master/LICENSE) for the complete license text.
