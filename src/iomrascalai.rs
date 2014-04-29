@@ -19,7 +19,7 @@
  *                                                                      *
  ************************************************************************/
 
-mod board;
+extern crate board;
 
 fn main() {
   println!("Iomrascálaí says hello!");
