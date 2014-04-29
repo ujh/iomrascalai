@@ -6,7 +6,7 @@ Iomrascálaí ([see here for the pronunciation](https://raw.githubusercontent.co
 Development
 ===========
 
-See the [Trello board](https://trello.com/b/NU4MXbao/iomrascalai) for planned features.
+See the [Trello board](https://trello.com/b/NU4MXbao/iomrascalai) for planned features. If you want to help please get in touch with me and we can set up a pair programming session.
 
 License
 =======
