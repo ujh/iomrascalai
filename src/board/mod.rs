@@ -18,8 +18,6 @@
  * along with Iomrascálaí.  If not, see <http://www.gnu.org/licenses/>. *
  *                                                                      *
  ************************************************************************/
-#![crate_id = "board"]
-#![crate_type = "lib"]
 
 pub fn board_hello() {
   println!("The board says hello, too!");

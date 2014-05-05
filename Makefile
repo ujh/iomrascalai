@@ -22,24 +22,23 @@
 MAIN   = src/iomrascalai.rs
 CRATES = src/board/mod.rs
 
+FLAGS = -O
+RUSTC = rustc $(FLAGS)
+
+EXEC = bin/iomrascalai
+TEST = bin/test
+
 all: test exe
+exe: $(EXEC)
+test: $(TEST)
 
-TO_LIB = $(addprefix lib/, $(shell rustc --crate-file-name $(1)))
-LIBS   = $(foreach crate, $(CRATES), $(call TO_LIB, $(crate)))
-define COMPILE_CRATE
-$(call TO_LIB, $(1)): $(1)
-	rustc --out-dir lib $(1)
-endef
-$(foreach crate, $(CRATES), $(eval $(call COMPILE_CRATE, $(crate))))
+$(EXEC): $(MAIN) $(CRATES)
+	$(RUSTC) -o $(EXEC) $(MAIN)
 
-exe: $(MAIN) $(LIBS)
-	rustc --out-dir bin -L lib $(MAIN)
-
-test: $(MAIN) $(LIBS)
-	rustc -L lib --test -o bin/test $(MAIN)
+$(TEST): $(MAIN) $(CRATES)
+	$(RUSTC) --test -o $(TEST) $(MAIN)
 	bin/test
 
 .PHONY: clean
 clean:
 	rm -f bin/*
-	rm -f lib/*
