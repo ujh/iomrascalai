@@ -19,10 +19,14 @@
  *                                                                      *
  ************************************************************************/
 
+use board::{White, Black};
+
 mod board;
 
 fn main() {
   println!("Iomrascálaí says hello!");
-  let b = board::Board::new(19, 6.5);
-  println!("{}", b.get(19,19));
+  let mut b = board::Board::new(19, 6.5);
+  b.play(White, 2, 9);
+  b.play(Black, 19, 19);
+  b.show();
 }

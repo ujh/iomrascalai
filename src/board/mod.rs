@@ -21,7 +21,7 @@
 use std::vec::Vec;
 
 #[deriving(Clone, Show, Eq)]
-enum Color {
+pub enum Color {
     White,
     Black,
     Empty
@@ -77,7 +77,7 @@ impl Board {
     //       this is done because I think it makes more sense in the context of go. (Least surprise principle, etc...)
     pub fn get(&self, col: uint, row: uint) -> Option<Color> {
         if 1 <= col && col <= self.size && 1 <= row && row <= self.size {
-            Some(self.board.get(col-1).get(row-1).color)
+            Some(self.board.get(col-1).get(self.size-row).color)
         } else {
             None
         }
@@ -85,6 +85,33 @@ impl Board {
 
     pub fn komi(&self) -> f32 {
         self.komi
+    }
+
+    // Note: Same as get(), the board is indexed starting at 1-1
+    pub fn play(&mut self, c: Color, col: uint, row: uint) {
+        self.board.get_mut(col-1).get_mut(self.size-row).color = c;
+    }
+
+    pub fn show(&self) {
+        let b = &self.board;
+
+        for row in range(0, self.size) {
+            print!("{:2} ", self.size - row);
+            for col in range(0, self.size) {
+                if      b.get(col).get(row).color == Empty {print!(". ")}
+                else if b.get(col).get(row).color == White {print!("O ")}
+                else if b.get(col).get(row).color == Black {print!("X ")}
+            }
+            println!("");
+        }
+    
+        print!("{:3}", "");
+
+        for col in range(1, self.size+1) {
+            print!("{:<2}", col);
+        }
+
+        println!("");
     }
 }
 
@@ -106,5 +133,13 @@ mod tests {
         let b = super::Board::new(19, 6.5);
 
         assert!(b.komi() == 6.5f32)
+    }
+
+    #[test]
+    fn test_play(){
+        let mut b = super::Board::new(19, 6.5);
+        
+        b.play(super::White, 14, 14);
+        assert!(b.get(14,14).unwrap() == super::White);
     }
 }
