@@ -68,18 +68,29 @@ impl Board {
             None
         }
     }
+
+    pub fn komi(&self) -> f32 {
+        self.komi
+    }
 }
 
 #[cfg(test)]
 mod tests {
     #[test]
     fn test_board_get() {
-        let b = super::Board::new(19);
+        let b = super::Board::new(19, 6.5);
 
         assert!(b.get(1,1).unwrap()   == super::Empty);
         assert!(b.get(19,19).unwrap() == super::Empty);
         assert!(b.get(0,0)            == None);
         assert!(b.get(14,21)          == None);
         assert!(b.get(21,14)          == None);
+    }
+
+    #[test]
+    fn test_get_komi(){
+        let b = super::Board::new(19, 6.5);
+
+        assert!(b.komi() == 6.5f32)
     }
 }

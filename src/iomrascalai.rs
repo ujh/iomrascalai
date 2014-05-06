@@ -23,6 +23,6 @@ mod board;
 
 fn main() {
   println!("Iomrascálaí says hello!");
-  let b = board::Board::new(19);
+  let b = board::Board::new(19, 6.5);
   println!("{}", b.get(19,19));
 }
