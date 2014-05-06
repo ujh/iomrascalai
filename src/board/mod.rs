@@ -32,16 +32,30 @@ struct Point {
     color: Color
 }
 
-impl Point {
-    fn new() -> Point {
-        Point {color: Empty}
-    }
+struct Chain<'a> {
+    points: Vec<&'a Point>
 }
 
 pub struct Board {
     komi: f32,
     size: uint,
     board: Vec<Vec<Point>>
+}
+
+impl Point {
+    fn new() -> Point {
+        Point {color: Empty}
+    }
+
+    fn with_color(c: Color) -> Point {
+        Point {color: c}
+    }
+}
+
+impl<'a> Chain<'a> {
+    fn new(first_point: &'a Point) -> Chain<'a> {
+        Chain {points: vec!(first_point)}
+    }
 }
 
 impl Board {
