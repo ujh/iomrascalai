@@ -95,18 +95,26 @@ impl Board {
     pub fn show(&self) {
         let b = &self.board;
 
+        // First we print the board
         for row in range(0, self.size) {
+
+            // Prints the row number
             print!("{:2} ", self.size - row);
+
+            // Prints the actual row
             for col in range(0, self.size) {
-                if      b.get(col).get(row).color == Empty {print!(". ")}
-                else if b.get(col).get(row).color == White {print!("O ")}
-                else if b.get(col).get(row).color == Black {print!("X ")}
+                if      b.get(col).get(row).color == Empty {
+                    let hoshis = &[3u,9,15];
+                    if   hoshis.contains(&row) && hoshis.contains(&col) {print!("x ")}
+                    else                                                {print!(". ")}
+                } else if b.get(col).get(row).color == White {print!("O ")}
+                  else if b.get(col).get(row).color == Black {print!("@ ")}
             }
             println!("");
         }
     
+        // Then we print the col numbers under the board
         print!("{:3}", "");
-
         for col in range(1, self.size+1) {
             print!("{:<2}", col);
         }
