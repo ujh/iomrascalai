@@ -24,7 +24,6 @@ use board::{White, Black};
 mod board;
 
 fn main() {
-  println!("Iomrascálaí says hello!");
   let mut b = board::Board::new(19, 6.5);
   b.play(Black, 4, 4);
   b.play(White, 2, 9);
