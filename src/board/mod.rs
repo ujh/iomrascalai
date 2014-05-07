@@ -105,10 +105,10 @@ impl Board {
             for col in range(0, self.size) {
                 if      b.get(col).get(row).color == Empty {
                     let hoshis = &[3u,9,15];
-                    if   hoshis.contains(&row) && hoshis.contains(&col) {print!("x ")}
+                    if   hoshis.contains(&row) && hoshis.contains(&col) {print!("+ ")}
                     else                                                {print!(". ")}
                 } else if b.get(col).get(row).color == White {print!("O ")}
-                  else if b.get(col).get(row).color == Black {print!("@ ")}
+                  else if b.get(col).get(row).color == Black {print!("X ")}
             }
             println!("");
         }
