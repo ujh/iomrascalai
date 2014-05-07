@@ -25,8 +25,8 @@ mod board;
 
 fn main() {
   let mut b = board::Board::new(19, 6.5);
-  b.play(Black, 4, 4);
-  b.play(White, 2, 9);
-  b.play(Black, 19, 19);
+  b = b.play(Black, 4, 4);
+  b = b.play(White, 2, 9);
+  b = b.play(Black, 19, 19);
   b.show();
 }

@@ -36,6 +36,7 @@ struct Chain<'a> {
     points: Vec<&'a Point>
 }
 
+#[deriving(Clone)]
 pub struct Board {
     komi: f32,
     size: uint,
@@ -88,8 +89,10 @@ impl Board {
     }
 
     // Note: Same as get(), the board is indexed starting at 1-1
-    pub fn play(&mut self, c: Color, col: uint, row: uint) {
-        self.board.get_mut(col-1).get_mut(self.size-row).color = c;
+    pub fn play(&self, c: Color, col: uint, row: uint) -> Board {
+        let mut new_state = (*self).clone();
+        new_state.board.get_mut(col-1).get_mut(self.size-row).color = c;
+        new_state
     }
 
     pub fn show(&self) {
@@ -136,7 +139,7 @@ mod tests {
     #[test]
     fn test_getting_invalid_coordinates_returns_None() {
         let b = super::Board::new(19, 6.5);
-        
+
         assert!(b.get(14,21)          == None);
         assert!(b.get(21,14)          == None);
     }
@@ -163,10 +166,10 @@ mod tests {
     }
 
     #[test]
-    fn test_play(){
+    fn test_play(){ 
         let mut b = super::Board::new(19, 6.5);
         
-        b.play(super::White, 14, 14);
+        b = b.play(super::White, 14, 14);
         assert!(b.get(14,14).unwrap() == super::White);
     }
 }
