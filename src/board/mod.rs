@@ -126,14 +126,33 @@ impl Board {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn test_board_get() {
+    fn test_getting_a_valid_coord_returns_a_color(){
         let b = super::Board::new(19, 6.5);
 
         assert!(b.get(1,1).unwrap()   == super::Empty);
-        assert!(b.get(19,19).unwrap() == super::Empty);
-        assert!(b.get(0,0)            == None);
+        assert!(b.get(10,10).unwrap() == super::Empty);
+    }
+
+    #[test]
+    fn test_getting_invalid_coordinates_returns_None() {
+        let b = super::Board::new(19, 6.5);
+        
         assert!(b.get(14,21)          == None);
         assert!(b.get(21,14)          == None);
+    }
+
+    #[test]
+    fn test_19_19_is_a_valid_coordinate(){
+        let b = super::Board::new(19, 6.5);
+
+        assert!(b.get(19,19).unwrap() == super::Empty);
+    }
+
+    #[test]
+    fn test_0_0_is_not_a_valid_coordinate(){
+        let b = super::Board::new(19, 6.5);
+        
+        assert!(b.get(0,0)            == None);
     }
 
     #[test]
