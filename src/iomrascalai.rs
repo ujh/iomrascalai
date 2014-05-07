@@ -1,6 +1,6 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2014 Urban Hafner                                          *
+ * Copyright 2014 Urban Hafner, Thomas Poinsot                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -19,9 +19,14 @@
  *                                                                      *
  ************************************************************************/
 
+use board::{White, Black};
+
 mod board;
 
 fn main() {
-  println!("Iomrascálaí says hello!");
-  board::board_hello();
+  let mut b = board::Board::new(19, 6.5);
+  b = b.play(Black, 4, 4);
+  b = b.play(White, 2, 9);
+  b = b.play(Black, 19, 19);
+  b.show();
 }
