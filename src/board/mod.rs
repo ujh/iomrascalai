@@ -61,11 +61,7 @@ impl<'a> Chain<'a> {
 
 impl Board {
     pub fn new(size: uint, komi: f32) -> Board {
-        let mut empty_line  = Vec::with_capacity(size);
-        let mut empty_board = Vec::with_capacity(size);
-
-        for _ in range(0, size) { empty_line.push(Point::new()) }
-        for _ in range(0, size) { empty_board.push(empty_line.clone()) }
+        let empty_board = Vec::from_fn(size, |_| Vec::from_fn(size, |_| Point::new()));
 
         Board {
             komi: komi,
