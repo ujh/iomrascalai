@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/ujh/iomrascalai.svg?branch=master)](https://travis-ci.org/ujh/iomrascalai)
+
 Iomrascálaí
 ===========
 
@@ -9,7 +11,9 @@ Development
 ===========
 
 See the [Trello board](https://trello.com/b/NU4MXbao/iomrascalai) for
-planned features. Please note that (almost) all development on
+planned features and
+[join the mailing list](https://groups.google.com/forum/#!forum/iomrascalai)
+for discussion. Please note that (almost) all development on
 Iomrascálaí is supposed to happen with pair programming. If you want
 to contribute please [contact me](http://urbanhafner.com) and I can
 set you up with a pairing partner and (eventually) give you access to
