@@ -46,7 +46,7 @@ struct Chain<'a> {
 pub struct Board<'a> {
     komi: f32,
     size: uint,
-    board: Vec<Vec<Point>>,
+    board: Vec<Point>,
     chains: Vec<Chain<'a>>
 }
 
@@ -64,7 +64,7 @@ impl<'a> Chain<'a> {
 
 impl<'a> Board<'a> {
     pub fn new(size: uint, komi: f32) -> Board {
-        let empty_board = Vec::from_fn(size, |i| Vec::from_fn(size, |j| Point::with_color(Empty, -1, i+1, size-j)));
+        let empty_board = Vec::from_fn(size*size, |i| Point::with_color(Empty, -1, i%size+1, i/size+1));
 
         Board {
             komi: komi,
@@ -78,7 +78,7 @@ impl<'a> Board<'a> {
     //       this is done because I think it makes more sense in the context of go. (Least surprise principle, etc...)
     pub fn get<'b>(&'b self, col: uint, row: uint) -> Option<&'b Point> {
         if 1 <= col && col <= self.size && 1 <= row && row <= self.size {
-            Some(self.board.get(col-1).get(self.size-row))
+            Some(self.board.get((row-1)*self.size+(col-1)))
         } else {
             None
         }
@@ -91,7 +91,7 @@ impl<'a> Board<'a> {
     // Note: Same as get(), the board is indexed starting at 1-1
     pub fn play(&self, c: Color, col: uint, row: uint) -> Board<'a> {
         let mut new_state = (*self).clone();
-        new_state.board.get_mut(col-1).get_mut(self.size-row).color = c;
+        new_state.board.get_mut((row-1)*self.size+(col-1)).color = c;
         new_state
     }
 
@@ -112,22 +112,20 @@ impl<'a> Board<'a> {
     }
 
     pub fn show(&self) {
-        let b = &self.board;
-
         // First we print the board
-        for row in range(0, self.size) {
+        for row in range(1, self.size+1).rev() {
 
             // Prints the row number
-            print!("{:2} ", self.size - row);
+            print!("{:2} ", row);
 
             // Prints the actual row
-            for col in range(0, self.size) {
-                if      b.get(col).get(row).color == Empty {
-                    let hoshis = &[3u,9,15];
+            for col in range(1, self.size+1) {
+                if self.get(col, row).unwrap().color == Empty {
+                    let hoshis = &[4u,10,16];
                     if   hoshis.contains(&row) && hoshis.contains(&col) {print!("+ ")}
                     else                                                {print!(". ")}
-                } else if b.get(col).get(row).color == White {print!("O ")}
-                  else if b.get(col).get(row).color == Black {print!("X ")}
+                } else if self.get(col, row).unwrap().color == White {print!("O ")}
+                  else if self.get(col, row).unwrap().color == Black {print!("X ")}
             }
             println!("");
         }
