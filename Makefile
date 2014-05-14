@@ -20,7 +20,7 @@
 ########################################################################
 
 MAIN   = src/iomrascalai.rs
-CRATES = src/board/mod.rs
+CRATES = $(shell find src -type f -not -name iomrascalai.rs)
 
 FLAGS = -O
 RUSTC = rustc $(FLAGS)

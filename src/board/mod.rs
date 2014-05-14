@@ -20,6 +20,8 @@
  ************************************************************************/
 use std::vec::Vec;
 
+mod test;
+
 #[deriving(Clone, Show, Eq)]
 pub enum Color {
     White,
@@ -111,7 +113,7 @@ impl Board {
             }
             println!("");
         }
-    
+
         // Then we print the col numbers under the board
         print!("{:3}", "");
         for col in range(1, self.size+1) {
@@ -119,53 +121,5 @@ impl Board {
         }
 
         println!("");
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn test_getting_a_valid_coord_returns_a_color(){
-        let b = super::Board::new(19, 6.5);
-
-        assert!(b.get(1,1).unwrap()   == super::Empty);
-        assert!(b.get(10,10).unwrap() == super::Empty);
-    }
-
-    #[test]
-    fn test_getting_invalid_coordinates_returns_None() {
-        let b = super::Board::new(19, 6.5);
-
-        assert!(b.get(14,21)          == None);
-        assert!(b.get(21,14)          == None);
-    }
-
-    #[test]
-    fn test_19_19_is_a_valid_coordinate(){
-        let b = super::Board::new(19, 6.5);
-
-        assert!(b.get(19,19).unwrap() == super::Empty);
-    }
-
-    #[test]
-    fn test_0_0_is_not_a_valid_coordinate(){
-        let b = super::Board::new(19, 6.5);
-        
-        assert!(b.get(0,0)            == None);
-    }
-
-    #[test]
-    fn test_get_komi(){
-        let b = super::Board::new(19, 6.5);
-
-        assert!(b.komi() == 6.5f32)
-    }
-
-    #[test]
-    fn test_play(){ 
-        let mut b = super::Board::new(19, 6.5);
-        
-        b = b.play(super::White, 14, 14);
-        assert!(b.get(14,14).unwrap() == super::White);
     }
 }
