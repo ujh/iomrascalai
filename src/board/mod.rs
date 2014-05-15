@@ -30,45 +30,50 @@ pub enum Color {
 }
 
 #[deriving(Clone, Eq)]
+struct Coord {
+    col: u8,
+    row: u8
+}
+
+#[deriving(Clone, Eq)]
 struct Stone {
-    col: uint,
-    row: uint,
+    coord: Coord,
     color: Color,
     chain_id: int
 }
 
 #[deriving(Clone)]
-struct Chain<'a> {
-    points: Vec<&'a Stone>
+struct Chain{
+    points: Vec<Coord>
 }
 
 #[deriving(Clone)]
-pub struct Board<'a> {
+pub struct Board {
     komi: f32,
-    size: uint,
+    size: u8,
     board: Vec<Stone>,
-    chains: Vec<Chain<'a>>
+    chains: Vec<Chain>
 }
 
 impl Stone {
-    fn with_color(c: Color, chain_id: int, col: uint, row: uint) -> Stone {
-        Stone {color: c, chain_id: chain_id, col:col, row: row}
+    fn with_color(c: Color, chain_id: int, col: u8, row: u8) -> Stone {
+        Stone {color: c, chain_id: chain_id, coord: Coord {col: col, row: row}}
     }
 }
 
-impl<'a> Chain<'a> {
-    fn new(first_point: &'a Stone) -> Chain<'a> {
-        Chain {points: vec!(first_point)}
+impl Chain {
+    fn new(first_point: &Stone) -> Chain {
+        Chain {points: vec!(first_point.coord)}
     }
 }
 
-impl<'a> Board<'a> {
+impl Board {
     pub fn new(size: uint, komi: f32) -> Board {
-        let empty_board = Vec::from_fn(size*size, |i| Stone::with_color(Empty, -1, i%size+1, i/size+1));
+        let empty_board = Vec::from_fn(size*size, |i| Stone::with_color(Empty, -1, (i%size+1) as u8, (i/size+1) as u8));
 
         Board {
             komi: komi,
-            size: size,
+            size: size as u8,
             board: empty_board,
             chains: Vec::new()
         }
@@ -76,9 +81,9 @@ impl<'a> Board<'a> {
 
     // Note: This method uses 1-1 as the origin point, not 0-0. 19-19 is a valid coordinate in a 19-sized board, while 0-0 is not.
     //       this is done because I think it makes more sense in the context of go. (Least surprise principle, etc...)
-    pub fn get<'b>(&'b self, col: uint, row: uint) -> Option<&'b Stone> {
+    pub fn get<'a>(&'a self, col: u8, row: u8) -> Option<&'a Stone> {
         if 1 <= col && col <= self.size && 1 <= row && row <= self.size {
-            Some(self.board.get((row-1)*self.size+(col-1)))
+            Some(self.board.get((row as uint - 1) * self.size as uint + (col as uint - 1)))
         } else {
             None
         }
@@ -89,19 +94,19 @@ impl<'a> Board<'a> {
     }
 
     // Note: Same as get(), the board is indexed starting at 1-1
-    pub fn play(&self, c: Color, col: uint, row: uint) -> Board<'a> {
+    pub fn play(&self, c: Color, col: u8, row: u8) -> Board {
         let mut new_state = (*self).clone();
-        new_state.board.get_mut((row-1)*self.size+(col-1)).color = c;
+        new_state.board.get_mut((row as uint - 1) * self.size as uint + (col as uint - 1)).color = c;
         new_state
     }
 
-    fn neighbours(&'a self, p: &Stone) -> Vec<&'a Stone> {
+    fn neighbours<'a>(&'a self, p: &Stone) -> Vec<&'a Stone> {
         let mut neighbours = Vec::new();
 
         for i in range(-1,2) {
             for j in range(-1,2) {
                 if (i == 0 && j !=0) || (i != 0 && j == 0) {
-                    let n = self.get(p.col+i as uint, p.row+j as uint);
+                    let n = self.get(p.coord.col+i as u8, p.coord.row+j as u8);
 
                     if n.is_some() { neighbours.push(n.unwrap()); }
                 }
@@ -113,17 +118,17 @@ impl<'a> Board<'a> {
 
     pub fn show(&self) {
         // First we print the board
-        for row in range(1, self.size+1).rev() {
+        for row in range(1u8, self.size+1).rev() {
 
             // Prints the row number
             print!("{:2} ", row);
 
             // Prints the actual row
-            for col in range(1, self.size+1) {
+            for col in range(1u8, self.size+1) {
                 if self.get(col, row).unwrap().color == Empty {
                     let hoshis = &[4u,10,16];
-                    if   hoshis.contains(&row) && hoshis.contains(&col) {print!("+ ")}
-                    else                                                {print!(". ")}
+                    if   hoshis.contains(&(row as uint)) && hoshis.contains(&(col as uint)) {print!("+ ")}
+                    else                                                                {print!(". ")}
                 } else if self.get(col, row).unwrap().color == White {print!("O ")}
                   else if self.get(col, row).unwrap().color == Black {print!("X ")}
             }
