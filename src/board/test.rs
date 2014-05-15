@@ -27,7 +27,6 @@ use board::{Board, Empty, White, Black};
 fn test_getting_a_valid_coord_returns_a_color(){
   let b = Board::new(19, 6.5);
 
-  assert!(b.get(1,1).unwrap().color == Empty);
   assert!(b.get(10,10).unwrap().color == Empty);
 }
 
