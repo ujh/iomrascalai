@@ -76,10 +76,10 @@ fn test_neighbours_contain_NSEW() {
 
   let n = b.neighbours(b.get(10,10).unwrap());
 
-  assert!(n.iter().find(|p| p.col == 10 && p.row == 9  && p.color == White).is_some());
-  assert!(n.iter().find(|p| p.col == 9  && p.row == 10 && p.color == White).is_some());
-  assert!(n.iter().find(|p| p.col == 10 && p.row == 11 && p.color == Black).is_some());
-  assert!(n.iter().find(|p| p.col == 11 && p.row == 10 && p.color == Empty).is_some());
+  assert!(n.iter().find(|p| p.coord.col == 10 && p.coord.row == 9  && p.color == White).is_some());
+  assert!(n.iter().find(|p| p.coord.col == 9  && p.coord.row == 10 && p.color == White).is_some());
+  assert!(n.iter().find(|p| p.coord.col == 10 && p.coord.row == 11 && p.color == Black).is_some());
+  assert!(n.iter().find(|p| p.coord.col == 11 && p.coord.row == 10 && p.color == Empty).is_some());
 }
 
 #[test]
@@ -88,10 +88,10 @@ fn test_neighbours_do_not_contain_diagonals() {
 
   let n = b.neighbours(b.get(10,10).unwrap());
 
-  assert!(n.iter().find(|p| p.col == 11 && p.row == 11).is_none());
-  assert!(n.iter().find(|p| p.col == 9  && p.row == 11).is_none());
-  assert!(n.iter().find(|p| p.col == 11 && p.row == 9 ).is_none());
-  assert!(n.iter().find(|p| p.col == 9  && p.row == 9 ).is_none());
+  assert!(n.iter().find(|p| p.coord.col == 11 && p.coord.row == 11).is_none());
+  assert!(n.iter().find(|p| p.coord.col == 9  && p.coord.row == 11).is_none());
+  assert!(n.iter().find(|p| p.coord.col == 11 && p.coord.row == 9 ).is_none());
+  assert!(n.iter().find(|p| p.coord.col == 9  && p.coord.row == 9 ).is_none());
 }
 
 #[test]
@@ -100,5 +100,5 @@ fn test_neighbours_do_not_contain_itself() {
 
   let n = b.neighbours(b.get(10,10).unwrap());
 
-  assert!(n.iter().find(|p| p.col == 10 && p.row == 10).is_none());
+  assert!(n.iter().find(|p| p.coord.col == 10 && p.coord.row == 10).is_none());
 }
