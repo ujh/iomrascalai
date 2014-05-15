@@ -21,14 +21,14 @@
 
 #[cfg(test)]
 
-use board::{Board, Empty, White};
+use board::{Board, Empty, White, Black};
 
 #[test]
 fn test_getting_a_valid_coord_returns_a_color(){
   let b = Board::new(19, 6.5);
 
-  assert!(b.get(1,1).unwrap()   == Empty);
-  assert!(b.get(10,10).unwrap() == Empty);
+  assert!(b.get(1,1).unwrap().color == Empty);
+  assert!(b.get(10,10).unwrap().color == Empty);
 }
 
 #[test]
@@ -42,7 +42,7 @@ fn test_getting_invalid_coordinates_returns_None() {
 fn test_19_19_is_a_valid_coordinate(){
   let b = Board::new(19, 6.5);
 
-  assert!(b.get(19,19).unwrap() == Empty);
+  assert!(b.get(19,19).unwrap().color == Empty);
 }
 
 #[test]
@@ -64,5 +64,42 @@ fn test_play(){
   let mut b = Board::new(19, 6.5);
 
   b = b.play(White, 14, 14);
-  assert!(b.get(14,14).unwrap() == White);
+  assert!(b.get(14,14).unwrap().color == White);
+}
+
+#[test]
+fn test_neighbours_contain_NSEW() {
+  let mut b = Board::new(19, 6.5);
+
+  b = b.play(White, 10, 9);
+  b = b.play(White, 9, 10);
+  b = b.play(Black, 10, 11);
+
+  let n = b.neighbours(b.get(10,10).unwrap());
+
+  assert!(n.iter().find(|p| p.col == 10 && p.row == 9  && p.color == White).is_some());
+  assert!(n.iter().find(|p| p.col == 9  && p.row == 10 && p.color == White).is_some());
+  assert!(n.iter().find(|p| p.col == 10 && p.row == 11 && p.color == Black).is_some());
+  assert!(n.iter().find(|p| p.col == 11 && p.row == 10 && p.color == Empty).is_some());
+}
+
+#[test]
+fn test_neighbours_do_not_contain_diagonals() {
+  let mut b = Board::new(19, 6.5);
+
+  let n = b.neighbours(b.get(10,10).unwrap());
+
+  assert!(n.iter().find(|p| p.col == 11 && p.row == 11).is_none());
+  assert!(n.iter().find(|p| p.col == 9  && p.row == 11).is_none());
+  assert!(n.iter().find(|p| p.col == 11 && p.row == 9 ).is_none());
+  assert!(n.iter().find(|p| p.col == 9  && p.row == 9 ).is_none());
+}
+
+#[test]
+fn test_neighbours_do_not_contain_itself() {
+  let mut b = Board::new(19, 6.5);
+
+  let n = b.neighbours(b.get(10,10).unwrap());
+
+  assert!(n.iter().find(|p| p.col == 10 && p.row == 10).is_none());
 }

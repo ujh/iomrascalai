@@ -29,29 +29,30 @@ pub enum Color {
     Empty
 }
 
-#[deriving(Clone)]
+#[deriving(Clone, Eq)]
 struct Point {
-    color: Color
+    col: uint,
+    row: uint,
+    color: Color,
+    chain_id: int
 }
 
+#[deriving(Clone)]
 struct Chain<'a> {
     points: Vec<&'a Point>
 }
 
 #[deriving(Clone)]
-pub struct Board {
+pub struct Board<'a> {
     komi: f32,
     size: uint,
-    board: Vec<Vec<Point>>
+    board: Vec<Point>,
+    chains: Vec<Chain<'a>>
 }
 
 impl Point {
-    fn new() -> Point {
-        Point {color: Empty}
-    }
-
-    fn with_color(c: Color) -> Point {
-        Point {color: c}
+    fn with_color(c: Color, chain_id: int, col: uint, row: uint) -> Point {
+        Point {color: c, chain_id: chain_id, col:col, row: row}
     }
 }
 
@@ -61,22 +62,23 @@ impl<'a> Chain<'a> {
     }
 }
 
-impl Board {
+impl<'a> Board<'a> {
     pub fn new(size: uint, komi: f32) -> Board {
-        let empty_board = Vec::from_fn(size, |_| Vec::from_fn(size, |_| Point::new()));
+        let empty_board = Vec::from_fn(size*size, |i| Point::with_color(Empty, -1, i%size+1, i/size+1));
 
         Board {
             komi: komi,
             size: size,
-            board: empty_board
+            board: empty_board,
+            chains: Vec::new()
         }
     }
 
     // Note: This method uses 1-1 as the origin point, not 0-0. 19-19 is a valid coordinate in a 19-sized board, while 0-0 is not.
     //       this is done because I think it makes more sense in the context of go. (Least surprise principle, etc...)
-    pub fn get(&self, col: uint, row: uint) -> Option<Color> {
+    pub fn get<'b>(&'b self, col: uint, row: uint) -> Option<&'b Point> {
         if 1 <= col && col <= self.size && 1 <= row && row <= self.size {
-            Some(self.board.get(col-1).get(self.size-row).color)
+            Some(self.board.get((row-1)*self.size+(col-1)))
         } else {
             None
         }
@@ -87,29 +89,43 @@ impl Board {
     }
 
     // Note: Same as get(), the board is indexed starting at 1-1
-    pub fn play(&self, c: Color, col: uint, row: uint) -> Board {
+    pub fn play(&self, c: Color, col: uint, row: uint) -> Board<'a> {
         let mut new_state = (*self).clone();
-        new_state.board.get_mut(col-1).get_mut(self.size-row).color = c;
+        new_state.board.get_mut((row-1)*self.size+(col-1)).color = c;
         new_state
     }
 
-    pub fn show(&self) {
-        let b = &self.board;
+    fn neighbours(&'a self, p: &Point) -> Vec<&'a Point> {
+        let mut neighbours = Vec::new();
 
+        for i in range(-1,2) {
+            for j in range(-1,2) {
+                if (i == 0 && j !=0) || (i != 0 && j == 0) {
+                    let n = self.get(p.col+i as uint, p.row+j as uint);
+
+                    if n.is_some() { neighbours.push(n.unwrap()); }
+                }
+            }
+        }
+
+        neighbours
+    }
+
+    pub fn show(&self) {
         // First we print the board
-        for row in range(0, self.size) {
+        for row in range(1, self.size+1).rev() {
 
             // Prints the row number
-            print!("{:2} ", self.size - row);
+            print!("{:2} ", row);
 
             // Prints the actual row
-            for col in range(0, self.size) {
-                if      b.get(col).get(row).color == Empty {
-                    let hoshis = &[3u,9,15];
+            for col in range(1, self.size+1) {
+                if self.get(col, row).unwrap().color == Empty {
+                    let hoshis = &[4u,10,16];
                     if   hoshis.contains(&row) && hoshis.contains(&col) {print!("+ ")}
                     else                                                {print!(". ")}
-                } else if b.get(col).get(row).color == White {print!("O ")}
-                  else if b.get(col).get(row).color == Black {print!("X ")}
+                } else if self.get(col, row).unwrap().color == White {print!("O ")}
+                  else if self.get(col, row).unwrap().color == Black {print!("X ")}
             }
             println!("");
         }
