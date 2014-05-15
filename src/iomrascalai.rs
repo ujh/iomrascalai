@@ -20,14 +20,32 @@
  ************************************************************************/
 
 use board::{White, Black};
+use std::io::stdio::stdin;
 
 mod board;
 
 fn main() {
   let mut b = board::Board::new(19, 6.5);
-  println!("{}", b.komi());
-  b = b.play(Black, 4, 4);
-  b = b.play(White, 2, 9);
-  b = b.play(Black, 19, 19);
-  b.show();
+  let mut current_player = Black;
+  let mut reader = stdin();
+  let mut line =  "whatever".to_owned();
+
+  while line.len() > 1 {
+    print!("{} to play (Enter coordinates separated by space): ", current_player);
+
+    line = reader.read_line().unwrap();
+
+    let coords: Vec<u8> = line.trim_chars('\n').split(' ').map(|s| from_str(s).unwrap()).collect();
+
+    b = b.play(current_player, *coords.get(0), *coords.get(1));
+
+    current_player = match current_player {
+        Black => White,
+        White => Black,
+        _     => unreachable!()
+    };
+
+    b.show();
+    b.show_chains();
+  }
 }
