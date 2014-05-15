@@ -27,28 +27,30 @@ use board::{Board, Empty, White, Black};
 fn test_getting_a_valid_coord_returns_a_color(){
   let b = Board::new(19, 6.5);
 
-  assert!(b.get(10,10).unwrap().color == Empty);
+  assert!(b.get(10,10).color == Empty);
 }
 
 #[test]
-fn test_getting_invalid_coordinates_returns_None() {
+#[should_fail]
+fn test_getting_invalid_coordinates_fails() {
   let b = Board::new(19, 6.5);
-  assert!(b.get(14,21) == None);
-  assert!(b.get(21,14) == None);
+  b.get(14,21);
+  b.get(21,14);
 }
 
 #[test]
 fn test_19_19_is_a_valid_coordinate(){
   let b = Board::new(19, 6.5);
 
-  assert!(b.get(19,19).unwrap().color == Empty);
+  assert!(b.get(19,19).color == Empty);
 }
 
 #[test]
+#[should_fail]
 fn test_0_0_is_not_a_valid_coordinate(){
   let b = Board::new(19, 6.5);
 
-  assert!(b.get(0,0) == None);
+  b.get(0,0);
 }
 
 #[test]
@@ -63,7 +65,7 @@ fn test_play(){
   let mut b = Board::new(19, 6.5);
 
   b = b.play(White, 14, 14);
-  assert!(b.get(14,14).unwrap().color == White);
+  assert!(b.get(14,14).color == White);
 }
 
 #[test]
@@ -74,7 +76,7 @@ fn test_neighbours_contain_NSEW() {
   b = b.play(White, 9, 10);
   b = b.play(Black, 10, 11);
 
-  let n = b.neighbours(b.get(10,10).unwrap());
+  let n = b.neighbours(b.get(10,10));
 
   assert!(n.iter().find(|p| p.coord.col == 10 && p.coord.row == 9  && p.color == White).is_some());
   assert!(n.iter().find(|p| p.coord.col == 9  && p.coord.row == 10 && p.color == White).is_some());
@@ -86,7 +88,7 @@ fn test_neighbours_contain_NSEW() {
 fn test_neighbours_do_not_contain_diagonals() {
   let b = Board::new(19, 6.5);
 
-  let n = b.neighbours(b.get(10,10).unwrap());
+  let n = b.neighbours(b.get(10,10));
 
   assert!(n.iter().find(|p| p.coord.col == 11 && p.coord.row == 11).is_none());
   assert!(n.iter().find(|p| p.coord.col == 9  && p.coord.row == 11).is_none());
@@ -98,7 +100,7 @@ fn test_neighbours_do_not_contain_diagonals() {
 fn test_neighbours_do_not_contain_itself() {
   let b = Board::new(19, 6.5);
 
-  let n = b.neighbours(b.get(10,10).unwrap());
+  let n = b.neighbours(b.get(10,10));
 
   assert!(n.iter().find(|p| p.coord.col == 10 && p.coord.row == 10).is_none());
 }
