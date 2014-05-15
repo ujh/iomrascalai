@@ -25,6 +25,7 @@ mod board;
 
 fn main() {
   let mut b = board::Board::new(19, 6.5);
+  println!("{}", b.komi());
   b = b.play(Black, 4, 4);
   b = b.play(White, 2, 9);
   b = b.play(Black, 19, 19);

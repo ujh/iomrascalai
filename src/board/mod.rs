@@ -39,12 +39,15 @@ struct Coord {
 struct Stone {
     coord: Coord,
     color: Color,
-    chain_id: int
+
+    // This is only meaningful if the Stone's color is not Empty. If it is, then chain_id could be anything.
+    chain_id: uint 
 }
 
 #[deriving(Clone)]
 struct Chain{
-    points: Vec<Coord>
+    color: Color,
+    coords: Vec<Coord>
 }
 
 #[deriving(Clone)]
@@ -56,20 +59,30 @@ pub struct Board {
 }
 
 impl Stone {
-    fn with_color(c: Color, chain_id: int, col: u8, row: u8) -> Stone {
+    fn with_color(c: Color, chain_id: uint, col: u8, row: u8) -> Stone {
         Stone {color: c, chain_id: chain_id, coord: Coord {col: col, row: row}}
     }
 }
 
 impl Chain {
-    fn new(first_point: &Stone) -> Chain {
-        Chain {points: vec!(first_point.coord)}
+    fn new(first_stone: &Stone) -> Chain {
+        Chain {coords: vec!(first_stone.coord), color: first_stone.color}
+    }
+
+    fn add_stone(&mut self, s: &Stone) {
+        self.coords.push(Coord {col: s.coord.col, row: s.coord.row})
+    }
+
+    fn merge(&mut self, c: &Chain) {
+        for coord in c.coords.iter() {
+            self.coords.push(coord.clone())
+        }
     }
 }
 
 impl Board {
     pub fn new(size: uint, komi: f32) -> Board {
-        let empty_board = Vec::from_fn(size*size, |i| Stone::with_color(Empty, -1, (i%size+1) as u8, (i/size+1) as u8));
+        let empty_board = Vec::from_fn(size*size, |i| Stone::with_color(Empty, 0, (i%size+1) as u8, (i/size+1) as u8));
 
         Board {
             komi: komi,
@@ -89,15 +102,117 @@ impl Board {
         }
     }
 
+    fn get_mut<'a>(&'a mut self, col: u8, row: u8) -> Option<&'a mut Stone> {
+        if 1 <= col && col <= self.size && 1 <= row && row <= self.size {
+            Some(self.board.get_mut((row as uint - 1) * self.size as uint + (col as uint - 1)))
+        } else {
+            None
+        }
+    }
+    
+    fn get_chain<'a>(&'a self, id: uint) -> Option<&'a Chain> {
+        if id < self.chains.len() {
+            Some(self.chains.get(id))
+        } else {
+            None
+        }
+    }
+
+    fn get_mut_chain<'a>(&'a mut self, id: uint) -> Option<&'a mut Chain> {
+        if id < self.chains.len()  {
+            Some(self.chains.get_mut(id))
+        } else {
+            None
+        }
+    }
+
+    fn add_chain(&mut self, s: &Stone) -> uint {
+        self.chains.push(Chain::new(s));
+        self.chains.len() - 1
+    }
+
     pub fn komi(&self) -> f32 {
         self.komi
     }
 
     // Note: Same as get(), the board is indexed starting at 1-1
     pub fn play(&self, c: Color, col: u8, row: u8) -> Board {
-        let mut new_state = (*self).clone();
-        new_state.board.get_mut((row as uint - 1) * self.size as uint + (col as uint - 1)).color = c;
-        new_state
+
+        // We check the validity of the coords.
+        let mut new_board = if self.get(col, row).is_some() {
+            self.clone()
+        } else {
+            fail!("The coordinate you have entered ({} {}) are invalid", col, row);
+        };
+
+        // We update the color of the Stone.
+        new_board.get_mut(col, row).unwrap().color = c;
+
+
+        // We find each neighbouring chain of the same color.
+        let mut chains_ids_to_merge: Vec<uint> = new_board.neighbours(new_board.get(col, row).unwrap()).iter()
+            .filter_map(|n| if n.color == c {Some(n.chain_id)} else {None})
+            .collect();
+        chains_ids_to_merge.sort();
+        chains_ids_to_merge.dedup();
+
+        /*
+         * If there is 0 friendly neighbouring chain, we create one, and assign the Stone played to that new chain.
+         * If there is 1, we assign the stone to that chain.
+         * If there are more, we assign the stone to one chain, then merge the others into that chain, then remove the old chains from
+         * board.chains, then we lower by 1 the ids of all stones with chain ids higher than the removed chains,
+         * and finally we reassign the correct chain_id to each stone in the final chain.
+        */
+        match chains_ids_to_merge.len() {
+            0 => {
+                // The cloning is needed as the next line borrows new_board mutably with add_chain(), preventing also borrowing elsewhere
+                let stone_copy = new_board.get(col, row).unwrap().clone();
+
+                let new_id = new_board.add_chain(&stone_copy);
+                new_board.get_mut(col, row).unwrap().chain_id = new_id;
+            }
+            1 => {
+                // Same thing as higher
+                let stone_copy = new_board.get(col, row).unwrap().clone();
+                let new_id     = *chains_ids_to_merge.get(0);
+
+                new_board.get_mut_chain(new_id).unwrap().add_stone(&stone_copy);
+                new_board.get_mut(col, row).unwrap().chain_id = new_id;
+            }
+            _ => {
+                // We assign the stone to the final chain
+                let stone_copy = new_board.get(col, row).unwrap().clone();
+                let new_id     = *chains_ids_to_merge.get(0);
+                new_board.get_mut_chain(new_id).unwrap().add_stone(&stone_copy);
+                new_board.get_mut(col, row).unwrap().chain_id = new_id;
+
+                
+                for &other_chain_id in chains_ids_to_merge.slice(1, chains_ids_to_merge.len()).iter() {
+                    // We merge the other chains into the final chain
+                    let chain_copy = new_board.get_chain(other_chain_id).unwrap().clone();
+                    new_board.get_mut_chain(new_id).unwrap().merge(&chain_copy);
+
+                    // Remove the old chain.
+                    new_board.chains.remove(other_chain_id);
+
+                    // Decrement the chain_id of Stones with a chain_id >= to the id of the removed chain (preserves integrity)
+                    for stone in new_board.board.mut_iter() {
+                        if stone.color != Empty && stone.chain_id >= other_chain_id { stone.chain_id -= 1; }
+                    }
+
+                    // We update each stone pointed to by the final chain to have the correct id
+                    let coords_to_update = new_board.get_chain(new_id).unwrap().coords.clone();
+                    for c in coords_to_update.iter() {
+                        new_board.get_mut(c.col, c.row).unwrap().chain_id = new_id;
+                    }
+                }
+
+
+            }
+        }
+
+
+        new_board
     }
 
     fn neighbours<'a>(&'a self, p: &Stone) -> Vec<&'a Stone> {

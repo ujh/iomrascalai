@@ -84,7 +84,7 @@ fn test_neighbours_contain_NSEW() {
 
 #[test]
 fn test_neighbours_do_not_contain_diagonals() {
-  let mut b = Board::new(19, 6.5);
+  let b = Board::new(19, 6.5);
 
   let n = b.neighbours(b.get(10,10).unwrap());
 
@@ -96,7 +96,7 @@ fn test_neighbours_do_not_contain_diagonals() {
 
 #[test]
 fn test_neighbours_do_not_contain_itself() {
-  let mut b = Board::new(19, 6.5);
+  let b = Board::new(19, 6.5);
 
   let n = b.neighbours(b.get(10,10).unwrap());
 
