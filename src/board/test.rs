@@ -104,3 +104,27 @@ fn test_neighbours_do_not_contain_itself() {
 
   assert!(n.iter().find(|p| p.coord.col == 10 && p.coord.row == 10).is_none());
 }
+
+#[test]
+fn test_is_inside_valid_coords_pass() {
+  let b = Board::new(19, 6.5);
+  assert!(b.is_inside(1,1));
+  assert!(b.is_inside(19,19));
+  assert!(b.is_inside(10,10));
+}
+
+#[test]
+fn test_is_inside_0_0_fails(){
+  let b = Board::new(19, 6.5);
+  assert!(!b.is_inside(0,0));
+}
+
+#[test]
+fn test_is_inside_invalid_coords_fail(){
+  let b = Board::new(19, 6.5);
+  assert!(!b.is_inside(4,21));
+  assert!(!b.is_inside(21,4));
+
+  let c = Board::new(9, 6.5);
+  assert!(!c.is_inside(18,18));
+}
