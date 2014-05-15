@@ -237,9 +237,9 @@ impl Board {
             // Prints the actual row
             for col in range(1u8, self.size+1) {
                 if self.get(col, row).unwrap().color == Empty {
-                    let hoshis = &[4u,10,16];
-                    if   hoshis.contains(&(row as uint)) && hoshis.contains(&(col as uint)) {print!("+ ")}
-                    else                                                                {print!(". ")}
+                    let hoshis = &[4u8,10,16];
+                    if   hoshis.contains(&row) && hoshis.contains(&col) {print!("+ ")}
+                    else                                                {print!(". ")}
                 } else if self.get(col, row).unwrap().color == White {print!("O ")}
                   else if self.get(col, row).unwrap().color == Black {print!("X ")}
             }
