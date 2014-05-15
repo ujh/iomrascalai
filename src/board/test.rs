@@ -27,8 +27,8 @@ use board::{Board, Empty, White};
 fn test_getting_a_valid_coord_returns_a_color(){
   let b = Board::new(19, 6.5);
 
-  assert!(b.get(1,1).unwrap()   == Empty);
-  assert!(b.get(10,10).unwrap() == Empty);
+  assert!(b.get(1,1).unwrap().color == Empty);
+  assert!(b.get(10,10).unwrap().color == Empty);
 }
 
 #[test]
@@ -42,7 +42,7 @@ fn test_getting_invalid_coordinates_returns_None() {
 fn test_19_19_is_a_valid_coordinate(){
   let b = Board::new(19, 6.5);
 
-  assert!(b.get(19,19).unwrap() == Empty);
+  assert!(b.get(19,19).unwrap().color == Empty);
 }
 
 #[test]
@@ -64,5 +64,5 @@ fn test_play(){
   let mut b = Board::new(19, 6.5);
 
   b = b.play(White, 14, 14);
-  assert!(b.get(14,14).unwrap() == White);
+  assert!(b.get(14,14).unwrap().color == White);
 }
