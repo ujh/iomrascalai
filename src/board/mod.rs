@@ -137,7 +137,6 @@ impl Board {
 
     // Note: Same as get(), the board is indexed starting at 1-1
     pub fn play(&self, c: Color, col: u8, row: u8) -> Board {
-
         // We check the validity of the coords.
         let mut new_board = if self.get(col, row).is_some() {
             self.clone()
@@ -206,11 +205,8 @@ impl Board {
                         new_board.get_mut(c.col, c.row).unwrap().chain_id = new_id;
                     }
                 }
-
-
             }
         }
-
 
         new_board
     }
@@ -257,5 +253,14 @@ impl Board {
         }
 
         println!("");
+    }
+
+    pub fn show_chains(&self) {
+        for c in self.chains.iter() {
+            for p in c.coords.iter() {
+                print!("{},{}|", p.col, p.row);
+            }
+            println!("");
+        }
     }
 }
