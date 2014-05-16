@@ -21,7 +21,7 @@
 
 #[cfg(test)]
 
-use board::{Board, Empty, White, Black};
+use board::{Board, Empty, White, Black, Stone, Coord};
 
 #[test]
 fn test_getting_a_valid_coord_returns_a_color(){
@@ -114,13 +114,13 @@ fn test_is_inside_valid_coords_pass() {
 }
 
 #[test]
-fn test_is_inside_0_0_fails(){
+fn test_is_inside_0_0_fails() {
   let b = Board::new(19, 6.5);
   assert!(!b.is_inside(0,0));
 }
 
 #[test]
-fn test_is_inside_invalid_coords_fail(){
+fn test_is_inside_invalid_coords_fail() {
   let b = Board::new(19, 6.5);
   assert!(!b.is_inside(4,21));
   assert!(!b.is_inside(21,4));
@@ -128,3 +128,49 @@ fn test_is_inside_invalid_coords_fail(){
   let c = Board::new(9, 6.5);
   assert!(!c.is_inside(18,18));
 }
+
+#[test]
+fn test_get_mut_enables_changing_the_stone() {
+  let mut b = Board::new(19, 6.5);
+
+  b.get_mut(10,10).color = Black;
+  assert!(b.get(10,10).color == Black);
+}
+
+#[test]
+#[should_fail]
+fn test_get_mut_fails_on_invalid_coords(){
+  let mut b = Board::new(19, 6.5);
+
+  b.get_mut(21,4);
+  b.get_mut(4,21);
+  b.get_mut(0,0);
+}
+
+#[test]
+fn test_add_chain_creates_a_new_chain_and_adds_it_to_the_board() {
+  let mut b = Board::new(19, 6.5);
+  let s = Stone::with_color(White, 0, 10, 10);
+
+  b.add_chain(&s);
+  assert!(b.chains.len() == 1);
+}
+
+#[test]
+fn test_add_chain_contains_the_initial_stone_coordinates() {
+  let mut b = Board::new(19, 6.5);
+  let s = Stone::with_color(White, 0, 10, 10);
+
+  b.add_chain(&s);
+  assert!(b.chains.get(0).coords.contains(&Coord {col: 10, row: 10}));
+}
+
+#[test]
+fn test_add_chain_is_the_same_color_as_the_initial_stone(){
+  let mut b = Board::new(19, 6.5);
+  let s = Stone::with_color(White, 0, 10, 10);
+
+  b.add_chain(&s);
+  assert!(b.chains.get(0).color == White);
+}
+
