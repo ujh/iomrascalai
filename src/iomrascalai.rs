@@ -18,6 +18,7 @@
  * along with Iomrascálaí.  If not, see <http://www.gnu.org/licenses/>. *
  *                                                                      *
  ************************************************************************/
+extern crate collections;
 
 use board::{White, Black};
 use std::io::stdio::stdin;
