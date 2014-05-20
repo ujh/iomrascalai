@@ -6,7 +6,7 @@ Iomrascálaí
 
 Iomrascálaí
 ([see here for the pronunciation](https://raw.githubusercontent.com/ujh/iomrascalai/master/pronunciation.mp4))
-is an AI for the game of Go/Weiqi/Baduk written in Rust. Please not
+is an AI for the game of Go/Weiqi/Baduk written in Rust. Please note
 that we're using the Rust nightly build and not 0.10!
 
 Development
