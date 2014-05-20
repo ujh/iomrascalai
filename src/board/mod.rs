@@ -68,7 +68,7 @@ impl Coord {
                 }
             }
         }
-        neighbours    
+        neighbours
     }
 
     fn to_index(&self, size:u8) -> uint {
@@ -174,7 +174,7 @@ impl Board {
                 // We assign the stone to the final chain
                 new_board.chains.get_mut(final_chain_id).add_stone(new_coords);
                 *new_board.board.get_mut(new_coords.to_index(new_board.size)) = final_chain_id;
-                
+
                 for &other_chain_id in neighbouring_chains_ids.slice(1, neighbouring_chains_ids.len()).iter() {
                     // We merge the other chain into the final chain.
                     let other_chain = &new_board.chains.get(other_chain_id-nb_removed_chains).clone();

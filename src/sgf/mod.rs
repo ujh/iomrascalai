@@ -1,6 +1,6 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2014 Urban Hafner, Thomas Poinsot                          *
+ * Copyright 2014 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -18,34 +18,8 @@
  * along with Iomrascálaí.  If not, see <http://www.gnu.org/licenses/>. *
  *                                                                      *
  ************************************************************************/
-use board::{White, Black};
-use std::io::stdio::stdin;
 
-mod board;
-mod sgf;
+pub use self::parser::Parser;
 
-fn main() {
-  let mut b = board::Board::new(19, 6.5);
-  let mut current_player = Black;
-  let mut reader = stdin();
-  let mut line =  "whatever".to_owned();
-
-  while line.len() > 1 {
-    print!("{} to play (Enter coordinates separated by space): ", current_player);
-
-    line = reader.read_line().unwrap();
-
-    let coords: Vec<u8> = line.as_slice().trim_chars('\n').split(' ').map(|s| from_str(s).unwrap()).collect();
-
-    b = b.play(current_player, *coords.get(0), *coords.get(1));
-
-    current_player = match current_player {
-        Black => White,
-        White => Black,
-        _     => unreachable!()
-    };
-
-    b.show();
-    b.show_chains();
-  }
-}
+mod parser;
+mod test;
