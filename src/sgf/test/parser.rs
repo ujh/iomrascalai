@@ -25,12 +25,14 @@ use std::io::fs::File;
 
 use sgf::parser::Parser;
 
+fn read_sgf(name : &'static str) -> ~str {
+    let path = Path::new(format!("fixtures/sgf/{}.sgf", name));
+    let contents = File::open(&path).read_to_str();
+    contents.unwrap()
+}
+
 fn empty_sgf() -> ~str {
-    let contents = File::open(&Path::new("fixtures/sgf/empty.sgf")).read_to_str();
-    match contents {
-        Ok(c) => c,
-        Err(c) => "".to_owned()
-    }
+    read_sgf("empty")
 }
 
 #[test]
