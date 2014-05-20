@@ -25,7 +25,7 @@ use sgf::parser::Parser;
 
 #[test]
 fn sets_the_board_size_from_sgf() {
-    let parser = Parser::new("(;SZ[19])");
+    let parser = Parser::new("(;SZ[19])".to_owned());
     let board  = parser.board();
     // Is there only assert! or do things like assert_equal! exist, too?
     assert!(board.size() == 19);

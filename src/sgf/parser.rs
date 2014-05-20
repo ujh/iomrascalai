@@ -21,13 +21,13 @@
 
 use board::Board;
 
-pub struct Parser<'a> {
-    sgf: &'a str
+pub struct Parser {
+    sgf: ~str
 }
 
-impl<'a> Parser<'a> {
+impl Parser {
     // Why do I need all those life time parameters here?
-    pub fn new(sgf: &'a str) -> Parser<'a> {
+    pub fn new(sgf: ~str) -> Parser {
         Parser {sgf: sgf}
     }
 
