@@ -21,11 +21,21 @@
 
 #[cfg(test)]
 
+use std::io::fs::File;
+
 use sgf::parser::Parser;
+
+fn empty_sgf() -> ~str {
+    let contents = File::open(&Path::new("fixtures/sgf/empty.sgf")).read_to_str();
+    match contents {
+        Ok(c) => c,
+        Err(c) => "".to_owned()
+    }
+}
 
 #[test]
 fn sets_the_board_size_from_sgf() {
-    let parser = Parser::new("(;SZ[19])".to_owned());
+    let parser = Parser::new(empty_sgf());
     let board  = parser.board();
     // Is there only assert! or do things like assert_equal! exist, too?
     assert!(board.size() == 19);

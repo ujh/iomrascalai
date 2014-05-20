@@ -26,12 +26,10 @@ pub struct Parser {
 }
 
 impl Parser {
-    // Why do I need all those life time parameters here?
     pub fn new(sgf: ~str) -> Parser {
         Parser {sgf: sgf}
     }
 
-    // Why are there no life time parameters necessary here?
     pub fn board(&self) -> Board {
         Board::new(0, 0.0)
     }
