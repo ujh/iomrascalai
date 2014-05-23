@@ -18,6 +18,11 @@
  * along with Iomrascálaí.  If not, see <http://www.gnu.org/licenses/>. *
  *                                                                      *
  ************************************************************************/
+#![feature(phase)]
+#[phase(syntax)]
+extern crate regex_macros;
+extern crate regex;
+
 use board::{White, Black};
 use std::io::stdio::stdin;
 

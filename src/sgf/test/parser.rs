@@ -39,6 +39,12 @@ fn empty_sgf() -> ~str {
 fn sets_the_board_size_from_sgf() {
     let parser = Parser::new(empty_sgf());
     let board  = parser.board();
-    // Is there only assert! or do things like assert_equal! exist, too?
-    assert!(board.size() == 19);
+    assert_eq!(board.size(), 19);
+}
+
+#[test]
+fn sets_the_komi_from_sgf() {
+    let parser = Parser::new(empty_sgf());
+    let board  = parser.board();
+    assert_eq!(board.komi(), 6.5);
 }

@@ -31,7 +31,18 @@ impl Parser {
     }
 
     pub fn board(&self) -> Board {
-        Board::new(0, 0.0)
+        Board::new(self.size(), self.komi())
     }
 
+    fn size(&self) -> uint {
+        let re = regex!(r"SZ\[(\d+)\]");
+        let captures = re.captures(self.sgf).unwrap();
+        from_str(captures.at(1)).unwrap()
+    }
+
+    fn komi(&self) -> f32 {
+        let re = regex!(r"KM\[(\d+\.\d+)\]");
+        let captures = re.captures(self.sgf).unwrap();
+        from_str(captures.at(1)).unwrap()
+    }
 }
