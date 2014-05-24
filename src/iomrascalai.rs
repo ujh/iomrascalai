@@ -18,8 +18,6 @@
  * along with Iomrascálaí.  If not, see <http://www.gnu.org/licenses/>. *
  *                                                                      *
  ************************************************************************/
-extern crate collections;
-
 use board::{White, Black};
 use std::io::stdio::stdin;
 
@@ -36,7 +34,7 @@ fn main() {
 
     line = reader.read_line().unwrap();
 
-    let coords: Vec<u8> = line.trim_chars('\n').split(' ').map(|s| from_str(s).unwrap()).collect();
+    let coords: Vec<u8> = line.as_slice().trim_chars('\n').split(' ').map(|s| from_str(s).unwrap()).collect();
 
     b = b.play(current_player, *coords.get(0), *coords.get(1));
 

@@ -65,44 +65,15 @@ fn test_play(){
   let mut b = Board::new(19, 6.5);
 
   b = b.play(White, 14, 14);
+  b.show();
+  b.show_chains();
   assert!(b.get(14,14) == White);
-}
 
-#[test]
-fn test_neighbours_contain_NSEW() {
-  let mut b = Board::new(19, 6.5);
-
-  b = b.play(White, 10, 9);
-  b = b.play(White, 9, 10);
-  b = b.play(Black, 10, 11);
-
-  let n = b.neighbours(Coord::new(10,10));
-
-  assert!(n.iter().find(|c| c.col == 10 && c.row == 9  && b.get(c.col, c.row) == White).is_some());
-  assert!(n.iter().find(|c| c.col == 9  && c.row == 10 && b.get(c.col, c.row) == White).is_some());
-  assert!(n.iter().find(|c| c.col == 10 && c.row == 11 && b.get(c.col, c.row) == Black).is_some());
-  assert!(n.iter().find(|c| c.col == 11 && c.row == 10 && b.get(c.col, c.row) == Empty).is_some());
-}
-
-#[test]
-fn test_neighbours_do_not_contain_diagonals() {
-  let b = Board::new(19, 6.5);
-
-  let n = b.neighbours(Coord::new(10,10));
-
-  assert!(n.iter().find(|c| c.col == 11 && c.row == 11).is_none());
-  assert!(n.iter().find(|c| c.col == 9  && c.row == 11).is_none());
-  assert!(n.iter().find(|c| c.col == 11 && c.row == 9 ).is_none());
-  assert!(n.iter().find(|c| c.col == 9  && c.row == 9 ).is_none());
-}
-
-#[test]
-fn test_neighbours_do_not_contain_itself() {
-  let b = Board::new(19, 6.5);
-
-  let n = b.neighbours(Coord::new(10,10));
-
-  assert!(n.iter().find(|c| c.col == 10 && c.row == 10).is_none());
+  for i in range(1u8, 20) {
+    for j in range(1u8 , 20) {
+      assert!(b.get(i,j) == Empty || (i == 14 && j == 14));
+    }
+  }
 }
 
 #[test]
@@ -130,26 +101,32 @@ fn test_is_inside_invalid_coords_fail() {
 }
 
 #[test]
-fn test_create_chain_creates_a_new_chain_and_adds_it_to_the_board() {
-  let mut b = Board::new(19, 6.5);
-  b.create_chain(White, Coord::new(10,10));
+fn test_neighbours_contain_NSEW() {
+  let n = Coord::new(10,10).neighbours();
 
-  assert!(b.chains.len() == 1);
+  assert!(n.iter().find(|c| c.col == 10 && c.row == 9 ).is_some());
+  assert!(n.iter().find(|c| c.col == 9  && c.row == 10).is_some());
+  assert!(n.iter().find(|c| c.col == 10 && c.row == 11).is_some());
+  assert!(n.iter().find(|c| c.col == 11 && c.row == 10).is_some());
 }
 
 #[test]
-fn test_create_chain_contains_the_initial_stone_coordinates() {
-  let mut b = Board::new(19, 6.5);
-  b.create_chain(White, Coord::new(10,10));
+fn test_neighbours_do_not_contain_diagonals() {
+  let n = Coord::new(10,10).neighbours();
 
-  assert!(b.chains.get(0).coords.contains(&Coord {col: 10, row: 10}));
+  assert!(n.iter().find(|c| c.col == 11 && c.row == 11).is_none());
+  assert!(n.iter().find(|c| c.col == 9  && c.row == 11).is_none());
+  assert!(n.iter().find(|c| c.col == 11 && c.row == 9 ).is_none());
+  assert!(n.iter().find(|c| c.col == 9  && c.row == 9 ).is_none());
 }
 
 #[test]
-fn test_create_chain_is_the_same_color_as_the_initial_stone(){
-  let mut b = Board::new(19, 6.5);
-  b.create_chain(White, Coord::new(10,10));
+fn test_neighbours_do_not_contain_itself() {
+  let n = Coord::new(10,10).neighbours();
 
-  assert!(b.chains.get(0).color == White);
+  assert!(n.iter().find(|c| c.col == 10 && c.row == 10).is_none());
 }
+
+
+
 
