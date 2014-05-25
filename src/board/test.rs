@@ -21,35 +21,36 @@
 
 #[cfg(test)]
 
-use board::{Board, Empty, White, Black};
+use board::{Board, Empty, White, Black, Stone, Coord};
 
 #[test]
 fn test_getting_a_valid_coord_returns_a_color(){
   let b = Board::new(19, 6.5);
 
-  assert!(b.get(1,1).unwrap().color == Empty);
-  assert!(b.get(10,10).unwrap().color == Empty);
+  assert!(b.get(10,10).color == Empty);
 }
 
 #[test]
-fn test_getting_invalid_coordinates_returns_None() {
+#[should_fail]
+fn test_getting_invalid_coordinates_fails() {
   let b = Board::new(19, 6.5);
-  assert!(b.get(14,21) == None);
-  assert!(b.get(21,14) == None);
+  b.get(14,21);
+  b.get(21,14);
 }
 
 #[test]
 fn test_19_19_is_a_valid_coordinate(){
   let b = Board::new(19, 6.5);
 
-  assert!(b.get(19,19).unwrap().color == Empty);
+  assert!(b.get(19,19).color == Empty);
 }
 
 #[test]
+#[should_fail]
 fn test_0_0_is_not_a_valid_coordinate(){
   let b = Board::new(19, 6.5);
 
-  assert!(b.get(0,0) == None);
+  b.get(0,0);
 }
 
 #[test]
@@ -64,7 +65,7 @@ fn test_play(){
   let mut b = Board::new(19, 6.5);
 
   b = b.play(White, 14, 14);
-  assert!(b.get(14,14).unwrap().color == White);
+  assert!(b.get(14,14).color == White);
 }
 
 #[test]
@@ -75,31 +76,101 @@ fn test_neighbours_contain_NSEW() {
   b = b.play(White, 9, 10);
   b = b.play(Black, 10, 11);
 
-  let n = b.neighbours(b.get(10,10).unwrap());
+  let n = b.neighbours(b.get(10,10));
 
-  assert!(n.iter().find(|p| p.col == 10 && p.row == 9  && p.color == White).is_some());
-  assert!(n.iter().find(|p| p.col == 9  && p.row == 10 && p.color == White).is_some());
-  assert!(n.iter().find(|p| p.col == 10 && p.row == 11 && p.color == Black).is_some());
-  assert!(n.iter().find(|p| p.col == 11 && p.row == 10 && p.color == Empty).is_some());
+  assert!(n.iter().find(|p| p.coord.col == 10 && p.coord.row == 9  && p.color == White).is_some());
+  assert!(n.iter().find(|p| p.coord.col == 9  && p.coord.row == 10 && p.color == White).is_some());
+  assert!(n.iter().find(|p| p.coord.col == 10 && p.coord.row == 11 && p.color == Black).is_some());
+  assert!(n.iter().find(|p| p.coord.col == 11 && p.coord.row == 10 && p.color == Empty).is_some());
 }
 
 #[test]
 fn test_neighbours_do_not_contain_diagonals() {
-  let mut b = Board::new(19, 6.5);
+  let b = Board::new(19, 6.5);
 
-  let n = b.neighbours(b.get(10,10).unwrap());
+  let n = b.neighbours(b.get(10,10));
 
-  assert!(n.iter().find(|p| p.col == 11 && p.row == 11).is_none());
-  assert!(n.iter().find(|p| p.col == 9  && p.row == 11).is_none());
-  assert!(n.iter().find(|p| p.col == 11 && p.row == 9 ).is_none());
-  assert!(n.iter().find(|p| p.col == 9  && p.row == 9 ).is_none());
+  assert!(n.iter().find(|p| p.coord.col == 11 && p.coord.row == 11).is_none());
+  assert!(n.iter().find(|p| p.coord.col == 9  && p.coord.row == 11).is_none());
+  assert!(n.iter().find(|p| p.coord.col == 11 && p.coord.row == 9 ).is_none());
+  assert!(n.iter().find(|p| p.coord.col == 9  && p.coord.row == 9 ).is_none());
 }
 
 #[test]
 fn test_neighbours_do_not_contain_itself() {
+  let b = Board::new(19, 6.5);
+
+  let n = b.neighbours(b.get(10,10));
+
+  assert!(n.iter().find(|p| p.coord.col == 10 && p.coord.row == 10).is_none());
+}
+
+#[test]
+fn test_is_inside_valid_coords_pass() {
+  let b = Board::new(19, 6.5);
+  assert!(b.is_inside(1,1));
+  assert!(b.is_inside(19,19));
+  assert!(b.is_inside(10,10));
+}
+
+#[test]
+fn test_is_inside_0_0_fails() {
+  let b = Board::new(19, 6.5);
+  assert!(!b.is_inside(0,0));
+}
+
+#[test]
+fn test_is_inside_invalid_coords_fail() {
+  let b = Board::new(19, 6.5);
+  assert!(!b.is_inside(4,21));
+  assert!(!b.is_inside(21,4));
+
+  let c = Board::new(9, 6.5);
+  assert!(!c.is_inside(18,18));
+}
+
+#[test]
+fn test_get_mut_enables_changing_the_stone() {
   let mut b = Board::new(19, 6.5);
 
-  let n = b.neighbours(b.get(10,10).unwrap());
-
-  assert!(n.iter().find(|p| p.col == 10 && p.row == 10).is_none());
+  b.get_mut(10,10).color = Black;
+  assert!(b.get(10,10).color == Black);
 }
+
+#[test]
+#[should_fail]
+fn test_get_mut_fails_on_invalid_coords(){
+  let mut b = Board::new(19, 6.5);
+
+  b.get_mut(21,4);
+  b.get_mut(4,21);
+  b.get_mut(0,0);
+}
+
+#[test]
+fn test_add_chain_creates_a_new_chain_and_adds_it_to_the_board() {
+  let mut b = Board::new(19, 6.5);
+  let s = Stone::with_color(White, 0, 10, 10);
+
+  b.add_chain(&s);
+  assert!(b.chains.len() == 1);
+}
+
+#[test]
+fn test_add_chain_contains_the_initial_stone_coordinates() {
+  let mut b = Board::new(19, 6.5);
+  let s = Stone::with_color(White, 0, 10, 10);
+
+  b.add_chain(&s);
+  assert!(b.chains.get(0).coords.contains(&Coord {col: 10, row: 10}));
+}
+
+#[test]
+fn test_add_chain_is_the_same_color_as_the_initial_stone(){
+  let mut b = Board::new(19, 6.5);
+  let s = Stone::with_color(White, 0, 10, 10);
+
+  b.add_chain(&s);
+  assert!(b.chains.get(0).color == White);
+}
+
