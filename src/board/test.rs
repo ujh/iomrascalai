@@ -27,7 +27,7 @@ use board::{Board, Empty, White, Black, Coord};
 fn test_getting_a_valid_coord_returns_a_color(){
   let b = Board::new(19, 6.5);
 
-  assert!(b.get(10,10) == Empty);
+  assert_eq!(b.get(10,10), Empty);
 }
 
 #[test]
@@ -42,7 +42,7 @@ fn test_getting_invalid_coordinates_fails() {
 fn test_19_19_is_a_valid_coordinate(){
   let b = Board::new(19, 6.5);
 
-  assert!(b.get(19,19) == Empty);
+  assert_eq!(b.get(19,19), Empty);
 }
 
 #[test]
@@ -57,7 +57,7 @@ fn test_0_0_is_not_a_valid_coordinate(){
 fn test_get_komi(){
   let b = Board::new(19, 6.5);
 
-  assert!(b.komi() == 6.5f32)
+  assert_eq!(b.komi(), 6.5f32)
 }
 
 #[test]
