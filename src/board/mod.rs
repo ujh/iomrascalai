@@ -93,7 +93,8 @@ impl Board {
             fail!("The coordinate you have entered ({} {}) are invalid", col, row);
         };
 
-        let new_coords = Coord::new(col, row);
+        let new_coords      = Coord::new(col, row);
+        let new_coords_libs = new_board.count_libs(new_coords);
 
         let mut neighbouring_chains_ids = Vec::new();
         for coord in new_coords.neighbours().iter().filter(|c| new_board.is_inside(c.col, c.row) && new_board.get(c.col, c.row) == color) {
@@ -113,15 +114,15 @@ impl Board {
         */
         match neighbouring_chains_ids.len() {
             0 => {
-                let new_chain_id  = new_board.chains.len();
-                let mut new_chain = Chain::new(new_chain_id, color);
-                new_chain.add_stone(new_coords);
+                let new_chain_id    = new_board.chains.len();
+                let mut new_chain   = Chain::new(new_chain_id, color);
+                new_chain.add_stone(new_coords, new_coords_libs);
                 new_board.chains.push(new_chain);
                 *new_board.board.get_mut(new_coords.to_index(new_board.size)) = new_chain_id;
             },
             1 => {
                 let final_chain_id = *neighbouring_chains_ids.get(0);
-                new_board.chains.get_mut(final_chain_id).add_stone(new_coords);
+                new_board.chains.get_mut(final_chain_id).add_stone(new_coords, new_coords_libs);
                 *new_board.board.get_mut(new_coords.to_index(new_board.size)) = final_chain_id;
             },
             _ => {
@@ -131,7 +132,7 @@ impl Board {
                 let mut nb_removed_chains = 0;
 
                 // We assign the stone to the final chain
-                new_board.chains.get_mut(final_chain_id).add_stone(new_coords);
+                new_board.chains.get_mut(final_chain_id).add_stone(new_coords, new_coords_libs);
                 *new_board.board.get_mut(new_coords.to_index(new_board.size)) = final_chain_id;
                 
                 for &other_chain_old_id in neighbouring_chains_ids.slice(1, neighbouring_chains_ids.len()).iter() {
@@ -158,6 +159,10 @@ impl Board {
         }
 
         new_board
+    }
+
+    fn count_libs(&self, c: Coord) -> uint {
+        c.neighbours().iter().filter(|c| self.is_inside(c.col, c.row) && self.get(c.col, c.row) == Empty).len()
     }
 
     fn update_chains_ids_after_removed_chain(&mut self, removed_chain_id: uint) {
