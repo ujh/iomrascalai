@@ -19,9 +19,10 @@
  *                                                                      *
  ************************************************************************/
 
-#[cfg(test)]
+#![cfg(test)]
 
-use board::{Board, Empty, White, Black, Coord};
+use board::{Board, Empty, White, Black};
+use board::coord::Coord;
 
 #[test]
 fn test_getting_a_valid_coord_returns_a_color(){
