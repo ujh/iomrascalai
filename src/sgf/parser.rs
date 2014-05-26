@@ -45,4 +45,19 @@ impl Parser {
         let captures = re.captures(self.sgf.as_slice()).unwrap();
         from_str(captures.at(1)).unwrap()
     }
+
+    pub fn tokenize<'a>(&'a self) -> Vec<(&'a str, &'a str)> {
+        let mut tokens = Vec::new();
+        let mut prev_name = "";
+        let re = regex!(r"([:upper:]{2})?\[([^]]+)\]");
+        for caps in re.captures_iter(self.sgf.as_slice()) {
+            if caps.at(1) == "" {
+                tokens.push((prev_name, caps.at(2)));
+            } else {
+                tokens.push((caps.at(1), caps.at(2)));
+                prev_name = caps.at(1);
+            }
+        }
+        tokens
+    }
 }
