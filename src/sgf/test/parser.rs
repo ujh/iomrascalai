@@ -22,17 +22,16 @@
 #![cfg(test)]
 
 use std::io::fs::File;
-use std::strbuf::StrBuf;
 
 use sgf::parser::Parser;
 
-fn read_sgf(name : &'static str) -> StrBuf {
+fn read_sgf(name : &'static str) -> String {
     let path = Path::new(format!("fixtures/sgf/{}.sgf", name));
     let contents = File::open(&path).read_to_str();
     contents.unwrap()
 }
 
-fn empty_sgf() -> StrBuf {
+fn empty_sgf() -> String {
     read_sgf("empty")
 }
 

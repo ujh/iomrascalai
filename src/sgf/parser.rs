@@ -20,14 +20,13 @@
  ************************************************************************/
 
 use board::Board;
-use std::strbuf::StrBuf;
 
 pub struct Parser {
-    sgf: StrBuf
+    sgf: String
 }
 
 impl Parser {
-    pub fn new(sgf: StrBuf) -> Parser {
+    pub fn new(sgf: String) -> Parser {
         Parser {sgf: sgf}
     }
 
