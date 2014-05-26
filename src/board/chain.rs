@@ -27,7 +27,9 @@ impl Chain {
         &self.coords
     }
 
-    pub fn show(&self) -> StrBuf {
-        self.coords.iter().fold(StrBuf::new().append(format!("{}, {}: ", self.id, self.color).as_slice()), |s, c| s.append(format!("{},{}|", c.col, c.row).as_slice()))
+    pub fn show(&self) -> String {
+        self.coords
+            .iter()
+            .fold(String::from_owned_str(format!("{}, {}: ", self.id, self.color)), |s, c| s.append(format!("{},{}|", c.col, c.row).as_slice()))
     }
 }
