@@ -20,13 +20,14 @@
  ************************************************************************/
 
 use board::Board;
+use std::strbuf::StrBuf;
 
 pub struct Parser {
-    sgf: ~str
+    sgf: StrBuf
 }
 
 impl Parser {
-    pub fn new(sgf: ~str) -> Parser {
+    pub fn new(sgf: StrBuf) -> Parser {
         Parser {sgf: sgf}
     }
 
@@ -36,13 +37,13 @@ impl Parser {
 
     fn size(&self) -> uint {
         let re = regex!(r"SZ\[(\d+)\]");
-        let captures = re.captures(self.sgf).unwrap();
+        let captures = re.captures(self.sgf.as_slice()).unwrap();
         from_str(captures.at(1)).unwrap()
     }
 
     fn komi(&self) -> f32 {
         let re = regex!(r"KM\[(\d+\.\d+)\]");
-        let captures = re.captures(self.sgf).unwrap();
+        let captures = re.captures(self.sgf.as_slice()).unwrap();
         from_str(captures.at(1)).unwrap()
     }
 }
