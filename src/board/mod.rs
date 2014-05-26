@@ -125,6 +125,10 @@ impl Board {
         self.komi
     }
 
+    pub fn size(&self) -> u8 {
+        self.size
+    }
+
     fn is_inside(&self, col: u8, row: u8) -> bool {
         1 <= col && col <= self.size && 1 <= row && row <= self.size
     }
