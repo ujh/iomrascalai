@@ -96,14 +96,17 @@ impl Board {
         let new_coords      = Coord::new(col, row);
         let new_coords_libs = new_board.count_libs(new_coords);
 
-        let mut neighbouring_chains_ids = Vec::new();
-        for coord in new_coords.neighbours().iter().filter(|c| new_board.is_inside(c.col, c.row) && new_board.get(c.col, c.row) == color) {
-            let candidate_chain_id = new_board.get_chain(coord.col, coord.row).id;
-            if !neighbouring_chains_ids.contains(&candidate_chain_id) {neighbouring_chains_ids.push(candidate_chain_id);}
-        }
+        let mut friend_neigh_chains_id: Vec<uint> = new_coords.neighbours()
+                  .iter()
+                  .filter(|&c| new_board.is_inside(c.col, c.row) && new_board.get(c.col, c.row) == color)
+                  .map(|&c| new_board.get_chain(c.col, c.row).id)
+                  .collect();
 
-        // We need to sort the chain by ascending id so that later we know that neighbouring_chains_ids[0] has the lowest id
-        neighbouring_chains_ids.sort();
+        // We need to sort the chain by ascending id so that later we know that friend_neigh_chains_id[0] has the lowest id.
+        // It also helps with keeping track of the ids of the chain yet-to-merge as their ids will always decrease by nb of chains
+        // merged before them.
+        friend_neigh_chains_id.sort();
+        friend_neigh_chains_id.dedup();
 
         /*
          * If there is 0 friendly neighbouring chain, we create one, and assign the coord played to that new chain.
@@ -112,7 +115,7 @@ impl Board {
          * board.chains, then we lower by 1 the ids of all stones with chain ids higher than the removed chains,
          * and finally we reassign the correct chain_id to each stone in the final chain.
         */
-        match neighbouring_chains_ids.len() {
+        match friend_neigh_chains_id.len() {
             0 => {
                 let new_chain_id    = new_board.chains.len();
                 let mut new_chain   = Chain::new(new_chain_id, color);
@@ -121,22 +124,22 @@ impl Board {
                 *new_board.board.get_mut(new_coords.to_index(new_board.size)) = new_chain_id;
             },
             1 => {
-                let final_chain_id = *neighbouring_chains_ids.get(0);
+                let final_chain_id = *friend_neigh_chains_id.get(0);
                 new_board.chains.get_mut(final_chain_id).add_stone(new_coords, new_coords_libs);
                 *new_board.board.get_mut(new_coords.to_index(new_board.size)) = final_chain_id;
             },
             _ => {
-                // Note: We know that neighbouring_chains_ids is sorted, so whatever chains we remove, 
+                // Note: We know that friend_neigh_chains_id is sorted, so whatever chains we remove, 
                 // we know that the id of the final_chain is still valid.
-                let final_chain_id        = *neighbouring_chains_ids.get(0);
+                let final_chain_id        = *friend_neigh_chains_id.get(0);
                 let mut nb_removed_chains = 0;
 
                 // We assign the stone to the final chain
                 new_board.chains.get_mut(final_chain_id).add_stone(new_coords, new_coords_libs);
                 *new_board.board.get_mut(new_coords.to_index(new_board.size)) = final_chain_id;
                 
-                for &other_chain_old_id in neighbouring_chains_ids.slice(1, neighbouring_chains_ids.len()).iter() {
-                    // The ids stored in neighbouring_chains_ids may be out of date since we remove chains from new_board.chains
+                for &other_chain_old_id in friend_neigh_chains_id.slice(1, friend_neigh_chains_id.len()).iter() {
+                    // The ids stored in friend_neigh_chains_id may be out of date since we remove chains from new_board.chains
                     // These id is the correct one at this step of the
                     let other_chain_id = other_chain_old_id - nb_removed_chains;  
 
@@ -156,6 +159,20 @@ impl Board {
                 // We update the board so that each id stored in the board is up-to-date
                 new_board.update_board_ids();
             }
+        }
+
+        // Then we loop up the enemy chains neighours of the new stone, and we decrease their libs by one
+        let mut adv_chains_ids: Vec<uint> = new_coords.neighbours()
+                  .iter()
+                  .filter(|&c| new_board.is_inside(c.col, c.row) && new_board.get(c.col, c.row) != color && new_board.get(c.col, c.row) != Empty)
+                  .map(|&c| new_board.get_chain(c.col, c.row).id)
+                  .collect();
+
+        adv_chains_ids.sort();
+        adv_chains_ids.dedup();
+
+        for &id in adv_chains_ids.iter() {
+            new_board.chains.get_mut(id).libs -= 1;
         }
 
         new_board
