@@ -21,8 +21,15 @@
 
 
 use std::vec::Vec;
+use board::chain::Chain;
+use board::coord::Coord;
 
-mod test;
+mod board_test;
+mod coord_test;
+mod chain_test;
+
+mod coord;
+mod chain;
 
 #[deriving(Clone, Show, Eq)]
 pub enum Color {
@@ -31,65 +38,12 @@ pub enum Color {
     Empty
 }
 
-#[deriving(Clone, Eq, TotalEq, Hash)]
-struct Coord {
-    col: u8,
-    row: u8
-}
-
-#[deriving(Clone, Eq)]
-struct Chain {
-    id: uint,
-    color: Color,
-    coords: Vec<Coord>
-}
-
 #[deriving(Clone)]
 pub struct Board {
     komi: f32,
     size: u8,
     board: Vec<uint>,
     chains: Vec<Chain>
-}
-
-impl Coord {
-    fn new(col: u8, row: u8) -> Coord {
-        Coord {col: col, row: row}
-    }
-
-    fn neighbours(&self) -> Vec<Coord> {
-        let mut neighbours = Vec::new();
-
-        for i in range(-1,2) {
-            for j in range(-1,2) {
-                if (i == 0 && j !=0) || (i != 0 && j == 0) {
-                    let (col, row) = (self.col+i as u8, self.row+j as u8);
-                    neighbours.push(Coord::new(col, row))
-                }
-            }
-        }
-        neighbours    
-    }
-
-    fn to_index(&self, size:u8) -> uint {
-        (self.col as uint-1 + (self.row as uint-1)*size as uint)
-    }
-}
-
-impl Chain {
-    fn new(id: uint, color: Color) -> Chain {
-        Chain {coords: Vec::new(), color: color, id: id}
-    }
-
-    fn add_stone(&mut self, coord: Coord) {
-        self.coords.push(coord);
-    }
-
-    fn merge(&mut self, c: &Chain) {
-        for coord in c.coords.iter() {
-            self.coords.push(*coord);
-        }
-    }
 }
 
 impl Board {
@@ -198,7 +152,7 @@ impl Board {
                 }
 
                 // We update each coord key in the board map with a ref of the final chain
-                for &c in new_board.chains.get(final_chain_id-nb_removed_chains).coords.clone().iter() {
+                for &c in new_board.chains.get(final_chain_id-nb_removed_chains).coords().clone().iter() {
                     *new_board.board.get_mut(c.to_index(new_board.size)) = final_chain_id-nb_removed_chains;
                 }
             }
@@ -239,10 +193,7 @@ impl Board {
 
     pub fn show_chains(&self) {
         for c in self.chains.iter() {
-            for p in c.coords.iter() {
-                print!("{},{}|", p.col, p.row);
-            }
-            println!("");
+            println!("{}", c.show());
         }
     }
 }
