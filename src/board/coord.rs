@@ -1,3 +1,5 @@
+use core::fmt::{Show, Formatter, FormatError};
+
 #[deriving(Clone, Eq, TotalEq, Hash)]
 pub struct Coord {
     pub col: u8,
@@ -25,5 +27,12 @@ impl Coord {
 
     pub fn to_index(&self, size:u8) -> uint {
         (self.col as uint-1 + (self.row as uint-1)*size as uint)
+    }
+}
+
+impl Show for Coord {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), FormatError> {
+        let s = format!("{}, {}", self.col, self.row);
+        s.fmt(f)
     }
 }

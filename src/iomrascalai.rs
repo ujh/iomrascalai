@@ -18,6 +18,8 @@
  * along with Iomrascálaí.  If not, see <http://www.gnu.org/licenses/>. *
  *                                                                      *
  ************************************************************************/
+extern crate core;
+
 use board::{White, Black};
 use std::io::stdio::stdin;
 

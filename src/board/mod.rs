@@ -26,6 +26,7 @@ use board::coord::Coord;
 
 mod board_test;
 mod coord_test;
+mod chain_test;
 
 mod coord;
 mod chain;
