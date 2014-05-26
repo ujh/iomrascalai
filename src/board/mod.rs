@@ -101,6 +101,9 @@ impl Board {
             if !neighbouring_chains_ids.contains(&candidate_chain_id) {neighbouring_chains_ids.push(candidate_chain_id);}
         }
 
+        // We need to sort the chain by ascending id so that later we know that neighbouring_chains_ids[0] has the lowest id
+        neighbouring_chains_ids.sort();
+
         /*
          * If there is 0 friendly neighbouring chain, we create one, and assign the coord played to that new chain.
          * If there is 1, we assign the stone to that chain.
@@ -122,6 +125,8 @@ impl Board {
                 *new_board.board.get_mut(new_coords.to_index(new_board.size)) = final_chain_id;
             },
             _ => {
+                // Note: We know that neighbouring_chains_ids is sorted, so whatever chains we remove, 
+                // we know that the id of the final_chain is still valid.
                 let final_chain_id        = *neighbouring_chains_ids.get(0);
                 let mut nb_removed_chains = 0;
 
@@ -129,36 +134,45 @@ impl Board {
                 new_board.chains.get_mut(final_chain_id).add_stone(new_coords);
                 *new_board.board.get_mut(new_coords.to_index(new_board.size)) = final_chain_id;
                 
-                for &other_chain_id in neighbouring_chains_ids.slice(1, neighbouring_chains_ids.len()).iter() {
+                for &other_chain_old_id in neighbouring_chains_ids.slice(1, neighbouring_chains_ids.len()).iter() {
+                    // The ids stored in neighbouring_chains_ids may be out of date since we remove chains from new_board.chains
+                    // These id is the correct one at this step of the
+                    let other_chain_id = other_chain_old_id - nb_removed_chains;  
+
                     // We merge the other chain into the final chain.
-                    let other_chain = &new_board.chains.get(other_chain_id-nb_removed_chains).clone();
-                    new_board.chains.get_mut(final_chain_id-nb_removed_chains).merge(other_chain);
+                    let other_chain = new_board.chains.get(other_chain_id).clone();
+                    new_board.chains.get_mut(final_chain_id).merge(&other_chain);
 
                     // We remove the old chain.
-                    new_board.chains.remove(other_chain_id-nb_removed_chains);
+                    new_board.chains.remove(other_chain_id);
 
-                    // We decrease by one every index in board that is higher than other_chain_id
-                    for ind in new_board.board.mut_iter() {
-                        if *ind > other_chain_id-nb_removed_chains {*ind -= 1;}
-                    }
-
-                    // We decrease by one every index in chains that is higher than other_chain_id
-                    for chain in new_board.chains.mut_iter() {
-                        if chain.id > other_chain_id-nb_removed_chains {chain.id -= 1;}
-                    }
-
-                    // Now that there is one less chain in the index, we have to decrease final_chain_id as well
+                    // We update the ids inside the chains
+                    new_board.update_chains_ids_after_removed_chain(other_chain_id);
+                    
                     nb_removed_chains += 1;
                 }
 
-                // We update each coord key in the board map with a ref of the final chain
-                for &c in new_board.chains.get(final_chain_id-nb_removed_chains).coords().clone().iter() {
-                    *new_board.board.get_mut(c.to_index(new_board.size)) = final_chain_id-nb_removed_chains;
-                }
+                // We update the board so that each id stored in the board is up-to-date
+                new_board.update_board_ids();
             }
         }
 
         new_board
+    }
+
+    fn update_chains_ids_after_removed_chain(&mut self, removed_chain_id: uint) {
+        // We decrease by one every index in chains that is higher than other_chain_id
+        for chain in self.chains.mut_iter() {
+            if chain.id > removed_chain_id {chain.id -= 1;}
+        }
+    }
+
+    fn update_board_ids(&mut self) {
+        for chain in self.chains.clone().iter() {
+            for &coord in chain.coords().iter() {
+                *self.board.get_mut(coord.to_index(self.size)) = chain.id;
+            }
+        }
     }
 
     pub fn show(&self) {
