@@ -22,6 +22,7 @@
 #[phase(syntax)]
 extern crate regex_macros;
 extern crate regex;
+extern crate core;
 
 use board::{White, Black};
 use std::io::stdio::stdin;
