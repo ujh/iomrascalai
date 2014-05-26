@@ -24,6 +24,7 @@
 use std::io::fs::File;
 
 use sgf::parser::Parser;
+use sgf::parser::Property;
 
 fn read_sgf(name : &'static str) -> String {
     let path = Path::new(format!("fixtures/sgf/{}.sgf", name));
@@ -55,9 +56,11 @@ fn sets_the_komi_from_sgf() {
 fn tokenize_empty_sgf() {
     let parser = Parser::new(empty_sgf());
     let tokens = parser.tokenize();
-    let expected = vec!(("GM", "1"), ("FF", "4"), ("CA", "UTF-8"), ("AP", "CGoban:3"),
-                        ("ST", "2"), ("RU", "Japanese"), ("SZ", "19"), ("KM", "6.50"),
-                        ("PW", "White"), ("PB", "Black"));
+    let expected = vec!(Property {name: "GM", val: "1"});
+//    let expected = vec!(("GM", "1"),
+//                        ("FF", "4"), ("CA", "UTF-8"), ("AP", "CGoban:3"),
+//                        ("ST", "2"), ("RU", "Japanese"), ("SZ", "19"), ("KM", "6.50"),
+//                        ("PW", "White"), ("PB", "Black"));
     assert_eq!(tokens, expected);
 }
 
@@ -65,7 +68,8 @@ fn tokenize_empty_sgf() {
 fn tokenize_handicap_setup() {
     let parser = Parser::new(read_sgf("handicap"));
     let tokens = parser.tokenize();
-    let expected = vec!(("FF", "4"), ("CA", "UTF-8"), ("AP", "GoGui:1.4.9"), ("AB", "dp"),
-                        ("AB", "dd"), ("AB", "pd"), ("PL", "W"));
+    let expected = vec!(Property {name: "FF", val: "4"});
+//    let expected = vec!(("FF", "4"), ("CA", "UTF-8"), ("AP", "GoGui:1.4.9"), ("AB", "dp"),
+//                        ("AB", "dd"), ("AB", "pd"), ("PL", "W"));
     assert_eq!(tokens, expected);
 }

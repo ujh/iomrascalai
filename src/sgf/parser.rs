@@ -25,6 +25,12 @@ pub struct Parser {
     sgf: String
 }
 
+#[deriving(Eq,Show)]
+pub struct Property<'a> {
+    pub name: &'a str,
+    pub val:  &'a str
+}
+
 impl Parser {
     pub fn new(sgf: String) -> Parser {
         Parser {sgf: sgf}
@@ -35,9 +41,8 @@ impl Parser {
     }
 
     fn size(&self) -> uint {
-        let re = regex!(r"SZ\[(\d+)\]");
-        let captures = re.captures(self.sgf.as_slice()).unwrap();
-        from_str(captures.at(1)).unwrap()
+        let prop = self.tokenize().iter().find(|p| p.name == "SZ").unwrap();
+        from_str(prop.val).unwrap()
     }
 
     fn komi(&self) -> f32 {
@@ -46,15 +51,15 @@ impl Parser {
         from_str(captures.at(1)).unwrap()
     }
 
-    pub fn tokenize<'a>(&'a self) -> Vec<(&'a str, &'a str)> {
+    pub fn tokenize<'a>(&'a self) -> Vec<Property<'a>> {
         let mut tokens = Vec::new();
         let mut prev_name = "";
         let re = regex!(r"([:upper:]{2})?\[([^]]+)\]");
         for caps in re.captures_iter(self.sgf.as_slice()) {
             if caps.at(1) == "" {
-                tokens.push((prev_name, caps.at(2)));
+                tokens.push(Property {name: prev_name, val: caps.at(2)});
             } else {
-                tokens.push((caps.at(1), caps.at(2)));
+                tokens.push(Property {name: caps.at(1), val: caps.at(2)});
                 prev_name = caps.at(1);
             }
         }
