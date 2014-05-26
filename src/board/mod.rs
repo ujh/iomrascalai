@@ -24,7 +24,9 @@ use std::vec::Vec;
 use board::chain::Chain;
 use board::coord::Coord;
 
-mod test;
+mod board_test;
+mod coord_test;
+
 mod coord;
 mod chain;
 
