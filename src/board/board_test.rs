@@ -21,7 +21,7 @@
 
 #![cfg(test)]
 
-use board::{Board, Empty, White};
+use board::{Board, Empty, White, Black};
 use board::coord::Coord;
 
 #[test]
@@ -155,6 +155,81 @@ fn four_way_merging_works() {
   assert_eq!(b.get_chain(Coord::new(11, 11)).id, c_id);
   assert_eq!(b.get_chain(Coord::new(10, 12)).id, c_id);
   assert_eq!(b.chains.len(), 2)
+}
+
+#[test]
+fn playing_on_all_libs_in_corner_should_capture() {
+  let mut b = Board::new(19, 6.5);
+
+  b = b.play(Black, 1, 1);
+  b = b.play(White, 1, 2);
+  b = b.play(White, 2, 1);
+
+  assert_eq!(b.get(Coord::new(1, 1)), Empty);
+}
+
+#[test]
+fn playing_on_all_libs_on_side_should_capture() {
+  let mut b = Board::new(19, 6.5);
+
+  b = b.play(Black, 1, 3);
+  b = b.play(White, 1, 2);
+  b = b.play(White, 1, 4);
+  b = b.play(White, 2, 3);
+
+  assert_eq!(b.get(Coord::new(1, 3)), Empty);
+}
+
+#[test]
+fn playing_on_all_libs_should_capture() {
+  let mut b = Board::new(19, 6.5);
+
+  b = b.play(Black, 4, 4);
+  b = b.play(White, 4, 3);
+  b = b.play(White, 4, 5);
+  b = b.play(White, 3, 4);
+  b = b.play(White, 5, 4);
+
+  assert_eq!(b.get(Coord::new(4, 4)), Empty); 
+}
+
+#[test]
+fn playing_on_all_libs_of_a_chain_should_capture() {
+  let mut b = Board::new(19, 6.5);
+
+  b = b.play(Black, 4, 4);
+  b = b.play(Black, 4, 5);
+
+  b = b.play(White, 4, 3);
+  b = b.play(White, 3, 4);
+  b = b.play(White, 5, 4);
+  b = b.play(White, 3, 5);
+  b = b.play(White, 5, 5);
+  b = b.play(White, 4, 6);
+
+  assert_eq!(b.get(Coord::new(4, 4)), Empty); 
+  assert_eq!(b.get(Coord::new(4, 5)), Empty); 
+}
+
+#[test]
+fn playing_on_all_libs_of_a_bent_chain_should_capture() {
+  let mut b = Board::new(19, 6.5);
+
+  b = b.play(Black, 4, 4);
+  b = b.play(Black, 4, 5);
+  b = b.play(Black, 3, 4);
+
+  b = b.play(White, 3, 3);
+  b = b.play(White, 4, 3);
+  b = b.play(White, 2, 4);
+  b = b.play(White, 5, 4);
+  b = b.play(White, 3, 5);
+  b = b.play(White, 5, 5);
+  b = b.play(White, 4, 6);
+
+  assert_eq!(b.get(Coord::new(4, 4)), Empty); 
+  assert_eq!(b.get(Coord::new(4, 5)), Empty); 
+  assert_eq!(b.get(Coord::new(3, 4)), Empty); 
 }
 
 
