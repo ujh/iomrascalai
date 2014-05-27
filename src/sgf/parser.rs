@@ -41,14 +41,15 @@ impl Parser {
     }
 
     fn size(&self) -> uint {
-        let prop = self.tokenize().iter().find(|p| p.name == "SZ").unwrap();
+        let props = self.tokenize();
+        let prop = props.iter().find(|p| p.name == "SZ").unwrap();
         from_str(prop.val).unwrap()
     }
 
     fn komi(&self) -> f32 {
-        let re = regex!(r"KM\[(\d+\.\d+)\]");
-        let captures = re.captures(self.sgf.as_slice()).unwrap();
-        from_str(captures.at(1)).unwrap()
+        let props = self.tokenize();
+        let prop = props.iter().find(|p| p.name == "KM").unwrap();
+        from_str(prop.val).unwrap()
     }
 
     pub fn tokenize<'a>(&'a self) -> Vec<Property<'a>> {
