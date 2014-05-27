@@ -38,6 +38,16 @@ pub enum Color {
     Empty
 }
 
+impl Color {
+    fn opposite(&self) -> Color {
+        match *self {
+            White => Black,
+            Black => White,
+            Empty => Empty
+        }
+    }
+}
+
 #[deriving(Clone)]
 pub struct Board {
     komi: f32,
@@ -116,17 +126,10 @@ impl Board {
          * and finally we reassign the correct chain_id to each stone in the final chain.
         */
         match friend_neigh_chains_id.len() {
-            0 => {
-                let new_chain_id    = new_board.chains.len();
-                let mut new_chain   = Chain::new(new_chain_id, color);
-                new_chain.add_stone(new_coords, new_coords_libs);
-                new_board.chains.push(new_chain);
-                *new_board.board.get_mut(new_coords.to_index(new_board.size)) = new_chain_id;
-            },
+            0 => new_board.create_new_chain(color, new_coords),
             1 => {
                 let final_chain_id = *friend_neigh_chains_id.get(0);
-                new_board.chains.get_mut(final_chain_id).add_stone(new_coords, new_coords_libs);
-                *new_board.board.get_mut(new_coords.to_index(new_board.size)) = final_chain_id;
+                new_board.add_coord_to_chain(new_coords, final_chain_id);
             },
             _ => {
                 // Note: We know that friend_neigh_chains_id is sorted, so whatever chains we remove, 
@@ -135,8 +138,7 @@ impl Board {
                 let mut nb_removed_chains = 0;
 
                 // We assign the stone to the final chain
-                new_board.chains.get_mut(final_chain_id).add_stone(new_coords, new_coords_libs);
-                *new_board.board.get_mut(new_coords.to_index(new_board.size)) = final_chain_id;
+                new_board.add_coord_to_chain(new_coords, final_chain_id);
                 
                 for &other_chain_old_id in friend_neigh_chains_id.slice(1, friend_neigh_chains_id.len()).iter() {
                     // The ids stored in friend_neigh_chains_id may be out of date since we remove chains from new_board.chains
@@ -162,18 +164,7 @@ impl Board {
         }
 
         // Then we loop up the enemy chains neighours of the new stone, and we decrease their libs by one
-        let mut adv_chains_ids: Vec<uint> = new_coords.neighbours()
-                  .iter()
-                  .filter(|&c| new_board.is_inside(c.col, c.row) && new_board.get(c.col, c.row) != color && new_board.get(c.col, c.row) != Empty)
-                  .map(|&c| new_board.get_chain(c.col, c.row).id)
-                  .collect();
-
-        adv_chains_ids.sort();
-        adv_chains_ids.dedup();
-
-        for &id in adv_chains_ids.iter() {
-            new_board.chains.get_mut(id).libs -= 1;
-        }
+        new_board.update_enemy_chains_libs(new_coords, color.opposite());
 
         new_board
     }
@@ -195,6 +186,35 @@ impl Board {
                 *self.board.get_mut(coord.to_index(self.size)) = chain.id;
             }
         }
+    }
+
+    fn update_enemy_chains_libs(&mut self, coord: Coord, adv_color: Color) {
+        let mut adv_chains_ids: Vec<uint> = coord.neighbours()
+                  .iter()
+                  .filter(|&c| self.is_inside(c.col, c.row) && self.get(c.col, c.row) == adv_color)
+                  .map(|&c| self.get_chain(c.col, c.row).id)
+                  .collect();
+
+        adv_chains_ids.sort();
+        adv_chains_ids.dedup();
+
+        for &id in adv_chains_ids.iter() {
+            self.chains.get_mut(id).libs -= 1;
+        }
+    }
+
+    fn create_new_chain(&mut self, color: Color, init_coord: Coord) {
+        let new_chain_id    = self.chains.len();
+        let mut new_chain   = Chain::new(new_chain_id, color);
+        new_chain.add_stone(init_coord, self.count_libs(init_coord));
+        self.chains.push(new_chain);
+        *self.board.get_mut(init_coord.to_index(self.size)) = new_chain_id;
+    }
+
+    fn add_coord_to_chain(&mut self, coord: Coord, chain_id: uint) {
+        let coord_libs = self.count_libs(coord);
+        self.chains.get_mut(chain_id).add_stone(coord, coord_libs);
+       *self.board.get_mut(coord.to_index(self.size)) = chain_id;    
     }
 
     pub fn show(&self) {
