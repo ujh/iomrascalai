@@ -25,10 +25,9 @@ pub struct Parser {
     sgf: String
 }
 
-#[deriving(Eq,Show)]
-pub struct Property<'a> {
-    pub name: &'a str,
-    pub val:  &'a str
+struct Property<'a> {
+    name: &'a str,
+    val:  &'a str
 }
 
 impl Parser {
@@ -52,7 +51,7 @@ impl Parser {
         from_str(prop.val).unwrap()
     }
 
-    pub fn tokenize<'a>(&'a self) -> Vec<Property<'a>> {
+    fn tokenize<'a>(&'a self) -> Vec<Property<'a>> {
         let mut tokens = Vec::new();
         let mut prev_name = "";
         let re = regex!(r"([:upper:]{2})?\[([^]]+)\]");
