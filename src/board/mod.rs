@@ -66,17 +66,17 @@ impl Board {
 
     // Note: This method uses 1-1 as the origin point, not 0-0. 19-19 is a valid coordinate in a 19-sized board, while 0-0 is not.
     //       this is done because I think it makes more sense in the context of go. (Least surprise principle, etc...)
-    pub fn get(&self, col: u8, row: u8) -> Color {
-        if self.is_inside(col, row) {
-            self.get_chain(col, row).color
+    pub fn get(&self, c: Coord) -> Color {
+        if self.is_inside(c) {
+            self.get_chain(c).color
         } else {
             fail!("You have requested a stone outside of the board");
         }
     }
 
-    pub fn get_chain<'a>(&'a self, col: u8, row: u8) -> &'a Chain {
-        if self.is_inside(col, row) {
-            let chain_id = *self.board.get(Coord::new(col, row).to_index(self.size));
+    pub fn get_chain<'a>(&'a self, c: Coord) -> &'a Chain {
+        if self.is_inside(c) {
+            let chain_id = *self.board.get(c.to_index(self.size));
             self.chains.get(chain_id)
         } else {
             fail!("You have requested a chain outside of the board");
@@ -87,25 +87,26 @@ impl Board {
         self.komi
     }
 
-    fn is_inside(&self, col: u8, row: u8) -> bool {
-        1 <= col && col <= self.size && 1 <= row && row <= self.size
+    fn is_inside(&self, c: Coord) -> bool {
+        1 <= c.col && c.col <= self.size && 1 <= c.row && c.row <= self.size
     }
 
     // Note: Same as get(), the board is indexed starting at 1-1
     pub fn play(&self, color: Color, col: u8, row: u8) -> Board {
+        let new_coords      = Coord::new(col, row);
+
         // We check the validity of the coords.
-        let mut new_board = if self.is_inside(col, row) {
+        let mut new_board = if self.is_inside(new_coords) {
             self.clone()
         } else {
             fail!("The coordinate you have entered ({} {}) are invalid", col, row);
         };
 
-        let new_coords      = Coord::new(col, row);
 
         let mut friend_neigh_chains_id: Vec<uint> = new_coords.neighbours()
                   .iter()
-                  .filter(|&c| new_board.is_inside(c.col, c.row) && new_board.get(c.col, c.row) == color)
-                  .map(|&c| new_board.get_chain(c.col, c.row).id)
+                  .filter(|&c| new_board.is_inside(*c) && new_board.get(*c) == color)
+                  .map(|&c| new_board.get_chain(c).id)
                   .collect();
 
         // We need to sort the chain by ascending id so that later we know that friend_neigh_chains_id[0] has the lowest id.
@@ -166,7 +167,7 @@ impl Board {
     }
 
     fn count_libs(&self, c: Coord) -> uint {
-        c.neighbours().iter().filter(|c| self.is_inside(c.col, c.row) && self.get(c.col, c.row) == Empty).len()
+        c.neighbours().iter().filter(|&c| self.is_inside(*c) && self.get(*c) == Empty).len()
     }
 
     fn update_chains_ids_after_removed_chain(&mut self, removed_chain_id: uint) {
@@ -187,8 +188,8 @@ impl Board {
     fn update_enemy_chains_libs(&mut self, coord: Coord, adv_color: Color) {
         let mut adv_chains_ids: Vec<uint> = coord.neighbours()
                   .iter()
-                  .filter(|&c| self.is_inside(c.col, c.row) && self.get(c.col, c.row) == adv_color)
-                  .map(|&c| self.get_chain(c.col, c.row).id)
+                  .filter(|&c| self.is_inside(*c) && self.get(*c) == adv_color)
+                  .map(|&c| self.get_chain(c).id)
                   .collect();
 
         adv_chains_ids.sort();
@@ -224,12 +225,14 @@ impl Board {
 
             // Prints the actual row
             for col in range(1u8, self.size+1) {
-                if self.get(col, row) == Empty {
+                let current_coords = Coord::new(col, row);
+
+                if self.get(current_coords) == Empty {
                     let hoshis = &[4u8,10,16];
                     if   hoshis.contains(&row) && hoshis.contains(&col) {print!("+ ")}
                     else                                                {print!(". ")}
-                } else if self.get(col, row) == White {print!("O ")}
-                  else if self.get(col, row) == Black {print!("X ")}
+                } else if self.get(current_coords) == White {print!("O ")}
+                  else if self.get(current_coords) == Black {print!("X ")}
             }
             println!("");
         }

@@ -22,27 +22,28 @@
 #![cfg(test)]
 
 use board::{Board, Empty, White};
+use board::coord::Coord;
 
 #[test]
 fn getting_a_valid_coord_returns_a_color(){
   let b = Board::new(19, 6.5);
 
-  assert_eq!(b.get(10,10), Empty);
+  assert_eq!(b.get(Coord::new(10,10)), Empty);
 }
 
 #[test]
 #[should_fail]
 fn getting_invalid_coordinates_fails() {
   let b = Board::new(19, 6.5);
-  b.get(14,21);
-  b.get(21,14);
+  b.get(Coord::new(14, 21));
+  b.get(Coord::new(21, 14));
 }
 
 #[test]
 fn _19_19_is_a_valid_coordinate(){
   let b = Board::new(19, 6.5);
 
-  assert_eq!(b.get(19,19), Empty);
+  assert_eq!(b.get(Coord::new(19, 19)), Empty);
 }
 
 #[test]
@@ -50,7 +51,7 @@ fn _19_19_is_a_valid_coordinate(){
 fn _0_0_is_not_a_valid_coordinate(){
   let b = Board::new(19, 6.5);
 
-  b.get(0,0);
+  b.get(Coord::new(0, 0));
 }
 
 #[test]
@@ -61,15 +62,16 @@ fn get_komi(){
 }
 
 #[test]
-fn play(){
-  let mut b = Board::new(19, 6.5);
+fn play_adds_a_stone_to_the_correct_position() {
+  let mut b = Board::new(19, 6.5); 
 
   b = b.play(White, 14, 14);
-  assert!(b.get(14,14) == White);
+  
+  assert!(b.get(Coord::new(14, 14)) == White);=
 
   for i in range(1u8, 20) {
     for j in range(1u8 , 20) {
-      assert!(b.get(i,j) == Empty || (i == 14 && j == 14));
+      assert!(b.get(Coord::new(i, j)) == Empty || (i == 14 && j == 14));
     }
   }
 }
@@ -77,25 +79,25 @@ fn play(){
 #[test]
 fn is_inside_valid_coords_pass() {
   let b = Board::new(19, 6.5);
-  assert!(b.is_inside(1,1));
-  assert!(b.is_inside(19,19));
-  assert!(b.is_inside(10,10));
+  assert!(b.is_inside(Coord::new(1,1)));
+  assert!(b.is_inside(Coord::new(19,19)));
+  assert!(b.is_inside(Coord::new(10,10)));
 }
 
 #[test]
 fn is_inside_0_0_fails() {
   let b = Board::new(19, 6.5);
-  assert!(!b.is_inside(0,0));
+  assert!(!b.is_inside(Coord::new(0,0)));
 }
 
 #[test]
 fn is_inside_invalid_coords_fail() {
   let b = Board::new(19, 6.5);
-  assert!(!b.is_inside(4,21));
-  assert!(!b.is_inside(21,4));
+  assert!(!b.is_inside(Coord::new(4,21)));
+  assert!(!b.is_inside(Coord::new(21,4)));
 
   let c = Board::new(9, 6.5);
-  assert!(!c.is_inside(18,18));
+  assert!(!c.is_inside(Coord::new(18,18)));
 }
 
 #[test]
@@ -108,10 +110,10 @@ fn two_way_merging_works() {
   assert_eq!(b.chains.len(), 3);
 
   b = b.play(White, 10, 11);
-  let c_id = b.get_chain(10, 10).id;
+  let c_id = b.get_chain(Coord::new(10, 10)).id;
 
-  assert_eq!(b.get_chain(10, 11).id, c_id);
-  assert_eq!(b.get_chain(10, 12).id, c_id);
+  assert_eq!(b.get_chain(Coord::new(10, 11)).id, c_id);
+  assert_eq!(b.get_chain(Coord::new(10, 12)).id, c_id);
   assert_eq!(b.chains.len(), 2)
 }
 
@@ -126,11 +128,11 @@ fn three_way_merging_works() {
   assert_eq!(b.chains.len(), 4);
 
   b = b.play(White, 10, 11);
-  let c_id = b.get_chain(10, 10).id;
+  let c_id = b.get_chain(Coord::new(10, 10)).id;
 
-  assert_eq!(b.get_chain(10, 11).id, c_id);
-  assert_eq!(b.get_chain(11, 11).id, c_id);
-  assert_eq!(b.get_chain(10, 12).id, c_id);
+  assert_eq!(b.get_chain(Coord::new(10, 11)).id, c_id);
+  assert_eq!(b.get_chain(Coord::new(11, 11)).id, c_id);
+  assert_eq!(b.get_chain(Coord::new(10, 12)).id, c_id);
   assert_eq!(b.chains.len(), 2)
 }
 
@@ -146,12 +148,12 @@ fn four_way_merging_works() {
   assert_eq!(b.chains.len(), 5);
 
   b = b.play(White, 10, 11);
-  let c_id = b.get_chain(10, 10).id;
+  let c_id = b.get_chain(Coord::new(10, 10)).id;
 
-  assert_eq!(b.get_chain(10, 11).id, c_id);
-  assert_eq!(b.get_chain( 9, 11).id, c_id);
-  assert_eq!(b.get_chain(11, 11).id, c_id);
-  assert_eq!(b.get_chain(10, 12).id, c_id);
+  assert_eq!(b.get_chain(Coord::new(10, 11)).id, c_id);
+  assert_eq!(b.get_chain(Coord::new(9 , 11)).id, c_id);
+  assert_eq!(b.get_chain(Coord::new(11, 11)).id, c_id);
+  assert_eq!(b.get_chain(Coord::new(10, 12)).id, c_id);
   assert_eq!(b.chains.len(), 2)
 }
 
