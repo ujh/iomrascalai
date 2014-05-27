@@ -67,7 +67,7 @@ impl Board {
     // Note: This method uses 1-1 as the origin point, not 0-0. 19-19 is a valid coordinate in a 19-sized board, while 0-0 is not.
     //       this is done because I think it makes more sense in the context of go. (Least surprise principle, etc...)
     pub fn get(&self, c: Coord) -> Color {
-        if self.is_inside(c) {
+        if c.is_inside() {
             self.get_chain(c).color
         } else {
             fail!("You have requested a stone outside of the board");
@@ -75,8 +75,8 @@ impl Board {
     }
 
     pub fn get_chain<'a>(&'a self, c: Coord) -> &'a Chain {
-        if self.is_inside(c) {
-            let chain_id = *self.board.get(c.to_index(self.size));
+        if c.is_inside() {
+            let chain_id = *self.board.get(c.to_index());
             self.chains.get(chain_id)
         } else {
             fail!("You have requested a chain outside of the board");
@@ -87,16 +87,12 @@ impl Board {
         self.komi
     }
 
-    fn is_inside(&self, c: Coord) -> bool {
-        1 <= c.col && c.col <= self.size && 1 <= c.row && c.row <= self.size
-    }
-
     // Note: Same as get(), the board is indexed starting at 1-1
     pub fn play(&self, color: Color, col: u8, row: u8) -> Board {
-        let new_coords      = Coord::new(col, row);
+        let new_coords      = Coord::new(self.size, col, row);
 
         // We check the validity of the coords.
-        let mut new_board = if self.is_inside(new_coords) {
+        let mut new_board = if new_coords.is_inside() {
             self.clone()
         } else {
             fail!("The coordinate you have entered ({} {}) are invalid", col, row);
@@ -116,6 +112,7 @@ impl Board {
             1 => {
                 let final_chain_id = *friend_neigh_chains_id.get(0);
                 new_board.add_coord_to_chain(new_coords, final_chain_id);
+                new_board.update_libs(final_chain_id);
             },
             _ => {
                 // Note: We know that friend_neigh_chains_id is sorted, so whatever chains we remove, 
@@ -144,6 +141,7 @@ impl Board {
                     nb_removed_chains += 1;
                 }
                 new_board.update_board_ids();
+                new_board.update_libs(final_chain_id);
             }
         }
 
@@ -158,8 +156,19 @@ impl Board {
         new_board
     }
 
-    fn count_libs(&self, c: Coord) -> uint {
-        c.neighbours().iter().filter(|&c| self.is_inside(*c) && self.get(*c) == Empty).len()
+    fn update_libs(&mut self, chain_id: uint) {
+        let libs = self.chains.get(chain_id).coords()
+                                            .iter()
+                                            .fold(Vec::new(), |mut acc, c| {
+                                                for &n in c.neighbours().iter() {
+                                                    if n.is_inside() && self.get(n) == Empty && !acc.contains(&n) {
+                                                        acc.push(n);
+                                                    }
+                                                }
+                                                acc
+                                            }).len();
+        self.chains.get_mut(chain_id).libs = libs;
+
     }
 
     fn update_chains_ids_after_removed_chain(&mut self, removed_chain_id: uint) {
@@ -172,7 +181,7 @@ impl Board {
     fn update_board_ids(&mut self) {
         for chain in self.chains.clone().iter() {
             for &coord in chain.coords().iter() {
-                *self.board.get_mut(coord.to_index(self.size)) = chain.id;
+                *self.board.get_mut(coord.to_index()) = chain.id;
             }
         }
     }
@@ -180,7 +189,7 @@ impl Board {
     fn find_neighbouring_friendly_chains_ids(&self, c: Coord, color: Color) -> Vec<uint> {
         let mut friend_neigh_chains_id: Vec<uint> = c.neighbours()
                   .iter()
-                  .filter(|&c| self.is_inside(*c) && self.get(*c) == color)
+                  .filter(|&c| c.is_inside() && self.get(*c) == color)
                   .map(|&c| self.get_chain(c).id)
                   .collect();
 
@@ -199,7 +208,7 @@ impl Board {
 
         let mut adv_chains_ids: Vec<uint> = coord.neighbours()
                   .iter()
-                  .filter(|&c| self.is_inside(*c) && self.get(*c) == adv_color)
+                  .filter(|&c| c.is_inside() && self.get(*c) == adv_color)
                   .map(|&c| self.get_chain(c).id)
                   .collect();
 
@@ -249,19 +258,19 @@ impl Board {
     fn create_new_chain(&mut self, color: Color, init_coord: Coord) {
         let new_chain_id    = self.chains.len();
         let mut new_chain   = Chain::new(new_chain_id, color);
-        new_chain.add_stone(init_coord, self.count_libs(init_coord));
+        new_chain.add_stone(init_coord);
         self.chains.push(new_chain);
-        *self.board.get_mut(init_coord.to_index(self.size)) = new_chain_id;
+        *self.board.get_mut(init_coord.to_index()) = new_chain_id;
+        self.update_libs(new_chain_id);
     }
 
     fn add_coord_to_chain(&mut self, coord: Coord, chain_id: uint) {
-        let coord_libs = self.count_libs(coord);
-        self.chains.get_mut(chain_id).add_stone(coord, coord_libs);
-       *self.board.get_mut(coord.to_index(self.size)) = chain_id;    
+        self.chains.get_mut(chain_id).add_stone(coord);
+       *self.board.get_mut(coord.to_index()) = chain_id;    
     }
 
     fn remove_stone(&mut self, c: Coord) {
-        *self.board.get_mut(c.to_index(self.size)) = 0;
+        *self.board.get_mut(c.to_index()) = 0;
     }
 
     pub fn show(&self) {
@@ -275,7 +284,7 @@ impl Board {
 
             // Prints the actual row
             for col in range(1u8, self.size+1) {
-                let current_coords = Coord::new(col, row);
+                let current_coords = Coord::new(self.size, col, row);
 
                 if self.get(current_coords) == Empty {
                     let hoshis = &[4u8,10,16];
