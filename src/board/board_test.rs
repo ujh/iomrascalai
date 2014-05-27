@@ -24,7 +24,7 @@
 use board::{Board, Empty, White};
 
 #[test]
-fn test_getting_a_valid_coord_returns_a_color(){
+fn getting_a_valid_coord_returns_a_color(){
   let b = Board::new(19, 6.5);
 
   assert_eq!(b.get(10,10), Empty);
@@ -32,14 +32,14 @@ fn test_getting_a_valid_coord_returns_a_color(){
 
 #[test]
 #[should_fail]
-fn test_getting_invalid_coordinates_fails() {
+fn getting_invalid_coordinates_fails() {
   let b = Board::new(19, 6.5);
   b.get(14,21);
   b.get(21,14);
 }
 
 #[test]
-fn test_19_19_is_a_valid_coordinate(){
+fn _19_19_is_a_valid_coordinate(){
   let b = Board::new(19, 6.5);
 
   assert_eq!(b.get(19,19), Empty);
@@ -47,21 +47,21 @@ fn test_19_19_is_a_valid_coordinate(){
 
 #[test]
 #[should_fail]
-fn test_0_0_is_not_a_valid_coordinate(){
+fn _0_0_is_not_a_valid_coordinate(){
   let b = Board::new(19, 6.5);
 
   b.get(0,0);
 }
 
 #[test]
-fn test_get_komi(){
+fn get_komi(){
   let b = Board::new(19, 6.5);
 
   assert_eq!(b.komi(), 6.5f32)
 }
 
 #[test]
-fn test_play(){
+fn play(){
   let mut b = Board::new(19, 6.5);
 
   b = b.play(White, 14, 14);
@@ -75,7 +75,7 @@ fn test_play(){
 }
 
 #[test]
-fn test_is_inside_valid_coords_pass() {
+fn is_inside_valid_coords_pass() {
   let b = Board::new(19, 6.5);
   assert!(b.is_inside(1,1));
   assert!(b.is_inside(19,19));
@@ -83,19 +83,76 @@ fn test_is_inside_valid_coords_pass() {
 }
 
 #[test]
-fn test_is_inside_0_0_fails() {
+fn is_inside_0_0_fails() {
   let b = Board::new(19, 6.5);
   assert!(!b.is_inside(0,0));
 }
 
 #[test]
-fn test_is_inside_invalid_coords_fail() {
+fn is_inside_invalid_coords_fail() {
   let b = Board::new(19, 6.5);
   assert!(!b.is_inside(4,21));
   assert!(!b.is_inside(21,4));
 
   let c = Board::new(9, 6.5);
   assert!(!c.is_inside(18,18));
+}
+
+#[test]
+fn two_way_merging_works() {
+  let mut b = Board::new(19, 6.5);
+
+  b = b.play(White, 10, 10);
+  b = b.play(White, 10, 12);
+
+  assert_eq!(b.chains.len(), 3);
+
+  b = b.play(White, 10, 11);
+  let c_id = b.get_chain(10, 10).id;
+
+  assert_eq!(b.get_chain(10, 11).id, c_id);
+  assert_eq!(b.get_chain(10, 12).id, c_id);
+  assert_eq!(b.chains.len(), 2)
+}
+
+#[test]
+fn three_way_merging_works() {
+  let mut b = Board::new(19, 6.5);
+
+  b = b.play(White, 10, 10);
+  b = b.play(White, 11, 11);
+  b = b.play(White, 10, 12);
+
+  assert_eq!(b.chains.len(), 4);
+
+  b = b.play(White, 10, 11);
+  let c_id = b.get_chain(10, 10).id;
+
+  assert_eq!(b.get_chain(10, 11).id, c_id);
+  assert_eq!(b.get_chain(11, 11).id, c_id);
+  assert_eq!(b.get_chain(10, 12).id, c_id);
+  assert_eq!(b.chains.len(), 2)
+}
+
+#[test]
+fn four_way_merging_works() {
+  let mut b = Board::new(19, 6.5);
+
+  b = b.play(White, 10, 10);
+  b = b.play(White,  9, 11);
+  b = b.play(White, 11, 11);
+  b = b.play(White, 10, 12);
+
+  assert_eq!(b.chains.len(), 5);
+
+  b = b.play(White, 10, 11);
+  let c_id = b.get_chain(10, 10).id;
+
+  assert_eq!(b.get_chain(10, 11).id, c_id);
+  assert_eq!(b.get_chain( 9, 11).id, c_id);
+  assert_eq!(b.get_chain(11, 11).id, c_id);
+  assert_eq!(b.get_chain(10, 12).id, c_id);
+  assert_eq!(b.chains.len(), 2)
 }
 
 

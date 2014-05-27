@@ -18,8 +18,6 @@
  * along with Iomrascálaí.  If not, see <http://www.gnu.org/licenses/>. *
  *                                                                      *
  ************************************************************************/
-
-
 use std::vec::Vec;
 use board::chain::Chain;
 use board::coord::Coord;
@@ -93,7 +91,6 @@ impl Board {
         1 <= col && col <= self.size && 1 <= row && row <= self.size
     }
 
-
     // Note: Same as get(), the board is indexed starting at 1-1
     pub fn play(&self, color: Color, col: u8, row: u8) -> Board {
         // We check the validity of the coords.
@@ -104,7 +101,6 @@ impl Board {
         };
 
         let new_coords      = Coord::new(col, row);
-        let new_coords_libs = new_board.count_libs(new_coords);
 
         let mut friend_neigh_chains_id: Vec<uint> = new_coords.neighbours()
                   .iter()
