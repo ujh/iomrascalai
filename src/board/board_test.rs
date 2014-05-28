@@ -84,6 +84,15 @@ fn playing_on_an_illegal_coordinate_should_return_error() {
 }
 
 #[test]
+fn playing_on_a_non_empty_intersection_should_return_error() {
+  let b = Board::new(9, 6.5, TrompTaylor);
+
+  let b = b.play(Black, 4, 4).unwrap();
+  assert!(b.play(Black, 4, 4).is_err());
+  assert!(b.play(White, 4, 4).is_err());
+}
+
+#[test]
 fn two_way_merging_works() {
   let mut b = Board::new(19, 6.5, TrompTaylor);
 
@@ -242,7 +251,19 @@ fn playing_on_all_libs_of_a_bent_chain_should_capture() {
 }
 
 #[test]
-fn suicide_should_be_valid_in_tromp_taylor_rules() {
+fn suicide_should_be_legal_in_tromp_taylor_rules() {
+  let mut b = Board::new(19, 6.5, TrompTaylor);
+
+  b = b.play(Black, 4, 4).unwrap();
+  b = b.play(Black, 3, 3).unwrap();
+  b = b.play(Black, 2, 4).unwrap();
+  b = b.play(Black, 3, 5).unwrap();
+
+  assert!(b.play(White, 3, 4).is_ok());
+}
+
+#[test]
+fn suicide_should_remove_the_suicided_chain() {
   let mut b = Board::new(19, 6.5, TrompTaylor);
 
   b = b.play(Black, 4, 4).unwrap();

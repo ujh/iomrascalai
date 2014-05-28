@@ -31,7 +31,9 @@ mod chain;
 
 #[deriving(Show)]
 pub enum IllegalMove {
-    PlayOutOfBoard
+    PlayOutOfBoard,
+    SuicidePlay,
+    IntersectionNotEmpty
 }
 
 #[deriving(Clone, Show, Eq)]
@@ -110,7 +112,11 @@ impl Board {
 
         // We check the validity of the coords.
         let mut new_board = if new_coords.is_inside(self.size) {
-            self.clone()
+            if self.get(new_coords) == Empty {
+                self.clone()
+            } else {
+                return Err(IntersectionNotEmpty);
+            }
         } else {
             return Err(PlayOutOfBoard);
         };
@@ -182,7 +188,7 @@ impl Board {
                     let to_remove_id = new_board.get_chain(new_coords).id;
                     new_board.remove_chain(to_remove_id);
                 },
-                _           => fail!("You can't suicide !")
+                _           => return Err(SuicidePlay)
             }
         }
 

@@ -20,7 +20,7 @@
  ************************************************************************/
 extern crate core;
 
-use board::{White, Black, TrompTaylor, PlayOutOfBoard};
+use board::{White, Black, TrompTaylor, PlayOutOfBoard, SuicidePlay, IntersectionNotEmpty};
 use std::io::stdio::stdin;
 
 mod board;
@@ -39,8 +39,10 @@ fn main() {
     let coords: Vec<u8> = line.as_slice().trim_chars('\n').split(' ').map(|s| from_str(s).unwrap()).collect();
 
     b = match b.play(current_player, *coords.get(0), *coords.get(1)) {
-      Ok(b)               => b,
-      Err(PlayOutOfBoard) => fail!("You have tried to play on invalid coordinates ({} {})", *coords.get(0), *coords.get(1))
+      Ok(b)                     => b,
+      Err(PlayOutOfBoard)       => fail!("You have tried to play on invalid coordinates ({} {})", *coords.get(0), *coords.get(1)),
+      Err(IntersectionNotEmpty) => fail!("You have tried to play on a non-empty intersection !"),
+      Err(SuicidePlay)          => fail!("You have played a suicide move with a ruleset forbidding them!")
     };
 
     current_player = match current_player {
