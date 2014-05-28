@@ -36,6 +36,12 @@ pub enum Color {
     Empty
 }
 
+#[deriving(Clone, Show, Eq)]
+pub enum Ruleset {
+    TrompTaylor,
+    Japanese
+}
+
 impl Color {
     fn opposite(&self) -> Color {
         match *self {
@@ -51,16 +57,18 @@ pub struct Board {
     komi: f32,
     size: u8,
     board: Vec<uint>,
-    chains: Vec<Chain>
+    chains: Vec<Chain>,
+    ruleset: Ruleset
 }
 
 impl Board {
-    pub fn new(size: uint, komi: f32) -> Board {
+    pub fn new(size: uint, komi: f32, ruleset: Ruleset) -> Board {
         Board {
             komi: komi,
             size: size as u8,
             board: Vec::from_fn(size*size, |_| 0),
-            chains: vec!(Chain::new(0, Empty))
+            chains: vec!(Chain::new(0, Empty)),
+            ruleset: ruleset
         }
     }
 
@@ -164,7 +172,10 @@ impl Board {
                 new_board.update_libs(i);
             }
         } else if new_board.get_chain(new_coords).libs == 0 {
-            fail!("You can't suicide !");
+            match new_board.ruleset {
+                TrompTaylor => (),
+                _           => fail!("You can't suicide !")
+            }
         }
 
         new_board

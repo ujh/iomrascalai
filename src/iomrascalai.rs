@@ -20,13 +20,13 @@
  ************************************************************************/
 extern crate core;
 
-use board::{White, Black};
+use board::{White, Black, TrompTaylor};
 use std::io::stdio::stdin;
 
 mod board;
 
 fn main() {
-  let mut b = board::Board::new(19, 6.5);
+  let mut b = board::Board::new(19, 6.5, TrompTaylor);
   let mut current_player = Black;
   let mut reader = stdin();
   let mut line =  "whatever".to_owned();

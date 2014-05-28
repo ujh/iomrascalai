@@ -21,12 +21,12 @@
 
 #![cfg(test)]
 
-use board::{Board, Empty, White, Black};
+use board::{Board, Empty, White, Black, TrompTaylor};
 use board::coord::Coord;
 
 #[test]
 fn getting_a_valid_coord_returns_a_color(){
-  let b = Board::new(19, 6.5);
+  let b = Board::new(19, 6.5, TrompTaylor);
 
   assert_eq!(b.get(10,10), Empty);
 }
@@ -34,14 +34,14 @@ fn getting_a_valid_coord_returns_a_color(){
 #[test]
 #[should_fail]
 fn getting_invalid_coordinates_fails() {
-  let b = Board::new(19, 6.5);
+  let b = Board::new(19, 6.5, TrompTaylor);
   b.get(14, 21);
   b.get(21, 14);
 }
 
 #[test]
 fn _19_19_is_a_valid_coordinate(){
-  let b = Board::new(19, 6.5);
+  let b = Board::new(19, 6.5, TrompTaylor);
 
   assert_eq!(b.get(19, 19), Empty);
 }
@@ -49,21 +49,21 @@ fn _19_19_is_a_valid_coordinate(){
 #[test]
 #[should_fail]
 fn _0_0_is_not_a_valid_coordinate(){
-  let b = Board::new(19, 6.5);
+  let b = Board::new(19, 6.5, TrompTaylor);
 
   b.get(0, 0);
 }
 
 #[test]
 fn get_komi(){
-  let b = Board::new(19, 6.5);
+  let b = Board::new(19, 6.5, TrompTaylor);
 
   assert_eq!(b.komi(), 6.5f32)
 }
 
 #[test]
 fn play_adds_a_stone_to_the_correct_position() {
-  let mut b = Board::new(19, 6.5);
+  let mut b = Board::new(19, 6.5, TrompTaylor); 
 
   b = b.play(White, 14, 14);
 
@@ -78,7 +78,7 @@ fn play_adds_a_stone_to_the_correct_position() {
 
 #[test]
 fn two_way_merging_works() {
-  let mut b = Board::new(19, 6.5);
+  let mut b = Board::new(19, 6.5, TrompTaylor);
 
   b = b.play(White, 10, 10);
   b = b.play(White, 10, 12);
@@ -95,7 +95,7 @@ fn two_way_merging_works() {
 
 #[test]
 fn three_way_merging_works() {
-  let mut b = Board::new(19, 6.5);
+  let mut b = Board::new(19, 6.5, TrompTaylor);
 
   b = b.play(White, 10, 10);
   b = b.play(White, 11, 11);
@@ -114,7 +114,7 @@ fn three_way_merging_works() {
 
 #[test]
 fn four_way_merging_works() {
-  let mut b = Board::new(19, 6.5);
+  let mut b = Board::new(19, 6.5, TrompTaylor);
 
   b = b.play(White, 10, 10);
   b = b.play(White,  9, 11);
@@ -135,7 +135,7 @@ fn four_way_merging_works() {
 
 #[test]
 fn playing_on_all_libs_in_corner_should_capture() {
-  let mut b = Board::new(19, 6.5);
+  let mut b = Board::new(19, 6.5, TrompTaylor);
 
   b = b.play(Black, 1, 1);
   b = b.play(White, 1, 2);
@@ -148,7 +148,7 @@ fn playing_on_all_libs_in_corner_should_capture() {
 
 #[test]
 fn playing_on_all_libs_on_side_should_capture() {
-  let mut b = Board::new(19, 6.5);
+  let mut b = Board::new(19, 6.5, TrompTaylor);
 
   b = b.play(Black, 1, 3);
   b = b.play(White, 1, 2);
@@ -163,7 +163,7 @@ fn playing_on_all_libs_on_side_should_capture() {
 
 #[test]
 fn playing_on_all_libs_should_capture() {
-  let mut b = Board::new(19, 6.5);
+  let mut b = Board::new(19, 6.5, TrompTaylor);
 
   b = b.play(Black, 4, 4);
 
@@ -182,7 +182,7 @@ fn playing_on_all_libs_should_capture() {
 
 #[test]
 fn playing_on_all_libs_of_a_chain_should_capture() {
-  let mut b = Board::new(19, 6.5);
+  let mut b = Board::new(19, 6.5, TrompTaylor);
 
   b = b.play(Black, 4, 4);
   b = b.play(Black, 4, 5);
@@ -207,7 +207,7 @@ fn playing_on_all_libs_of_a_chain_should_capture() {
 
 #[test]
 fn playing_on_all_libs_of_a_bent_chain_should_capture() {
-  let mut b = Board::new(19, 6.5);
+  let mut b = Board::new(19, 6.5, TrompTaylor);
 
   b = b.play(Black, 4, 4);
   b = b.play(Black, 4, 5);
