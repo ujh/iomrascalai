@@ -233,3 +233,22 @@ fn playing_on_all_libs_of_a_bent_chain_should_capture() {
   assert_eq!(b.get(5, 5), White);
   assert_eq!(b.get(4, 6), White);
 }
+
+#[test]
+fn suicide_should_be_valid_in_tromp_taylor_rules() {
+  let mut b = Board::new(19, 6.5, TrompTaylor);
+
+  b = b.play(Black, 4, 4);
+  b = b.play(Black, 3, 3);
+  b = b.play(Black, 2, 4);
+  b = b.play(Black, 3, 5);
+
+  b = b.play(White, 3, 4);
+
+  assert_eq!(b.get(3, 4), Empty);
+
+  assert_eq!(b.get(4, 4), Black);
+  assert_eq!(b.get(3, 3), Black);
+  assert_eq!(b.get(2, 4), Black);
+  assert_eq!(b.get(3, 5), Black);
+}

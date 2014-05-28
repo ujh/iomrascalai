@@ -173,7 +173,10 @@ impl Board {
             }
         } else if new_board.get_chain(new_coords).libs == 0 {
             match new_board.ruleset {
-                TrompTaylor => (),
+                TrompTaylor => {
+                    let to_remove_id = new_board.get_chain(new_coords).id;
+                    new_board.remove_chain(to_remove_id);
+                },
                 _           => fail!("You can't suicide !")
             }
         }
@@ -197,9 +200,8 @@ impl Board {
     }
 
     fn update_chains_ids_after_removed_chain(&mut self, removed_chain_id: uint) {
-        // We decrease by one every index in chains that is higher than other_chain_id
-        for chain in self.chains.mut_iter() {
-            if chain.id > removed_chain_id {chain.id -= 1;}
+        for i in range(removed_chain_id, self.chains.len()) {
+            self.chains.get_mut(i).id = i;
         }
     }
 
@@ -242,9 +244,7 @@ impl Board {
     }
 
     fn update_chains_ids(&mut self) {
-        for i in range(1, self.chains.len()) {
-            self.chains.get_mut(i).id = i;
-        }
+        self.update_chains_ids_after_removed_chain(1);
     }
 
     // Returns true if a chain was removed
@@ -256,27 +256,26 @@ impl Board {
                                                          .map(|chain| chain.id)
                                                          .collect();
 
-        // The sorting is needed to make sure we remove the chain in the right order:
-        // if it wasn't sorted, then we might remove a later chain before an earlier one
-        // which would not impact the early one's id. Then, id-nb_removed would not point
-        // to the correct id.
+        // We need to sort first to make sure dedup removes all duplicates.                                                 
         chain_to_remove_ids.sort();
         chain_to_remove_ids.dedup();
 
-        // First we remove the stones contained by the chains.
-        let coords_to_remove = chain_to_remove_ids.iter().fold(Vec::new(), |acc, &id| acc.append(self.chains.get(id).coords().as_slice()));
-        for &coord in coords_to_remove.iter() {
-            self.remove_stone(coord);
-        }
-
-        // Then we remove the chain from the board.chains Vec
-        let mut nb_removed = 0;
-        for id in chain_to_remove_ids.iter() {
-            self.chains.remove(id - nb_removed);
-            nb_removed += 1;
+        for &id in chain_to_remove_ids.iter() {
+            self.remove_chain(id);
         }
 
         chain_to_remove_ids.len() != 0
+    }
+
+    fn remove_chain(&mut self, id: uint) {
+        let coords_to_remove = self.chains.get(id).coords().clone();
+
+        for &coord in coords_to_remove.iter() {
+            self.remove_stone(coord)
+        }
+
+        self.chains.remove(id);
+        self.update_chains_ids_after_removed_chain(id);
     }
 
     fn create_new_chain(&mut self, color: Color, init_coord: Coord) {
