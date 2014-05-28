@@ -21,7 +21,7 @@
 
 #![cfg(test)]
 
-use board::{Board, Empty, White, Black, TrompTaylor};
+use board::{Board, Empty, White, Black, TrompTaylor, Minimal};
 use board::coord::Coord;
 
 #[test]
@@ -65,9 +65,9 @@ fn get_komi(){
 fn play_adds_a_stone_to_the_correct_position() {
   let mut b = Board::new(19, 6.5, TrompTaylor); 
 
-  b = b.play(White, 14, 14).unwrap();
+  b = b.play(Black, 14, 14).unwrap();
 
-  assert!(b.get(14, 14) == White);
+  assert!(b.get(14, 14) == Black);
 
   for i in range(1u8, 20) {
     for j in range(1u8 , 20) {
@@ -85,7 +85,7 @@ fn playing_on_an_illegal_coordinate_should_return_error() {
 
 #[test]
 fn playing_on_a_non_empty_intersection_should_return_error() {
-  let b = Board::new(9, 6.5, TrompTaylor);
+  let b = Board::new(9, 6.5, Minimal);
 
   let b = b.play(Black, 4, 4).unwrap();
   assert!(b.play(Black, 4, 4).is_err());
@@ -94,7 +94,7 @@ fn playing_on_a_non_empty_intersection_should_return_error() {
 
 #[test]
 fn two_way_merging_works() {
-  let mut b = Board::new(19, 6.5, TrompTaylor);
+  let mut b = Board::new(19, 6.5, Minimal);
 
   b = b.play(White, 10, 10).unwrap();
   b = b.play(White, 10, 12).unwrap();
@@ -111,7 +111,7 @@ fn two_way_merging_works() {
 
 #[test]
 fn three_way_merging_works() {
-  let mut b = Board::new(19, 6.5, TrompTaylor);
+  let mut b = Board::new(19, 6.5, Minimal);
 
   b = b.play(White, 10, 10).unwrap();
   b = b.play(White, 11, 11).unwrap();
@@ -130,7 +130,7 @@ fn three_way_merging_works() {
 
 #[test]
 fn four_way_merging_works() {
-  let mut b = Board::new(19, 6.5, TrompTaylor);
+  let mut b = Board::new(19, 6.5, Minimal);
 
   b = b.play(White, 10, 10).unwrap();
   b = b.play(White,  9, 11).unwrap();
@@ -151,7 +151,7 @@ fn four_way_merging_works() {
 
 #[test]
 fn playing_on_all_libs_in_corner_should_capture() {
-  let mut b = Board::new(19, 6.5, TrompTaylor);
+  let mut b = Board::new(19, 6.5, Minimal);
 
   b = b.play(Black, 1, 1).unwrap();
   b = b.play(White, 1, 2).unwrap();
@@ -164,7 +164,7 @@ fn playing_on_all_libs_in_corner_should_capture() {
 
 #[test]
 fn playing_on_all_libs_on_side_should_capture() {
-  let mut b = Board::new(19, 6.5, TrompTaylor);
+  let mut b = Board::new(19, 6.5, Minimal);
 
   b = b.play(Black, 1, 3).unwrap();
   b = b.play(White, 1, 2).unwrap();
@@ -179,7 +179,7 @@ fn playing_on_all_libs_on_side_should_capture() {
 
 #[test]
 fn playing_on_all_libs_should_capture() {
-  let mut b = Board::new(19, 6.5, TrompTaylor);
+  let mut b = Board::new(19, 6.5, Minimal);
 
   b = b.play(Black, 4, 4).unwrap();
 
@@ -198,7 +198,7 @@ fn playing_on_all_libs_should_capture() {
 
 #[test]
 fn playing_on_all_libs_of_a_chain_should_capture() {
-  let mut b = Board::new(19, 6.5, TrompTaylor);
+  let mut b = Board::new(19, 6.5, Minimal);
 
   b = b.play(Black, 4, 4).unwrap();
   b = b.play(Black, 4, 5).unwrap();
@@ -223,7 +223,7 @@ fn playing_on_all_libs_of_a_chain_should_capture() {
 
 #[test]
 fn playing_on_all_libs_of_a_bent_chain_should_capture() {
-  let mut b = Board::new(19, 6.5, TrompTaylor);
+  let mut b = Board::new(19, 6.5, Minimal);
 
   b = b.play(Black, 4, 4).unwrap();
   b = b.play(Black, 4, 5).unwrap();
@@ -255,8 +255,11 @@ fn suicide_should_be_legal_in_tromp_taylor_rules() {
   let mut b = Board::new(19, 6.5, TrompTaylor);
 
   b = b.play(Black, 4, 4).unwrap();
+  b = b.play(White, 16, 16).unwrap();
   b = b.play(Black, 3, 3).unwrap();
+  b = b.play(White, 16, 10).unwrap();
   b = b.play(Black, 2, 4).unwrap();
+  b = b.play(White, 16, 4).unwrap();
   b = b.play(Black, 3, 5).unwrap();
 
   assert!(b.play(White, 3, 4).is_ok());
@@ -267,8 +270,11 @@ fn suicide_should_remove_the_suicided_chain() {
   let mut b = Board::new(19, 6.5, TrompTaylor);
 
   b = b.play(Black, 4, 4).unwrap();
+  b = b.play(White, 16, 16).unwrap();
   b = b.play(Black, 3, 3).unwrap();
+  b = b.play(White, 16, 10).unwrap();
   b = b.play(Black, 2, 4).unwrap();
+  b = b.play(White, 16, 4).unwrap();
   b = b.play(Black, 3, 5).unwrap();
 
   b = b.play(White, 3, 4).unwrap();
@@ -279,4 +285,13 @@ fn suicide_should_remove_the_suicided_chain() {
   assert_eq!(b.get(3, 3), Black);
   assert_eq!(b.get(2, 4), Black);
   assert_eq!(b.get(3, 5), Black);
+}
+
+#[test]
+fn playing_twice_should_be_illegal_in_tromp_taylor_rules() {
+  let mut b = Board::new(19, 6.5, TrompTaylor);
+  
+  b = b.play(Black, 10, 10).unwrap();
+
+  assert!(b.play(Black, 4, 4).is_err());
 }

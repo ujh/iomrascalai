@@ -33,7 +33,8 @@ mod chain;
 pub enum IllegalMove {
     PlayOutOfBoard,
     SuicidePlay,
-    IntersectionNotEmpty
+    IntersectionNotEmpty,
+    SamePlayerPlayedTwice
 }
 
 #[deriving(Clone, Show, Eq)]
@@ -65,7 +66,8 @@ pub struct Board {
     size: u8,
     board: Vec<uint>,
     chains: Vec<Chain>,
-    ruleset: Ruleset
+    ruleset: Ruleset,
+    previous_player: Color
 }
 
 impl Board {
@@ -75,7 +77,8 @@ impl Board {
             size: size as u8,
             board: Vec::from_fn(size*size, |_| 0),
             chains: vec!(Chain::new(0, Empty)),
-            ruleset: ruleset
+            ruleset: ruleset,
+            previous_player: White
         }
     }
 
@@ -102,24 +105,25 @@ impl Board {
         }
     }
 
-    pub fn komi(&self) -> f32 {
-        self.komi
-    }
-
     // Note: Same as get(), the board is indexed starting at 1-1
     pub fn play(&self, color: Color, col: u8, row: u8) -> Result<Board, IllegalMove> {
         let new_coords      = Coord::new(col, row);
 
-        // We check the validity of the coords.
-        let mut new_board = if new_coords.is_inside(self.size) {
-            if self.get(new_coords) == Empty {
-                self.clone()
-            } else {
+        if new_coords.is_inside(self.size) {
+            if self.get(new_coords) != Empty {
                 return Err(IntersectionNotEmpty);
             }
         } else {
             return Err(PlayOutOfBoard);
-        };
+        }
+
+        if self.ruleset != Minimal && self.previous_player == color {
+            return Err(SamePlayerPlayedTwice);
+        }
+
+        let mut new_board = self.clone();
+
+        new_board.previous_player  = color;
 
         let friend_neigh_chains_id = self.find_neighbouring_friendly_chains_ids(new_coords, color);
 
@@ -305,6 +309,14 @@ impl Board {
 
     fn remove_stone(&mut self, c: Coord) {
         *self.board.get_mut(c.to_index(self.size)) = 0;
+    }
+
+    pub fn komi(&self) -> f32 {
+        self.komi
+    }
+
+    pub fn ruleset(&self) -> Ruleset {
+        self.ruleset
     }
 
     pub fn show(&self) {
