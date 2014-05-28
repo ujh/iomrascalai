@@ -152,7 +152,7 @@ impl Board {
         // Then we loop up the enemy chains neighours of the new stone, and we decrease their libs by one
         new_board.update_enemy_chains_libs(new_coords, color.opposite());
 
-        new_board.remove_chains_with_no_libs();
+        new_board.remove_chains_with_no_libs_close_to(new_coords);
 
         new_board.update_chains_ids();
         new_board.update_board_ids();
@@ -206,10 +206,6 @@ impl Board {
     }
 
     fn update_enemy_chains_libs(&mut self, coord: Coord, adv_color: Color) {
-        if self.get_chain(coord).libs == 0 {
-            fail!("You can't play a suicide move");
-        }
-
         let mut adv_chains_ids: Vec<uint> = coord.neighbours(self.size)
                   .iter()
                   .filter(|&c| c.is_inside(self.size) && self.get_coord(*c) == adv_color)
@@ -230,30 +226,30 @@ impl Board {
         }
     }
 
-    fn remove_chains_with_no_libs(&mut self) {
-        // First we remove the stones contained by the chain.
-        let coords_to_remove = self.chains.iter()
-                                          .filter(|chain| chain.libs == 0)
-                                          .fold(Vec::<Coord>::new(), |acc, chain| acc.append(chain.coords().as_slice()));
-
-        for &coord in coords_to_remove.iter() {
-            self.remove_stone(coord);
-        }
-
-        // Then we remove the chain from the board.chains Vec
-        let mut ids_to_remove: Vec<uint> = self.chains.iter()
-                                                  .filter(|chain| chain.libs == 0)
-                                                  .map(|chain| chain.id)
-                                                  .collect();
+    fn remove_chains_with_no_libs_close_to(&mut self, close_to: Coord) {
+        let mut chain_to_remove_ids: Vec<uint> = close_to.neighbours(self.size)
+                                                         .iter()
+                                                         .map(|&coord| self.get_chain(coord))
+                                                         .filter(|chain| chain.libs == 0)
+                                                         .map(|chain| chain.id)
+                                                         .collect();
 
         // The sorting is needed to make sure we remove the chain in the right order:
         // if it wasn't sorted, then we might remove a later chain before an earlier one
         // which would not impact the early one's id. Then, id-nb_removed would not point
         // to the correct id.
-        ids_to_remove.sort();
+        chain_to_remove_ids.sort();
+        chain_to_remove_ids.dedup();
 
+        // First we remove the stones contained by the chains.
+        let coords_to_remove = chain_to_remove_ids.iter().fold(Vec::new(), |acc, &id| acc.append(self.chains.get(id).coords().as_slice()));
+        for &coord in coords_to_remove.iter() {
+            self.remove_stone(coord);
+        }
+
+        // Then we remove the chain from the board.chains Vec
         let mut nb_removed = 0;
-        for id in ids_to_remove.iter() {
+        for id in chain_to_remove_ids.iter() {
             self.chains.remove(id - nb_removed);
             nb_removed += 1;
         }
