@@ -152,10 +152,20 @@ impl Board {
         // Then we loop up the enemy chains neighours of the new stone, and we decrease their libs by one
         new_board.update_enemy_chains_libs(new_coords, color.opposite());
 
-        new_board.remove_chains_with_no_libs_close_to(new_coords);
+        let stone_removed = new_board.remove_chains_with_no_libs_close_to(new_coords);
 
         new_board.update_chains_ids();
         new_board.update_board_ids();
+
+        if stone_removed {
+            // We could only re-check the libs of the neighbours of the neighbours of new_coords, but this will do atm.
+            // TODO: Restrict the chains updated to the ones that might have been impacted by the last move.
+            for i in range(1, new_board.chains.len()) {
+                new_board.update_libs(i);
+            }
+        } else if new_board.get_chain(new_coords).libs == 0 {
+            fail!("You can't suicide !");
+        }
 
         new_board
     }
@@ -226,7 +236,8 @@ impl Board {
         }
     }
 
-    fn remove_chains_with_no_libs_close_to(&mut self, close_to: Coord) {
+    // Returns true if a chain was removed
+    fn remove_chains_with_no_libs_close_to(&mut self, close_to: Coord) -> bool {
         let mut chain_to_remove_ids: Vec<uint> = close_to.neighbours(self.size)
                                                          .iter()
                                                          .map(|&coord| self.get_chain(coord))
@@ -253,6 +264,8 @@ impl Board {
             self.chains.remove(id - nb_removed);
             nb_removed += 1;
         }
+
+        chain_to_remove_ids.len() != 0
     }
 
     fn create_new_chain(&mut self, color: Color, init_coord: Coord) {
