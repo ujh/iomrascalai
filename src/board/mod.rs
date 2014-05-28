@@ -34,7 +34,8 @@ pub enum IllegalMove {
     PlayOutOfBoard,
     SuicidePlay,
     IntersectionNotEmpty,
-    SamePlayerPlayedTwice
+    SamePlayerPlayedTwice,
+    GameAlreadyOver
 }
 
 #[deriving(Clone, Show, Eq)]
@@ -67,7 +68,8 @@ pub struct Board {
     board: Vec<uint>,
     chains: Vec<Chain>,
     ruleset: Ruleset,
-    previous_player: Color
+    previous_player: Color,
+    consecutive_passes: u8
 }
 
 impl Board {
@@ -80,7 +82,8 @@ impl Board {
             board: Vec::from_fn(size*size, |_| 0),
             chains: vec!(Chain::new(0, Empty)),
             ruleset: ruleset,
-            previous_player: White
+            previous_player: White,
+            consecutive_passes: 0
         }
     }
 
@@ -108,8 +111,21 @@ impl Board {
     }
 
     // Note: Same as get(), the board is indexed starting at 1-1
-    pub fn play(&self, color: Color, col: u8, row: u8) -> Result<Board, IllegalMove> {
-        let new_coords      = Coord::new(col, row);
+    pub fn play(&self, color: Color, move: Option<(u8, u8)>) -> Result<Board, IllegalMove> {
+        if self.ruleset == TrompTaylor && self.consecutive_passes == 2 {
+            return Err(GameAlreadyOver);
+        }
+
+        if move.is_none() {
+            let mut new_board = self.clone();
+            new_board.consecutive_passes += 1;
+            return Ok(new_board);
+        }
+
+        let new_coords = match move {
+            Some((col, row)) => Coord::new(col, row),
+            None             => unreachable!()
+        };
 
         if new_coords.is_inside(self.size) {
             if self.get_coord(new_coords) != Empty {
@@ -124,6 +140,7 @@ impl Board {
         }
 
         let mut new_board = self.clone();
+        new_board.consecutive_passes = 0;
 
         new_board.previous_player  = color;
 
@@ -311,6 +328,10 @@ impl Board {
 
     fn remove_stone(&mut self, c: Coord) {
         *self.board.get_mut(c.to_index(self.size)) = 0;
+    }
+
+    fn is_game_over(&self) -> bool {
+        self.consecutive_passes == 2
     }
 
     pub fn komi(&self) -> f32 {

@@ -20,7 +20,8 @@
  ************************************************************************/
 extern crate core;
 
-use board::{White, Black, TrompTaylor, PlayOutOfBoard, SuicidePlay, IntersectionNotEmpty, SamePlayerPlayedTwice};
+use board::{White, Black, TrompTaylor};
+use board::{PlayOutOfBoard, SuicidePlay, IntersectionNotEmpty, SamePlayerPlayedTwice, GameAlreadyOver};
 use std::io::stdio::stdin;
 
 mod board;
@@ -38,12 +39,13 @@ fn main() {
 
     let coords: Vec<u8> = line.as_slice().trim_chars('\n').split(' ').map(|s| from_str(s).unwrap()).collect();
 
-    b = match b.play(current_player, *coords.get(0), *coords.get(1)) {
+    b = match b.play(current_player, Some((*coords.get(0), *coords.get(1)))) {
       Ok(b)                     => b,
       Err(PlayOutOfBoard)       => fail!("You can't play on invalid coordinates ({} {})", *coords.get(0), *coords.get(1)),
       Err(IntersectionNotEmpty) => fail!("You can't play on a non-empty intersection !"),
       Err(SuicidePlay)          => fail!("You can't play a suicide move with a ruleset forbidding them! ({})", b.ruleset()),
-      Err(SamePlayerPlayedTwice)=> fail!("You can't play twice")
+      Err(SamePlayerPlayedTwice)=> fail!("You can't play twice"),
+      Err(GameAlreadyOver)      => fail!("You can't play after 2 consecutive passes in TrompTaylor rules")
     };
 
     current_player = match current_player {
