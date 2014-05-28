@@ -23,28 +23,34 @@
 
 use std::io::fs::File;
 
+use board::Black;
 use sgf::parser::Parser;
 
-fn read_sgf(name : &'static str) -> String {
+fn sgf(name : &'static str) -> String {
     let path = Path::new(format!("fixtures/sgf/{}.sgf", name));
     let contents = File::open(&path).read_to_str();
     contents.unwrap()
 }
 
-fn empty_sgf() -> String {
-    read_sgf("empty")
-}
-
 #[test]
 fn sets_the_board_size_from_sgf() {
-    let parser = Parser::new(empty_sgf());
+    let parser = Parser::new(sgf("empty"));
     let board  = parser.board();
     assert_eq!(board.size(), 19);
 }
 
 #[test]
 fn sets_the_komi_from_sgf() {
-    let parser = Parser::new(empty_sgf());
+    let parser = Parser::new(sgf("empty"));
     let board  = parser.board();
     assert_eq!(board.komi(), 6.5);
+}
+
+#[test]
+fn play_handicap_stones() {
+    let parser = Parser::new(sgf("handicap"));
+    let board  = parser.board();
+    assert_eq!(board.get(4,4), Black);
+    assert_eq!(board.get(16,4), Black);
+    assert_eq!(board.get(16,16), Black);
 }
