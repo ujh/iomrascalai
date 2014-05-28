@@ -20,7 +20,7 @@
  ************************************************************************/
 extern crate core;
 
-use board::{White, Black, TrompTaylor};
+use board::{White, Black, TrompTaylor, PlayOutOfBoard};
 use std::io::stdio::stdin;
 
 mod board;
@@ -38,7 +38,10 @@ fn main() {
 
     let coords: Vec<u8> = line.as_slice().trim_chars('\n').split(' ').map(|s| from_str(s).unwrap()).collect();
 
-    b = b.play(current_player, *coords.get(0), *coords.get(1));
+    b = match b.play(current_player, *coords.get(0), *coords.get(1)) {
+      Ok(b)               => b,
+      Err(PlayOutOfBoard) => fail!("You have tried to play on invalid coordinates ({} {})", *coords.get(0), *coords.get(1))
+    };
 
     current_player = match current_player {
         Black => White,

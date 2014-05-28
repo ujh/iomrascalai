@@ -65,7 +65,7 @@ fn get_komi(){
 fn play_adds_a_stone_to_the_correct_position() {
   let mut b = Board::new(19, 6.5, TrompTaylor); 
 
-  b = b.play(White, 14, 14);
+  b = b.play(White, 14, 14).unwrap();
 
   assert!(b.get(14, 14) == White);
 
@@ -77,15 +77,22 @@ fn play_adds_a_stone_to_the_correct_position() {
 }
 
 #[test]
+fn playing_on_an_illegal_coordinate_should_return_error() {
+  let b = Board::new(9, 6.5, TrompTaylor);
+
+  assert!(b.play(Black, 13, 13).is_err());
+}
+
+#[test]
 fn two_way_merging_works() {
   let mut b = Board::new(19, 6.5, TrompTaylor);
 
-  b = b.play(White, 10, 10);
-  b = b.play(White, 10, 12);
+  b = b.play(White, 10, 10).unwrap();
+  b = b.play(White, 10, 12).unwrap();
 
   assert_eq!(b.chains.len(), 3);
 
-  b = b.play(White, 10, 11);
+  b = b.play(White, 10, 11).unwrap();
   let c_id = b.get_chain(Coord::new(10, 10)).id;
 
   assert_eq!(b.get_chain(Coord::new(10, 11)).id, c_id);
@@ -97,13 +104,13 @@ fn two_way_merging_works() {
 fn three_way_merging_works() {
   let mut b = Board::new(19, 6.5, TrompTaylor);
 
-  b = b.play(White, 10, 10);
-  b = b.play(White, 11, 11);
-  b = b.play(White, 10, 12);
+  b = b.play(White, 10, 10).unwrap();
+  b = b.play(White, 11, 11).unwrap();
+  b = b.play(White, 10, 12).unwrap();
 
   assert_eq!(b.chains.len(), 4);
 
-  b = b.play(White, 10, 11);
+  b = b.play(White, 10, 11).unwrap();
   let c_id = b.get_chain(Coord::new(10, 10)).id;
 
   assert_eq!(b.get_chain(Coord::new(10, 11)).id, c_id);
@@ -116,14 +123,14 @@ fn three_way_merging_works() {
 fn four_way_merging_works() {
   let mut b = Board::new(19, 6.5, TrompTaylor);
 
-  b = b.play(White, 10, 10);
-  b = b.play(White,  9, 11);
-  b = b.play(White, 11, 11);
-  b = b.play(White, 10, 12);
+  b = b.play(White, 10, 10).unwrap();
+  b = b.play(White,  9, 11).unwrap();
+  b = b.play(White, 11, 11).unwrap();
+  b = b.play(White, 10, 12).unwrap();
 
   assert_eq!(b.chains.len(), 5);
 
-  b = b.play(White, 10, 11);
+  b = b.play(White, 10, 11).unwrap();
   let c_id = b.get_chain(Coord::new(10, 10)).id;
 
   assert_eq!(b.get_chain(Coord::new(10, 11)).id, c_id);
@@ -137,9 +144,9 @@ fn four_way_merging_works() {
 fn playing_on_all_libs_in_corner_should_capture() {
   let mut b = Board::new(19, 6.5, TrompTaylor);
 
-  b = b.play(Black, 1, 1);
-  b = b.play(White, 1, 2);
-  b = b.play(White, 2, 1);
+  b = b.play(Black, 1, 1).unwrap();
+  b = b.play(White, 1, 2).unwrap();
+  b = b.play(White, 2, 1).unwrap();
 
   assert_eq!(b.get(1, 1), Empty);
   assert_eq!(b.get(1, 2), White);
@@ -150,10 +157,10 @@ fn playing_on_all_libs_in_corner_should_capture() {
 fn playing_on_all_libs_on_side_should_capture() {
   let mut b = Board::new(19, 6.5, TrompTaylor);
 
-  b = b.play(Black, 1, 3);
-  b = b.play(White, 1, 2);
-  b = b.play(White, 1, 4);
-  b = b.play(White, 2, 3);
+  b = b.play(Black, 1, 3).unwrap();
+  b = b.play(White, 1, 2).unwrap();
+  b = b.play(White, 1, 4).unwrap();
+  b = b.play(White, 2, 3).unwrap();
 
   assert_eq!(b.get(1, 3), Empty);
   assert_eq!(b.get(1, 2), White);
@@ -165,12 +172,12 @@ fn playing_on_all_libs_on_side_should_capture() {
 fn playing_on_all_libs_should_capture() {
   let mut b = Board::new(19, 6.5, TrompTaylor);
 
-  b = b.play(Black, 4, 4);
+  b = b.play(Black, 4, 4).unwrap();
 
-  b = b.play(White, 4, 3);
-  b = b.play(White, 4, 5);
-  b = b.play(White, 3, 4);
-  b = b.play(White, 5, 4);
+  b = b.play(White, 4, 3).unwrap();
+  b = b.play(White, 4, 5).unwrap();
+  b = b.play(White, 3, 4).unwrap();
+  b = b.play(White, 5, 4).unwrap();
 
   assert_eq!(b.get(4, 4), Empty);
 
@@ -184,15 +191,15 @@ fn playing_on_all_libs_should_capture() {
 fn playing_on_all_libs_of_a_chain_should_capture() {
   let mut b = Board::new(19, 6.5, TrompTaylor);
 
-  b = b.play(Black, 4, 4);
-  b = b.play(Black, 4, 5);
+  b = b.play(Black, 4, 4).unwrap();
+  b = b.play(Black, 4, 5).unwrap();
 
-  b = b.play(White, 4, 3);
-  b = b.play(White, 3, 4);
-  b = b.play(White, 5, 4);
-  b = b.play(White, 3, 5);
-  b = b.play(White, 5, 5);
-  b = b.play(White, 4, 6);
+  b = b.play(White, 4, 3).unwrap();
+  b = b.play(White, 3, 4).unwrap();
+  b = b.play(White, 5, 4).unwrap();
+  b = b.play(White, 3, 5).unwrap();
+  b = b.play(White, 5, 5).unwrap();
+  b = b.play(White, 4, 6).unwrap();
 
   assert_eq!(b.get(4, 4), Empty);
   assert_eq!(b.get(4, 5), Empty);
@@ -209,17 +216,17 @@ fn playing_on_all_libs_of_a_chain_should_capture() {
 fn playing_on_all_libs_of_a_bent_chain_should_capture() {
   let mut b = Board::new(19, 6.5, TrompTaylor);
 
-  b = b.play(Black, 4, 4);
-  b = b.play(Black, 4, 5);
-  b = b.play(Black, 3, 4);
+  b = b.play(Black, 4, 4).unwrap();
+  b = b.play(Black, 4, 5).unwrap();
+  b = b.play(Black, 3, 4).unwrap();
 
-  b = b.play(White, 3, 3);
-  b = b.play(White, 4, 3);
-  b = b.play(White, 2, 4);
-  b = b.play(White, 5, 4);
-  b = b.play(White, 3, 5);
-  b = b.play(White, 5, 5);
-  b = b.play(White, 4, 6);
+  b = b.play(White, 3, 3).unwrap();
+  b = b.play(White, 4, 3).unwrap();
+  b = b.play(White, 2, 4).unwrap();
+  b = b.play(White, 5, 4).unwrap();
+  b = b.play(White, 3, 5).unwrap();
+  b = b.play(White, 5, 5).unwrap();
+  b = b.play(White, 4, 6).unwrap();
 
   assert_eq!(b.get(4, 4), Empty);
   assert_eq!(b.get(4, 5), Empty);
@@ -238,12 +245,12 @@ fn playing_on_all_libs_of_a_bent_chain_should_capture() {
 fn suicide_should_be_valid_in_tromp_taylor_rules() {
   let mut b = Board::new(19, 6.5, TrompTaylor);
 
-  b = b.play(Black, 4, 4);
-  b = b.play(Black, 3, 3);
-  b = b.play(Black, 2, 4);
-  b = b.play(Black, 3, 5);
+  b = b.play(Black, 4, 4).unwrap();
+  b = b.play(Black, 3, 3).unwrap();
+  b = b.play(Black, 2, 4).unwrap();
+  b = b.play(Black, 3, 5).unwrap();
 
-  b = b.play(White, 3, 4);
+  b = b.play(White, 3, 4).unwrap();
 
   assert_eq!(b.get(3, 4), Empty);
 

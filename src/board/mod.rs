@@ -29,6 +29,11 @@ mod chain_test;
 mod coord;
 mod chain;
 
+#[deriving(Show)]
+pub enum IllegalMove {
+    PlayOutOfBoard
+}
+
 #[deriving(Clone, Show, Eq)]
 pub enum Color {
     White,
@@ -39,7 +44,7 @@ pub enum Color {
 #[deriving(Clone, Show, Eq)]
 pub enum Ruleset {
     TrompTaylor,
-    Japanese
+    Minimal
 }
 
 impl Color {
@@ -100,14 +105,14 @@ impl Board {
     }
 
     // Note: Same as get(), the board is indexed starting at 1-1
-    pub fn play(&self, color: Color, col: u8, row: u8) -> Board {
+    pub fn play(&self, color: Color, col: u8, row: u8) -> Result<Board, IllegalMove> {
         let new_coords      = Coord::new(col, row);
 
         // We check the validity of the coords.
         let mut new_board = if new_coords.is_inside(self.size) {
             self.clone()
         } else {
-            fail!("The coordinate you have entered ({} {}) are invalid", col, row);
+            return Err(PlayOutOfBoard);
         };
 
         let friend_neigh_chains_id = self.find_neighbouring_friendly_chains_ids(new_coords, color);
@@ -181,7 +186,7 @@ impl Board {
             }
         }
 
-        new_board
+        Ok(new_board)
     }
 
     fn update_libs(&mut self, chain_id: uint) {
