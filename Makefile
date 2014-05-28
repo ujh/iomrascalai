@@ -37,7 +37,7 @@ $(EXEC): $(MAIN) $(CRATES)
 
 $(TEST): $(MAIN) $(CRATES)
 	$(RUSTC) --test -o $(TEST) $(MAIN)
-	bin/test
+	bin/test --nocapture
 
 .PHONY: clean
 clean:
