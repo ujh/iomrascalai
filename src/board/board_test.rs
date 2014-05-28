@@ -28,22 +28,22 @@ use board::coord::Coord;
 fn getting_a_valid_coord_returns_a_color(){
   let b = Board::new(19, 6.5);
 
-  assert_eq!(b.get(Coord::new(b.size,10,10)), Empty);
+  assert_eq!(b.get(Coord::new(10,10)), Empty);
 }
 
 #[test]
 #[should_fail]
 fn getting_invalid_coordinates_fails() {
   let b = Board::new(19, 6.5);
-  b.get(Coord::new(b.size,14, 21));
-  b.get(Coord::new(b.size,21, 14));
+  b.get(Coord::new(14, 21));
+  b.get(Coord::new(21, 14));
 }
 
 #[test]
 fn _19_19_is_a_valid_coordinate(){
   let b = Board::new(19, 6.5);
 
-  assert_eq!(b.get(Coord::new(b.size,19, 19)), Empty);
+  assert_eq!(b.get(Coord::new(19, 19)), Empty);
 }
 
 #[test]
@@ -51,7 +51,7 @@ fn _19_19_is_a_valid_coordinate(){
 fn _0_0_is_not_a_valid_coordinate(){
   let b = Board::new(19, 6.5);
 
-  b.get(Coord::new(b.size,0, 0));
+  b.get(Coord::new(0, 0));
 }
 
 #[test]
@@ -71,7 +71,7 @@ fn play_adds_a_stone_to_the_correct_position() {
 
   for i in range(1u8, 20) {
     for j in range(1u8 , 20) {
-      assert!(b.get(Coord::new(b.size, i, j)) == Empty || (i == 14 && j == 14));
+      assert!(b.get(Coord::new( i, j)) == Empty || (i == 14 && j == 14));
     }
   }
 }
@@ -86,10 +86,10 @@ fn two_way_merging_works() {
   assert_eq!(b.chains.len(), 3);
 
   b = b.play(White, 10, 11);
-  let c_id = b.get_chain(Coord::new(b.size,10, 10)).id;
+  let c_id = b.get_chain(Coord::new(10, 10)).id;
 
-  assert_eq!(b.get_chain(Coord::new(b.size,10, 11)).id, c_id);
-  assert_eq!(b.get_chain(Coord::new(b.size,10, 12)).id, c_id);
+  assert_eq!(b.get_chain(Coord::new(10, 11)).id, c_id);
+  assert_eq!(b.get_chain(Coord::new(10, 12)).id, c_id);
   assert_eq!(b.chains.len(), 2)
 }
 
@@ -104,11 +104,11 @@ fn three_way_merging_works() {
   assert_eq!(b.chains.len(), 4);
 
   b = b.play(White, 10, 11);
-  let c_id = b.get_chain(Coord::new(b.size,10, 10)).id;
+  let c_id = b.get_chain(Coord::new(10, 10)).id;
 
-  assert_eq!(b.get_chain(Coord::new(b.size,10, 11)).id, c_id);
-  assert_eq!(b.get_chain(Coord::new(b.size,11, 11)).id, c_id);
-  assert_eq!(b.get_chain(Coord::new(b.size,10, 12)).id, c_id);
+  assert_eq!(b.get_chain(Coord::new(10, 11)).id, c_id);
+  assert_eq!(b.get_chain(Coord::new(11, 11)).id, c_id);
+  assert_eq!(b.get_chain(Coord::new(10, 12)).id, c_id);
   assert_eq!(b.chains.len(), 2)
 }
 
@@ -124,12 +124,12 @@ fn four_way_merging_works() {
   assert_eq!(b.chains.len(), 5);
 
   b = b.play(White, 10, 11);
-  let c_id = b.get_chain(Coord::new(b.size,10, 10)).id;
+  let c_id = b.get_chain(Coord::new(10, 10)).id;
 
-  assert_eq!(b.get_chain(Coord::new(b.size,10, 11)).id, c_id);
-  assert_eq!(b.get_chain(Coord::new(b.size,9 , 11)).id, c_id);
-  assert_eq!(b.get_chain(Coord::new(b.size,11, 11)).id, c_id);
-  assert_eq!(b.get_chain(Coord::new(b.size,10, 12)).id, c_id);
+  assert_eq!(b.get_chain(Coord::new(10, 11)).id, c_id);
+  assert_eq!(b.get_chain(Coord::new(9 , 11)).id, c_id);
+  assert_eq!(b.get_chain(Coord::new(11, 11)).id, c_id);
+  assert_eq!(b.get_chain(Coord::new(10, 12)).id, c_id);
   assert_eq!(b.chains.len(), 2)
 }
 
@@ -141,9 +141,9 @@ fn playing_on_all_libs_in_corner_should_capture() {
   b = b.play(White, 1, 2);
   b = b.play(White, 2, 1);
 
-  assert_eq!(b.get(Coord::new(b.size,1, 1)), Empty);
-  assert_eq!(b.get(Coord::new(b.size,1, 2)), White);
-  assert_eq!(b.get(Coord::new(b.size,2, 1)), White);
+  assert_eq!(b.get(Coord::new(1, 1)), Empty);
+  assert_eq!(b.get(Coord::new(1, 2)), White);
+  assert_eq!(b.get(Coord::new(2, 1)), White);
 }
 
 #[test]
@@ -155,10 +155,10 @@ fn playing_on_all_libs_on_side_should_capture() {
   b = b.play(White, 1, 4);
   b = b.play(White, 2, 3);
 
-  assert_eq!(b.get(Coord::new(b.size,1, 3)), Empty);
-  assert_eq!(b.get(Coord::new(b.size,1, 2)), White);
-  assert_eq!(b.get(Coord::new(b.size,1, 4)), White);
-  assert_eq!(b.get(Coord::new(b.size,2, 3)), White);
+  assert_eq!(b.get(Coord::new(1, 3)), Empty);
+  assert_eq!(b.get(Coord::new(1, 2)), White);
+  assert_eq!(b.get(Coord::new(1, 4)), White);
+  assert_eq!(b.get(Coord::new(2, 3)), White);
 }
 
 #[test]
@@ -172,12 +172,12 @@ fn playing_on_all_libs_should_capture() {
   b = b.play(White, 3, 4);
   b = b.play(White, 5, 4);
 
-  assert_eq!(b.get(Coord::new(b.size,4, 4)), Empty); 
+  assert_eq!(b.get(Coord::new(4, 4)), Empty); 
 
-  assert_eq!(b.get(Coord::new(b.size,4, 3)), White); 
-  assert_eq!(b.get(Coord::new(b.size,4, 5)), White); 
-  assert_eq!(b.get(Coord::new(b.size,3, 4)), White); 
-  assert_eq!(b.get(Coord::new(b.size,5, 4)), White); 
+  assert_eq!(b.get(Coord::new(4, 3)), White); 
+  assert_eq!(b.get(Coord::new(4, 5)), White); 
+  assert_eq!(b.get(Coord::new(3, 4)), White); 
+  assert_eq!(b.get(Coord::new(5, 4)), White); 
 }
 
 #[test]
@@ -194,15 +194,15 @@ fn playing_on_all_libs_of_a_chain_should_capture() {
   b = b.play(White, 5, 5);
   b = b.play(White, 4, 6);
 
-  assert_eq!(b.get(Coord::new(b.size,4, 4)), Empty); 
-  assert_eq!(b.get(Coord::new(b.size,4, 5)), Empty); 
+  assert_eq!(b.get(Coord::new(4, 4)), Empty); 
+  assert_eq!(b.get(Coord::new(4, 5)), Empty); 
 
-  assert_eq!(b.get(Coord::new(b.size,4, 3)), White); 
-  assert_eq!(b.get(Coord::new(b.size,3, 4)), White); 
-  assert_eq!(b.get(Coord::new(b.size,5, 4)), White); 
-  assert_eq!(b.get(Coord::new(b.size,3, 5)), White); 
-  assert_eq!(b.get(Coord::new(b.size,5, 5)), White); 
-  assert_eq!(b.get(Coord::new(b.size,4, 6)), White); 
+  assert_eq!(b.get(Coord::new(4, 3)), White); 
+  assert_eq!(b.get(Coord::new(3, 4)), White); 
+  assert_eq!(b.get(Coord::new(5, 4)), White); 
+  assert_eq!(b.get(Coord::new(3, 5)), White); 
+  assert_eq!(b.get(Coord::new(5, 5)), White); 
+  assert_eq!(b.get(Coord::new(4, 6)), White); 
 }
 
 #[test]
@@ -221,17 +221,17 @@ fn playing_on_all_libs_of_a_bent_chain_should_capture() {
   b = b.play(White, 5, 5);
   b = b.play(White, 4, 6);
 
-  assert_eq!(b.get(Coord::new(b.size,4, 4)), Empty); 
-  assert_eq!(b.get(Coord::new(b.size,4, 5)), Empty); 
-  assert_eq!(b.get(Coord::new(b.size,3, 4)), Empty); 
+  assert_eq!(b.get(Coord::new(4, 4)), Empty); 
+  assert_eq!(b.get(Coord::new(4, 5)), Empty); 
+  assert_eq!(b.get(Coord::new(3, 4)), Empty); 
 
-  assert_eq!(b.get(Coord::new(b.size,3, 3)), White); 
-  assert_eq!(b.get(Coord::new(b.size,4, 3)), White); 
-  assert_eq!(b.get(Coord::new(b.size,2, 4)), White); 
-  assert_eq!(b.get(Coord::new(b.size,5, 4)), White); 
-  assert_eq!(b.get(Coord::new(b.size,3, 5)), White); 
-  assert_eq!(b.get(Coord::new(b.size,5, 5)), White); 
-  assert_eq!(b.get(Coord::new(b.size,4, 6)), White); 
+  assert_eq!(b.get(Coord::new(3, 3)), White); 
+  assert_eq!(b.get(Coord::new(4, 3)), White); 
+  assert_eq!(b.get(Coord::new(2, 4)), White); 
+  assert_eq!(b.get(Coord::new(5, 4)), White); 
+  assert_eq!(b.get(Coord::new(3, 5)), White); 
+  assert_eq!(b.get(Coord::new(5, 5)), White); 
+  assert_eq!(b.get(Coord::new(4, 6)), White); 
 }
 
 

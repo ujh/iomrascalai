@@ -67,7 +67,7 @@ impl Board {
     // Note: This method uses 1-1 as the origin point, not 0-0. 19-19 is a valid coordinate in a 19-sized board, while 0-0 is not.
     //       this is done because I think it makes more sense in the context of go. (Least surprise principle, etc...)
     pub fn get(&self, c: Coord) -> Color {
-        if c.is_inside() {
+        if c.is_inside(self.size) {
             self.get_chain(c).color
         } else {
             fail!("You have requested a stone outside of the board");
@@ -75,8 +75,8 @@ impl Board {
     }
 
     pub fn get_chain<'a>(&'a self, c: Coord) -> &'a Chain {
-        if c.is_inside() {
-            let chain_id = *self.board.get(c.to_index());
+        if c.is_inside(self.size) {
+            let chain_id = *self.board.get(c.to_index(self.size));
             self.chains.get(chain_id)
         } else {
             fail!("You have requested a chain outside of the board");
@@ -89,10 +89,10 @@ impl Board {
 
     // Note: Same as get(), the board is indexed starting at 1-1
     pub fn play(&self, color: Color, col: u8, row: u8) -> Board {
-        let new_coords      = Coord::new(self.size, col, row);
+        let new_coords      = Coord::new(col, row);
 
         // We check the validity of the coords.
-        let mut new_board = if new_coords.is_inside() {
+        let mut new_board = if new_coords.is_inside(self.size) {
             self.clone()
         } else {
             fail!("The coordinate you have entered ({} {}) are invalid", col, row);
@@ -160,8 +160,8 @@ impl Board {
         let libs = self.chains.get(chain_id).coords()
                                             .iter()
                                             .fold(Vec::new(), |mut acc, c| {
-                                                for &n in c.neighbours().iter() {
-                                                    if n.is_inside() && self.get(n) == Empty && !acc.contains(&n) {
+                                                for &n in c.neighbours(self.size).iter() {
+                                                    if n.is_inside(self.size) && self.get(n) == Empty && !acc.contains(&n) {
                                                         acc.push(n);
                                                     }
                                                 }
@@ -181,15 +181,15 @@ impl Board {
     fn update_board_ids(&mut self) {
         for chain in self.chains.clone().iter() {
             for &coord in chain.coords().iter() {
-                *self.board.get_mut(coord.to_index()) = chain.id;
+                *self.board.get_mut(coord.to_index(self.size)) = chain.id;
             }
         }
     }
 
     fn find_neighbouring_friendly_chains_ids(&self, c: Coord, color: Color) -> Vec<uint> {
-        let mut friend_neigh_chains_id: Vec<uint> = c.neighbours()
+        let mut friend_neigh_chains_id: Vec<uint> = c.neighbours(self.size)
                   .iter()
-                  .filter(|&c| c.is_inside() && self.get(*c) == color)
+                  .filter(|&c| c.is_inside(self.size) && self.get(*c) == color)
                   .map(|&c| self.get_chain(c).id)
                   .collect();
 
@@ -206,9 +206,9 @@ impl Board {
             fail!("You can't play a suicide move");
         }
 
-        let mut adv_chains_ids: Vec<uint> = coord.neighbours()
+        let mut adv_chains_ids: Vec<uint> = coord.neighbours(self.size)
                   .iter()
-                  .filter(|&c| c.is_inside() && self.get(*c) == adv_color)
+                  .filter(|&c| c.is_inside(self.size) && self.get(*c) == adv_color)
                   .map(|&c| self.get_chain(c).id)
                   .collect();
 
@@ -260,17 +260,17 @@ impl Board {
         let mut new_chain   = Chain::new(new_chain_id, color);
         new_chain.add_stone(init_coord);
         self.chains.push(new_chain);
-        *self.board.get_mut(init_coord.to_index()) = new_chain_id;
+        *self.board.get_mut(init_coord.to_index(self.size)) = new_chain_id;
         self.update_libs(new_chain_id);
     }
 
     fn add_coord_to_chain(&mut self, coord: Coord, chain_id: uint) {
         self.chains.get_mut(chain_id).add_stone(coord);
-       *self.board.get_mut(coord.to_index()) = chain_id;    
+       *self.board.get_mut(coord.to_index(self.size)) = chain_id;    
     }
 
     fn remove_stone(&mut self, c: Coord) {
-        *self.board.get_mut(c.to_index()) = 0;
+        *self.board.get_mut(c.to_index(self.size)) = 0;
     }
 
     pub fn show(&self) {
@@ -284,7 +284,7 @@ impl Board {
 
             // Prints the actual row
             for col in range(1u8, self.size+1) {
-                let current_coords = Coord::new(self.size, col, row);
+                let current_coords = Coord::new(col, row);
 
                 if self.get(current_coords) == Empty {
                     let hoshis = &[4u8,10,16];
