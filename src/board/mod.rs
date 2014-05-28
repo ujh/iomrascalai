@@ -72,6 +72,8 @@ pub struct Board {
 
 impl Board {
     pub fn new(size: uint, komi: f32, ruleset: Ruleset) -> Board {
+        if ruleset == TrompTaylor && size != 19 {fail!("You can only play on 19*19 in Tromp Taylor Rules");}
+
         Board {
             komi: komi,
             size: size as u8,
@@ -110,7 +112,7 @@ impl Board {
         let new_coords      = Coord::new(col, row);
 
         if new_coords.is_inside(self.size) {
-            if self.get(new_coords) != Empty {
+            if self.get_coord(new_coords) != Empty {
                 return Err(IntersectionNotEmpty);
             }
         } else {

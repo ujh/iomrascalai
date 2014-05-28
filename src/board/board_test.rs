@@ -78,7 +78,7 @@ fn play_adds_a_stone_to_the_correct_position() {
 
 #[test]
 fn playing_on_an_illegal_coordinate_should_return_error() {
-  let b = Board::new(9, 6.5, TrompTaylor);
+  let b = Board::new(9, 6.5, Minimal);
 
   assert!(b.play(Black, 13, 13).is_err());
 }
@@ -294,4 +294,13 @@ fn playing_twice_should_be_illegal_in_tromp_taylor_rules() {
   b = b.play(Black, 10, 10).unwrap();
 
   assert!(b.play(Black, 4, 4).is_err());
+}
+
+#[test]
+#[should_fail]
+fn the_only_valid_size_in_TT_rules_should_be_19() {
+  let b = Board::new(13, 6.5, TrompTaylor);
+  let b = Board::new(9, 6.5, TrompTaylor);
+  let b = Board::new(21, 6.5, TrompTaylor);
+  let b = Board::new(5, 6.5, TrompTaylor);
 }
