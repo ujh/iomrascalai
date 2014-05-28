@@ -65,8 +65,6 @@ fn test_play(){
   let mut b = Board::new(19, 6.5);
 
   b = b.play(White, 14, 14);
-  b.show();
-  b.show_chains();
   assert!(b.get(14,14) == White);
 
   for i in range(1u8, 20) {
