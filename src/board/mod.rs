@@ -21,6 +21,7 @@
 use std::vec::Vec;
 use board::chain::Chain;
 use board::coord::Coord;
+use board::hash::ZobristHashTable;
 
 mod board_test;
 mod coord_test;
@@ -28,6 +29,7 @@ mod chain_test;
 
 mod coord;
 mod chain;
+pub mod hash;
 
 #[deriving(Show)]
 pub enum IllegalMove {
@@ -61,19 +63,35 @@ impl Color {
     }
 }
 
-#[deriving(Clone)]
-pub struct Board {
+pub struct Board<'a> {
     komi: f32,
     size: u8,
     board: Vec<uint>,
     chains: Vec<Chain>,
     ruleset: Ruleset,
     previous_player: Color,
-    consecutive_passes: u8
+    consecutive_passes: u8,
+    zobrist_base_table: &'a ZobristHashTable
 }
 
-impl Board {
-    pub fn new(size: uint, komi: f32, ruleset: Ruleset) -> Board {
+impl<'a> Clone for Board<'a> {
+    fn clone(&self) -> Board<'a> {
+        Board {
+            komi              : self.komi,
+            size              : self.size,
+            board             : self.board.clone(),
+            chains            : self.chains.clone(),
+            ruleset           : self.ruleset,
+            previous_player   : self.previous_player,
+            consecutive_passes: self.consecutive_passes,
+            zobrist_base_table: self.zobrist_base_table
+
+        }
+    }
+}
+
+impl<'a> Board<'a> {
+    pub fn new(size: uint, komi: f32, ruleset: Ruleset, zobrist_base_table: &'a ZobristHashTable) -> Board<'a> {
         if ruleset == TrompTaylor && size != 19 {fail!("You can only play on 19*19 in Tromp Taylor Rules");}
 
         Board {
@@ -83,7 +101,8 @@ impl Board {
             chains: vec!(Chain::new(0, Empty)),
             ruleset: ruleset,
             previous_player: White,
-            consecutive_passes: 0
+            consecutive_passes: 0,
+            zobrist_base_table: zobrist_base_table
         }
     }
 
@@ -111,7 +130,7 @@ impl Board {
     }
 
     // Note: Same as get(), the board is indexed starting at 1-1
-    pub fn play(&self, color: Color, move: Option<(u8, u8)>) -> Result<Board, IllegalMove> {
+    pub fn play(&self, color: Color, move: Option<(u8, u8)>) -> Result<Board<'a>, IllegalMove> {
         if self.ruleset == TrompTaylor && self.consecutive_passes == 2 {
             return Err(GameAlreadyOver);
         }

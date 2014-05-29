@@ -19,15 +19,18 @@
  *                                                                      *
  ************************************************************************/
 extern crate core;
+extern crate rand;
 
 use board::{White, Black, TrompTaylor};
 use board::{PlayOutOfBoard, SuicidePlay, IntersectionNotEmpty, SamePlayerPlayedTwice, GameAlreadyOver};
+use board::hash::ZobristHashTable;
 use std::io::stdio::stdin;
 
 mod board;
 
 fn main() {
-  let mut b = board::Board::new(19, 6.5, TrompTaylor);
+  let z_hash_table = ZobristHashTable::new(19);
+  let mut b = board::Board::new(19, 6.5, TrompTaylor, &z_hash_table);
   let mut current_player = Black;
   let mut reader = stdin();
   let mut line =  "whatever".to_owned();
