@@ -109,6 +109,10 @@ impl<'a> Board<'a> {
         }
     }
 
+    pub fn with_TrumpTaylor_rules(size: uint, komi: f32, zobrist_base_table: &'a ZobristHashTable) -> Board<'a> {
+        Board::new(size, komi, TrompTaylor, zobrist_base_table)
+    }
+
     // Note: This method uses 1-1 as the origin point, not 0-0. 19-19 is a valid coordinate in a 19-sized board, while 0-0 is not.
     //       this is done because I think it makes more sense in the context of go. (Least surprise principle, etc...)
     pub fn get(&self, col: u8, row: u8) -> Color {
@@ -148,6 +152,7 @@ impl<'a> Board<'a> {
         if move.is_none() {
             let mut new_board = self.clone();
             new_board.consecutive_passes += 1;
+            new_board.previous_player    = color;
             return Ok(new_board);
         }
 
@@ -168,9 +173,9 @@ impl<'a> Board<'a> {
 
         let mut new_board = self.clone();
 
-        new_board.consecutive_passes = 0;
-
         new_board.previous_player    = color;
+
+        new_board.consecutive_passes = 0;
 
         new_board.merge_or_create_chain(new_coords, color);
 
