@@ -208,12 +208,13 @@ impl<'a> Board<'a> {
                     
                     nb_removed_chains += 1;
                 }
-                new_board.update_board_ids();
+
+                new_board.update_board_ids_after_id(final_chain_id);
                 new_board.update_libs(final_chain_id);
             }
         }
 
-        // Then we loop up the enemy chains neighours of the new stone, and we decrease their libs by one
+        // Then we look up the enemy chains neighours of the new stone, and we decrease their libs by one
         new_board.update_enemy_chains_libs_close_to(new_coords, color.opposite());
 
         let adv_stones_removed = new_board.remove_adv_chains_with_no_libs_close_to(new_coords, color.opposite());
@@ -303,18 +304,10 @@ impl<'a> Board<'a> {
         }
     }
 
-    fn update_board_ids(&mut self) {
-        self.update_board_ids_after_id(0);
-    }
-
     fn update_chains_ids_after_id(&mut self, removed_chain_id: uint) {
         for i in range(removed_chain_id, self.chains.len()) {
             self.chains.get_mut(i).id = i;
         }
-    }
-
-    fn update_chains_ids(&mut self) {
-        self.update_chains_ids_after_id(1);
     }
 
     fn update_all_after_id(&mut self, id: uint) {
@@ -323,8 +316,7 @@ impl<'a> Board<'a> {
     }
 
     fn update_all(&mut self) {
-        self.update_chains_ids();
-        self.update_board_ids();
+        self.update_all_after_id(0);
     }
 
     // Returns a vector of the coords where stones where removed.
