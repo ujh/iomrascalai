@@ -24,6 +24,7 @@
 use std::io::fs::File;
 
 use board::Black;
+use board::Coord;
 use sgf::parser::Parser;
 
 fn sgf(name : &'static str) -> String {
@@ -50,7 +51,7 @@ fn sets_the_komi_from_sgf() {
 fn play_handicap_stones() {
     let parser = Parser::new(sgf("handicap"));
     let board  = parser.board();
-    assert_eq!(board.get(4,4), Black);
-    assert_eq!(board.get(16,4), Black);
-    assert_eq!(board.get(16,16), Black);
+    assert_eq!(board.get(Coord::new(4,4)), Black);
+    assert_eq!(board.get(Coord::new(16,4)), Black);
+    assert_eq!(board.get(Coord::new(16,16)), Black);
 }

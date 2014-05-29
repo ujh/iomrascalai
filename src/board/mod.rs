@@ -20,7 +20,7 @@
  ************************************************************************/
 use std::vec::Vec;
 use board::chain::Chain;
-use board::coord::Coord;
+pub use board::coord::Coord;
 
 mod board_test;
 mod coord_test;
