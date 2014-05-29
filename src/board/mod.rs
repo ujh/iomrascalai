@@ -134,7 +134,7 @@ impl<'a> Board<'a> {
 
     // Note: Same as get(), the board is indexed starting at 1-1
     pub fn play(&self, color: Color, move: Option<(u8, u8)>) -> Result<Board<'a>, IllegalMove> {
-        if self.ruleset == TrompTaylor && self.consecutive_passes == 2 {
+        if self.is_game_over() && self.ruleset == TrompTaylor {
             return Err(GameAlreadyOver);
         }
 
@@ -384,8 +384,6 @@ impl<'a> Board<'a> {
         for &coord in friend_stones_removed.iter() {
             hash = self.zobrist_base_table.remove_stone_from_hash(hash, current_color, coord);
         }
-
-        println!("\nComputing hash by adding: {} and removing all adv {} and all friend {}", new_coords, adv_stones_removed, friend_stones_removed);
 
         hash
     }
