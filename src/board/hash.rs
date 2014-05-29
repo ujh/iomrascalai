@@ -2,7 +2,6 @@ use rand::random;
 use board::coord::Coord;
 use board::{Color, Empty, Black, White};
 
-#[deriving(Clone)]
 pub struct ZobristHashTable {
     table: Vec<u64>,
     size : u8

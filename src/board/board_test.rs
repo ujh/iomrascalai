@@ -22,6 +22,7 @@
 #![cfg(test)]
 
 use board::{Board, Empty, White, Black, TrompTaylor, Minimal};
+use board::{SuperKoRuleBroken};
 use board::coord::Coord;
 use board::hash::ZobristHashTable;
 
@@ -352,4 +353,25 @@ fn after_two_passes_the_game_should_be_over_in_TT_rules() {
   assert!(b.is_game_over()); 
 
   assert!(b.play(Black, Some((4, 4))).is_err());
+}
+
+#[test]
+fn replaying_directly_on_a_ko_point_should_be_illegal() {
+  let zht = ZobristHashTable::new(19);
+  let mut b = Board::new(19, 6.5, TrompTaylor, &zht);
+  
+  let b = b.play(Black, Some((4,4))).unwrap();
+  let b = b.play(White, Some((5,4))).unwrap();
+  let b = b.play(Black, Some((3,3))).unwrap();
+  let b = b.play(White, Some((4,3))).unwrap();
+  let b = b.play(Black, Some((3,5))).unwrap();
+  let b = b.play(White, Some((4,5))).unwrap();
+  let b = b.play(Black, Some((2,4))).unwrap();
+  let b = b.play(White, Some((3,4))).unwrap();
+
+  match b.play(Black, Some((4,4))) {
+    Err(SuperKoRuleBroken) => (),
+    Ok(_)                  => fail!("Replaying on a ko was allowed"),
+    Err(x)                 => fail!("Engine crashed while trying to replay on a ko : {}", x)
+  }
 }

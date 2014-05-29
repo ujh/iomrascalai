@@ -31,7 +31,7 @@ mod coord;
 mod chain;
 pub mod hash;
 
-#[deriving(Show)]
+#[deriving(Show, Eq)]
 pub enum IllegalMove {
     PlayOutOfBoard,
     SuicidePlay,
@@ -180,7 +180,6 @@ impl<'a> Board<'a> {
             1 => {
                 let final_chain_id = *friend_neigh_chains_id.get(0);
                 new_board.add_coord_to_chain(new_coords, final_chain_id);
-                new_board.update_libs(final_chain_id);
             },
             _ => {
                 // Note: We know that friend_neigh_chains_id is sorted, so whatever chains we remove,
@@ -210,17 +209,19 @@ impl<'a> Board<'a> {
                 }
 
                 new_board.update_board_ids_after_id(final_chain_id);
-                new_board.update_libs(final_chain_id);
             }
         }
 
-        // Then we look up the enemy chains neighours of the new stone, and we decrease their libs by one
-        new_board.update_enemy_chains_libs_close_to(new_coords, color.opposite());
+        // We then update the libs of all chains of the opposite color
+        new_board.update_chains_libs_of(color.opposite());
 
         let adv_stones_removed = new_board.remove_adv_chains_with_no_libs_close_to(new_coords, color.opposite());
-        let mut friend_stones_removed = Vec::new(); // This is only useful is suicide is legal.
-
         new_board.update_all();
+
+        let final_chain_id = new_board.get_chain(new_coords).id;
+        new_board.update_libs(final_chain_id);
+
+        let mut friend_stones_removed = Vec::new(); // This is only useful is suicide is legal.
 
         if adv_stones_removed.len() > 0 {
             // We could only re-check the libs of the neighbours of the neighbours of new_coords, but this will do atm.
@@ -281,18 +282,18 @@ impl<'a> Board<'a> {
         self.chains.get_mut(chain_id).libs = libs;
     }
 
-    fn update_enemy_chains_libs_close_to(&mut self, coord: Coord, adv_color: Color) {
-        let mut adv_chains_ids: Vec<uint> = coord.neighbours(self.size)
+    fn update_chains_libs_of(&mut self, color: Color) {
+        let mut adv_chains_ids: Vec<uint> = self.chains
                   .iter()
-                  .filter(|&c| c.is_inside(self.size) && self.get_coord(*c) == adv_color)
-                  .map(|&c| self.get_chain(c).id)
+                  .filter(|c| c.color == color)
+                  .map(|c| c.id)
                   .collect();
 
         adv_chains_ids.sort();
         adv_chains_ids.dedup();
 
         for &id in adv_chains_ids.iter() {
-            self.chains.get_mut(id).libs -= 1;
+            self.update_libs(id);
         }
     }
 
@@ -321,6 +322,11 @@ impl<'a> Board<'a> {
 
     // Returns a vector of the coords where stones where removed.
     fn remove_adv_chains_with_no_libs_close_to(&mut self, close_to: Coord, color: Color) -> Vec<Coord> {
+        let coords_to_remove = close_to.neighbours(self.size).iter()
+                                      .map(|&coord| self.get_chain(coord))
+                                      .filter(|chain| chain.libs == 0 && chain.color == color)
+                                      .fold(Vec::new(), |acc, chain| acc.append(chain.coords().as_slice()));
+
         let mut chain_to_remove_ids: Vec<uint> = close_to.neighbours(self.size)
                                                          .iter()
                                                          .map(|&coord| self.get_chain(coord))
@@ -336,10 +342,7 @@ impl<'a> Board<'a> {
             self.remove_chain(id);
         }
 
-        close_to.neighbours(self.size).iter()
-                                      .map(|&coord| self.get_chain(coord))
-                                      .filter(|chain| chain.libs == 0 && chain.color == color)
-                                      .fold(Vec::new(), |acc, chain| acc.append(chain.coords().as_slice()))
+        coords_to_remove
     }
 
     fn remove_chain(&mut self, id: uint) {
@@ -381,6 +384,8 @@ impl<'a> Board<'a> {
         for &coord in friend_stones_removed.iter() {
             hash = self.zobrist_base_table.remove_stone_from_hash(hash, current_color, coord);
         }
+
+        println!("\nComputing hash by adding: {} and removing all adv {} and all friend {}", new_coords, adv_stones_removed, friend_stones_removed);
 
         hash
     }
