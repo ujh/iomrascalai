@@ -17,7 +17,7 @@ fn add_stone_adds_the_correct_stone() {
     let mut c1 = Chain::new(1, Black);
     c1.add_stone(Coord::new(14,14));
 
-    assert_eq!(c1.coords().get(0), &Coord::new(14, 14));
+    assert_eq!(c1.coords().get(0), &Coord::new( 14, 14));
 }
 
 #[test]
@@ -62,7 +62,8 @@ fn show_returns_a_legible_string_for_the_chain() {
     c1.add_stone(Coord::new(7,7));
     c1.add_stone(Coord::new(7,8));
     c1.add_stone(Coord::new(7,9));
+    c1.libs = 8;
 
-    let expected = String::from_str("1, Black: 7,7|7,8|7,9|");
+    let expected = String::from_str("1  | Black, libs:  8, stones:  7,7 | 7,8 | 7,9 |");
     assert_eq!(c1.show(), expected);
 }

@@ -18,8 +18,6 @@
  * along with Iomrascálaí.  If not, see <http://www.gnu.org/licenses/>. *
  *                                                                      *
  ************************************************************************/
-
-
 use std::vec::Vec;
 use board::chain::Chain;
 use board::coord::Coord;
@@ -36,6 +34,16 @@ pub enum Color {
     White,
     Black,
     Empty
+}
+
+impl Color {
+    fn opposite(&self) -> Color {
+        match *self {
+            White => Black,
+            Black => White,
+            Empty => Empty
+        }
+    }
 }
 
 #[deriving(Clone)]
@@ -58,17 +66,17 @@ impl Board {
 
     // Note: This method uses 1-1 as the origin point, not 0-0. 19-19 is a valid coordinate in a 19-sized board, while 0-0 is not.
     //       this is done because I think it makes more sense in the context of go. (Least surprise principle, etc...)
-    pub fn get(&self, col: u8, row: u8) -> Color {
-        if self.is_inside(col, row) {
-            self.get_chain(col, row).color
+    pub fn get(&self, c: Coord) -> Color {
+        if c.is_inside(self.size) {
+            self.get_chain(c).color
         } else {
             fail!("You have requested a stone outside of the board");
         }
     }
 
-    pub fn get_chain<'a>(&'a self, col: u8, row: u8) -> &'a Chain {
-        if self.is_inside(col, row) {
-            let chain_id = *self.board.get(Coord::new(col, row).to_index(self.size));
+    pub fn get_chain<'a>(&'a self, c: Coord) -> &'a Chain {
+        if c.is_inside(self.size) {
+            let chain_id = *self.board.get(c.to_index(self.size));
             self.chains.get(chain_id)
         } else {
             fail!("You have requested a chain outside of the board");
@@ -83,30 +91,18 @@ impl Board {
         self.size
     }
 
-    fn is_inside(&self, col: u8, row: u8) -> bool {
-        1 <= col && col <= self.size && 1 <= row && row <= self.size
-    }
-
-
     // Note: Same as get(), the board is indexed starting at 1-1
     pub fn play(&self, color: Color, col: u8, row: u8) -> Board {
+        let new_coords      = Coord::new(col, row);
+
         // We check the validity of the coords.
-        let mut new_board = if self.is_inside(col, row) {
+        let mut new_board = if new_coords.is_inside(self.size) {
             self.clone()
         } else {
             fail!("The coordinate you have entered ({} {}) are invalid", col, row);
         };
 
-        let new_coords = Coord::new(col, row);
-
-        let mut neighbouring_chains_ids = Vec::new();
-        for coord in new_coords.neighbours().iter().filter(|c| new_board.is_inside(c.col, c.row) && new_board.get(c.col, c.row) == color) {
-            let candidate_chain_id = new_board.get_chain(coord.col, coord.row).id;
-            if !neighbouring_chains_ids.contains(&candidate_chain_id) {neighbouring_chains_ids.push(candidate_chain_id);}
-        }
-
-        // We need to sort the chain by ascending id so that later we know that neighbouring_chains_ids[0] has the lowest id
-        neighbouring_chains_ids.sort();
+        let friend_neigh_chains_id = self.find_neighbouring_friendly_chains_ids(new_coords, color);
 
         /*
          * If there is 0 friendly neighbouring chain, we create one, and assign the coord played to that new chain.
@@ -115,32 +111,25 @@ impl Board {
          * board.chains, then we lower by 1 the ids of all stones with chain ids higher than the removed chains,
          * and finally we reassign the correct chain_id to each stone in the final chain.
         */
-        match neighbouring_chains_ids.len() {
-            0 => {
-                let new_chain_id  = new_board.chains.len();
-                let mut new_chain = Chain::new(new_chain_id, color);
-                new_chain.add_stone(new_coords);
-                new_board.chains.push(new_chain);
-                *new_board.board.get_mut(new_coords.to_index(new_board.size)) = new_chain_id;
-            },
+        match friend_neigh_chains_id.len() {
+            0 => new_board.create_new_chain(color, new_coords),
             1 => {
-                let final_chain_id = *neighbouring_chains_ids.get(0);
-                new_board.chains.get_mut(final_chain_id).add_stone(new_coords);
-                *new_board.board.get_mut(new_coords.to_index(new_board.size)) = final_chain_id;
+                let final_chain_id = *friend_neigh_chains_id.get(0);
+                new_board.add_coord_to_chain(new_coords, final_chain_id);
+                new_board.update_libs(final_chain_id);
             },
             _ => {
-                // Note: We know that neighbouring_chains_ids is sorted, so whatever chains we remove,
+                // Note: We know that friend_neigh_chains_id is sorted, so whatever chains we remove,
                 // we know that the id of the final_chain is still valid.
-                let final_chain_id        = *neighbouring_chains_ids.get(0);
+                let final_chain_id        = *friend_neigh_chains_id.get(0);
                 let mut nb_removed_chains = 0;
 
                 // We assign the stone to the final chain
-                new_board.chains.get_mut(final_chain_id).add_stone(new_coords);
-                *new_board.board.get_mut(new_coords.to_index(new_board.size)) = final_chain_id;
+                new_board.add_coord_to_chain(new_coords, final_chain_id);
 
-                for &other_chain_old_id in neighbouring_chains_ids.slice(1, neighbouring_chains_ids.len()).iter() {
-                    // The ids stored in neighbouring_chains_ids may be out of date since we remove chains from new_board.chains
-                    // These id is the correct one at this step of the
+                for &other_chain_old_id in friend_neigh_chains_id.slice(1, friend_neigh_chains_id.len()).iter() {
+                    // The ids stored in friend_neigh_chains_id may be out of date since we remove chains from new_board.chains
+                    // These id is the correct one at this step of the removals
                     let other_chain_id = other_chain_old_id - nb_removed_chains;
 
                     // We merge the other chain into the final chain.
@@ -155,13 +144,35 @@ impl Board {
 
                     nb_removed_chains += 1;
                 }
-
-                // We update the board so that each id stored in the board is up-to-date
                 new_board.update_board_ids();
+                new_board.update_libs(final_chain_id);
             }
         }
 
+        // Then we loop up the enemy chains neighours of the new stone, and we decrease their libs by one
+        new_board.update_enemy_chains_libs(new_coords, color.opposite());
+
+        new_board.remove_chains_with_no_libs();
+
+        new_board.update_chains_ids();
+        new_board.update_board_ids();
+
         new_board
+    }
+
+    fn update_libs(&mut self, chain_id: uint) {
+        let libs = self.chains.get(chain_id).coords()
+                                            .iter()
+                                            .fold(Vec::new(), |mut acc, c| {
+                                                for &n in c.neighbours(self.size).iter() {
+                                                    if n.is_inside(self.size) && self.get(n) == Empty && !acc.contains(&n) {
+                                                        acc.push(n);
+                                                    }
+                                                }
+                                                acc
+                                            }).len();
+        self.chains.get_mut(chain_id).libs = libs;
+
     }
 
     fn update_chains_ids_after_removed_chain(&mut self, removed_chain_id: uint) {
@@ -179,6 +190,93 @@ impl Board {
         }
     }
 
+    fn find_neighbouring_friendly_chains_ids(&self, c: Coord, color: Color) -> Vec<uint> {
+        let mut friend_neigh_chains_id: Vec<uint> = c.neighbours(self.size)
+                  .iter()
+                  .filter(|&c| c.is_inside(self.size) && self.get(*c) == color)
+                  .map(|&c| self.get_chain(c).id)
+                  .collect();
+
+        // We need to sort the chain by ascending id so that later we know that friend_neigh_chains_id[0] has the lowest id.
+        // It also helps with keeping track of the ids of the chain yet-to-merge as their ids will always decrease by nb of chains
+        // merged before them.
+        friend_neigh_chains_id.sort();
+        friend_neigh_chains_id.dedup();
+        friend_neigh_chains_id
+    }
+
+    fn update_enemy_chains_libs(&mut self, coord: Coord, adv_color: Color) {
+        if self.get_chain(coord).libs == 0 {
+            fail!("You can't play a suicide move");
+        }
+
+        let mut adv_chains_ids: Vec<uint> = coord.neighbours(self.size)
+                  .iter()
+                  .filter(|&c| c.is_inside(self.size) && self.get(*c) == adv_color)
+                  .map(|&c| self.get_chain(c).id)
+                  .collect();
+
+        adv_chains_ids.sort();
+        adv_chains_ids.dedup();
+
+        for &id in adv_chains_ids.iter() {
+            self.chains.get_mut(id).libs -= 1;
+        }
+    }
+
+    fn update_chains_ids(&mut self) {
+        for i in range(1, self.chains.len()) {
+            self.chains.get_mut(i).id = i;
+        }
+    }
+
+    fn remove_chains_with_no_libs(&mut self) {
+        // First we remove the stones contained by the chain.
+        let coords_to_remove = self.chains.iter()
+                                          .filter(|chain| chain.libs == 0)
+                                          .fold(Vec::<Coord>::new(), |acc, chain| acc.append(chain.coords().as_slice()));
+
+        for &coord in coords_to_remove.iter() {
+            self.remove_stone(coord);
+        }
+
+        // Then we remove the chain from the board.chains Vec
+        let mut ids_to_remove: Vec<uint> = self.chains.iter()
+                                                  .filter(|chain| chain.libs == 0)
+                                                  .map(|chain| chain.id)
+                                                  .collect();
+
+        // The sorting is needed to make sure we remove the chain in the right order:
+        // if it wasn't sorted, then we might remove a later chain before an earlier one
+        // which would not impact the early one's id. Then, id-nb_removed would not point
+        // to the correct id.
+        ids_to_remove.sort();
+
+        let mut nb_removed = 0;
+        for id in ids_to_remove.iter() {
+            self.chains.remove(id - nb_removed);
+            nb_removed += 1;
+        }
+    }
+
+    fn create_new_chain(&mut self, color: Color, init_coord: Coord) {
+        let new_chain_id    = self.chains.len();
+        let mut new_chain   = Chain::new(new_chain_id, color);
+        new_chain.add_stone(init_coord);
+        self.chains.push(new_chain);
+        *self.board.get_mut(init_coord.to_index(self.size)) = new_chain_id;
+        self.update_libs(new_chain_id);
+    }
+
+    fn add_coord_to_chain(&mut self, coord: Coord, chain_id: uint) {
+        self.chains.get_mut(chain_id).add_stone(coord);
+       *self.board.get_mut(coord.to_index(self.size)) = chain_id;
+    }
+
+    fn remove_stone(&mut self, c: Coord) {
+        *self.board.get_mut(c.to_index(self.size)) = 0;
+    }
+
     pub fn show(&self) {
         println!("komi: {}", self.komi());
 
@@ -190,12 +288,14 @@ impl Board {
 
             // Prints the actual row
             for col in range(1u8, self.size+1) {
-                if self.get(col, row) == Empty {
+                let current_coords = Coord::new(col, row);
+
+                if self.get(current_coords) == Empty {
                     let hoshis = &[4u8,10,16];
                     if   hoshis.contains(&row) && hoshis.contains(&col) {print!("+ ")}
                     else                                                {print!(". ")}
-                } else if self.get(col, row) == White {print!("O ")}
-                  else if self.get(col, row) == Black {print!("X ")}
+                } else if self.get(current_coords) == White {print!("O ")}
+                  else if self.get(current_coords) == Black {print!("X ")}
             }
             println!("");
         }
