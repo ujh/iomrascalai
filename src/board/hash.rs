@@ -21,8 +21,23 @@ impl ZobristHashTable {
         ZobristHashTable {table: table, size: size}
     }
 
-    pub fn add_move_to_hash(&self, hash: u64, color: Color, coord: Coord) -> u64 {
-        hash ^ self.get_hash_for(color, coord)
+    pub fn init_hash(&self) -> u64 {
+        let mut init_hash = 0;
+
+        for i in range(0, self.table.len()/3) {       // We xor together all the hashes corresponding to the Empty color
+            init_hash ^= *self.table.get(i)
+        }
+
+        init_hash
+    }
+
+    pub fn add_stone_to_hash(&self, hash: u64, color: Color, coord: Coord) -> u64 {
+        hash ^ self.get_hash_for(Empty, coord) ^ self.get_hash_for(color, coord)    
+    }
+
+    pub fn remove_stone_from_hash(&self, hash: u64, color: Color, coord: Coord) -> u64 {
+        // As A^B == B^A, removing or adding is the same operation. This method is only added to express intent.
+        self.add_stone_to_hash(hash, color, coord)
     }
 
     fn get_hash_for(&self, color: Color, coord: Coord) -> u64 {

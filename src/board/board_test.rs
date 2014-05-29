@@ -276,14 +276,19 @@ fn suicide_should_be_legal_in_tromp_taylor_rules() {
   let mut b = Board::new(19, 6.5, TrompTaylor, &zht);
 
   b = b.play(Black, Some((4 , 4 ))).unwrap();
-  b = b.play(White, Some((16, 16))).unwrap();
-  b = b.play(Black, Some((3 , 3 ))).unwrap();
-  b = b.play(White, Some((16, 10))).unwrap();
-  b = b.play(Black, Some((2 , 4 ))).unwrap();
-  b = b.play(White, Some((16, 4 ))).unwrap();
-  b = b.play(Black, Some((3 , 5 ))).unwrap();
+  b = b.play(White, Some((5 , 4 ))).unwrap();
+  b = b.play(Black, Some((16, 16))).unwrap();
+  b = b.play(White, Some((4 , 3 ))).unwrap();
+  b = b.play(Black, Some((16, 15))).unwrap();
+  b = b.play(White, Some((3 , 3 ))).unwrap();
+  b = b.play(Black, Some((16, 14))).unwrap();
+  b = b.play(White, Some((2 , 4 ))).unwrap();
+  b = b.play(Black, Some((16, 13))).unwrap();
+  b = b.play(White, Some((4 , 5 ))).unwrap();
+  b = b.play(Black, Some((16, 12))).unwrap();
+  b = b.play(White, Some((3 , 5 ))).unwrap();
 
-  assert!(b.play(White, Some((3, 4))).is_ok());
+  assert!(b.play(Black, Some((3, 4))).is_ok());
 }
 
 #[test]
@@ -292,21 +297,29 @@ fn suicide_should_remove_the_suicided_chain() {
   let mut b = Board::new(19, 6.5, TrompTaylor, &zht);
 
   b = b.play(Black, Some((4 , 4 ))).unwrap();
-  b = b.play(White, Some((16, 16))).unwrap();
-  b = b.play(Black, Some((3 , 3 ))).unwrap();
-  b = b.play(White, Some((16, 10))).unwrap();
-  b = b.play(Black, Some((2 , 4 ))).unwrap();
-  b = b.play(White, Some((16, 4 ))).unwrap();
-  b = b.play(Black, Some((3 , 5 ))).unwrap();
+  b = b.play(White, Some((5 , 4 ))).unwrap();
+  b = b.play(Black, Some((16, 16))).unwrap();
+  b = b.play(White, Some((4 , 3 ))).unwrap();
+  b = b.play(Black, Some((16, 15))).unwrap();
+  b = b.play(White, Some((3 , 3 ))).unwrap();
+  b = b.play(Black, Some((16, 14))).unwrap();
+  b = b.play(White, Some((2 , 4 ))).unwrap();
+  b = b.play(Black, Some((16, 13))).unwrap();
+  b = b.play(White, Some((4 , 5 ))).unwrap();
+  b = b.play(Black, Some((16, 12))).unwrap();
+  b = b.play(White, Some((3 , 5 ))).unwrap();
 
-  b = b.play(White, Some((3, 4))).unwrap();
+  b = b.play(Black, Some((3, 4))).unwrap();
 
   assert_eq!(b.get(3, 4), Empty);
+  assert_eq!(b.get(4, 4), Empty);
 
-  assert_eq!(b.get(4, 4), Black);
-  assert_eq!(b.get(3, 3), Black);
-  assert_eq!(b.get(2, 4), Black);
-  assert_eq!(b.get(3, 5), Black);
+  assert_eq!(b.get(5, 4), White);
+  assert_eq!(b.get(4, 3), White);
+  assert_eq!(b.get(3, 3), White);
+  assert_eq!(b.get(2, 4), White);
+  assert_eq!(b.get(4, 5), White);
+  assert_eq!(b.get(3, 5), White);
 }
 
 #[test]

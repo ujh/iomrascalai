@@ -37,7 +37,8 @@ pub enum IllegalMove {
     SuicidePlay,
     IntersectionNotEmpty,
     SamePlayerPlayedTwice,
-    GameAlreadyOver
+    GameAlreadyOver,
+    SuperKoRuleBroken
 }
 
 #[deriving(Clone, Show, Eq)]
@@ -71,21 +72,22 @@ pub struct Board<'a> {
     ruleset: Ruleset,
     previous_player: Color,
     consecutive_passes: u8,
-    zobrist_base_table: &'a ZobristHashTable
+    zobrist_base_table: &'a ZobristHashTable,
+    previous_boards_hashes: Vec<u64>
 }
 
 impl<'a> Clone for Board<'a> {
     fn clone(&self) -> Board<'a> {
         Board {
-            komi              : self.komi,
-            size              : self.size,
-            board             : self.board.clone(),
-            chains            : self.chains.clone(),
-            ruleset           : self.ruleset,
-            previous_player   : self.previous_player,
-            consecutive_passes: self.consecutive_passes,
-            zobrist_base_table: self.zobrist_base_table
-
+            komi                  : self.komi,
+            size                  : self.size,
+            board                 : self.board.clone(),
+            chains                : self.chains.clone(),
+            ruleset               : self.ruleset,
+            previous_player       : self.previous_player,
+            consecutive_passes    : self.consecutive_passes,
+            zobrist_base_table    : self.zobrist_base_table,
+            previous_boards_hashes: self.previous_boards_hashes.clone()
         }
     }
 }
@@ -102,7 +104,8 @@ impl<'a> Board<'a> {
             ruleset: ruleset,
             previous_player: White,
             consecutive_passes: 0,
-            zobrist_base_table: zobrist_base_table
+            zobrist_base_table: zobrist_base_table,
+            previous_boards_hashes: vec!(zobrist_base_table.init_hash())
         }
     }
 
@@ -159,6 +162,7 @@ impl<'a> Board<'a> {
         }
 
         let mut new_board = self.clone();
+        let mut hash = new_board.zobrist_base_table.add_stone_to_hash(*new_board.previous_boards_hashes.last().unwrap(), color, new_coords);
         new_board.consecutive_passes = 0;
 
         new_board.previous_player  = color;
@@ -213,12 +217,13 @@ impl<'a> Board<'a> {
         // Then we loop up the enemy chains neighours of the new stone, and we decrease their libs by one
         new_board.update_enemy_chains_libs(new_coords, color.opposite());
 
-        let stone_removed = new_board.remove_chains_with_no_libs_close_to(new_coords);
+        let adv_stones_removed = new_board.remove_adv_chains_with_no_libs_close_to(new_coords, color.opposite());
 
         new_board.update_chains_ids();
         new_board.update_board_ids();
 
-        if stone_removed {
+        let mut friend_stones_removed = Vec::new(); // This is only useful is suicide is legal.
+        if adv_stones_removed.len() > 0 {
             // We could only re-check the libs of the neighbours of the neighbours of new_coords, but this will do atm.
             // TODO: Restrict the chains updated to the ones that might have been impacted by the last move.
             for i in range(1, new_board.chains.len()) {
@@ -227,12 +232,30 @@ impl<'a> Board<'a> {
         } else if new_board.get_chain(new_coords).libs == 0 {
             match new_board.ruleset {
                 TrompTaylor => {
+                    friend_stones_removed.push_all(new_board.get_chain(new_coords).coords().as_slice());
                     let to_remove_id = new_board.get_chain(new_coords).id;
                     new_board.remove_chain(to_remove_id);
+                    new_board.update_chains_ids();
+                    new_board.update_board_ids();
                 },
                 _           => return Err(SuicidePlay)
             }
         }
+
+        // We update the hash with the changes to the board, and add it to the list of hashes before returning.
+        for &coord in adv_stones_removed.iter() {
+            hash = new_board.zobrist_base_table.remove_stone_from_hash(hash, color.opposite(), coord);
+        }
+
+        for &coord in friend_stones_removed.iter() {
+            hash = new_board.zobrist_base_table.remove_stone_from_hash(hash, color, coord);
+        }
+
+        if new_board.previous_boards_hashes.contains(&hash) {
+            return Err(SuperKoRuleBroken)
+        }
+
+        new_board.previous_boards_hashes.push(hash);
 
         Ok(new_board)
     }
@@ -300,12 +323,12 @@ impl<'a> Board<'a> {
         self.update_chains_ids_after_removed_chain(1);
     }
 
-    // Returns true if a chain was removed
-    fn remove_chains_with_no_libs_close_to(&mut self, close_to: Coord) -> bool {
+    // Returns a vector of the coords where stones where removed.
+    fn remove_adv_chains_with_no_libs_close_to(&mut self, close_to: Coord, color: Color) -> Vec<Coord> {
         let mut chain_to_remove_ids: Vec<uint> = close_to.neighbours(self.size)
                                                          .iter()
                                                          .map(|&coord| self.get_chain(coord))
-                                                         .filter(|chain| chain.libs == 0)
+                                                         .filter(|chain| chain.libs == 0 && chain.color == color)
                                                          .map(|chain| chain.id)
                                                          .collect();
 
@@ -317,7 +340,10 @@ impl<'a> Board<'a> {
             self.remove_chain(id);
         }
 
-        chain_to_remove_ids.len() != 0
+        close_to.neighbours(self.size).iter()
+                                      .map(|&coord| self.get_chain(coord))
+                                      .filter(|chain| chain.libs == 0 && chain.color == color)
+                                      .fold(Vec::new(), |acc, chain| acc.append(chain.coords().as_slice()))
     }
 
     fn remove_chain(&mut self, id: uint) {
@@ -359,6 +385,10 @@ impl<'a> Board<'a> {
 
     pub fn ruleset(&self) -> Ruleset {
         self.ruleset
+    }
+
+    pub fn hash(&self) -> u64 {
+        *self.previous_boards_hashes.last().unwrap()
     }
 
     pub fn show(&self) {

@@ -22,7 +22,7 @@ extern crate core;
 extern crate rand;
 
 use board::{White, Black, TrompTaylor};
-use board::{PlayOutOfBoard, SuicidePlay, IntersectionNotEmpty, SamePlayerPlayedTwice, GameAlreadyOver};
+use board::{PlayOutOfBoard, SuicidePlay, IntersectionNotEmpty, SamePlayerPlayedTwice, GameAlreadyOver, SuperKoRuleBroken};
 use board::hash::ZobristHashTable;
 use std::io::stdio::stdin;
 
@@ -48,7 +48,8 @@ fn main() {
       Err(IntersectionNotEmpty) => fail!("You can't play on a non-empty intersection !"),
       Err(SuicidePlay)          => fail!("You can't play a suicide move with a ruleset forbidding them! ({})", b.ruleset()),
       Err(SamePlayerPlayedTwice)=> fail!("You can't play twice"),
-      Err(GameAlreadyOver)      => fail!("You can't play after 2 consecutive passes in TrompTaylor rules")
+      Err(GameAlreadyOver)      => fail!("You can't play after 2 consecutive passes in TrompTaylor rules"),
+      Err(SuperKoRuleBroken)    => fail!("You can't repeat a board position! (Superko rule)")
     };
 
     current_player = match current_player {
@@ -57,7 +58,9 @@ fn main() {
         _     => unreachable!()
     };
 
+    println!("");
     b.show();
+    println!("hash: {}", b.hash());
     b.show_chains();
   }
 }
