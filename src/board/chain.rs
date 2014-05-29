@@ -3,14 +3,15 @@ use board::coord::Coord;
 
 #[deriving(Clone, Eq)]
 pub struct Chain {
-    pub id: uint,
+    pub id   : uint,
     pub color: Color,
-    coords: Vec<Coord>
+    pub libs : uint,
+    coords   : Vec<Coord>
 }
 
 impl Chain {
     pub fn new(id: uint, color: Color) -> Chain {
-        Chain {coords: Vec::new(), color: color, id: id}
+        Chain {coords: Vec::new(), color: color, id: id, libs: 1}
     }
 
     pub fn add_stone(&mut self, coord: Coord) {
@@ -30,6 +31,6 @@ impl Chain {
     pub fn show(&self) -> String {
         self.coords
             .iter()
-            .fold(String::from_owned_str(format!("{}, {}: ", self.id, self.color)), |s, c| s.append(format!("{},{}|", c.col, c.row).as_slice()))
+            .fold(String::from_owned_str(format!("{:<3}| {:5}, libs: {:2}, stones: ", self.id, self.color, self.libs)), |s, c| s.append(format!(" {},{} |", c.col, c.row).as_slice()))
     }
 }
