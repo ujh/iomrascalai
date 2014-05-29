@@ -134,21 +134,30 @@ impl<'a> Board<'a> {
 
     // Note: Same as get(), the board is indexed starting at 1-1
     pub fn play(&self, color: Color, move: Option<(u8, u8)>) -> Result<Board<'a>, IllegalMove> {
+        // We check is the player is trying to play on a finished game (which is illegal in TT rules)
         if self.is_game_over() && self.ruleset == TrompTaylor {
             return Err(GameAlreadyOver);
         }
 
+        // We check that the same player didn't play twice (except in the minimal ruleset, which is useful for tests)
+        if self.ruleset != Minimal && self.previous_player == color {
+            return Err(SamePlayerPlayedTwice);
+        }
+
+        // Then we check if the player passed
         if move.is_none() {
             let mut new_board = self.clone();
             new_board.consecutive_passes += 1;
             return Ok(new_board);
         }
 
+        // We create the Coord corresponding to this move
         let new_coords = match move {
             Some((col, row)) => Coord::new(col, row),
             None             => unreachable!()
         };
 
+        // We check if the new move is inside the board (and if it is, if there is no stone there)
         if new_coords.is_inside(self.size) {
             if self.get_coord(new_coords) != Empty {
                 return Err(IntersectionNotEmpty);
@@ -157,60 +166,13 @@ impl<'a> Board<'a> {
             return Err(PlayOutOfBoard);
         }
 
-        if self.ruleset != Minimal && self.previous_player == color {
-            return Err(SamePlayerPlayedTwice);
-        }
-
         let mut new_board = self.clone();
+
         new_board.consecutive_passes = 0;
 
-        new_board.previous_player  = color;
+        new_board.previous_player    = color;
 
-        let friend_neigh_chains_id = self.find_neighbouring_friendly_chains_ids(new_coords, color);
-
-        /*
-         * If there is 0 friendly neighbouring chain, we create one, and assign the coord played to that new chain.
-         * If there is 1, we assign the stone to that chain.
-         * If there are more, we assign the stone to one chain, then merge the others into that chain, then remove the old chains from
-         * board.chains, then we lower by 1 the ids of all stones with chain ids higher than the removed chains,
-         * and finally we reassign the correct chain_id to each stone in the final chain.
-        */
-        match friend_neigh_chains_id.len() {
-            0 => new_board.create_new_chain(color, new_coords),
-            1 => {
-                let final_chain_id = *friend_neigh_chains_id.get(0);
-                new_board.add_coord_to_chain(new_coords, final_chain_id);
-            },
-            _ => {
-                // Note: We know that friend_neigh_chains_id is sorted, so whatever chains we remove,
-                // we know that the id of the final_chain is still valid.
-                let final_chain_id        = *friend_neigh_chains_id.get(0);
-                let mut nb_removed_chains = 0;
-
-                // We assign the stone to the final chain
-                new_board.add_coord_to_chain(new_coords, final_chain_id);
-
-                for &other_chain_old_id in friend_neigh_chains_id.slice(1, friend_neigh_chains_id.len()).iter() {
-                    // The ids stored in friend_neigh_chains_id may be out of date since we remove chains from new_board.chains
-                    // These id is the correct one at this step of the removals
-                    let other_chain_id = other_chain_old_id - nb_removed_chains;
-
-                    // We merge the other chain into the final chain.
-                    let other_chain = new_board.chains.get(other_chain_id).clone();
-                    new_board.chains.get_mut(final_chain_id).merge(&other_chain);
-
-                    // We remove the old chain.
-                    new_board.chains.remove(other_chain_id);
-
-                    // We update the ids inside the chains
-                    new_board.update_chains_ids_after_id(other_chain_id);
-                    
-                    nb_removed_chains += 1;
-                }
-
-                new_board.update_board_ids_after_id(final_chain_id);
-            }
-        }
+        new_board.merge_or_create_chain(new_coords, color);
 
         // We then update the libs of all chains of the opposite color
         new_board.update_chains_libs_of(color.opposite());
@@ -224,8 +186,6 @@ impl<'a> Board<'a> {
         let mut friend_stones_removed = Vec::new(); // This is only useful is suicide is legal.
 
         if adv_stones_removed.len() > 0 {
-            // We could only re-check the libs of the neighbours of the neighbours of new_coords, but this will do atm.
-            // TODO: Restrict the chains updated to the ones that might have been impacted by the last move.
             for i in range(1, new_board.chains.len()) {
                 new_board.update_libs(i);
             }
@@ -266,6 +226,54 @@ impl<'a> Board<'a> {
         friend_neigh_chains_id.sort();
         friend_neigh_chains_id.dedup();
         friend_neigh_chains_id
+    }
+
+    fn merge_or_create_chain(&mut self, new_coords: Coord, color: Color) {
+        let friend_neigh_chains_id = self.find_neighbouring_friendly_chains_ids(new_coords, color);
+
+        /*
+         * If there is 0 friendly neighbouring chain, we create one, and assign the coord played to that new chain.
+         * If there is 1, we assign the stone to that chain.
+         * If there are more, we assign the stone to one chain, then merge the others into that chain, then remove the old chains from
+         * board.chains, then we lower by 1 the ids of all stones with chain ids higher than the removed chains,
+         * and finally we reassign the correct chain_id to each stone in the final chain.
+        */
+        match friend_neigh_chains_id.len() {
+            0 => self.create_new_chain(color, new_coords),
+            1 => {
+                let final_chain_id = *friend_neigh_chains_id.get(0);
+                self.add_coord_to_chain(new_coords, final_chain_id);
+            },
+            _ => {
+                // Note: We know that friend_neigh_chains_id is sorted, so whatever chains we remove, 
+                // we know that the id of the final_chain is still valid.
+                let final_chain_id        = *friend_neigh_chains_id.get(0);
+                let mut nb_removed_chains = 0;
+
+                // We assign the stone to the final chain
+                self.add_coord_to_chain(new_coords, final_chain_id);
+                
+                for &other_chain_old_id in friend_neigh_chains_id.slice(1, friend_neigh_chains_id.len()).iter() {
+                    // The ids stored in friend_neigh_chains_id may be out of date since we remove chains from self.chains
+                    // These id is the correct one at this step of the removals
+                    let other_chain_id = other_chain_old_id - nb_removed_chains;  
+
+                    // We merge the other chain into the final chain.
+                    let other_chain = self.chains.get(other_chain_id).clone();
+                    self.chains.get_mut(final_chain_id).merge(&other_chain);
+
+                    // We remove the old chain.
+                    self.chains.remove(other_chain_id);
+
+                    // We update the ids inside the chains
+                    self.update_chains_ids_after_id(other_chain_id);
+                    
+                    nb_removed_chains += 1;
+                }
+
+                self.update_board_ids_after_id(final_chain_id);
+            }
+        }
     }
 
     fn update_libs(&mut self, chain_id: uint) {
