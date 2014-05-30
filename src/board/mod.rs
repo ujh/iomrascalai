@@ -384,14 +384,14 @@ impl<'a> Board<'a> {
         *self.board.get_mut(c.to_index(self.size)) = 0;
     }
 
-    pub fn score(&self) -> (uint, uint) {
+    pub fn score(&self) -> (uint, f32) {
         match self.ruleset {
             TrompTaylor => self.score_tt(),
             Minimal     => self.score_tt()
         }
     }
 
-    fn score_tt(&self) -> (uint, uint) {
+    fn score_tt(&self) -> (uint, f32) {
         let mut black_score = self.board.iter()
                                         .filter(|&id| self.chains.get(*id).color == Black)
                                         .len();
@@ -423,7 +423,7 @@ impl<'a> Board<'a> {
             empty_intersections = empty_intersections.move_iter().filter(|coord| !territory.coords().contains(coord)).collect();
         }
 
-        (black_score, white_score)
+        (black_score, white_score as f32 + self.komi)
     }
 
     fn build_territory_chain(&self, first_intersection: Coord) -> Chain {

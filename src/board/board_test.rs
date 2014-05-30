@@ -393,5 +393,5 @@ fn test_counting_simple_case() {
 
   let (b_score, w_score) = b.score();
   assert_eq!(b_score, 8);
-  assert_eq!(w_score, 8);
+  assert_eq!(w_score, 8f32 + 6.5);
 }
