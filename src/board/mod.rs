@@ -57,7 +57,7 @@ pub enum Ruleset {
 }
 
 impl Color {
-    fn opposite(&self) -> Color {
+    pub fn opposite(&self) -> Color {
         match *self {
             White => Black,
             Black => White,
@@ -95,13 +95,13 @@ impl<'a> Clone for Board<'a> {
 }
 
 impl<'a> Board<'a> {
-    pub fn new(size: uint, komi: f32, ruleset: Ruleset, zobrist_base_table: &'a ZobristHashTable) -> Board<'a> {
+    pub fn new(size: u8, komi: f32, ruleset: Ruleset, zobrist_base_table: &'a ZobristHashTable) -> Board<'a> {
         if ruleset == TrompTaylor && size != 19 {fail!("You can only play on 19*19 in Tromp Taylor Rules");}
 
         Board {
             komi: komi,
-            size: size as u8,
-            board: Vec::from_fn(size*size, |_| 0),
+            size: size,
+            board: Vec::from_fn(size as uint*size as uint, |_| 0),
             chains: vec!(Chain::new(0, Empty)),
             ruleset: ruleset,
             previous_player: White,
@@ -111,7 +111,7 @@ impl<'a> Board<'a> {
         }
     }
 
-    pub fn with_Tromp_Taylor_rules(size: uint, komi: f32, zobrist_base_table: &'a ZobristHashTable) -> Board<'a> {
+    pub fn with_Tromp_Taylor_rules(size: u8, komi: f32, zobrist_base_table: &'a ZobristHashTable) -> Board<'a> {
         Board::new(size, komi, TrompTaylor, zobrist_base_table)
     }
 
@@ -382,6 +382,72 @@ impl<'a> Board<'a> {
 
     fn remove_stone(&mut self, c: Coord) {
         *self.board.get_mut(c.to_index(self.size)) = 0;
+    }
+
+    pub fn score(&self) -> (uint, uint) {
+        match self.ruleset {
+            TrompTaylor => self.score_tt(),
+            Minimal     => self.score_tt()
+        }
+    }
+
+    fn score_tt(&self) -> (uint, uint) {
+        let mut black_score = self.board.iter()
+                                        .filter(|&id| self.chains.get(*id).color == Black)
+                                        .len();
+
+
+        let mut white_score = self.board.iter()
+                                        .filter(|&id| self.chains.get(*id).color == White)
+                                        .len();
+
+        let mut empty_intersections = Vec::<Coord>::new();
+        for i in range(0, self.board.len()) {
+            let id = *self.board.get(i);
+
+            if self.chains.get(id).color == Empty {
+                let c = Coord::from_index(i, self.size);
+                empty_intersections.push(c);
+            }
+        }
+
+        while empty_intersections.len() > 0 {
+            let territory = self.build_territory_chain(*empty_intersections.get(0));
+
+            match territory.color {
+                Black => black_score += territory.coords().len(),
+                White => white_score += territory.coords().len(),
+                Empty => () // This territory is not enclosed by a single color
+            }
+
+            empty_intersections = empty_intersections.move_iter().filter(|coord| !territory.coords().contains(coord)).collect();
+        }
+
+        (black_score, white_score)
+    }
+
+    fn build_territory_chain(&self, first_intersection: Coord) -> Chain {
+        let mut territory_chain = Chain::new(0, Empty);
+        let mut to_visit = Vec::new();
+
+        to_visit.push(first_intersection);
+
+        while to_visit.len() > 0 {
+            let current_coord = to_visit.pop().unwrap();
+            if !territory_chain.coords().contains(&current_coord) {territory_chain.add_stone(current_coord);}
+
+            for &coord in current_coord.neighbours(self.size).iter() {
+                match self.get(coord) {
+                    Empty => if !territory_chain.coords().contains(&coord) {to_visit.push(coord)},
+                    col   => if territory_chain.color != Empty && territory_chain.color != col {
+                        return Chain::new(0, Empty)
+                    } else {
+                        territory_chain.color = col;
+                    }
+                }
+            }
+        }
+        territory_chain
     }
 
     fn compute_hash(&self, move: &Move, adv_stones_removed: &Vec<Coord>, friend_stones_removed: &Vec<Coord>) -> u64 {

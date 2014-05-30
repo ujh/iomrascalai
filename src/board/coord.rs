@@ -1,14 +1,25 @@
 use core::fmt::{Show, Formatter, FormatError};
+use std::cmp::Eq;
 
-#[deriving(Clone, Eq, TotalEq, Hash)]
+#[deriving(Clone, Hash)]
 pub struct Coord {
     pub col: u8,
     pub row: u8
 }
 
+impl Eq for Coord {
+    fn eq(&self, other: &Coord) -> bool {
+        self.col == other.col && self.row == other.row
+    }
+}
+
 impl Coord {
     pub fn new(col: u8, row: u8) -> Coord {
         Coord {col: col, row: row}
+    }
+
+    pub fn from_index(id: uint, board_size: u8) -> Coord {
+        Coord {col: (id%board_size as uint + 1) as u8, row: (id/board_size as uint + 1) as u8}
     }
 
     pub fn neighbours(&self, board_size: u8) -> Vec<Coord> {
