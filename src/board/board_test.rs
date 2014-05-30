@@ -376,7 +376,7 @@ fn replaying_directly_on_a_ko_point_should_be_illegal() {
 }
 
 #[test]
-fn test_counting_simple_case() {
+fn counting_simple_case() {
   let zht = ZobristHashTable::new(4);
   let mut b = Board::new(4, 6.5, Minimal, &zht);
   
@@ -394,4 +394,60 @@ fn test_counting_simple_case() {
   let (b_score, w_score) = b.score();
   assert_eq!(b_score, 8);
   assert_eq!(w_score, 8f32 + 6.5);
+}
+
+#[test]
+fn counting_disjoint_territory() {
+  let size = 5;
+  let komi = 6.5;
+
+  let zht = ZobristHashTable::new(size);
+  let mut b = Board::new(size, komi, Minimal, &zht);
+  
+  let b = b.play(Play(Black, 2, 1)).unwrap();
+  let b = b.play(Play(White, 3, 1)).unwrap();
+  let b = b.play(Play(Black, 2, 2)).unwrap();
+  let b = b.play(Play(White, 3, 2)).unwrap();
+  let b = b.play(Play(Black, 1, 3)).unwrap();
+  let b = b.play(Play(White, 2, 3)).unwrap();
+  let b = b.play(Play(Black, 5, 4)).unwrap();
+  let b = b.play(Play(White, 1, 4)).unwrap();
+  let b = b.play(Play(Black, 4, 4)).unwrap();
+  let b = b.play(Play(White, 5, 3)).unwrap();
+  let b = b.play(Play(Black, 4, 5)).unwrap();
+  let b = b.play(Play(White, 4, 3)).unwrap();
+  let b = b.play(Play(Black, 1, 2)).unwrap();
+  let b = b.play(Play(White, 3, 4)).unwrap();
+  let b = b.play(Pass(Black)).unwrap();
+  let b = b.play(Play(White, 3, 5)).unwrap();
+  let b = b.play(Pass(Black)).unwrap();
+  let b = b.play(Pass(White)).unwrap();
+
+  let (b_score, w_score) = b.score();
+  assert_eq!(b_score, 9);
+  assert_eq!(w_score, 16f32 + komi);
+}
+
+#[test]
+fn counting_with_neutral_points() {
+  let size = 5;
+  let komi = 6.5;
+
+  let zht = ZobristHashTable::new(size);
+  let mut b = Board::new(size, komi, Minimal, &zht);
+  
+  let b = b.play(Play(Black, 2, 1)).unwrap();
+  let b = b.play(Play(White, 3, 1)).unwrap();
+  let b = b.play(Play(Black, 2, 2)).unwrap();
+  let b = b.play(Play(White, 3, 2)).unwrap();
+  let b = b.play(Play(Black, 1, 2)).unwrap();
+  let b = b.play(Play(White, 2, 3)).unwrap();
+  let b = b.play(Pass(Black)).unwrap();
+  let b = b.play(Play(White, 1, 4)).unwrap();
+  let b = b.play(Pass(Black)).unwrap();
+  let b = b.play(Pass(White)).unwrap();
+
+  let (b_score, w_score) = b.score();
+  assert_eq!(b_score, 4);
+  assert_eq!(w_score, 20f32 + komi);
 }
