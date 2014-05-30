@@ -66,7 +66,11 @@ impl Board {
 
     // Note: This method uses 1-1 as the origin point, not 0-0. 19-19 is a valid coordinate in a 19-sized board, while 0-0 is not.
     //       this is done because I think it makes more sense in the context of go. (Least surprise principle, etc...)
-    pub fn get(&self, c: Coord) -> Color {
+    pub fn get(&self, col: u8, row: u8) -> Color {
+        self.get_coord(Coord::new(col, row))
+    }
+
+    fn get_coord(&self, c: Coord) -> Color {
         if c.is_inside(self.size) {
             self.get_chain(c).color
         } else {
@@ -115,18 +119,18 @@ impl Board {
                 new_board.update_libs(final_chain_id);
             },
             _ => {
-                // Note: We know that friend_neigh_chains_id is sorted, so whatever chains we remove, 
+                // Note: We know that friend_neigh_chains_id is sorted, so whatever chains we remove,
                 // we know that the id of the final_chain is still valid.
                 let final_chain_id        = *friend_neigh_chains_id.get(0);
                 let mut nb_removed_chains = 0;
 
                 // We assign the stone to the final chain
                 new_board.add_coord_to_chain(new_coords, final_chain_id);
-                
+
                 for &other_chain_old_id in friend_neigh_chains_id.slice(1, friend_neigh_chains_id.len()).iter() {
                     // The ids stored in friend_neigh_chains_id may be out of date since we remove chains from new_board.chains
                     // These id is the correct one at this step of the removals
-                    let other_chain_id = other_chain_old_id - nb_removed_chains;  
+                    let other_chain_id = other_chain_old_id - nb_removed_chains;
 
                     // We merge the other chain into the final chain.
                     let other_chain = new_board.chains.get(other_chain_id).clone();
@@ -137,7 +141,7 @@ impl Board {
 
                     // We update the ids inside the chains
                     new_board.update_chains_ids_after_removed_chain(other_chain_id);
-                    
+
                     nb_removed_chains += 1;
                 }
                 new_board.update_board_ids();
@@ -161,7 +165,7 @@ impl Board {
                                             .iter()
                                             .fold(Vec::new(), |mut acc, c| {
                                                 for &n in c.neighbours(self.size).iter() {
-                                                    if n.is_inside(self.size) && self.get(n) == Empty && !acc.contains(&n) {
+                                                    if n.is_inside(self.size) && self.get_coord(n) == Empty && !acc.contains(&n) {
                                                         acc.push(n);
                                                     }
                                                 }
@@ -189,7 +193,7 @@ impl Board {
     fn find_neighbouring_friendly_chains_ids(&self, c: Coord, color: Color) -> Vec<uint> {
         let mut friend_neigh_chains_id: Vec<uint> = c.neighbours(self.size)
                   .iter()
-                  .filter(|&c| c.is_inside(self.size) && self.get(*c) == color)
+                  .filter(|&c| c.is_inside(self.size) && self.get_coord(*c) == color)
                   .map(|&c| self.get_chain(c).id)
                   .collect();
 
@@ -208,7 +212,7 @@ impl Board {
 
         let mut adv_chains_ids: Vec<uint> = coord.neighbours(self.size)
                   .iter()
-                  .filter(|&c| c.is_inside(self.size) && self.get(*c) == adv_color)
+                  .filter(|&c| c.is_inside(self.size) && self.get_coord(*c) == adv_color)
                   .map(|&c| self.get_chain(c).id)
                   .collect();
 
@@ -266,7 +270,7 @@ impl Board {
 
     fn add_coord_to_chain(&mut self, coord: Coord, chain_id: uint) {
         self.chains.get_mut(chain_id).add_stone(coord);
-       *self.board.get_mut(coord.to_index(self.size)) = chain_id;    
+       *self.board.get_mut(coord.to_index(self.size)) = chain_id;
     }
 
     fn remove_stone(&mut self, c: Coord) {
@@ -286,12 +290,12 @@ impl Board {
             for col in range(1u8, self.size+1) {
                 let current_coords = Coord::new(col, row);
 
-                if self.get(current_coords) == Empty {
+                if self.get_coord(current_coords) == Empty {
                     let hoshis = &[4u8,10,16];
                     if   hoshis.contains(&row) && hoshis.contains(&col) {print!("+ ")}
                     else                                                {print!(". ")}
-                } else if self.get(current_coords) == White {print!("O ")}
-                  else if self.get(current_coords) == Black {print!("X ")}
+                } else if self.get_coord(current_coords) == White {print!("O ")}
+                  else if self.get_coord(current_coords) == Black {print!("X ")}
             }
             println!("");
         }
