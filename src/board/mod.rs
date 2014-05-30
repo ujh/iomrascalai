@@ -66,7 +66,11 @@ impl Board {
 
     // Note: This method uses 1-1 as the origin point, not 0-0. 19-19 is a valid coordinate in a 19-sized board, while 0-0 is not.
     //       this is done because I think it makes more sense in the context of go. (Least surprise principle, etc...)
-    pub fn get(&self, c: Coord) -> Color {
+    pub fn get(&self, col: u8, row: u8) -> Color {
+        self.get_coord(Coord::new(col, row))
+    }
+
+    fn get_coord(&self, c: Coord) -> Color {
         if c.is_inside(self.size) {
             self.get_chain(c).color
         } else {
@@ -165,7 +169,7 @@ impl Board {
                                             .iter()
                                             .fold(Vec::new(), |mut acc, c| {
                                                 for &n in c.neighbours(self.size).iter() {
-                                                    if n.is_inside(self.size) && self.get(n) == Empty && !acc.contains(&n) {
+                                                    if n.is_inside(self.size) && self.get_coord(n) == Empty && !acc.contains(&n) {
                                                         acc.push(n);
                                                     }
                                                 }
@@ -193,7 +197,7 @@ impl Board {
     fn find_neighbouring_friendly_chains_ids(&self, c: Coord, color: Color) -> Vec<uint> {
         let mut friend_neigh_chains_id: Vec<uint> = c.neighbours(self.size)
                   .iter()
-                  .filter(|&c| c.is_inside(self.size) && self.get(*c) == color)
+                  .filter(|&c| c.is_inside(self.size) && self.get_coord(*c) == color)
                   .map(|&c| self.get_chain(c).id)
                   .collect();
 
@@ -212,7 +216,7 @@ impl Board {
 
         let mut adv_chains_ids: Vec<uint> = coord.neighbours(self.size)
                   .iter()
-                  .filter(|&c| c.is_inside(self.size) && self.get(*c) == adv_color)
+                  .filter(|&c| c.is_inside(self.size) && self.get_coord(*c) == adv_color)
                   .map(|&c| self.get_chain(c).id)
                   .collect();
 
@@ -290,12 +294,12 @@ impl Board {
             for col in range(1u8, self.size+1) {
                 let current_coords = Coord::new(col, row);
 
-                if self.get(current_coords) == Empty {
+                if self.get_coord(current_coords) == Empty {
                     let hoshis = &[4u8,10,16];
                     if   hoshis.contains(&row) && hoshis.contains(&col) {print!("+ ")}
                     else                                                {print!(". ")}
-                } else if self.get(current_coords) == White {print!("O ")}
-                  else if self.get(current_coords) == Black {print!("X ")}
+                } else if self.get_coord(current_coords) == White {print!("O ")}
+                  else if self.get_coord(current_coords) == Black {print!("X ")}
             }
             println!("");
         }
