@@ -374,3 +374,24 @@ fn replaying_directly_on_a_ko_point_should_be_illegal() {
     Err(x)                 => fail!("Engine crashed while trying to replay on a ko : {}", x)
   }
 }
+
+#[test]
+fn test_counting_simple_case() {
+  let zht = ZobristHashTable::new(4);
+  let mut b = Board::new(4, 6.5, Minimal, &zht);
+  
+  let b = b.play(Play(Black, 2, 1)).unwrap();
+  let b = b.play(Play(White, 3, 1)).unwrap();
+  let b = b.play(Play(Black, 2, 2)).unwrap();
+  let b = b.play(Play(White, 3, 2)).unwrap();
+  let b = b.play(Play(Black, 2, 3)).unwrap();
+  let b = b.play(Play(White, 3, 3)).unwrap();
+  let b = b.play(Play(Black, 2, 4)).unwrap();
+  let b = b.play(Play(White, 3, 4)).unwrap();
+  let b = b.play(Pass(Black)).unwrap();
+  let b = b.play(Pass(White)).unwrap();
+
+  let (b_score, w_score) = b.score();
+  assert_eq!(b_score, 8);
+  assert_eq!(w_score, 8);
+}

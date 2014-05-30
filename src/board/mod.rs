@@ -159,8 +159,8 @@ impl<'a> Board<'a> {
         }
 
         // We check if the new move is inside the board (and if it is, if there is no stone there)
-        if new_coords.is_inside(self.size) {
-            if self.get_coord(new_coords) != Empty {
+        if move.coords().is_inside(self.size) {
+            if self.get_coord(move.coords()) != Empty {
                 return Err(IntersectionNotEmpty);
             }
         } else {
@@ -217,7 +217,7 @@ impl<'a> Board<'a> {
     fn find_neighbouring_friendly_chains_ids(&self, move: Move) -> Vec<uint> {
         let mut friend_neigh_chains_id: Vec<uint> = move.coords().neighbours(self.size)
                   .iter()
-                  .filter(|&c| c.is_inside(self.size) && self.get(*c) == move.color())
+                  .filter(|&c| c.is_inside(self.size) && self.get_coord(*c) == move.color())
                   .map(|&c| self.get_chain(c).id)
                   .collect();
 
@@ -438,7 +438,7 @@ impl<'a> Board<'a> {
             if !territory_chain.coords().contains(&current_coord) {territory_chain.add_stone(current_coord);}
 
             for &coord in current_coord.neighbours(self.size).iter() {
-                match self.get(coord) {
+                match self.get_coord(coord) {
                     Empty => if !territory_chain.coords().contains(&coord) {to_visit.push(coord)},
                     col   => if territory_chain.color != Empty && territory_chain.color != col {
                         neutral = true;
