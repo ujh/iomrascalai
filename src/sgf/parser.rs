@@ -19,15 +19,34 @@
  *                                                                      *
  ************************************************************************/
 
+use board::Black;
 use board::Board;
+use board::White;
 
 pub struct Parser {
     sgf: String
 }
 
+#[deriving(Show)]
 struct Property<'a> {
     name: &'a str,
     val:  &'a str
+}
+
+impl<'a> Property<'a> {
+
+    fn col(&self, size: u8) -> u8 {
+        self.char_to_int(self.val[0])
+    }
+
+    fn row(&self, size: u8) -> u8 {
+        size - self.char_to_int(self.val[1]) + 1
+    }
+
+    fn char_to_int(&self, c: u8) -> u8 {
+        c - ('a' as u8) + 1
+    }
+
 }
 
 impl Parser {
@@ -36,7 +55,16 @@ impl Parser {
     }
 
     pub fn board(&self) -> Board {
-        Board::new(self.size(), self.komi())
+        let mut board = Board::new(self.size(), self.komi());
+        let props = self.tokenize();
+        for prop in props.iter() {
+            if prop.name == "AB" {
+                board = board.play(Black, prop.col(board.size()), prop.row(board.size()));
+            } else if prop.name == "AW" {
+                fail!("White handicap stones not implemented, yet")
+            }
+        }
+        board
     }
 
     fn size(&self) -> uint {
@@ -65,4 +93,5 @@ impl Parser {
         }
         tokens
     }
+
 }
