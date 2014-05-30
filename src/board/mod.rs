@@ -429,6 +429,7 @@ impl<'a> Board<'a> {
     fn build_territory_chain(&self, first_intersection: Coord) -> Chain {
         let mut territory_chain = Chain::new(0, Empty);
         let mut to_visit = Vec::new();
+        let mut neutral  = false;
 
         to_visit.push(first_intersection);
 
@@ -440,13 +441,18 @@ impl<'a> Board<'a> {
                 match self.get(coord) {
                     Empty => if !territory_chain.coords().contains(&coord) {to_visit.push(coord)},
                     col   => if territory_chain.color != Empty && territory_chain.color != col {
-                        return Chain::new(0, Empty)
+                        neutral = true;
                     } else {
                         territory_chain.color = col;
                     }
                 }
             }
         }
+        
+        if neutral {
+            territory_chain.color = Empty;
+        }
+
         territory_chain
     }
 
