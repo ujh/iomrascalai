@@ -39,6 +39,8 @@ impl<'a> Property<'a> {
         self.char_to_int(self.val[0])
     }
 
+    // SGF counts from top to bottom, while we count from bottom to
+    // top (and we start at 1).
     fn row(&self, size: u8) -> u8 {
         size - self.char_to_int(self.val[1]) + 1
     }
@@ -62,6 +64,10 @@ impl Parser {
                 board = board.play(Black, prop.col(board.size()), prop.row(board.size()));
             } else if prop.name == "AW" {
                 fail!("White handicap stones not implemented, yet")
+            } else if prop.name == "B" {
+                board = board.play(Black, prop.col(board.size()), prop.row(board.size()));
+            } else if prop.name == "W" {
+                board = board.play(White, prop.col(board.size()), prop.row(board.size()));
             }
         }
         board
@@ -82,7 +88,7 @@ impl Parser {
     fn tokenize<'a>(&'a self) -> Vec<Property<'a>> {
         let mut tokens = Vec::new();
         let mut prev_name = "";
-        let re = regex!(r"([:upper:]{2})?\[([^]]+)\]");
+        let re = regex!(r"([:upper:]{1,2})?\[([^]]+)\]");
         for caps in re.captures_iter(self.sgf.as_slice()) {
             if caps.at(1) == "" {
                 tokens.push(Property {name: prev_name, val: caps.at(2)});

@@ -24,6 +24,7 @@
 use std::io::fs::File;
 
 use board::Black;
+use board::White;
 use sgf::parser::Parser;
 
 fn sgf(name : &'static str) -> String {
@@ -53,4 +54,12 @@ fn play_handicap_stones() {
     assert_eq!(board.get(4,4), Black);
     assert_eq!(board.get(16,4), Black);
     assert_eq!(board.get(16,16), Black);
+}
+
+#[test]
+fn play_moves() {
+    let parser = Parser::new(sgf("twomoves"));
+    let board  = parser.board();
+    assert_eq!(board.get(4, 15), Black);
+    assert_eq!(board.get(16, 7), White);
 }
