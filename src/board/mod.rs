@@ -65,7 +65,6 @@ impl Color {
 }
 
 pub struct Board<'a> {
-    komi: f32,
     size: u8,
     board: Vec<uint>,
     chains: Vec<Chain>,
@@ -79,7 +78,6 @@ pub struct Board<'a> {
 impl<'a> Clone for Board<'a> {
     fn clone(&self) -> Board<'a> {
         Board {
-            komi                  : self.komi,
             size                  : self.size,
             board                 : self.board.clone(),
             chains                : self.chains.clone(),
@@ -93,12 +91,11 @@ impl<'a> Clone for Board<'a> {
 }
 
 impl<'a> Board<'a> {
-    pub fn new(size: u8, komi: f32, ruleset: Ruleset, zobrist_base_table: Rc<ZobristHashTable>) -> Board<'a> {
+    pub fn new(size: u8, ruleset: Ruleset, zobrist_base_table: Rc<ZobristHashTable>) -> Board<'a> {
         if ruleset == TrompTaylor && size != 19 {fail!("You can only play on 19*19 in Tromp Taylor Rules");}
 
 
         Board {
-            komi: komi,
             size: size,
             board: Vec::from_fn(size as uint*size as uint, |_| 0),
             chains: vec!(Chain::new(0, Empty)),
@@ -373,14 +370,14 @@ impl<'a> Board<'a> {
         *self.board.get_mut(c.to_index(self.size)) = 0;
     }
 
-    pub fn score(&self) -> (uint, f32) {
+    pub fn score(&self) -> (uint, uint) {
         match self.ruleset {
             TrompTaylor => self.score_tt(),
             Minimal     => self.score_tt()
         }
     }
 
-    fn score_tt(&self) -> (uint, f32) {
+    fn score_tt(&self) -> (uint, uint) {
         let mut black_score = self.board.iter()
                                         .filter(|&id| self.chains.get(*id).color == Black)
                                         .len();
@@ -412,7 +409,7 @@ impl<'a> Board<'a> {
             empty_intersections = empty_intersections.move_iter().filter(|coord| !territory.coords().contains(coord)).collect();
         }
 
-        (black_score, white_score as f32 + self.komi)
+        (black_score, white_score)
     }
 
     fn build_territory_chain(&self, first_intersection: Coord) -> Chain {
@@ -461,10 +458,6 @@ impl<'a> Board<'a> {
 
     pub fn is_game_over(&self) -> bool {
         self.consecutive_passes == 2
-    }
-
-    pub fn komi(&self) -> f32 {
-        self.komi
     }
 
     pub fn ruleset(&self) -> Ruleset {

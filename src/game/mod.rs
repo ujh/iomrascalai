@@ -17,17 +17,19 @@ pub enum Ruleset {
 #[deriving(Clone)]
 pub struct Game<'a> {
     board: Board<'a>,
-    base_zobrist_table: Rc<ZobristHashTable>
+    base_zobrist_table: Rc<ZobristHashTable>,
+    komi: f32
 }
 
 impl<'a> Game<'a> {
     pub fn new(size: u8, komi: f32, ruleset: Ruleset) -> Game {
         let base_zobrist_table = Rc::new(ZobristHashTable::new(size));
-        let new_board = Board::new(size, komi, ruleset, base_zobrist_table.clone());
+        let new_board = Board::new(size, ruleset, base_zobrist_table.clone());
 
         Game {
             board: new_board,
-            base_zobrist_table: base_zobrist_table
+            base_zobrist_table: base_zobrist_table,
+            komi: komi
         }
     }
 
@@ -63,11 +65,12 @@ impl<'a> Game<'a> {
     }
 
     pub fn score(&self) ->  (uint, f32) {
-        self.board.score()
+        let (b_score, w_score) = self.board.score();
+        (b_score, w_score as f32 + self.komi)
     }
 
     pub fn show(&self) {
-        println!("komi: {}", self.board.komi());
+        println!("komi: {}", self.komi);
 
         // First we print the col numbers above the board
         print!("{:3}", "");
