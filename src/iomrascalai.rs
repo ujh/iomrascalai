@@ -24,11 +24,14 @@ extern crate rand;
 use board::Black;
 use board::{PlayOutOfBoard, SuicidePlay, IntersectionNotEmpty, SamePlayerPlayedTwice, GameAlreadyOver, SuperKoRuleBroken};
 use board::Minimal;
-use board::hash::ZobristHashTable;
 use board::move::{Play, Pass};
+
+use game::Game;
+
 use std::io::stdio::stdin;
 
 mod board;
+mod game;
 
 fn main() {
   print!("Please enter the size of the new game: ");
@@ -42,13 +45,12 @@ fn main() {
     Err(_) => fail!("Couldn't read the line")
   };
 
-  let z_hash_table = ZobristHashTable::new(size);
-  let mut b = board::Board::new(size, 6.5, Minimal, &z_hash_table);
+  let mut g = Game::new(size, 6.5, Minimal);
   let mut current_player = Black;
 
   loop {
-    if b.is_game_over() {
-      println!("Thanks for playing, score: {}", b.score());
+    if g.is_over() {
+      println!("Thanks for playing, score: {}", g.score());
       return;
     }
 
@@ -63,11 +65,11 @@ fn main() {
       Play(current_player, *coords.get(0), *coords.get(1))
     };
 
-    b = match b.play(move) {
-      Ok(b)                     => b,
+    g = match g.play(move) {
+      Ok(g)                     => g,
       Err(PlayOutOfBoard)       => fail!("You can't play on invalid coordinates ({} {})", move.coords().col, move.coords().row),
       Err(IntersectionNotEmpty) => fail!("You can't play on a non-empty intersection !"),
-      Err(SuicidePlay)          => fail!("You can't play a suicide move with a ruleset forbidding them! ({})", b.ruleset()),
+      Err(SuicidePlay)          => fail!("You can't play a suicide move with a ruleset forbidding them! ({})", g.ruleset()),
       Err(SamePlayerPlayedTwice)=> fail!("You can't play twice"),
       Err(GameAlreadyOver)      => fail!("You can't play after 2 consecutive passes in TrompTaylor rules"),
       Err(SuperKoRuleBroken)    => fail!("You can't repeat a board position! (Superko rule)")
@@ -76,8 +78,7 @@ fn main() {
     current_player = current_player.opposite();
 
     println!("");
-    b.show();
-    println!("hash: {}", b.hash());
-    b.show_chains();
+    g.show();
+    g.show_chains();
   }
 }

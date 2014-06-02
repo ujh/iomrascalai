@@ -27,10 +27,12 @@ use board::coord::Coord;
 use board::hash::ZobristHashTable;
 use board::move::{Play, Pass};
 
+use std::rc::Rc;
+
 #[test]
 fn getting_a_valid_coord_returns_a_color() {
-  let zht = ZobristHashTable::new(19);
-  let b = Board::new(19, 6.5, TrompTaylor, &zht);
+  let zht = Rc::new(ZobristHashTable::new(19));
+  let b = Board::new(19, 6.5, TrompTaylor, zht.clone());
 
   assert_eq!(b.get(10,10), Empty);
 }
@@ -38,8 +40,8 @@ fn getting_a_valid_coord_returns_a_color() {
 #[test]
 #[should_fail]
 fn getting_invalid_coordinates_fails() {
-  let zht = ZobristHashTable::new(19);
-  let b = Board::new(19, 6.5, TrompTaylor, &zht);
+  let zht = Rc::new(ZobristHashTable::new(19));
+  let b = Board::new(19, 6.5, TrompTaylor, zht.clone());
   
   b.get(14, 21);
   b.get(21, 14);
@@ -47,8 +49,8 @@ fn getting_invalid_coordinates_fails() {
 
 #[test]
 fn _19_19_is_a_valid_coordinate(){
-  let zht = ZobristHashTable::new(19);
-  let b = Board::new(19, 6.5, TrompTaylor, &zht);
+  let zht = Rc::new(ZobristHashTable::new(19));
+  let b = Board::new(19, 6.5, TrompTaylor, zht.clone());
 
   assert_eq!(b.get(19, 19), Empty);
 }
@@ -56,24 +58,24 @@ fn _19_19_is_a_valid_coordinate(){
 #[test]
 #[should_fail]
 fn _0_0_is_not_a_valid_coordinate(){
-  let zht = ZobristHashTable::new(19);
-  let b = Board::new(19, 6.5, TrompTaylor, &zht);
+  let zht = Rc::new(ZobristHashTable::new(19));
+  let b = Board::new(19, 6.5, TrompTaylor, zht.clone());
 
   b.get(0, 0);
 }
 
 #[test]
 fn get_komi(){
-  let zht = ZobristHashTable::new(19);
-  let b = Board::new(19, 6.5, TrompTaylor, &zht);
+  let zht = Rc::new(ZobristHashTable::new(19));
+  let b = Board::new(19, 6.5, TrompTaylor, zht.clone());
 
   assert_eq!(b.komi(), 6.5f32)
 }
 
 #[test]
 fn play_adds_a_stone_to_the_correct_position() {
-  let zht = ZobristHashTable::new(19);
-  let mut b = Board::new(19, 6.5, TrompTaylor, &zht); 
+  let zht = Rc::new(ZobristHashTable::new(19));
+  let mut b = Board::new(19, 6.5, TrompTaylor, zht.clone()); 
   
   b = b.play(Play(Black, 14, 14)).unwrap();
 
@@ -88,16 +90,16 @@ fn play_adds_a_stone_to_the_correct_position() {
 
 #[test]
 fn playing_on_an_illegal_coordinate_should_return_error() {
-  let zht = ZobristHashTable::new(19);
-  let b = Board::new(9, 6.5, Minimal, &zht);
+  let zht = Rc::new(ZobristHashTable::new(19));
+  let b = Board::new(9, 6.5, Minimal, zht.clone());
 
   assert!(b.play(Play(Black, 13, 13)).is_err());
 }
 
 #[test]
 fn playing_on_a_non_empty_intersection_should_return_error() {
-  let zht = ZobristHashTable::new(19);
-  let b = Board::new(9, 6.5, Minimal, &zht);
+  let zht = Rc::new(ZobristHashTable::new(19));
+  let b = Board::new(9, 6.5, Minimal, zht.clone());
 
   let b = b.play(Play(Black, 4, 4)).unwrap();
   assert!(b.play(Play(Black, 4, 4)).is_err());
@@ -106,8 +108,8 @@ fn playing_on_a_non_empty_intersection_should_return_error() {
 
 #[test]
 fn two_way_merging_works() {
-  let zht = ZobristHashTable::new(19);
-  let mut b = Board::new(19, 6.5, Minimal, &zht);
+  let zht = Rc::new(ZobristHashTable::new(19));
+  let mut b = Board::new(19, 6.5, Minimal, zht.clone());
 
   b = b.play(Play(White, 10, 10)).unwrap();
   b = b.play(Play(White, 10, 12)).unwrap();
@@ -124,8 +126,8 @@ fn two_way_merging_works() {
 
 #[test]
 fn three_way_merging_works() {
-  let zht = ZobristHashTable::new(19);
-  let mut b = Board::new(19, 6.5, Minimal, &zht);
+  let zht = Rc::new(ZobristHashTable::new(19));
+  let mut b = Board::new(19, 6.5, Minimal, zht.clone());
 
   b = b.play(Play(White, 10, 10)).unwrap();
   b = b.play(Play(White, 11, 11)).unwrap();
@@ -144,8 +146,8 @@ fn three_way_merging_works() {
 
 #[test]
 fn four_way_merging_works() {
-  let zht = ZobristHashTable::new(19);
-  let mut b = Board::new(19, 6.5, Minimal, &zht);
+  let zht = Rc::new(ZobristHashTable::new(19));
+  let mut b = Board::new(19, 6.5, Minimal, zht.clone());
 
   b = b.play(Play(White, 10, 10)).unwrap();
   b = b.play(Play(White, 9, 11)).unwrap();
@@ -166,8 +168,8 @@ fn four_way_merging_works() {
 
 #[test]
 fn playing_on_all_libs_in_corner_should_capture() {
-  let zht = ZobristHashTable::new(19);
-  let mut b = Board::new(19, 6.5, Minimal, &zht);
+  let zht = Rc::new(ZobristHashTable::new(19));
+  let mut b = Board::new(19, 6.5, Minimal, zht.clone());
 
   b = b.play(Play(Black, 1, 1)).unwrap();
   b = b.play(Play(White, 1, 2)).unwrap();
@@ -180,8 +182,8 @@ fn playing_on_all_libs_in_corner_should_capture() {
 
 #[test]
 fn playing_on_all_libs_on_side_should_capture() {
-  let zht = ZobristHashTable::new(19);
-  let mut b = Board::new(19, 6.5, Minimal, &zht);
+  let zht = Rc::new(ZobristHashTable::new(19));
+  let mut b = Board::new(19, 6.5, Minimal, zht.clone());
 
   b = b.play(Play(Black, 1, 3)).unwrap();
   b = b.play(Play(White, 1, 2)).unwrap();
@@ -196,8 +198,8 @@ fn playing_on_all_libs_on_side_should_capture() {
 
 #[test]
 fn playing_on_all_libs_should_capture() {
-  let zht = ZobristHashTable::new(19);
-  let mut b = Board::new(19, 6.5, Minimal, &zht);
+  let zht = Rc::new(ZobristHashTable::new(19));
+  let mut b = Board::new(19, 6.5, Minimal, zht.clone());
 
   b = b.play(Play(Black, 4, 4)).unwrap();
 
@@ -216,8 +218,8 @@ fn playing_on_all_libs_should_capture() {
 
 #[test]
 fn playing_on_all_libs_of_a_chain_should_capture() {
-  let zht = ZobristHashTable::new(19);
-  let mut b = Board::new(19, 6.5, Minimal, &zht);
+  let zht = Rc::new(ZobristHashTable::new(19));
+  let mut b = Board::new(19, 6.5, Minimal, zht.clone());
 
   b = b.play(Play(Black, 4, 4)).unwrap();
   b = b.play(Play(Black, 4, 5)).unwrap();
@@ -242,8 +244,8 @@ fn playing_on_all_libs_of_a_chain_should_capture() {
 
 #[test]
 fn playing_on_all_libs_of_a_bent_chain_should_capture() {
-  let zht = ZobristHashTable::new(19);
-  let mut b = Board::new(19, 6.5, Minimal, &zht);
+  let zht = Rc::new(ZobristHashTable::new(19));
+  let mut b = Board::new(19, 6.5, Minimal, zht.clone());
 
   b = b.play(Play(Black, 4, 4)).unwrap();
   b = b.play(Play(Black, 4, 5)).unwrap();
@@ -272,8 +274,8 @@ fn playing_on_all_libs_of_a_bent_chain_should_capture() {
 
 #[test]
 fn suicide_should_be_legal_in_tromp_taylor_rules() {
-  let zht = ZobristHashTable::new(19);
-  let mut b = Board::new(19, 6.5, TrompTaylor, &zht);
+  let zht = Rc::new(ZobristHashTable::new(19));
+  let mut b = Board::new(19, 6.5, TrompTaylor, zht.clone());
 
   b = b.play(Play(Black, 4, 4)).unwrap();
   b = b.play(Play(White, 5, 4)).unwrap();
@@ -293,8 +295,8 @@ fn suicide_should_be_legal_in_tromp_taylor_rules() {
 
 #[test]
 fn suicide_should_remove_the_suicided_chain() {
-  let zht = ZobristHashTable::new(19);
-  let mut b = Board::new(19, 6.5, TrompTaylor, &zht);
+  let zht = Rc::new(ZobristHashTable::new(19));
+  let mut b = Board::new(19, 6.5, TrompTaylor, zht.clone());
 
   b = b.play(Play(Black, 4, 4)).unwrap();
   b = b.play(Play(White, 5, 4)).unwrap();
@@ -324,8 +326,8 @@ fn suicide_should_remove_the_suicided_chain() {
 
 #[test]
 fn playing_twice_should_be_illegal_in_tromp_taylor_rules() {
-  let zht = ZobristHashTable::new(19);
-  let mut b = Board::new(19, 6.5, TrompTaylor, &zht);
+  let zht = Rc::new(ZobristHashTable::new(19));
+  let mut b = Board::new(19, 6.5, TrompTaylor, zht.clone());
   
   b = b.play(Play(Black, 10, 10)).unwrap();
 
@@ -335,17 +337,17 @@ fn playing_twice_should_be_illegal_in_tromp_taylor_rules() {
 #[test]
 #[should_fail]
 fn the_only_valid_size_in_TT_rules_should_be_19() {
-  let zht = ZobristHashTable::new(19);
-  let b = Board::new(13, 6.5, TrompTaylor, &zht);
-  let b = Board::new(9, 6.5, TrompTaylor, &zht);
-  let b = Board::new(21, 6.5, TrompTaylor, &zht);
-  let b = Board::new(5, 6.5, TrompTaylor, &zht);
+  let zht = Rc::new(ZobristHashTable::new(19));
+  let b = Board::new(13, 6.5, TrompTaylor, zht.clone());
+  let b = Board::new(9, 6.5, TrompTaylor, zht.clone());
+  let b = Board::new(21, 6.5, TrompTaylor, zht.clone());
+  let b = Board::new(5, 6.5, TrompTaylor, zht.clone());
 }
 
 #[test]
 fn after_two_passes_the_game_should_be_over_in_TT_rules() {
-  let zht = ZobristHashTable::new(19);
-  let mut b = Board::new(19, 6.5, TrompTaylor, &zht);
+  let zht = Rc::new(ZobristHashTable::new(19));
+  let mut b = Board::new(19, 6.5, TrompTaylor, zht.clone());
 
   let b = b.play(Pass(Black)).unwrap();
   let b = b.play(Pass(White)).unwrap();
@@ -356,8 +358,8 @@ fn after_two_passes_the_game_should_be_over_in_TT_rules() {
 
 #[test]
 fn replaying_directly_on_a_ko_point_should_be_illegal() {
-  let zht = ZobristHashTable::new(19);
-  let mut b = Board::new(19, 6.5, TrompTaylor, &zht);
+  let zht = Rc::new(ZobristHashTable::new(19));
+  let mut b = Board::new(19, 6.5, TrompTaylor, zht.clone());
   
   let b = b.play(Play(Black, 4, 4)).unwrap();
   let b = b.play(Play(White, 5, 4)).unwrap();
@@ -377,8 +379,8 @@ fn replaying_directly_on_a_ko_point_should_be_illegal() {
 
 #[test]
 fn counting_simple_case() {
-  let zht = ZobristHashTable::new(4);
-  let mut b = Board::new(4, 6.5, Minimal, &zht);
+  let zht = Rc::new(ZobristHashTable::new(4));
+  let mut b = Board::new(4, 6.5, Minimal, zht.clone());
   
   let b = b.play(Play(Black, 2, 1)).unwrap();
   let b = b.play(Play(White, 3, 1)).unwrap();
@@ -401,8 +403,8 @@ fn counting_disjoint_territory() {
   let size = 5;
   let komi = 6.5;
 
-  let zht = ZobristHashTable::new(size);
-  let mut b = Board::new(size, komi, Minimal, &zht);
+  let zht = Rc::new(ZobristHashTable::new(size));
+  let mut b = Board::new(size, komi, Minimal, zht.clone());
   
   let b = b.play(Play(Black, 2, 1)).unwrap();
   let b = b.play(Play(White, 3, 1)).unwrap();
@@ -433,8 +435,8 @@ fn counting_with_neutral_points() {
   let size = 5;
   let komi = 6.5;
 
-  let zht = ZobristHashTable::new(size);
-  let mut b = Board::new(size, komi, Minimal, &zht);
+  let zht = Rc::new(ZobristHashTable::new(size));
+  let mut b = Board::new(size, komi, Minimal, zht.clone());
   
   let b = b.play(Play(Black, 2, 1)).unwrap();
   let b = b.play(Play(White, 3, 1)).unwrap();

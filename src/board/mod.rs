@@ -19,6 +19,8 @@
  *                                                                      *
  ************************************************************************/
 use std::vec::Vec;
+use std::rc::Rc;
+
 use board::chain::Chain;
 use board::coord::Coord;
 use board::hash::ZobristHashTable;
@@ -74,7 +76,7 @@ pub struct Board<'a> {
     ruleset: Ruleset,
     previous_player: Color,
     consecutive_passes: u8,
-    zobrist_base_table: &'a ZobristHashTable,
+    zobrist_base_table: Rc<ZobristHashTable>,
     previous_boards_hashes: Vec<u64>
 }
 
@@ -88,15 +90,16 @@ impl<'a> Clone for Board<'a> {
             ruleset               : self.ruleset,
             previous_player       : self.previous_player,
             consecutive_passes    : self.consecutive_passes,
-            zobrist_base_table    : self.zobrist_base_table,
+            zobrist_base_table    : self.zobrist_base_table.clone(),
             previous_boards_hashes: self.previous_boards_hashes.clone()
         }
     }
 }
 
 impl<'a> Board<'a> {
-    pub fn new(size: u8, komi: f32, ruleset: Ruleset, zobrist_base_table: &'a ZobristHashTable) -> Board<'a> {
+    pub fn new(size: u8, komi: f32, ruleset: Ruleset, zobrist_base_table: Rc<ZobristHashTable>) -> Board<'a> {
         if ruleset == TrompTaylor && size != 19 {fail!("You can only play on 19*19 in Tromp Taylor Rules");}
+
 
         Board {
             komi: komi,
@@ -106,13 +109,9 @@ impl<'a> Board<'a> {
             ruleset: ruleset,
             previous_player: White,
             consecutive_passes: 0,
-            zobrist_base_table: zobrist_base_table,
+            zobrist_base_table: zobrist_base_table.clone(),
             previous_boards_hashes: vec!(zobrist_base_table.init_hash())
         }
-    }
-
-    pub fn with_Tromp_Taylor_rules(size: u8, komi: f32, zobrist_base_table: &'a ZobristHashTable) -> Board<'a> {
-        Board::new(size, komi, TrompTaylor, zobrist_base_table)
     }
 
     // Note: This method uses 1-1 as the origin point, not 0-0. 19-19 is a valid coordinate in a 19-sized board, while 0-0 is not.
