@@ -475,41 +475,11 @@ impl<'a> Board<'a> {
         *self.previous_boards_hashes.last().unwrap()
     }
 
-    pub fn show(&self) {
-        println!("komi: {}", self.komi());
-
-        // First we print the board
-        for row in range(1u8, self.size+1).rev() {
-
-            // Prints the row number
-            print!("{:2} ", row);
-
-            // Prints the actual row
-            for col in range(1u8, self.size+1) {
-                let current_coords = Coord::new(col, row);
-
-                if self.get_coord(current_coords) == Empty {
-                    let hoshis = &[4u8,10,16];
-                    if   hoshis.contains(&row) && hoshis.contains(&col) {print!("+ ")}
-                    else                                                {print!(". ")}
-                } else if self.get_coord(current_coords) == White {print!("O ")}
-                  else if self.get_coord(current_coords) == Black {print!("X ")}
-            }
-            println!("");
-        }
-
-        // Then we print the col numbers under the board
-        print!("{:3}", "");
-        for col in range(1, self.size+1) {
-            print!("{:<2}", col);
-        }
-
-        println!("");
+    pub fn size(&self) -> u8 {
+        self.size
     }
 
-    pub fn show_chains(&self) {
-        for c in self.chains.iter() {
-            println!("{}", c.show());
-        }
+    pub fn chains<'b>(&'b self) -> &'b Vec<Chain> {
+        &self.chains
     }
 }
