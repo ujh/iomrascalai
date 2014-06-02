@@ -30,8 +30,8 @@ mod board_test;
 mod coord_test;
 mod chain_test;
 
-mod coord;
 mod chain;
+pub mod coord;
 pub mod hash;
 pub mod move;
 
@@ -114,13 +114,7 @@ impl<'a> Board<'a> {
         }
     }
 
-    // Note: This method uses 1-1 as the origin point, not 0-0. 19-19 is a valid coordinate in a 19-sized board, while 0-0 is not.
-    //       this is done because I think it makes more sense in the context of go. (Least surprise principle, etc...)
-    pub fn get(&self, col: u8, row: u8) -> Color {
-        self.get_coord(Coord::new(col, row))
-    }
-
-    fn get_coord(&self, c: Coord) -> Color {
+    pub fn get_coord(&self, c: Coord) -> Color {
         if c.is_inside(self.size) {
             self.get_chain(c).color
         } else {

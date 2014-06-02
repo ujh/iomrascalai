@@ -34,7 +34,7 @@ fn getting_a_valid_coord_returns_a_color() {
   let zht = Rc::new(ZobristHashTable::new(19));
   let b = Board::new(19, 6.5, TrompTaylor, zht.clone());
 
-  assert_eq!(b.get(10,10), Empty);
+  assert_eq!(b.get_coord(Coord::new(10, 10)), Empty);
 }
 
 #[test]
@@ -43,8 +43,8 @@ fn getting_invalid_coordinates_fails() {
   let zht = Rc::new(ZobristHashTable::new(19));
   let b = Board::new(19, 6.5, TrompTaylor, zht.clone());
   
-  b.get(14, 21);
-  b.get(21, 14);
+  b.get_coord(Coord::new(14, 21));
+  b.get_coord(Coord::new(21, 14));
 }
 
 #[test]
@@ -52,7 +52,7 @@ fn _19_19_is_a_valid_coordinate(){
   let zht = Rc::new(ZobristHashTable::new(19));
   let b = Board::new(19, 6.5, TrompTaylor, zht.clone());
 
-  assert_eq!(b.get(19, 19), Empty);
+  assert_eq!(b.get_coord(Coord::new(19, 19)), Empty);
 }
 
 #[test]
@@ -61,7 +61,7 @@ fn _0_0_is_not_a_valid_coordinate(){
   let zht = Rc::new(ZobristHashTable::new(19));
   let b = Board::new(19, 6.5, TrompTaylor, zht.clone());
 
-  b.get(0, 0);
+  b.get_coord(Coord::new(0, 0));
 }
 
 #[test]
@@ -79,11 +79,11 @@ fn play_adds_a_stone_to_the_correct_position() {
   
   b = b.play(Play(Black, 14, 14)).unwrap();
 
-  assert!(b.get(14, 14) == Black);
+  assert!(b.get_coord(Coord::new(14, 14)) == Black);
 
   for i in range(1u8, 20) {
     for j in range(1u8 , 20) {
-      assert!(b.get(i, j) == Empty || (i == 14 && j == 14));
+      assert!(b.get_coord(Coord::new(i, j)) == Empty || (i == 14 && j == 14));
     }
   }
 }
@@ -175,9 +175,9 @@ fn playing_on_all_libs_in_corner_should_capture() {
   b = b.play(Play(White, 1, 2)).unwrap();
   b = b.play(Play(White, 2, 1)).unwrap();
 
-  assert_eq!(b.get(1, 1), Empty);
-  assert_eq!(b.get(1, 2), White);
-  assert_eq!(b.get(2, 1), White);
+  assert_eq!(b.get_coord(Coord::new(1, 1)), Empty);
+  assert_eq!(b.get_coord(Coord::new(1, 2)), White);
+  assert_eq!(b.get_coord(Coord::new(2, 1)), White);
 }
 
 #[test]
@@ -190,10 +190,10 @@ fn playing_on_all_libs_on_side_should_capture() {
   b = b.play(Play(White, 1, 4)).unwrap();
   b = b.play(Play(White, 2, 3)).unwrap();
 
-  assert_eq!(b.get(1, 3), Empty);
-  assert_eq!(b.get(1, 2), White);
-  assert_eq!(b.get(1, 4), White);
-  assert_eq!(b.get(2, 3), White);
+  assert_eq!(b.get_coord(Coord::new(1, 3)), Empty);
+  assert_eq!(b.get_coord(Coord::new(1, 2)), White);
+  assert_eq!(b.get_coord(Coord::new(1, 4)), White);
+  assert_eq!(b.get_coord(Coord::new(2, 3)), White);
 }
 
 #[test]
@@ -208,12 +208,12 @@ fn playing_on_all_libs_should_capture() {
   b = b.play(Play(White, 3, 4)).unwrap();
   b = b.play(Play(White, 5, 4)).unwrap();
 
-  assert_eq!(b.get(4, 4), Empty);
+  assert_eq!(b.get_coord(Coord::new(4, 4)), Empty);
 
-  assert_eq!(b.get(4, 3), White);
-  assert_eq!(b.get(4, 5), White);
-  assert_eq!(b.get(3, 4), White);
-  assert_eq!(b.get(5, 4), White);
+  assert_eq!(b.get_coord(Coord::new(4, 3)), White);
+  assert_eq!(b.get_coord(Coord::new(4, 5)), White);
+  assert_eq!(b.get_coord(Coord::new(3, 4)), White);
+  assert_eq!(b.get_coord(Coord::new(5, 4)), White);
 }
 
 #[test]
@@ -231,15 +231,15 @@ fn playing_on_all_libs_of_a_chain_should_capture() {
   b = b.play(Play(White, 5, 5)).unwrap();
   b = b.play(Play(White, 4, 6)).unwrap();
 
-  assert_eq!(b.get(4, 4), Empty);
-  assert_eq!(b.get(4, 5), Empty);
+  assert_eq!(b.get_coord(Coord::new(4, 4)), Empty);
+  assert_eq!(b.get_coord(Coord::new(4, 5)), Empty);
 
-  assert_eq!(b.get(4, 3), White);
-  assert_eq!(b.get(3, 4), White);
-  assert_eq!(b.get(5, 4), White);
-  assert_eq!(b.get(3, 5), White);
-  assert_eq!(b.get(5, 5), White);
-  assert_eq!(b.get(4, 6), White);
+  assert_eq!(b.get_coord(Coord::new(4, 3)), White);
+  assert_eq!(b.get_coord(Coord::new(3, 4)), White);
+  assert_eq!(b.get_coord(Coord::new(5, 4)), White);
+  assert_eq!(b.get_coord(Coord::new(3, 5)), White);
+  assert_eq!(b.get_coord(Coord::new(5, 5)), White);
+  assert_eq!(b.get_coord(Coord::new(4, 6)), White);
 }
 
 #[test]
@@ -259,17 +259,17 @@ fn playing_on_all_libs_of_a_bent_chain_should_capture() {
   b = b.play(Play(White, 5, 5)).unwrap();
   b = b.play(Play(White, 4, 6)).unwrap();
 
-  assert_eq!(b.get(4, 4), Empty);
-  assert_eq!(b.get(4, 5), Empty);
-  assert_eq!(b.get(3, 4), Empty);
+  assert_eq!(b.get_coord(Coord::new(4, 4)), Empty);
+  assert_eq!(b.get_coord(Coord::new(4, 5)), Empty);
+  assert_eq!(b.get_coord(Coord::new(3, 4)), Empty);
 
-  assert_eq!(b.get(3, 3), White);
-  assert_eq!(b.get(4, 3), White);
-  assert_eq!(b.get(2, 4), White);
-  assert_eq!(b.get(5, 4), White);
-  assert_eq!(b.get(3, 5), White);
-  assert_eq!(b.get(5, 5), White);
-  assert_eq!(b.get(4, 6), White);
+  assert_eq!(b.get_coord(Coord::new(3, 3)), White);
+  assert_eq!(b.get_coord(Coord::new(4, 3)), White);
+  assert_eq!(b.get_coord(Coord::new(2, 4)), White);
+  assert_eq!(b.get_coord(Coord::new(5, 4)), White);
+  assert_eq!(b.get_coord(Coord::new(3, 5)), White);
+  assert_eq!(b.get_coord(Coord::new(5, 5)), White);
+  assert_eq!(b.get_coord(Coord::new(4, 6)), White);
 }
 
 #[test]
@@ -313,15 +313,15 @@ fn suicide_should_remove_the_suicided_chain() {
 
   b = b.play(Play(Black, 3, 4)).unwrap();
 
-  assert_eq!(b.get(3, 4), Empty);
-  assert_eq!(b.get(4, 4), Empty);
+  assert_eq!(b.get_coord(Coord::new(3, 4)), Empty);
+  assert_eq!(b.get_coord(Coord::new(4, 4)), Empty);
 
-  assert_eq!(b.get(5, 4), White);
-  assert_eq!(b.get(4, 3), White);
-  assert_eq!(b.get(3, 3), White);
-  assert_eq!(b.get(2, 4), White);
-  assert_eq!(b.get(4, 5), White);
-  assert_eq!(b.get(3, 5), White);
+  assert_eq!(b.get_coord(Coord::new(5, 4)), White);
+  assert_eq!(b.get_coord(Coord::new(4, 3)), White);
+  assert_eq!(b.get_coord(Coord::new(3, 3)), White);
+  assert_eq!(b.get_coord(Coord::new(2, 4)), White);
+  assert_eq!(b.get_coord(Coord::new(4, 5)), White);
+  assert_eq!(b.get_coord(Coord::new(3, 5)), White);
 }
 
 #[test]
