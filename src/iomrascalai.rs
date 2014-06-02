@@ -32,7 +32,7 @@ use board::move::{Play, Pass};
 use game::Game;
 use game::Minimal;
 
-use gtp::{Quit, Name, Version, ProtocolVersion, ListCommands};
+use gtp::{Quit, Name, Version, ProtocolVersion, ListCommands, KnownCommand};
 
 use std::io::stdio::stdin;
 use std::os::args;
@@ -114,11 +114,12 @@ fn gtp_mode() {
     let command = interpreter.read(reader.read_line().unwrap().as_slice());
 
     match command {
-      Quit            => return,
       Name            => print!("= {}\n\n", engine_name),
       Version         => print!("= {}\n\n", engine_version),
       ProtocolVersion => print!("= {}\n\n", protocol_version),
       ListCommands    => print!("= {}\n", interpreter.gen_list_known_commands()),
+      KnownCommand(b) => print!("= {}\n\n", b),
+      Quit            => {print!("= \n\n"); return;},
       _               => ()
     }
   }
