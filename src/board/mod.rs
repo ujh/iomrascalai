@@ -26,6 +26,8 @@ use board::coord::Coord;
 use board::hash::ZobristHashTable;
 use board::move::{Move, Play};
 
+use game::{Ruleset, TrompTaylor, Minimal};
+
 mod board_test;
 mod coord_test;
 mod chain_test;
@@ -50,12 +52,6 @@ pub enum Color {
     White,
     Black,
     Empty
-}
-
-#[deriving(Clone, Show, Eq, PartialEq)]
-pub enum Ruleset {
-    TrompTaylor,
-    Minimal
 }
 
 impl Color {

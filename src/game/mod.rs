@@ -1,14 +1,18 @@
 use board::Board;
-use board::Ruleset;
 use board::IllegalMove;
 use board::move::Move;
 use board::Color;
 use board::coord::Coord;
-use board::TrompTaylor;
 
 use std::rc::Rc;
 
 use board::hash::ZobristHashTable;
+
+#[deriving(Clone, Show, Eq)]
+pub enum Ruleset {
+    TrompTaylor,
+    Minimal
+}
 
 #[deriving(Clone)]
 pub struct Game<'a> {

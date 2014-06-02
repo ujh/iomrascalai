@@ -23,10 +23,10 @@ extern crate rand;
 
 use board::Black;
 use board::{PlayOutOfBoard, SuicidePlay, IntersectionNotEmpty, SamePlayerPlayedTwice, GameAlreadyOver, SuperKoRuleBroken};
-use board::Minimal;
 use board::move::{Play, Pass};
 
 use game::Game;
+use game::Minimal;
 
 use std::io::stdio::stdin;
 

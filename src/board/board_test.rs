@@ -21,11 +21,13 @@
 
 #![cfg(test)]
 
-use board::{Board, Empty, White, Black, TrompTaylor, Minimal};
+use board::{Board, Empty, White, Black};
 use board::{SuperKoRuleBroken};
 use board::coord::Coord;
 use board::hash::ZobristHashTable;
 use board::move::{Play, Pass};
+
+use game::{TrompTaylor, Minimal};
 
 use std::rc::Rc;
 
