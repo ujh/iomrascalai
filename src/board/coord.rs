@@ -1,16 +1,10 @@
 use core::fmt::{Show, Formatter, FormatError};
 use std::cmp::Eq;
 
-#[deriving(Clone, Hash)]
+#[deriving(Clone, Hash, PartialEq, Eq)]
 pub struct Coord {
     pub col: u8,
     pub row: u8
-}
-
-impl Eq for Coord {
-    fn eq(&self, other: &Coord) -> bool {
-        self.col == other.col && self.row == other.row
-    }
 }
 
 impl Coord {

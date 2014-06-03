@@ -33,7 +33,7 @@ mod chain;
 pub mod hash;
 pub mod move;
 
-#[deriving(Show, Eq)]
+#[deriving(Show, Eq, PartialEq)]
 pub enum IllegalMove {
     PlayOutOfBoard,
     SuicidePlay,
@@ -43,14 +43,14 @@ pub enum IllegalMove {
     SuperKoRuleBroken
 }
 
-#[deriving(Clone, Show, Eq)]
+#[deriving(Clone, Show, Eq, PartialEq)]
 pub enum Color {
     White,
     Black,
     Empty
 }
 
-#[deriving(Clone, Show, Eq)]
+#[deriving(Clone, Show, Eq, PartialEq)]
 pub enum Ruleset {
     TrompTaylor,
     Minimal
