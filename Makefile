@@ -27,10 +27,12 @@ RUSTC = rustc $(FLAGS)
 
 EXEC = bin/iomrascalai
 TEST = bin/test
+DEBUG = bin/debug
 
 all: test exe
 exe: $(EXEC)
 test: $(TEST)
+debug: $(DEBUG)
 
 $(EXEC): $(MAIN) $(CRATES)
 	$(RUSTC) -o $(EXEC) $(MAIN)
@@ -38,6 +40,9 @@ $(EXEC): $(MAIN) $(CRATES)
 $(TEST): $(MAIN) $(CRATES)
 	$(RUSTC) --test -o $(TEST) $(MAIN)
 	bin/test --nocapture
+
+$(DEBUG): $(MAIN) $(CRATES)
+	$(RUSTC) -g -o $(DEBUG) $(MAIN)
 
 .PHONY: clean
 clean:
