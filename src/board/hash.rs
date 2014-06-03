@@ -1,4 +1,4 @@
-use rand::random;
+use std::rand::random;
 use board::move::{Move, Play};
 use board::{Empty, Black, White};
 
