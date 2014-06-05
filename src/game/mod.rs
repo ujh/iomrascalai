@@ -8,6 +8,8 @@ use std::rc::Rc;
 
 use board::hash::ZobristHashTable;
 
+mod game_test;
+
 #[deriving(Clone, Show, Eq, PartialEq)]
 pub enum Ruleset {
     TrompTaylor,
