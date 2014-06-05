@@ -68,7 +68,7 @@ impl GTPInterpreter {
         }
 
         // Then we remove anything after a #
-        out = out.as_slice().split('#').next().unwrap().to_owned();
+        out = out.as_slice().split('#').next().unwrap().to_string();
 
         // We convert HT to SPACE (ASCII 9 to ASCII 32)
         unsafe {
@@ -76,7 +76,7 @@ impl GTPInterpreter {
         }
 
         // We remove the whitespaces before/after the string
-        out = out.as_slice().trim().to_owned();
+        out = out.as_slice().trim().to_string();
 
         out
     }
