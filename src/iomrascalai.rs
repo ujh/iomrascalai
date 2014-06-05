@@ -140,6 +140,7 @@ fn gtp_mode() {
       Komi(k)         => {
         komi = k;
         game.set_komi(k);
+        print!("= \n\n");
       },
       gtp::Play(move) => {
         game = match game.play(move) {
@@ -147,7 +148,13 @@ fn gtp_mode() {
           Err(e) => {print!("? Illegal Move: {}\n\n", e); game}
         }
       },
-      GenMove(c)      => print!("= {}\n\n", engine.gen_move(c, &game).to_gtp()),
+      GenMove(c)      => {
+        let generated_move = engine.gen_move(c, &game);
+        game = match game.play(generated_move) {
+          Ok(g)  => {print!("= {}\n\n", generated_move.to_gtp()); g},
+          Err(e) => {print!("? Illegal Move: {}\n\n", e); game}
+        }
+      },
       Quit            => {print!("= \n\n"); return;},
       _               => ()
     }
