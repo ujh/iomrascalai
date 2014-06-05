@@ -76,6 +76,10 @@ impl<'a> Game<'a> {
         (b_score, w_score as f32 + self.komi)
     }
 
+    pub fn set_komi(&mut self, komi: f32) {
+        self.komi = komi;
+    }
+
     pub fn show(&self) {
         println!("komi: {}", self.komi);
 

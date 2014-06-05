@@ -53,6 +53,15 @@ impl GTPInterpreter {
             &"protocol_version" => return ProtocolVersion,
             &"list_commands"    => return ListCommands,
             &"known_command"    => return KnownCommand(self.known_commands.contains(&String::from_str(command.get(1).clone()))),
+            &"boardsize"        => return match from_str::<u8>(*command.get(1)) {
+                Some(size) => BoardSize(size),
+                None       => Error
+            },
+            &"clear_board"      => return ClearBoard,
+            &"komi"             => return match from_str::<f32>(*command.get(1)) {
+                Some(komi) => Komi(komi),
+                None       => Error
+            },
             &"quit"             => return Quit,
             _                   => return Error         
         }
