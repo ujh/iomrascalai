@@ -35,6 +35,7 @@ impl<'a> Game<'a> {
         }
     }
 
+    #[allow(non_snake_case_functions)]
     pub fn with_Tromp_Taylor_rules(size: u8, komi: f32) -> Game {
         Game::new(size, komi, TrompTaylor)
     }
@@ -75,13 +76,13 @@ impl<'a> Game<'a> {
         println!("komi: {}", self.komi);
 
         // First we print the board
-        for row in range(1u8, self.board.size+1).rev() {
+        for row in range(1u8, self.board.size()+1).rev() {
 
             // Prints the row number
             print!("{:2} ", row);
 
             // Prints the actual row
-            for col in range(1u8, self.board.size+1) {
+            for col in range(1u8, self.board.size()+1) {
                 let current_coords = Coord::new(col, row);
 
                 if self.board.get_coord(current_coords) == Empty {
@@ -96,7 +97,7 @@ impl<'a> Game<'a> {
 
         // Then we print the col numbers under the board
         print!("{:3}", "");
-        for col in range(1, self.board.size+1) {
+        for col in range(1, self.board.size()+1) {
             print!("{:<2}", col);
         }
 

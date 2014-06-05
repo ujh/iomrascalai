@@ -65,7 +65,7 @@ impl Color {
 }
 
 pub struct Board<'a> {
-    pub size: u8,
+    size: u8,
     board: Vec<uint>,
     chains: Vec<Chain>,
     ruleset: Ruleset,
