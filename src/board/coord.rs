@@ -39,16 +39,28 @@ impl Coord {
         1 <= self.col && self.col <= board_size && 1 <= self.row && self.row <= board_size
     }
 
+    // Note: there is no I column.
     pub fn from_gtp(gtp_vertex: &str) -> Coord {
-        let lower_case_vertex: String = gtp_vertex.chars().map(|c| c.to_lowercase()).collect();
-        let col = lower_case_vertex.as_slice().char_at(0) as u8 - 'a' as u8;
-        let row = from_str::<u8>(lower_case_vertex.as_slice().slice(1, lower_case_vertex.len())).expect("you must enter a valid coord (1 < c < 256)");
+        let col_letter = gtp_vertex.as_slice().char_at(0).to_lowercase();
+
+        let col = if col_letter > 'i' {
+            col_letter as u8 - 'a' as u8
+        } else {
+            col_letter as u8 - 'a' as u8 + 1
+        };
+
+        let row = from_str::<u8>(gtp_vertex.as_slice().slice(1, gtp_vertex.len())).expect("you must enter a valid coord (1 < c < 256)");
 
         Coord::new(col, row)
     }
 
+    // Note: there is no I column.
     pub fn to_gtp(&self) -> String {
-        let gtp_col = ('A' as u8 + self.col - 1) as char;
+        let gtp_col = if self.col < 8 {
+            ('A' as u8 + self.col - 1) as char
+        } else {
+            ('A' as u8 + self.col) as char
+        };
         let gtp_row = self.row;
 
         String::from_str(gtp_col.to_str().as_slice()).append(gtp_row.to_str().as_slice()) 

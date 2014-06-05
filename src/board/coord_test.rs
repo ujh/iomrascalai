@@ -55,4 +55,15 @@ fn from_gtp_converts_correctly() {
   assert_eq!(Coord::new(10,10), Coord::from_gtp("k10"));
 
   assert_eq!(Coord::new(16,15), Coord::from_gtp("Q15"));
+
+  assert_eq!(Coord::new(1,1), Coord::from_gtp("A1"));
+  assert_eq!(Coord::new(19,19), Coord::from_gtp("T19"));
+}
+
+#[test]
+fn to_gtp_converts_correctly() {
+  assert_eq!(Coord::new(10,10).to_gtp(), String::from_str("K10"));
+  assert_eq!(Coord::new(16,15).to_gtp(), String::from_str("Q15"));
+  assert_eq!(Coord::new(1,1).to_gtp(), String::from_str("A1"));
+  assert_eq!(Coord::new(19,19).to_gtp(), String::from_str("T19"));
 }
