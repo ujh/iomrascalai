@@ -67,6 +67,10 @@ impl<'a> Game<'a> {
         self.board.is_game_over()
     }
 
+    pub fn komi(&self) -> f32 {
+        self.komi
+    }
+
     pub fn score(&self) ->  (uint, f32) {
         let (b_score, w_score) = self.board.score();
         (b_score, w_score as f32 + self.komi)
