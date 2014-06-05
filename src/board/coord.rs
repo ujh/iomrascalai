@@ -56,7 +56,7 @@ impl Coord {
 
     // Note: there is no I column.
     pub fn to_gtp(&self) -> String {
-        let gtp_col = if self.col < 8 {
+        let gtp_col = if self.col <= 8 {
             ('A' as u8 + self.col - 1) as char
         } else {
             ('A' as u8 + self.col) as char
