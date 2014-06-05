@@ -41,8 +41,8 @@ impl Coord {
 
     pub fn from_gtp(gtp_vertex: &str) -> Coord {
         let lower_case_vertex: String = gtp_vertex.chars().map(|c| c.to_lowercase()).collect();
-        let col = lower_case_vertex.as_slice().char_at(0) as u8 - 'a' as u8 + 1;
-        let row = from_str::<u8>(lower_case_vertex.as_slice().slice(1, 2)).expect("you must enter a valid coord (1 < c < 256)");
+        let col = lower_case_vertex.as_slice().char_at(0) as u8 - 'a' as u8;
+        let row = from_str::<u8>(lower_case_vertex.as_slice().slice(1, lower_case_vertex.len())).expect("you must enter a valid coord (1 < c < 256)");
 
         Coord::new(col, row)
     }

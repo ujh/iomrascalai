@@ -14,6 +14,7 @@ pub enum Command {
     BoardSize(u8),
     ClearBoard,
     Komi(f32),
+    ShowBoard,
     Empty,
     Error
 }
@@ -36,6 +37,7 @@ impl GTPInterpreter {
         known_commands.push(String::from_str("boardsize"));
         known_commands.push(String::from_str("clear_board"));
         known_commands.push(String::from_str("komi"));
+        known_commands.push(String::from_str("showboard"));
 
         GTPInterpreter {known_commands: known_commands}
     }
@@ -64,6 +66,7 @@ impl GTPInterpreter {
             },
             &"genmove"          => return GenMove(Color::from_gtp(*command.get(1))),
             &"play"             => return Play(Move::from_gtp(*command.get(1), *command.get(2))),
+            &"showboard"        => return ShowBoard,
             &"quit"             => return Quit,
             _                   => return Error         
         }

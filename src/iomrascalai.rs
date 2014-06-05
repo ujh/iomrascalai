@@ -32,7 +32,7 @@ use board::move::{Play, Pass};
 use game::Game;
 use game::Minimal;
 
-use gtp::{Quit, Name, Version, ProtocolVersion, ListCommands, KnownCommand, BoardSize, ClearBoard, Komi, GenMove};
+use gtp::{Quit, Name, Version, ProtocolVersion, ListCommands, KnownCommand, BoardSize, ClearBoard, Komi, GenMove, ShowBoard};
 
 use engine::Engine;
 use engine::random_engine::RandomEngine;
@@ -155,6 +155,11 @@ fn gtp_mode() {
           Err(e) => {print!("? Illegal Move: {}\n\n", e); game}
         }
       },
+      ShowBoard       => {
+        print!("= \n");
+        game.show();
+        print!("\n\n");
+      }
       Quit            => {print!("= \n\n"); return;},
       _               => ()
     }
