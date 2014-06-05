@@ -1,14 +1,14 @@
 use board::Board;
 use board::IllegalMove;
 use board::move::Move;
-use board::{Color, Black, White, Empty};
+use board::Color;
 use board::coord::Coord;
 
 use std::rc::Rc;
 
 use board::hash::ZobristHashTable;
 
-#[deriving(Clone, Show, Eq)]
+#[deriving(Clone, Show, Eq, PartialEq)]
 pub enum Ruleset {
     TrompTaylor,
     Minimal
@@ -70,47 +70,10 @@ impl<'a> Game<'a> {
     }
 
     pub fn show(&self) {
-        println!("komi: {}", self.komi);
-
-        // First we print the col numbers above the board
-        print!("{:3}", "");
-        for col in range(1, self.board.size() + 1) {
-            print!("{:<2}", col);
-        }
-        print!("\n");
-
-        // Then we print the board
-        for row in range(1u8, self.board.size() + 1).rev() {
-
-            // Prints the row number
-            print!("{:2} ", row);
-
-            // Prints the actual row
-            for col in range(1u8, self.board.size() + 1) {
-                let current_coords = Coord::new(col, row);
-
-                if self.board.get_coord(current_coords) == Empty {
-                    let hoshis = &[4u8,10,16];
-                    if  hoshis.contains(&row) && hoshis.contains(&col) {print!("+ ")}
-                    else                                               {print!(". ")}
-                } else if self.board.get_coord(current_coords) == White {print!("O ")}
-                  else if self.board.get_coord(current_coords) == Black {print!("X ")}
-            }
-            println!("{:<2} ", row);
-        }
-
-        // Then we print the col numbers under the board
-        print!("{:3}", "");
-        for col in range(1, self.board.size() + 1) {
-            print!("{:<2}", col);
-        }
-
-        println!("");
+        self.board.show();
     }
 
     pub fn show_chains(&self) {
-        for c in self.board.chains().iter() {
-            println!("{}", c.show());
-        }
+        self.board.show_chains();
     }
 }
