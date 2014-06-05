@@ -1,4 +1,4 @@
-use board::{Color, Black, White};
+use board::Color;
 use board::coord::Coord;
 
 #[deriving(Show)]
@@ -8,19 +8,18 @@ pub enum Move {
 }
 
 impl Move {
-    pub fn from_gtp(color: &str, vertex: &str) -> Move {
-        let lower_case_color: String = color.chars().map(|c| c.to_lowercase()).collect();
-        let c = match lower_case_color.as_slice() {
-            "w" | "white" => White,
-            "b" | "black" => Black,
-            _             => fail!("Couldn't read color")
-        };
+    pub fn from_gtp(gtp_color: &str, gtp_vertex: &str) -> Move {
+        let color = Color::from_gtp(gtp_color);
+        let coord = Coord::from_gtp(gtp_vertex);
 
-        let lower_case_vertex: String = vertex.chars().map(|c| c.to_lowercase()).collect();
-        let col = lower_case_vertex.as_slice().char_at(0) as u8 - 'a' as u8 + 1;
-        let row = from_str::<u8>(lower_case_vertex.as_slice().slice(1, 2)).expect("you must enter a valid coord (1 < c < 256)");
+        Play(color, coord.col, coord.row)
+    }
 
-        Play(c, col, row)
+    pub fn to_gtp(&self) -> String {
+        match self {
+            &Pass(_)           => String::from_str("pass"),
+            &Play(_, col, row) => Coord::new(col, row).to_gtp()
+        }
     }
 
     pub fn color(&self) -> Color {

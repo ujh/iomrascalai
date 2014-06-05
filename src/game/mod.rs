@@ -84,6 +84,10 @@ impl<'a> Game<'a> {
         self.komi = komi;
     }
 
+    pub fn board_size(&self) -> u8 {
+        self.board.size()
+    }
+
     pub fn show(&self) {
         println!("komi: {}", self.komi);
 
