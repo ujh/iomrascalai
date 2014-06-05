@@ -48,3 +48,11 @@ fn is_inside_invalid_coords_fail() {
 
   assert!(!Coord::new(18,18).is_inside(9));
 }
+
+#[test]
+fn from_gtp_converts_correctly() {
+  assert_eq!(Coord::new(10,10), Coord::from_gtp("K10"));
+  assert_eq!(Coord::new(10,10), Coord::from_gtp("k10"));
+
+  assert_eq!(Coord::new(16,15), Coord::from_gtp("Q15"));
+}
