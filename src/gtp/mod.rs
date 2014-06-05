@@ -62,6 +62,7 @@ impl GTPInterpreter {
                 Some(komi) => Komi(komi),
                 None       => Error
             },
+            &"play"             => return Play(Move::from_gtp(*command.get(1), *command.get(2))),
             &"quit"             => return Quit,
             _                   => return Error         
         }

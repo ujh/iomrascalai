@@ -136,6 +136,12 @@ fn gtp_mode() {
         komi = k;
         game.set_komi(k);
       },
+      gtp::Play(move) => {
+        game = match game.play(move) {
+          Ok(g)  => {print!("= \n\n"); g},
+          Err(e) => {print!("? Illegal Move: {}\n\n", e); game}
+        }
+      },
       Quit            => {print!("= \n\n"); return;},
       _               => ()
     }
