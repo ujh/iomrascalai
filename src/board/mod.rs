@@ -62,6 +62,15 @@ impl Color {
             Empty => Empty
         }
     }
+
+    pub fn from_gtp(gtp_color: &str) -> Color {
+        let lower_gtp_color: String = gtp_color.chars().map(|c| c.to_lowercase()).collect();
+        match lower_gtp_color.as_slice() {
+            "w" | "white" => White,
+            "b" | "black" => Black,
+            err           => fail!("Can't read the GTP color: {}", err)
+        }
+    }
 }
 
 pub struct Board<'a> {

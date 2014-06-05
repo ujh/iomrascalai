@@ -28,7 +28,10 @@ use board::move::{Play, Pass};
 use game::Game;
 use game::Minimal;
 
-use gtp::{Quit, Name, Version, ProtocolVersion, ListCommands, KnownCommand, BoardSize, ClearBoard, Komi};
+use gtp::{Quit, Name, Version, ProtocolVersion, ListCommands, KnownCommand, BoardSize, ClearBoard, Komi, GenMove};
+
+use engine::Engine;
+use engine::random_engine::RandomEngine;
 
 use std::io::stdio::stdin;
 use std::os::args;
@@ -36,6 +39,7 @@ use std::os::args;
 mod board;
 mod game;
 mod gtp;
+mod engine;
 
 fn main() {
   match args().len() {
@@ -98,6 +102,7 @@ fn cli_mode() {
 }
 
 fn gtp_mode() {
+  let engine = RandomEngine::new();
   let engine_name = "Iomrascálaí";
   let engine_version = "0.1";
   let protocol_version = "2";
@@ -137,6 +142,7 @@ fn gtp_mode() {
           Err(e) => {print!("? Illegal Move: {}\n\n", e); game}
         }
       },
+      GenMove(c)      => print!("= {}\n\n", engine.gen_move(c, &game).to_gtp()),
       Quit            => {print!("= \n\n"); return;},
       _               => ()
     }
