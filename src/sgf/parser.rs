@@ -21,6 +21,7 @@
 
 use board::Black;
 use board::White;
+use board::move::Pass;
 use board::move::Play;
 use game::Game;
 use game::Minimal;
@@ -51,6 +52,9 @@ impl<'a> Property<'a> {
         c - ('a' as u8) + 1
     }
 
+    fn is_pass(&self) -> bool {
+        self.val == ""
+    }
 }
 
 impl Parser {
@@ -68,11 +72,21 @@ impl Parser {
             } else if prop.name == "AW" {
                 fail!("White handicap stones not implemented, yet")
             } else if prop.name == "B" {
-                let move = Play(Black, prop.col(game.size()), prop.row(game.size()));
-                game = game.play(move).unwrap();
+                if prop.is_pass() {
+                    let move = Pass(Black);
+                    game = game.play(move).unwrap();
+                } else {
+                    let move = Play(Black, prop.col(game.size()), prop.row(game.size()));
+                    game = game.play(move).unwrap();
+                }
             } else if prop.name == "W" {
-                let move = Play(White, prop.col(game.size()), prop.row(game.size()));
-                game = game.play(move).unwrap();
+                if prop.is_pass() {
+                    let move = Pass(White);
+                    game = game.play(move).unwrap();
+                } else {
+                    let move = Play(White, prop.col(game.size()), prop.row(game.size()));
+                    game = game.play(move).unwrap();
+                }
             }
         }
         game
@@ -93,7 +107,7 @@ impl Parser {
     fn tokenize<'a>(&'a self) -> Vec<Property<'a>> {
         let mut tokens = Vec::new();
         let mut prev_name = "";
-        let re = regex!(r"([:upper:]{1,2})?\[([^]]+)\]");
+        let re = regex!(r"([:upper:]{1,2})?\[([^]]*)\]");
         for caps in re.captures_iter(self.sgf.as_slice()) {
             if caps.at(1) == "" {
                 tokens.push(Property {name: prev_name, val: caps.at(2)});

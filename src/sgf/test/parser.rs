@@ -63,3 +63,10 @@ fn play_moves() {
     assert_eq!(game.get(4, 15), Black);
     assert_eq!(game.get(16, 7), White);
 }
+
+#[test]
+fn finished_game() {
+    let parser = Parser::new(sgf("finished"));
+    let game   = parser.game();
+    assert!(game.is_over());
+}
