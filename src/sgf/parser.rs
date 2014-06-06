@@ -23,6 +23,7 @@ use board::Black;
 use board::White;
 use board::move::Play;
 use game::Game;
+use game::Minimal;
 
 pub struct Parser {
     sgf: String
@@ -58,7 +59,7 @@ impl Parser {
     }
 
     pub fn game(&self) -> Game {
-        let mut game = Game::with_Tromp_Taylor_rules(self.size(), self.komi());
+        let mut game = Game::new(self.size(), self.komi(), Minimal);
         let props = self.tokenize();
         for prop in props.iter() {
             if prop.name == "AB" {
