@@ -19,17 +19,21 @@
  *                                                                      *
  ************************************************************************/
 use std::vec::Vec;
+use std::rc::Rc;
+
 use board::chain::Chain;
 use board::coord::Coord;
 use board::hash::ZobristHashTable;
 use board::move::{Move, Play};
 
+use game::{Ruleset, TrompTaylor, Minimal};
+
 mod board_test;
 mod coord_test;
 mod chain_test;
 
-mod coord;
 mod chain;
+pub mod coord;
 pub mod hash;
 pub mod move;
 
@@ -50,12 +54,6 @@ pub enum Color {
     Empty
 }
 
-#[deriving(Clone, Show, Eq, PartialEq)]
-pub enum Ruleset {
-    TrompTaylor,
-    Minimal
-}
-
 impl Color {
     pub fn opposite(&self) -> Color {
         match *self {
@@ -67,61 +65,49 @@ impl Color {
 }
 
 pub struct Board<'a> {
-    komi: f32,
     size: u8,
     board: Vec<uint>,
     chains: Vec<Chain>,
     ruleset: Ruleset,
     previous_player: Color,
     consecutive_passes: u8,
-    zobrist_base_table: &'a ZobristHashTable,
+    zobrist_base_table: Rc<ZobristHashTable>,
     previous_boards_hashes: Vec<u64>
 }
 
 impl<'a> Clone for Board<'a> {
     fn clone(&self) -> Board<'a> {
         Board {
-            komi                  : self.komi,
             size                  : self.size,
             board                 : self.board.clone(),
             chains                : self.chains.clone(),
             ruleset               : self.ruleset,
             previous_player       : self.previous_player,
             consecutive_passes    : self.consecutive_passes,
-            zobrist_base_table    : self.zobrist_base_table,
+            zobrist_base_table    : self.zobrist_base_table.clone(),
             previous_boards_hashes: self.previous_boards_hashes.clone()
         }
     }
 }
 
 impl<'a> Board<'a> {
-    pub fn new(size: u8, komi: f32, ruleset: Ruleset, zobrist_base_table: &'a ZobristHashTable) -> Board<'a> {
+    pub fn new(size: u8, ruleset: Ruleset, zobrist_base_table: Rc<ZobristHashTable>) -> Board<'a> {
         if ruleset == TrompTaylor && size != 19 {fail!("You can only play on 19*19 in Tromp Taylor Rules");}
 
+
         Board {
-            komi: komi,
             size: size,
             board: Vec::from_fn(size as uint*size as uint, |_| 0),
             chains: vec!(Chain::new(0, Empty)),
             ruleset: ruleset,
             previous_player: White,
             consecutive_passes: 0,
-            zobrist_base_table: zobrist_base_table,
+            zobrist_base_table: zobrist_base_table.clone(),
             previous_boards_hashes: vec!(zobrist_base_table.init_hash())
         }
     }
 
-    pub fn with_Tromp_Taylor_rules(size: u8, komi: f32, zobrist_base_table: &'a ZobristHashTable) -> Board<'a> {
-        Board::new(size, komi, TrompTaylor, zobrist_base_table)
-    }
-
-    // Note: This method uses 1-1 as the origin point, not 0-0. 19-19 is a valid coordinate in a 19-sized board, while 0-0 is not.
-    //       this is done because I think it makes more sense in the context of go. (Least surprise principle, etc...)
-    pub fn get(&self, col: u8, row: u8) -> Color {
-        self.get_coord(Coord::new(col, row))
-    }
-
-    fn get_coord(&self, c: Coord) -> Color {
+    pub fn get_coord(&self, c: Coord) -> Color {
         if c.is_inside(self.size) {
             self.get_chain(c).color
         } else {
@@ -388,14 +374,14 @@ impl<'a> Board<'a> {
         *self.board.get_mut(c.to_index(self.size)) = 0;
     }
 
-    pub fn score(&self) -> (uint, f32) {
+    pub fn score(&self) -> (uint, uint) {
         match self.ruleset {
             TrompTaylor => self.score_tt(),
             Minimal     => self.score_tt()
         }
     }
 
-    fn score_tt(&self) -> (uint, f32) {
+    fn score_tt(&self) -> (uint, uint) {
         let mut black_score = self.board.iter()
                                         .filter(|&id| self.chains.get(*id).color == Black)
                                         .len();
@@ -427,7 +413,7 @@ impl<'a> Board<'a> {
             empty_intersections = empty_intersections.move_iter().filter(|coord| !territory.coords().contains(coord)).collect();
         }
 
-        (black_score, white_score as f32 + self.komi)
+        (black_score, white_score)
     }
 
     fn build_territory_chain(&self, first_intersection: Coord) -> Chain {
@@ -478,10 +464,6 @@ impl<'a> Board<'a> {
         self.consecutive_passes == 2
     }
 
-    pub fn komi(&self) -> f32 {
-        self.komi
-    }
-
     pub fn ruleset(&self) -> Ruleset {
         self.ruleset
     }
@@ -490,41 +472,11 @@ impl<'a> Board<'a> {
         *self.previous_boards_hashes.last().unwrap()
     }
 
-    pub fn show(&self) {
-        println!("komi: {}", self.komi());
-
-        // First we print the board
-        for row in range(1u8, self.size+1).rev() {
-
-            // Prints the row number
-            print!("{:2} ", row);
-
-            // Prints the actual row
-            for col in range(1u8, self.size+1) {
-                let current_coords = Coord::new(col, row);
-
-                if self.get_coord(current_coords) == Empty {
-                    let hoshis = &[4u8,10,16];
-                    if   hoshis.contains(&row) && hoshis.contains(&col) {print!("+ ")}
-                    else                                                {print!(". ")}
-                } else if self.get_coord(current_coords) == White {print!("O ")}
-                  else if self.get_coord(current_coords) == Black {print!("X ")}
-            }
-            println!("");
-        }
-
-        // Then we print the col numbers under the board
-        print!("{:3}", "");
-        for col in range(1, self.size+1) {
-            print!("{:<2}", col);
-        }
-
-        println!("");
+    pub fn size(&self) -> u8 {
+        self.size
     }
 
-    pub fn show_chains(&self) {
-        for c in self.chains.iter() {
-            println!("{}", c.show());
-        }
+    pub fn chains<'b>(&'b self) -> &'b Vec<Chain> {
+        &self.chains
     }
 }
