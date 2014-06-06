@@ -20,8 +20,9 @@
  ************************************************************************/
 
 use board::Black;
-use board::Board;
 use board::White;
+use board::move::Play;
+use game::Game;
 
 pub struct Parser {
     sgf: String
@@ -56,24 +57,27 @@ impl Parser {
         Parser {sgf: sgf}
     }
 
-    pub fn board(&self) -> Board {
-        let mut board = Board::new(self.size(), self.komi());
+    pub fn game(&self) -> Game {
+        let mut game = Game::with_Tromp_Taylor_rules(self.size(), self.komi());
         let props = self.tokenize();
         for prop in props.iter() {
             if prop.name == "AB" {
-                board = board.play(Black, prop.col(board.size()), prop.row(board.size()));
+                let move = Play(Black, prop.col(game.size()), prop.row(game.size()));
+                game = game.play(move).unwrap();
             } else if prop.name == "AW" {
                 fail!("White handicap stones not implemented, yet")
             } else if prop.name == "B" {
-                board = board.play(Black, prop.col(board.size()), prop.row(board.size()));
+                let move = Play(Black, prop.col(game.size()), prop.row(game.size()));
+                game = game.play(move).unwrap();
             } else if prop.name == "W" {
-                board = board.play(White, prop.col(board.size()), prop.row(board.size()));
+                let move = Play(White, prop.col(game.size()), prop.row(game.size()));
+                game = game.play(move).unwrap();
             }
         }
-        board
+        game
     }
 
-    fn size(&self) -> uint {
+    fn size(&self) -> u8 {
         let props = self.tokenize();
         let prop = props.iter().find(|p| p.name == "SZ").unwrap();
         from_str(prop.val).unwrap()

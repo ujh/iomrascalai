@@ -36,30 +36,30 @@ fn sgf(name : &'static str) -> String {
 #[test]
 fn sets_the_board_size_from_sgf() {
     let parser = Parser::new(sgf("empty"));
-    let board  = parser.board();
-    assert_eq!(board.size(), 19);
+    let game  = parser.game();
+    assert_eq!(game.size(), 19);
 }
 
 #[test]
 fn sets_the_komi_from_sgf() {
     let parser = Parser::new(sgf("empty"));
-    let board  = parser.board();
-    assert_eq!(board.komi(), 6.5);
+    let game  = parser.game();
+    assert_eq!(game.komi(), 6.5);
 }
 
 #[test]
 fn play_handicap_stones() {
     let parser = Parser::new(sgf("handicap"));
-    let board  = parser.board();
-    assert_eq!(board.get(4,4), Black);
-    assert_eq!(board.get(16,4), Black);
-    assert_eq!(board.get(16,16), Black);
+    let game  = parser.game();
+    assert_eq!(game.get(4,4), Black);
+    assert_eq!(game.get(16,4), Black);
+    assert_eq!(game.get(16,16), Black);
 }
 
 #[test]
 fn play_moves() {
     let parser = Parser::new(sgf("twomoves"));
-    let board  = parser.board();
-    assert_eq!(board.get(4, 15), Black);
-    assert_eq!(board.get(16, 7), White);
+    let game  = parser.game();
+    assert_eq!(game.get(4, 15), Black);
+    assert_eq!(game.get(16, 7), White);
 }

@@ -124,10 +124,6 @@ impl<'a> Board<'a> {
         }
     }
 
-    pub fn size(&self) -> u8 {
-        self.size
-    }
-
     // Note: Same as get(), the board is indexed starting at 1-1
     pub fn play(&self, move: Move) -> Result<Board<'a>, IllegalMove> {
         // We check is the player is trying to play on a finished game (which is illegal in TT rules)

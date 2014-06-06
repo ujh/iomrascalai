@@ -49,10 +49,10 @@ impl<'a> Game<'a> {
                 new_game_state.board = b;
                 Ok(new_game_state)
             },
-            Err(m) => Err(m) 
+            Err(m) => Err(m)
         }
     }
- 
+
     // Note: This method uses 1-1 as the origin point, not 0-0. 19-19 is a valid coordinate in a 19-sized board, while 0-0 is not.
     //       this is done because I think it makes more sense in the context of go. (Least surprise principle, etc...)
     pub fn get(&self, col: u8, row: u8) -> Color {
@@ -69,6 +69,10 @@ impl<'a> Game<'a> {
 
     pub fn komi(&self) -> f32 {
         self.komi
+    }
+
+    pub fn size(&self) -> u8 {
+        self.board.size()
     }
 
     pub fn score(&self) ->  (uint, f32) {
