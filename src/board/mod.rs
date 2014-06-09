@@ -380,12 +380,12 @@ impl<'a> Board<'a> {
     fn score_tt(&self) -> (uint, uint) {
         let mut black_score = self.board.iter()
                                         .filter(|&id| self.chains.get(*id).color == Black)
-                                        .len();
+                                        .count();
 
 
         let mut white_score = self.board.iter()
                                         .filter(|&id| self.chains.get(*id).color == White)
-                                        .len();
+                                        .count();
 
         let mut empty_intersections = Vec::<Coord>::new();
         for i in range(0, self.board.len()) {
