@@ -28,12 +28,30 @@ use board::move::{Play, Pass};
 use game::Game;
 use game::Minimal;
 
+use gtp::{Quit, Name, Version, ProtocolVersion, ListCommands, KnownCommand, BoardSize, ClearBoard, Komi, GenMove, ShowBoard};
+
+use engine::Engine;
+use engine::random_engine::RandomEngine;
+
 use std::io::stdio::stdin;
+use std::os::args;
 
 mod board;
 mod game;
+mod gtp;
+mod engine;
 
 fn main() {
+  match args().len() {
+    1 => cli_mode(),
+    _ => match args().get(1).as_slice() {
+      "--mode-gtp" => gtp_mode(),
+      _            => cli_mode()
+    }
+  }
+}
+
+fn cli_mode() {
   print!("Please enter the size of the new game: ");
   let mut reader = stdin();
 
@@ -81,4 +99,65 @@ fn main() {
     g.show();
     g.show_chains();
   }
+}
+
+fn gtp_mode() {
+  let engine = RandomEngine::new();
+  let engine_name = "Iomrascálaí";
+  let engine_version = "0.1";
+  let protocol_version = "2";
+
+  let interpreter = gtp::GTPInterpreter::new();
+  let mut reader = stdin();
+
+  let mut komi = 6.5;
+  let mut board_size = 19;
+  let mut game = Game::with_Tromp_Taylor_rules(board_size, komi);
+
+  loop {
+    let command = interpreter.read(reader.read_line().unwrap().as_slice());
+
+    match command {
+      Name            => print!("= {}\n\n", engine_name),
+      Version         => print!("= {}\n\n", engine_version), 
+      ProtocolVersion => print!("= {}\n\n", protocol_version), 
+      ListCommands    => print!("= {}\n", interpreter.gen_list_known_commands()),
+      KnownCommand(b) => print!("= {}\n\n", b),
+      BoardSize(size) => {
+        board_size = size;
+        game = Game::with_Tromp_Taylor_rules(board_size, komi);
+        print!("= \n\n");
+      },
+      ClearBoard      => {
+        game = Game::with_Tromp_Taylor_rules(board_size, komi);
+        print!("= \n\n");
+      },
+      Komi(k)         => {
+        komi = k;
+        game.set_komi(k);
+        print!("= \n\n");
+      },
+      gtp::Play(move) => {
+        game = match game.play(move) {
+          Ok(g)  => {print!("= \n\n"); g},
+          Err(e) => {print!("? Illegal Move: {}\n\n", e); game}
+        }
+      },
+      GenMove(c)      => {
+        let generated_move = engine.gen_move(c, &game);
+        game = match game.play(generated_move) {
+          Ok(g)  => {print!("= {}\n\n", generated_move.to_gtp()); g},
+          Err(e) => {print!("? Illegal Move: {}\n\n", e); game}
+        }
+      },
+      ShowBoard       => {
+        print!("= \n");
+        game.show();
+        print!("\n\n");
+      }
+      Quit            => {print!("= \n\n"); return;},
+      _               => ()
+    }
+  }
+
 }
