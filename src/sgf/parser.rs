@@ -55,6 +55,34 @@ impl<'a> Property<'a> {
     fn is_pass(&self) -> bool {
         self.val == ""
     }
+
+    fn play(&self, game: Game) -> Game {
+        if self.name == "AB" {
+            let move = Play(Black, self.col(game.size()), self.row(game.size()));
+            game.play(move).unwrap()
+        } else if self.name == "AW" {
+            let move = Play(White, self.col(game.size()), self.row(game.size()));
+            game.play(move).unwrap()
+        } else if self.name == "B" {
+            if self.is_pass() {
+                let move = Pass(Black);
+                game.play(move).unwrap()
+            } else {
+                let move = Play(Black, self.col(game.size()), self.row(game.size()));
+                game.play(move).unwrap()
+            }
+        } else if self.name == "W" {
+            if self.is_pass() {
+                let move = Pass(White);
+                game.play(move).unwrap()
+            } else {
+                let move = Play(White, self.col(game.size()), self.row(game.size()));
+                game.play(move).unwrap()
+            }
+        } else {
+            game
+        }
+    }
 }
 
 impl Parser {
@@ -66,28 +94,7 @@ impl Parser {
         let mut game = Game::new(self.size(), self.komi(), Minimal);
         let props = self.tokenize();
         for prop in props.iter() {
-            if prop.name == "AB" {
-                let move = Play(Black, prop.col(game.size()), prop.row(game.size()));
-                game = game.play(move).unwrap();
-            } else if prop.name == "AW" {
-                fail!("White handicap stones not implemented, yet")
-            } else if prop.name == "B" {
-                if prop.is_pass() {
-                    let move = Pass(Black);
-                    game = game.play(move).unwrap();
-                } else {
-                    let move = Play(Black, prop.col(game.size()), prop.row(game.size()));
-                    game = game.play(move).unwrap();
-                }
-            } else if prop.name == "W" {
-                if prop.is_pass() {
-                    let move = Pass(White);
-                    game = game.play(move).unwrap();
-                } else {
-                    let move = Play(White, prop.col(game.size()), prop.row(game.size()));
-                    game = game.play(move).unwrap();
-                }
-            }
+            game = prop.play(game)
         }
         game
     }
