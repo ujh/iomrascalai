@@ -20,6 +20,8 @@
  ************************************************************************/
 
 use board::Black;
+use board::Color;
+use board::Empty;
 use board::IllegalMove;
 use board::White;
 use board::move::Pass;
@@ -45,7 +47,7 @@ struct Property<'a> {
 
 impl<'a> Property<'a> {
 
-    fn col(&self, size: u8) -> u8 {
+    fn col(&self) -> u8 {
         self.char_to_int(self.val[0])
     }
 
@@ -63,28 +65,27 @@ impl<'a> Property<'a> {
         self.val == ""
     }
 
+    fn is_move(&self) -> bool {
+        match self.name {
+            "AB" | "AW" | "B" | "W" => true,
+            _                       => false
+        }
+    }
+
+    fn color(&self) -> Color {
+        match self.name {
+            "AB" | "B" => Black,
+            "AW" | "W" => White,
+            _          => Empty
+        }
+    }
+
     fn play(&self, game: Game) -> Result<Game, IllegalMove> {
-        if self.name == "AB" {
-            let move = Play(Black, self.col(game.size()), self.row(game.size()));
-            game.play(move)
-        } else if self.name == "AW" {
-            let move = Play(White, self.col(game.size()), self.row(game.size()));
-            game.play(move)
-        } else if self.name == "B" {
+        if self.is_move() {
             if self.is_pass() {
-                let move = Pass(Black);
-                game.play(move)
+                game.play(Pass(self.color()))
             } else {
-                let move = Play(Black, self.col(game.size()), self.row(game.size()));
-                game.play(move)
-            }
-        } else if self.name == "W" {
-            if self.is_pass() {
-                let move = Pass(White);
-                game.play(move)
-            } else {
-                let move = Play(White, self.col(game.size()), self.row(game.size()));
-                game.play(move)
+                game.play(Play(self.color(), self.col(), self.row(game.size())))
             }
         } else {
             Ok(game)
