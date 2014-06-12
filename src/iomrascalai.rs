@@ -19,7 +19,7 @@
  *                                                                      *
  ************************************************************************/
 #![feature(phase)]
-#[phase(syntax)]
+#[phase(plugin)]
 extern crate regex_macros;
 extern crate regex;
 extern crate core;
