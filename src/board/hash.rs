@@ -20,6 +20,10 @@ impl ZobristHashTable {
         ZobristHashTable {table: table, size: size}
     }
 
+    pub fn size(&self) -> u8 {
+        self.size
+    }
+
     pub fn init_hash(&self) -> u64 {
         let mut init_hash = 0;
 
@@ -31,7 +35,7 @@ impl ZobristHashTable {
     }
 
     pub fn add_stone_to_hash(&self, hash: u64, move: &Move) -> u64 {
-        hash ^ self.get_hash_for(&Play(Empty, move.coords().col, move.coords().row)) ^ self.get_hash_for(move)    
+        hash ^ self.get_hash_for(&Play(Empty, move.coords().col, move.coords().row)) ^ self.get_hash_for(move)
     }
 
     pub fn remove_stone_from_hash(&self, hash: u64, move: &Move) -> u64 {
