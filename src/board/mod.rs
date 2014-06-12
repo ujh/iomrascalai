@@ -92,9 +92,9 @@ impl<'a> Clone for Board<'a> {
 
 impl<'a> Board<'a> {
     pub fn new(size: u8, ruleset: Ruleset, zobrist_base_table: Rc<ZobristHashTable>) -> Board<'a> {
-        if ruleset == TrompTaylor && size != 19 {fail!("You can only play on 19*19 in Tromp Taylor Rules");}
-
-
+        if size != zobrist_base_table.size() {
+            fail!("Different sizes for board and Zobrist hash table!");
+        }
         Board {
             size: size,
             board: Vec::from_fn(size as uint*size as uint, |_| 0),

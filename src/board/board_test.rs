@@ -84,7 +84,7 @@ fn play_adds_a_stone_to_the_correct_position() {
 
 #[test]
 fn playing_on_an_illegal_coordinate_should_return_error() {
-  let zht = Rc::new(ZobristHashTable::new(19));
+  let zht = Rc::new(ZobristHashTable::new(9));
   let b = Board::new(9, Minimal, zht.clone());
 
   assert!(b.play(Play(Black, 13, 13)).is_err());
@@ -92,7 +92,7 @@ fn playing_on_an_illegal_coordinate_should_return_error() {
 
 #[test]
 fn playing_on_a_non_empty_intersection_should_return_error() {
-  let zht = Rc::new(ZobristHashTable::new(19));
+  let zht = Rc::new(ZobristHashTable::new(9));
   let b = Board::new(9, Minimal, zht.clone());
 
   let b = b.play(Play(Black, 4, 4)).unwrap();
