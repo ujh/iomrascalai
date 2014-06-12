@@ -26,7 +26,7 @@ use board::coord::Coord;
 use board::hash::ZobristHashTable;
 use board::move::{Move, Play};
 
-use game::{Ruleset, TrompTaylor, Minimal};
+use game::{Ruleset, AnySizeTrompTaylor, Minimal};
 
 mod board_test;
 mod coord_test;
@@ -127,7 +127,7 @@ impl<'a> Board<'a> {
     // Note: Same as get(), the board is indexed starting at 1-1
     pub fn play(&self, move: Move) -> Result<Board<'a>, IllegalMove> {
         // We check is the player is trying to play on a finished game (which is illegal in TT rules)
-        if self.is_game_over() && self.ruleset == TrompTaylor {
+        if self.is_game_over() && self.ruleset == AnySizeTrompTaylor {
             return Err(GameAlreadyOver);
         }
 
@@ -178,7 +178,7 @@ impl<'a> Board<'a> {
             }
         } else if new_board.get_chain(move.coords()).libs == 0 {
             match new_board.ruleset {
-                TrompTaylor => {
+                AnySizeTrompTaylor => {
                     friend_stones_removed.push_all(new_board.get_chain(move.coords()).coords().as_slice());
                     let to_remove_id = new_board.get_chain(move.coords()).id;
                     new_board.remove_chain(to_remove_id);
@@ -372,7 +372,7 @@ impl<'a> Board<'a> {
 
     pub fn score(&self) -> (uint, uint) {
         match self.ruleset {
-            TrompTaylor => self.score_tt(),
+            AnySizeTrompTaylor => self.score_tt(),
             Minimal     => self.score_tt()
         }
     }
