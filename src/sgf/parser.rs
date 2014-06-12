@@ -20,6 +20,7 @@
  ************************************************************************/
 
 use board::Black;
+use board::IllegalMove;
 use board::White;
 use board::move::Pass;
 use board::move::Play;
@@ -28,6 +29,12 @@ use game::Minimal;
 
 pub struct Parser {
     sgf: String
+}
+
+#[deriving(Show)]
+pub enum Error {
+    SyntaxError,
+    IllegalMove
 }
 
 #[deriving(Show)]
@@ -56,31 +63,31 @@ impl<'a> Property<'a> {
         self.val == ""
     }
 
-    fn play(&self, game: Game) -> Game {
+    fn play(&self, game: Game) -> Result<Game, IllegalMove> {
         if self.name == "AB" {
             let move = Play(Black, self.col(game.size()), self.row(game.size()));
-            game.play(move).unwrap()
+            game.play(move)
         } else if self.name == "AW" {
             let move = Play(White, self.col(game.size()), self.row(game.size()));
-            game.play(move).unwrap()
+            game.play(move)
         } else if self.name == "B" {
             if self.is_pass() {
                 let move = Pass(Black);
-                game.play(move).unwrap()
+                game.play(move)
             } else {
                 let move = Play(Black, self.col(game.size()), self.row(game.size()));
-                game.play(move).unwrap()
+                game.play(move)
             }
         } else if self.name == "W" {
             if self.is_pass() {
                 let move = Pass(White);
-                game.play(move).unwrap()
+                game.play(move)
             } else {
                 let move = Play(White, self.col(game.size()), self.row(game.size()));
-                game.play(move).unwrap()
+                game.play(move)
             }
         } else {
-            game
+            Ok(game)
         }
     }
 }
@@ -90,13 +97,18 @@ impl Parser {
         Parser {sgf: sgf}
     }
 
-    pub fn game(&self) -> Game {
+    pub fn game(&self) -> Result<Game, Error> {
         let mut game = Game::new(self.size(), self.komi(), Minimal);
         let props = self.tokenize();
         for prop in props.iter() {
-            game = prop.play(game)
+            match prop.play(game) {
+                Ok(g) => {
+                    game = g;
+                },
+                Err(e) => return Err(IllegalMove)
+            }
         }
-        game
+        Ok(game)
     }
 
     fn size(&self) -> u8 {

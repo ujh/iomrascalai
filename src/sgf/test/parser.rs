@@ -36,21 +36,21 @@ fn sgf(name : &'static str) -> String {
 #[test]
 fn sets_the_board_size_from_sgf() {
     let parser = Parser::new(sgf("empty"));
-    let game  = parser.game();
+    let game  = parser.game().unwrap();
     assert_eq!(game.size(), 19);
 }
 
 #[test]
 fn sets_the_komi_from_sgf() {
     let parser = Parser::new(sgf("empty"));
-    let game  = parser.game();
+    let game  = parser.game().unwrap();
     assert_eq!(game.komi(), 6.5);
 }
 
 #[test]
 fn play_handicap_stones() {
     let parser = Parser::new(sgf("handicap"));
-    let game  = parser.game();
+    let game  = parser.game().unwrap();
     assert_eq!(game.get(4,4), Black);
     assert_eq!(game.get(16,4), Black);
     assert_eq!(game.get(16,16), Black);
@@ -59,7 +59,7 @@ fn play_handicap_stones() {
 #[test]
 fn play_moves() {
     let parser = Parser::new(sgf("twomoves"));
-    let game  = parser.game();
+    let game  = parser.game().unwrap();
     assert_eq!(game.get(4, 15), Black);
     assert_eq!(game.get(16, 7), White);
 }
@@ -67,6 +67,6 @@ fn play_moves() {
 #[test]
 fn finished_game() {
     let parser = Parser::new(sgf("finished"));
-    let game   = parser.game();
+    let game   = parser.game().unwrap();
     assert!(game.is_over());
 }
