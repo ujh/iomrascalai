@@ -18,6 +18,10 @@
  * along with Iomrascálaí.  If not, see <http://www.gnu.org/licenses/>. *
  *                                                                      *
  ************************************************************************/
+#![feature(phase)]
+#[phase(plugin)]
+extern crate regex_macros;
+extern crate regex;
 extern crate core;
 extern crate rand;
 
@@ -32,6 +36,7 @@ use std::io::stdio::stdin;
 
 mod board;
 mod game;
+mod sgf;
 
 fn main() {
   print!("Please enter the size of the new game: ");

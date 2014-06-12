@@ -232,18 +232,18 @@ impl<'a> Board<'a> {
                 self.add_coord_to_chain(move.coords(), final_chain_id);
             },
             _ => {
-                // Note: We know that friend_neigh_chains_id is sorted, so whatever chains we remove, 
+                // Note: We know that friend_neigh_chains_id is sorted, so whatever chains we remove,
                 // we know that the id of the final_chain is still valid.
                 let final_chain_id        = *friend_neigh_chains_id.get(0);
                 let mut nb_removed_chains = 0;
 
                 // We assign the stone to the final chain
                 self.add_coord_to_chain(move.coords(), final_chain_id);
-                
+
                 for &other_chain_old_id in friend_neigh_chains_id.slice(1, friend_neigh_chains_id.len()).iter() {
                     // The ids stored in friend_neigh_chains_id may be out of date since we remove chains from self.chains
                     // These id is the correct one at this step of the removals
-                    let other_chain_id = other_chain_old_id - nb_removed_chains;  
+                    let other_chain_id = other_chain_old_id - nb_removed_chains;
 
                     // We merge the other chain into the final chain.
                     let other_chain = self.chains.get(other_chain_id).clone();
@@ -254,7 +254,7 @@ impl<'a> Board<'a> {
 
                     // We update the ids inside the chains
                     self.update_chains_ids_after_id(other_chain_id);
-                    
+
                     nb_removed_chains += 1;
                 }
 
@@ -330,7 +330,7 @@ impl<'a> Board<'a> {
                                                          .map(|chain| chain.id)
                                                          .collect();
 
-        // We need to sort first to make sure dedup removes all duplicates.                                                 
+        // We need to sort first to make sure dedup removes all duplicates.
         chain_to_remove_ids.sort();
         chain_to_remove_ids.dedup();
 
@@ -434,7 +434,7 @@ impl<'a> Board<'a> {
                 }
             }
         }
-        
+
         if neutral {
             territory_chain.color = Empty;
         }
