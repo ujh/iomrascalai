@@ -106,7 +106,7 @@ impl Parser {
                 Ok(g) => {
                     game = g;
                 },
-                Err(e) => return Err(IllegalMove)
+                Err(_) => return Err(IllegalMove)
             }
         }
         Ok(game)
