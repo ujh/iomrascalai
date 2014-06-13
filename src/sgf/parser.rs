@@ -19,6 +19,8 @@
  *                                                                      *
  ************************************************************************/
 
+use std::io::fs::File;
+
 use board::Black;
 use board::Color;
 use board::Empty;
@@ -96,6 +98,11 @@ impl<'a> Property<'a> {
 impl Parser {
     pub fn new(sgf: String) -> Parser {
         Parser {sgf: sgf}
+    }
+
+    pub fn from_path(path: Path) -> Parser {
+        let contents = File::open(&path).read_to_str();
+        Parser::new(contents.unwrap())
     }
 
     pub fn game(&self) -> Result<Game, Error> {
