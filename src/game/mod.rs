@@ -1,9 +1,31 @@
+/************************************************************************
+ *                                                                      *
+ * Copyright 2014 Urban Hafner, Thomas Poinsot                          *
+ *                                                                      *
+ * This file is part of Iomrascálaí.                                    *
+ *                                                                      *
+ * Iomrascálaí is free software: you can redistribute it and/or modify  *
+ * it under the terms of the GNU General Public License as published by *
+ * the Free Software Foundation, either version 3 of the License, or    *
+ * (at your option) any later version.                                  *
+ *                                                                      *
+ * Iomrascálaí is distributed in the hope that it will be useful,       *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of       *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        *
+ * GNU General Public License for more details.                         *
+ *                                                                      *
+ * You should have received a copy of the GNU General Public License    *
+ * along with Iomrascálaí.  If not, see <http://www.gnu.org/licenses/>. *
+ *                                                                      *
+ ************************************************************************/
+
 use board::Board;
 use board::IllegalMove;
 use board::move::Move;
 use board::{Color, Empty, Black, White};
 use board::coord::Coord;
 
+use core::fmt::{Show, Formatter, FormatError};
 use std::rc::Rc;
 
 use board::hash::ZobristHashTable;
@@ -88,41 +110,49 @@ impl<'a> Game<'a> {
         self.board.size()
     }
 
-    pub fn show(&self) {
-        println!("komi: {}", self.komi);
+    pub fn show_chains(&self) {
+        for c in self.board.chains().iter() {
+            println!("{}", c.show());
+        }
+    }
+}
+
+impl<'a> Show for Game<'a> {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), FormatError> {
+        let mut s = format!("komi: {}\n", self.komi);
 
         // First we print the board
         for row in range(1u8, self.board.size()+1).rev() {
 
             // Prints the row number
-            print!("{:2} ", row);
+            s.push_str(format!("{:2} ", row).as_slice());
 
             // Prints the actual row
             for col in range(1u8, self.board.size()+1) {
                 let current_coords = Coord::new(col, row);
 
-                if self.board.get_coord(current_coords) == Empty {
-                    let hoshis = &[4u8,10,16];
-                    if  hoshis.contains(&row) && hoshis.contains(&col) {print!("+ ")}
-                    else                                               {print!(". ")}
-                } else if self.board.get_coord(current_coords) == White {print!("O ")}
-                  else if self.board.get_coord(current_coords) == Black {print!("X ")}
+                match self.board.get_coord(current_coords) {
+                    Empty => {
+                        let hoshis = &[4u8,10,16];
+                        if  hoshis.contains(&row) && hoshis.contains(&col) {
+                            s.push_str("+ ");
+                        } else {
+                            s.push_str(". ");
+                        }
+                    },
+                    White => { s.push_str("O "); },
+                    Black => { s.push_str("X "); }
+                }
             }
-            println!("");
+            s.push_str("\n");
         }
 
         // Then we print the col numbers under the board
-        print!("{:3}", "");
+        s.push_str(format!("{:3}", "").as_slice());
         for col in range(1, self.board.size()+1) {
-            print!("{:<2}", col);
+            s.push_str(format!("{:<2}", col).as_slice());
         }
-
-        println!("");
-    }
-
-    pub fn show_chains(&self) {
-        for c in self.board.chains().iter() {
-            println!("{}", c.show());
-        }
+        s.push_str("\n");
+        s.fmt(f)
     }
 }

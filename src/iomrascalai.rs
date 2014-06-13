@@ -101,7 +101,7 @@ fn cli_mode() {
     current_player = current_player.opposite();
 
     println!("");
-    g.show();
+    println!("{}", g);
     g.show_chains();
   }
 }
@@ -157,7 +157,7 @@ fn gtp_mode() {
       },
       ShowBoard       => {
         print!("= \n");
-        game.show();
+        println!("{}", game);
         print!("\n\n");
       }
       Quit            => {print!("= \n\n"); return;},
