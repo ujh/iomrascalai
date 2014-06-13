@@ -35,7 +35,7 @@ pub struct Parser {
     sgf: String
 }
 
-#[deriving(Show)]
+#[deriving(Show, Eq, PartialEq)]
 pub enum Error {
     SyntaxError,
     IllegalMove

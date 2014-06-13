@@ -29,6 +29,9 @@ use board::move::{Play, Pass};
 
 use game::{AnySizeTrompTaylor, Minimal};
 
+use sgf::parser::IllegalMove;
+use sgf::parser::Parser;
+
 use std::rc::Rc;
 
 #[test]
@@ -447,4 +450,13 @@ fn counting_with_neutral_points() {
   let (b_score, w_score) = b.score();
   assert_eq!(b_score, 4);
   assert_eq!(w_score, 20);
+}
+
+#[test]
+fn playing_on_top_of_another_stone_results_in_an_error() {
+    let path = Path::new("fixtures/board/illegalmove.sgf");
+    let parser = Parser::from_path(path);
+    let result = parser.game();
+    assert!(result.is_err());
+    assert_eq!(result.unwrap_err(), IllegalMove);
 }

@@ -19,7 +19,5 @@
  *                                                                      *
  ************************************************************************/
 
-pub use self::parser::Parser;
-
-mod parser;
+pub mod parser;
 mod test;
