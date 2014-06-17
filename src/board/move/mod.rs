@@ -21,6 +21,8 @@
 use board::Color;
 use board::coord::Coord;
 
+mod test;
+
 #[deriving(Show)]
 pub enum Move {
     Play(Color, u8, u8),
