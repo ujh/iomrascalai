@@ -18,5 +18,20 @@
  * along with Iomrascálaí.  If not, see <http://www.gnu.org/licenses/>. *
  *                                                                      *
  ************************************************************************/
-
 #![cfg(test)]
+
+use board::Black;
+use board::move::Move;
+use board::move::Pass;
+
+#[test]
+fn parse_gtp_pass() {
+    let move = Move::from_gtp("B", "PASS");
+    assert_eq!(move, Pass(Black));
+}
+
+#[test]
+fn parse_lower_case_gtp_pass() {
+    let move = Move::from_gtp("B", "pass");
+    assert_eq!(move, Pass(Black));
+}
