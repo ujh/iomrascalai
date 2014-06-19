@@ -460,3 +460,25 @@ fn playing_on_top_of_another_stone_results_in_an_error() {
     assert!(result.is_err());
     assert_eq!(result.unwrap_err(), IllegalMove);
 }
+
+#[test]
+fn capturing_two_or_more_groups_while_playing_in_an_eye_actually_captures() {
+  let size = 5;
+
+  let zht = Rc::new(ZobristHashTable::new(size));
+  let mut b = Board::new(size, AnySizeTrompTaylor, zht.clone());
+
+  b = b.play(Play(Black, 2, 1)).unwrap();
+  b = b.play(Play(White, 3, 1)).unwrap();
+  b = b.play(Play(Black, 1, 2)).unwrap();
+  b = b.play(Play(White, 2, 2)).unwrap();
+  b = b.play(Play(Black, 5, 5)).unwrap();
+  b = b.play(Play(White, 1, 3)).unwrap();
+  b = b.play(Play(Black, 5, 4)).unwrap();
+  b = b.play(Play(White, 1, 1)).unwrap();
+
+  assert_eq!(b.get_coord(Coord::new(1, 1)), White);
+  assert_eq!(b.get_coord(Coord::new(1, 2)), Empty);
+  assert_eq!(b.get_coord(Coord::new(2, 1)), Empty);
+  assert_eq!(b.get_coord(Coord::new(2, 2)), White);
+}
