@@ -453,15 +453,6 @@ fn counting_with_neutral_points() {
 }
 
 #[test]
-fn playing_on_top_of_another_stone_results_in_an_error() {
-    let path = Path::new("fixtures/board/illegalmove.sgf");
-    let parser = Parser::from_path(path);
-    let result = parser.game();
-    assert!(result.is_err());
-    assert_eq!(result.unwrap_err(), IllegalMove);
-}
-
-#[test]
 fn capturing_two_or_more_groups_while_playing_in_an_eye_actually_captures() {
   let size = 5;
 
