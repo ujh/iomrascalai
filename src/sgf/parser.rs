@@ -29,7 +29,7 @@ use board::White;
 use board::move::Pass;
 use board::move::Play;
 use game::Game;
-use game::Minimal;
+use ruleset::Minimal;
 
 pub struct Parser {
     sgf: String

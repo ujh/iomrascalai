@@ -26,7 +26,7 @@ use board::coord::Coord;
 use board::hash::ZobristHashTable;
 use board::move::{Move, Play};
 
-use game::{Ruleset, AnySizeTrompTaylor, Minimal};
+use ruleset::{Ruleset, AnySizeTrompTaylor, Minimal};
 
 mod board_test;
 mod coord_test;
