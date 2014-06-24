@@ -30,7 +30,7 @@ use board::{PlayOutOfBoard, SuicidePlay, IntersectionNotEmpty, SamePlayerPlayedT
 use board::move::{Play, Pass};
 
 use game::Game;
-use game::Minimal;
+use ruleset::Minimal;
 
 use gtp::{Quit, Name, Version, ProtocolVersion, ListCommands, KnownCommand, BoardSize, ClearBoard, Komi, GenMove, ShowBoard};
 
@@ -41,10 +41,11 @@ use std::io::stdio::stdin;
 use std::os::args;
 
 mod board;
-mod game;
-mod sgf;
-mod gtp;
 mod engine;
+mod game;
+mod gtp;
+mod ruleset;
+mod sgf;
 
 fn main() {
   match args().len() {

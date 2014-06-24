@@ -27,7 +27,7 @@ use board::coord::Coord;
 use board::hash::ZobristHashTable;
 use board::move::{Play, Pass};
 
-use game::{AnySizeTrompTaylor, Minimal};
+use ruleset::{AnySizeTrompTaylor, Minimal};
 
 use sgf::parser::IllegalMove;
 use sgf::parser::Parser;

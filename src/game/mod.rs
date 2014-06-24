@@ -21,22 +21,18 @@
 
 use board::Board;
 use board::IllegalMove;
+use board::coord::Coord;
+use board::hash::ZobristHashTable;
 use board::move::Move;
 use board::{Color, Empty, Black, White};
-use board::coord::Coord;
+use ruleset::AnySizeTrompTaylor;
+use ruleset::Ruleset;
 
 use core::fmt::{Show, Formatter, FormatError};
 use std::rc::Rc;
 
-use board::hash::ZobristHashTable;
 
 mod game_test;
-
-#[deriving(Clone, Show, Eq, PartialEq)]
-pub enum Ruleset {
-    AnySizeTrompTaylor,
-    Minimal
-}
 
 #[deriving(Clone)]
 pub struct Game<'a> {
