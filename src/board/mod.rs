@@ -26,7 +26,7 @@ use board::coord::Coord;
 use board::hash::ZobristHashTable;
 use board::move::{Move, Play};
 
-use ruleset::{Ruleset, AnySizeTrompTaylor, Minimal};
+use ruleset::Ruleset;
 
 mod board_test;
 mod coord_test;
@@ -133,15 +133,19 @@ impl<'a> Board<'a> {
         }
     }
 
+    fn is_same_player(&self, move: &Move) -> bool {
+        self.previous_player == move.color()
+    }
+
     // Note: Same as get(), the board is indexed starting at 1-1
     pub fn play(&self, move: Move) -> Result<Board<'a>, IllegalMove> {
         // We check is the player is trying to play on a finished game (which is illegal in TT rules)
-        if self.is_game_over() && self.ruleset == AnySizeTrompTaylor {
+        if self.is_game_over() && !self.ruleset.game_over_play() {
             return Err(GameAlreadyOver);
         }
 
         // We check that the same player didn't play twice (except in the minimal ruleset, which is useful for tests)
-        if self.ruleset != Minimal && self.previous_player == move.color() {
+        if self.is_same_player(&move) && !self.ruleset.same_player() {
             return Err(SamePlayerPlayedTwice);
         }
 
@@ -186,14 +190,13 @@ impl<'a> Board<'a> {
                 new_board.update_libs(i);
             }
         } else if new_board.get_chain(move.coords()).libs == 0 {
-            match new_board.ruleset {
-                AnySizeTrompTaylor => {
-                    friend_stones_removed.push_all(new_board.get_chain(move.coords()).coords().as_slice());
-                    let to_remove_id = new_board.get_chain(move.coords()).id;
-                    new_board.remove_chain(to_remove_id);
-                    new_board.update_all_after_id(to_remove_id);
-                },
-                _           => return Err(SuicidePlay)
+            if self.ruleset.suicide() {
+                friend_stones_removed.push_all(new_board.get_chain(move.coords()).coords().as_slice());
+                let to_remove_id = new_board.get_chain(move.coords()).id;
+                new_board.remove_chain(to_remove_id);
+                new_board.update_all_after_id(to_remove_id);
+            } else {
+                return Err(SuicidePlay)
             }
         }
 
@@ -380,10 +383,7 @@ impl<'a> Board<'a> {
     }
 
     pub fn score(&self) -> (uint, uint) {
-        match self.ruleset {
-            AnySizeTrompTaylor => self.score_tt(),
-            Minimal     => self.score_tt()
-        }
+        self.score_tt()
     }
 
     fn score_tt(&self) -> (uint, uint) {

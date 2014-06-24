@@ -26,3 +26,27 @@ pub enum Ruleset {
     AnySizeTrompTaylor,
     Minimal
 }
+
+impl Ruleset {
+
+    pub fn game_over_play(&self) -> bool {
+        match *self {
+            AnySizeTrompTaylor => false,
+            _ => true
+        }
+    }
+
+    pub fn same_player(&self) -> bool {
+        match *self {
+            AnySizeTrompTaylor => false,
+            _ => true
+        }
+    }
+
+    pub fn suicide(&self) -> bool {
+        match *self {
+            AnySizeTrompTaylor => true,
+            _ => false
+        }
+    }
+}
