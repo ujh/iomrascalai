@@ -468,6 +468,8 @@ fn capturing_two_or_more_groups_while_playing_in_an_eye_actually_captures() {
   b = b.play(Play(Black, 5, 4)).unwrap();
   b = b.play(Play(White, 1, 1)).unwrap();
 
+  
+
   assert_eq!(b.get_coord(Coord::new(1, 1)), White);
   assert_eq!(b.get_coord(Coord::new(1, 2)), Empty);
   assert_eq!(b.get_coord(Coord::new(2, 1)), Empty);
