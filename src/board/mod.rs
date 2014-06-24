@@ -20,6 +20,7 @@
  ************************************************************************/
 use std::vec::Vec;
 use std::rc::Rc;
+use std::collections::hashmap::HashSet;
 
 use board::chain::Chain;
 use board::coord::Coord;
@@ -290,14 +291,11 @@ impl<'a> Board<'a> {
     }
 
     fn update_chains_libs_of(&mut self, color: Color) {
-        let mut adv_chains_ids: Vec<uint> = self.chains
+        let mut adv_chains_ids: HashSet<uint> = self.chains
                   .iter()
                   .filter(|c| c.color == color)
                   .map(|c| c.id)
                   .collect();
-
-        adv_chains_ids.sort();
-        adv_chains_ids.dedup();
 
         for &id in adv_chains_ids.iter() {
             self.update_libs(id);
@@ -335,17 +333,12 @@ impl<'a> Board<'a> {
                                       .fold(Vec::new(), |acc, chain| acc.append(chain.coords().as_slice()));
 
 
-        let mut chain_to_remove_ids: Vec<uint> = move.coords().neighbours(self.size)
+        let mut chain_to_remove_ids: HashSet<uint> = move.coords().neighbours(self.size)
                                                          .iter()
                                                          .map(|&coord| self.get_chain(coord))
                                                          .filter(|chain| chain.libs == 0 && chain.color != move.color())
                                                          .map(|chain| chain.id)
                                                          .collect();
-
-        // We need to sort first to make sure dedup removes all duplicates.
-        chain_to_remove_ids.sort();
-        chain_to_remove_ids.dedup();
-
         for &id in chain_to_remove_ids.iter() {
             self.remove_chain(id);
         }
