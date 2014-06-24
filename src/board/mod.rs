@@ -339,10 +339,6 @@ impl<'a> Board<'a> {
                                                          .filter(|chain| chain.libs == 0 && chain.color != move.color())
                                                          .map(|chain| chain.id)
                                                          .collect();
-
-        println!("{}", chain_to_remove_ids);
-
-
         for &id in chain_to_remove_ids.iter() {
             self.remove_chain(id);
         }
