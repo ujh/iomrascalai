@@ -190,7 +190,7 @@ impl<'a> Board<'a> {
                 new_board.update_libs(i);
             }
         } else if new_board.get_chain(move.coords()).libs == 0 {
-            if self.ruleset.suicide() {
+            if self.ruleset.suicide_allowed() {
                 friend_stones_removed.push_all(new_board.get_chain(move.coords()).coords().as_slice());
                 let to_remove_id = new_board.get_chain(move.coords()).id;
                 new_board.remove_chain(to_remove_id);

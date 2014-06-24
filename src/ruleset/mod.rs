@@ -43,7 +43,7 @@ impl Ruleset {
         }
     }
 
-    pub fn suicide(&self) -> bool {
+    pub fn suicide_allowed(&self) -> bool {
         match *self {
             AnySizeTrompTaylor => true,
             _ => false
