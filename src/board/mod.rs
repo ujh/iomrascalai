@@ -333,14 +333,20 @@ impl<'a> Board<'a> {
                                       .fold(Vec::new(), |acc, chain| acc.append(chain.coords().as_slice()));
 
 
-        let mut chain_to_remove_ids: HashSet<uint> = move.coords().neighbours(self.size)
+        let mut chain_to_remove_ids: Vec<uint> = move.coords().neighbours(self.size)
                                                          .iter()
                                                          .map(|&coord| self.get_chain(coord))
                                                          .filter(|chain| chain.libs == 0 && chain.color != move.color())
                                                          .map(|chain| chain.id)
                                                          .collect();
+
+        chain_to_remove_ids.sort();
+        chain_to_remove_ids.dedup();
+        let mut nb_of_removed_chains = 0;
+
         for &id in chain_to_remove_ids.iter() {
-            self.remove_chain(id);
+            self.remove_chain(id-nb_of_removed_chains);
+            nb_of_removed_chains += 1;
         }
 
         coords_to_remove
