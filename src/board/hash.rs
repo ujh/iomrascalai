@@ -11,7 +11,7 @@ impl ZobristHashTable {
     pub fn new(size: u8) -> ZobristHashTable {
         let mut table = Vec::new();
 
-        for _ in range(0, 3) {
+        for _ in range(0i8, 3) {
             for _ in range(0, (size as uint)*(size as uint)) {
                 table.push(random::<u64>());
             }
