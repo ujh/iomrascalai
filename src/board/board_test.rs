@@ -312,6 +312,7 @@ fn suicide_should_be_illegal_in_kgs_chinese_rules() {
   b = b.play(Play(White, 3, 5)).unwrap();
 
   assert!(b.play(Play(Black, 3, 4)).is_err());
+  assert_eq!(b.play(Play(Black, 3, 4)).unwrap_err(), SuicidePlay);
 }
 
 #[test]

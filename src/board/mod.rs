@@ -74,6 +74,7 @@ impl Color {
     }
 }
 
+#[deriving(Show)]
 pub struct Board<'a> {
     size: u8,
     board: Vec<uint>,
