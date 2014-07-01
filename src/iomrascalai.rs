@@ -30,6 +30,7 @@ use board::{PlayOutOfBoard, SuicidePlay, IntersectionNotEmpty, SamePlayerPlayedT
 use board::move::{Play, Pass};
 
 use game::Game;
+use ruleset::KgsChinese;
 use ruleset::Minimal;
 
 use gtp::{Quit, Name, Version, ProtocolVersion, ListCommands, KnownCommand, BoardSize, ClearBoard, Komi, GenMove, ShowBoard};
@@ -118,7 +119,7 @@ fn gtp_mode() {
 
   let mut komi = 6.5;
   let mut board_size = 19;
-  let mut game = Game::with_Tromp_Taylor_rules(board_size, komi);
+  let mut game = Game::new(board_size, komi, KgsChinese);
 
   loop {
     let command = interpreter.read(reader.read_line().unwrap().as_slice());
