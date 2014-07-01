@@ -22,12 +22,15 @@
 #![cfg(test)]
 
 use board::{Board, Empty, White, Black};
-use board::{SuperKoRuleBroken};
+use board::SuicidePlay;
+use board::SuperKoRuleBroken;
 use board::coord::Coord;
 use board::hash::ZobristHashTable;
 use board::move::{Play, Pass};
 
-use ruleset::{AnySizeTrompTaylor, Minimal};
+use ruleset::AnySizeTrompTaylor;
+use ruleset::KgsChinese;
+use ruleset::Minimal;
 
 use sgf::parser::IllegalMove;
 use sgf::parser::Parser;
@@ -288,6 +291,27 @@ fn suicide_should_be_legal_in_tromp_taylor_rules() {
   b = b.play(Play(White, 3, 5)).unwrap();
 
   assert!(b.play(Play(Black, 3, 4)).is_ok());
+}
+
+#[test]
+fn suicide_should_be_illegal_in_kgs_chinese_rules() {
+  let zht = Rc::new(ZobristHashTable::new(19));
+  let mut b = Board::new(19, KgsChinese, zht.clone());
+
+  b = b.play(Play(Black, 4, 4)).unwrap();
+  b = b.play(Play(White, 5, 4)).unwrap();
+  b = b.play(Play(Black, 16, 16)).unwrap();
+  b = b.play(Play(White, 4, 3)).unwrap();
+  b = b.play(Play(Black, 16, 15)).unwrap();
+  b = b.play(Play(White, 3, 3)).unwrap();
+  b = b.play(Play(Black, 16, 14)).unwrap();
+  b = b.play(Play(White, 2, 4)).unwrap();
+  b = b.play(Play(Black, 16, 13)).unwrap();
+  b = b.play(Play(White, 4, 5)).unwrap();
+  b = b.play(Play(Black, 16, 12)).unwrap();
+  b = b.play(Play(White, 3, 5)).unwrap();
+
+  assert!(b.play(Play(Black, 3, 4)).is_err());
 }
 
 #[test]
