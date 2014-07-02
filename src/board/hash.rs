@@ -2,6 +2,7 @@ use std::rand::random;
 use board::move::{Move, Play};
 use board::{Empty, Black, White};
 
+#[deriving(Show)]
 pub struct ZobristHashTable {
     table: Vec<u64>,
     size : u8

@@ -1,7 +1,7 @@
 use board::Color;
 use board::coord::Coord;
 
-#[deriving(Clone, Eq, PartialEq)]
+#[deriving(Clone, Eq, PartialEq, Show)]
 pub struct Chain {
     pub id   : uint,
     pub color: Color,

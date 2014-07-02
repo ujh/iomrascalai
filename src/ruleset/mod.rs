@@ -24,6 +24,7 @@ mod test;
 #[deriving(Clone, Show, Eq, PartialEq)]
 pub enum Ruleset {
     AnySizeTrompTaylor,
+    KgsChinese,
     Minimal
 }
 
@@ -31,15 +32,15 @@ impl Ruleset {
 
     pub fn game_over_play(&self) -> bool {
         match *self {
-            AnySizeTrompTaylor => false,
-            _ => true
+            Minimal => true,
+            _ => false
         }
     }
 
     pub fn same_player(&self) -> bool {
         match *self {
-            AnySizeTrompTaylor => false,
-            _ => true
+            Minimal => true,
+            _ => false
         }
     }
 
