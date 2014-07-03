@@ -50,13 +50,13 @@ struct Property<'a> {
 impl<'a> Property<'a> {
 
     fn col(&self) -> u8 {
-        self.char_to_int(self.val[0])
+        self.char_to_int(self.val.as_bytes()[0])
     }
 
     // SGF counts from top to bottom, while we count from bottom to
     // top (and we start at 1).
     fn row(&self, size: u8) -> u8 {
-        size - self.char_to_int(self.val[1]) + 1
+        size - self.char_to_int(self.val.as_bytes()[1]) + 1
     }
 
     fn char_to_int(&self, c: u8) -> u8 {
