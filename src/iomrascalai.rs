@@ -132,11 +132,11 @@ fn gtp_mode() {
       KnownCommand(b) => print!("= {}\n\n", b),
       BoardSize(size) => {
         board_size = size;
-        game = Game::with_Tromp_Taylor_rules(board_size, komi);
+        game = Game::new(board_size, komi, KgsChinese);
         print!("= \n\n");
       },
       ClearBoard      => {
-        game = Game::with_Tromp_Taylor_rules(board_size, komi);
+        game = Game::new(board_size, komi, KgsChinese);
         print!("= \n\n");
       },
       Komi(k)         => {
