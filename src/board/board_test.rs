@@ -295,24 +295,22 @@ fn suicide_should_be_legal_in_tromp_taylor_rules() {
 
 #[test]
 fn suicide_should_be_illegal_in_kgs_chinese_rules() {
-  let zht = Rc::new(ZobristHashTable::new(19));
-  let mut b = Board::new(19, KgsChinese, zht.clone());
+    let zht = Rc::new(ZobristHashTable::new(3));
+    let mut b = Board::new(3, KgsChinese, zht.clone());
 
-  b = b.play(Play(Black, 4, 4)).unwrap();
-  b = b.play(Play(White, 5, 4)).unwrap();
-  b = b.play(Play(Black, 16, 16)).unwrap();
-  b = b.play(Play(White, 4, 3)).unwrap();
-  b = b.play(Play(Black, 16, 15)).unwrap();
-  b = b.play(Play(White, 3, 3)).unwrap();
-  b = b.play(Play(Black, 16, 14)).unwrap();
-  b = b.play(Play(White, 2, 4)).unwrap();
-  b = b.play(Play(Black, 16, 13)).unwrap();
-  b = b.play(Play(White, 4, 5)).unwrap();
-  b = b.play(Play(Black, 16, 12)).unwrap();
-  b = b.play(Play(White, 3, 5)).unwrap();
+    b = b.play(Play(Black, 2, 2)).unwrap();
+    b = b.play(Play(White, 1, 2)).unwrap();
+    b = b.play(Play(Black, 2, 1)).unwrap();
+    b = b.play(Play(White, 3, 2)).unwrap();
+    b = b.play(Play(Black, 2, 3)).unwrap();
+    b = b.play(Play(White, 3, 1)).unwrap();
+    b = b.play(Pass(Black)).unwrap();
+    b = b.play(Play(White, 1, 3)).unwrap();
+    b = b.play(Pass(Black)).unwrap();
 
-  assert!(b.play(Play(Black, 3, 4)).is_err());
-  assert_eq!(b.play(Play(Black, 3, 4)).unwrap_err(), SuicidePlay);
+    let play = b.play(Play(White, 1, 1));
+    assert!(play.is_err());
+    assert_eq!(play.unwrap_err(), SuicidePlay);
 }
 
 #[test]

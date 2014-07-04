@@ -21,10 +21,13 @@
 
 #![cfg(test)]
 
-use board::{Black, White};
-use board::move::{Play, Pass};
-
+use board::Black;
+use board::SuicidePlay;
+use board::White;
+use board::move::Pass;
+use board::move::Play;
 use game::Game;
+use ruleset::KgsChinese;
 use ruleset::Minimal;
 
 #[test]
@@ -56,4 +59,24 @@ fn game_score_should_include_komi() {
   let (b_score, w_score) = g.score();
   assert_eq!(b_score, 9);
   assert_eq!(w_score, 16f32 + komi);
+}
+
+#[test]
+fn catch_suicide_moves_in_chinese() {
+    let mut g = Game::new(3, 6.5, KgsChinese);
+
+    g = g.play(Play(Black, 2, 2)).unwrap();
+    g = g.play(Play(White, 1, 2)).unwrap();
+    g = g.play(Play(Black, 2, 1)).unwrap();
+    g = g.play(Play(White, 3, 2)).unwrap();
+    g = g.play(Play(Black, 2, 3)).unwrap();
+    g = g.play(Play(White, 3, 1)).unwrap();
+    g = g.play(Pass(Black)).unwrap();
+    g = g.play(Play(White, 1, 3)).unwrap();
+    g = g.play(Pass(Black)).unwrap();
+
+    let play = g.play(Play(White, 1, 1));
+
+    assert!(play.is_err());
+    assert_eq!(play.unwrap_err(), SuicidePlay);
 }
