@@ -53,11 +53,6 @@ impl<'a> Game<'a> {
         }
     }
 
-    #[allow(non_snake_case_functions)]
-    pub fn with_Tromp_Taylor_rules(size: u8, komi: f32) -> Game {
-        Game::new(size, komi, AnySizeTrompTaylor)
-    }
-
     pub fn play(&self, move: Move) -> Result<Game, IllegalMove> {
         let new_board = self.board.play(move);
 
