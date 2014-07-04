@@ -23,6 +23,16 @@ pairing partner and (eventually) give you access to the Trello board
 and Github repository. If that is not possible then we're also
 accepting pull requests in a pinch.
 
+Testing
+=======
+
+To play e.g. 10 games against GnuGo, install GoGui and run the
+following command in the top level folder:
+
+```
+gogui-twogtp -auto -black "gnugo --positional-superko --mode gtp" -white "./bin/iomrascalai --mode-gtp" -verbose -size 9 -alternate -games 10 -sgffile test
+```
+
 Resources
 =========
 
