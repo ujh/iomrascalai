@@ -163,7 +163,7 @@ fn gtp_mode() {
         print!("\n\n");
       }
       Quit            => {print!("= \n\n"); return;},
-      _               => ()
+      _               => {print!("? unknown command\n\n");}
     }
   }
 
