@@ -70,7 +70,7 @@ fn cli_mode() {
     Err(_) => fail!("Couldn't read the line")
   };
 
-  let mut g = Game::new(size, 6.5, Minimal);
+  let mut g = Game::new(size, 6.5, KgsChinese);
   let mut current_player = Black;
 
   loop {
