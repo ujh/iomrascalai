@@ -22,6 +22,8 @@
 use board::move::Move;
 use board::Color;
 
+pub mod driver;
+
 #[deriving(Show)]
 pub enum Command {
     Play(Move),
