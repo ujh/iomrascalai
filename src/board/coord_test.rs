@@ -3,7 +3,7 @@
 use board::coord::Coord;
 
 #[test]
-fn test_neighbours_contain_NSEW() {
+fn test_neighbours_contain_n_s_e_w() {
   let n = Coord::new(10,10).neighbours(19);
 
   assert!(n.iter().find(|c| c.col == 10 && c.row == 9 ).is_some());

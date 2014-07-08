@@ -359,7 +359,7 @@ fn board_size_and_size_of_zobrist_hash_need_to_agree() {
 }
 
 #[test]
-fn after_two_passes_the_game_should_be_over_in_TT_rules() {
+fn after_two_passes_the_game_should_be_over_in_tromp_taylor_rules() {
   let zht = Rc::new(ZobristHashTable::new(19));
   let mut b = Board::new(19, AnySizeTrompTaylor, zht.clone());
 
