@@ -25,18 +25,6 @@ extern crate regex;
 extern crate core;
 extern crate rand;
 
-use board::Black;
-use board::{PlayOutOfBoard, SuicidePlay, IntersectionNotEmpty, SamePlayerPlayedTwice, GameAlreadyOver, SuperKoRuleBroken};
-use board::move::{Play, Pass};
-
-use game::Game;
-use ruleset::KgsChinese;
-use ruleset::Minimal;
-
-use engine::Engine;
-use engine::random_engine::RandomEngine;
-
-use std::io::stdio::stdin;
 use std::os::args;
 
 mod board;

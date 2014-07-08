@@ -32,9 +32,6 @@ use ruleset::AnySizeTrompTaylor;
 use ruleset::KgsChinese;
 use ruleset::Minimal;
 
-use sgf::parser::IllegalMove;
-use sgf::parser::Parser;
-
 use std::rc::Rc;
 
 #[test]
