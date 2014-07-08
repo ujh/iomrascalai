@@ -67,7 +67,7 @@ impl GTPInterpreter {
     }
 
     pub fn read(&self, input: &str) -> Command {
-        let preprocessed = GTPInterpreter::preprocess(input);
+        let preprocessed = self.preprocess(input);
 
         if preprocessed.len() == 0 {return Empty};
 
@@ -96,7 +96,7 @@ impl GTPInterpreter {
         }
     }
 
-    pub fn preprocess(input: &str) -> String {
+    fn preprocess(&self, input: &str) -> String {
         let mut out = String::from_str(input);
 
         // We remove every control character except for LF et HT
