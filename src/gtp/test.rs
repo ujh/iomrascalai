@@ -22,10 +22,15 @@
 #![cfg(test)]
 
 use super::GTPInterpreter;
+use super::ListCommands;
 
 #[test]
 fn no_newline_at_end_of_list_commands() {
     let interpreter = GTPInterpreter::new();
-    let commands    = interpreter.gen_list_known_commands();
-    assert_eq!(commands.as_slice(), "play\ngenmove\nprotocol_version\nname\nversion\nknown_command\nlist_commands\nquit\nboardsize\nclear_board\nkomi\nshowboard");
+    let commands    = interpreter.read("list_commands\n");
+    let expected    = "play\ngenmove\nprotocol_version\nname\nversion\nknown_command\nlist_commands\nquit\nboardsize\nclear_board\nkomi\nshowboard";
+    match commands {
+        ListCommands(cs) => assert_eq!(expected, cs.as_slice()),
+        _                => fail!("wrong match")
+    }
 }

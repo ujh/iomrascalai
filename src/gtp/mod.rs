@@ -33,7 +33,7 @@ pub enum Command {
     Name,
     Version,
     KnownCommand(bool),
-    ListCommands,
+    ListCommands(String),
     Quit,
     BoardSize(u8),
     ClearBoard,
@@ -77,7 +77,7 @@ impl GTPInterpreter {
             &"name"             => return Name,
             &"version"          => return Version,
             &"protocol_version" => return ProtocolVersion,
-            &"list_commands"    => return ListCommands,
+            &"list_commands"    => return ListCommands(self.list_commands()),
             &"known_command"    => return KnownCommand(self.known_commands.contains(&String::from_str(command.get(1).clone()))),
             &"boardsize"        => return match from_str::<u8>(*command.get(1)) {
                 Some(size) => BoardSize(size),
@@ -119,7 +119,7 @@ impl GTPInterpreter {
         out
     }
 
-    pub fn gen_list_known_commands(&self) -> String {
+    fn list_commands(&self) -> String {
         let mut result = String::new();
 
         for c in self.known_commands.iter() {

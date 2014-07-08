@@ -61,7 +61,7 @@ impl Driver {
                 Name            => print!("= {}\n\n", engine_name),
                 Version         => print!("= {}\n\n", engine_version),
                 ProtocolVersion => print!("= {}\n\n", protocol_version),
-                ListCommands    => print!("= {}\n\n", interpreter.gen_list_known_commands()),
+                ListCommands(s) => print!("= {}\n\n", s),
                 KnownCommand(b) => print!("= {}\n\n", b),
                 BoardSize(size) => {
                     board_size = size;
