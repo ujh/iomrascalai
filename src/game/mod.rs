@@ -25,7 +25,6 @@ use board::coord::Coord;
 use board::hash::ZobristHashTable;
 use board::move::Move;
 use board::{Color, Empty, Black, White};
-use ruleset::AnySizeTrompTaylor;
 use ruleset::Ruleset;
 
 use core::fmt::{Show, Formatter, FormatError};

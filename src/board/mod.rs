@@ -292,7 +292,7 @@ impl<'a> Board<'a> {
     }
 
     fn update_chains_libs_of(&mut self, color: Color) {
-        let mut adv_chains_ids: HashSet<uint> = self.chains
+        let adv_chains_ids: HashSet<uint> = self.chains
                   .iter()
                   .filter(|c| c.color == color)
                   .map(|c| c.id)

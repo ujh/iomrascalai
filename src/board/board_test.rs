@@ -32,9 +32,6 @@ use ruleset::AnySizeTrompTaylor;
 use ruleset::KgsChinese;
 use ruleset::Minimal;
 
-use sgf::parser::IllegalMove;
-use sgf::parser::Parser;
-
 use std::rc::Rc;
 
 #[test]
@@ -355,12 +352,6 @@ fn playing_twice_should_be_illegal_in_tromp_taylor_rules() {
 }
 
 #[test]
-fn board_size_other_than_19_is_allowed() {
-    let zht = Rc::new(ZobristHashTable::new(9));
-    let b   = Board::new(9, AnySizeTrompTaylor, zht.clone());
-}
-
-#[test]
 #[should_fail]
 fn board_size_and_size_of_zobrist_hash_need_to_agree() {
     let zht = Rc::new(ZobristHashTable::new(9));
@@ -368,7 +359,7 @@ fn board_size_and_size_of_zobrist_hash_need_to_agree() {
 }
 
 #[test]
-fn after_two_passes_the_game_should_be_over_in_TT_rules() {
+fn after_two_passes_the_game_should_be_over_in_tromp_taylor_rules() {
   let zht = Rc::new(ZobristHashTable::new(19));
   let mut b = Board::new(19, AnySizeTrompTaylor, zht.clone());
 
