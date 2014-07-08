@@ -352,12 +352,6 @@ fn playing_twice_should_be_illegal_in_tromp_taylor_rules() {
 }
 
 #[test]
-fn board_size_other_than_19_is_allowed() {
-    let zht = Rc::new(ZobristHashTable::new(9));
-    let b   = Board::new(9, AnySizeTrompTaylor, zht.clone());
-}
-
-#[test]
 #[should_fail]
 fn board_size_and_size_of_zobrist_hash_need_to_agree() {
     let zht = Rc::new(ZobristHashTable::new(9));
