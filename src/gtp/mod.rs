@@ -1,6 +1,6 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2014 Thomas Poinsot                                        *
+ * Copyright 2014 Thomas Poinsot, Urban Hafner                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -23,6 +23,7 @@ use board::move::Move;
 use board::Color;
 
 pub mod driver;
+mod test;
 
 #[deriving(Show)]
 pub enum Command {
@@ -125,7 +126,7 @@ impl GTPInterpreter {
             result.push_str(c.as_slice());
             result.push_str("\n");
         }
-
+        result.pop_char();
         result
     }
 }
