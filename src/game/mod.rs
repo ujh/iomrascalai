@@ -37,7 +37,8 @@ mod game_test;
 pub struct Game<'a> {
     board: Board<'a>,
     base_zobrist_table: Rc<ZobristHashTable>,
-    komi: f32
+    komi: f32,
+    move_number: u8
 }
 
 impl<'a> Game<'a> {
@@ -48,7 +49,8 @@ impl<'a> Game<'a> {
         Game {
             board: new_board,
             base_zobrist_table: base_zobrist_table,
-            komi: komi
+            komi: komi,
+            move_number: 0
         }
     }
 
@@ -59,6 +61,7 @@ impl<'a> Game<'a> {
             Ok(b) => {
                 let mut new_game_state = self.clone();
                 new_game_state.board = b;
+                new_game_state.move_number += 1;
                 Ok(new_game_state)
             },
             Err(m) => Err(m)
@@ -73,6 +76,10 @@ impl<'a> Game<'a> {
 
     pub fn ruleset(&self) -> Ruleset {
         self.board.ruleset()
+    }
+
+    pub fn move_number(&self) -> u8 {
+        self.move_number
     }
 
     pub fn is_over(&self) -> bool {

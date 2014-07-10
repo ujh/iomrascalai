@@ -1,6 +1,6 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2014 Thomas Poinsot                                        *
+ * Copyright 2014 Thomas Poinsot, Urban Hafner                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -59,6 +59,19 @@ fn game_score_should_include_komi() {
   let (b_score, w_score) = g.score();
   assert_eq!(b_score, 9);
   assert_eq!(w_score, 16f32 + komi);
+}
+
+#[test]
+fn should_start_counting_moves_at_0() {
+    let g = Game::new(5, 6.5, Minimal);
+    assert_eq!(0, g.move_number());
+}
+
+#[test]
+fn should_increment_move_count_by_1_for_each_move() {
+    let mut g = Game::new(5, 6.5, Minimal);
+    g = g.play(Play(Black, 1, 1)).unwrap();
+    assert_eq!(1, g.move_number());
 }
 
 #[test]
