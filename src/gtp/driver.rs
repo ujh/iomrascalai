@@ -26,6 +26,7 @@ use ruleset::KgsChinese;
 use std::io::stdio::stdin;
 use super::BoardSize;
 use super::ClearBoard;
+use super::FinalScore;
 use super::GTPInterpreter;
 use super::GenMove;
 use super::KnownCommand;
@@ -96,6 +97,7 @@ impl Driver {
                     print!("\n\n");
                 }
                 Quit            => {print!("= \n\n"); return;},
+                FinalScore(s)   => {print!("= {}\n\n", s)},
                 _               => {print!("? unknown command\n\n");}
             }
         }

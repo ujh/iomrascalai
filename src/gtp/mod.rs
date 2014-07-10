@@ -40,7 +40,8 @@ pub enum Command {
     Komi(f32),
     ShowBoard,
     Empty,
-    Error
+    Error,
+    FinalScore(String)
 }
 
 pub struct GTPInterpreter {
