@@ -48,7 +48,7 @@ impl Driver {
         let engine_version = "0.1";
         let protocol_version = "2";
 
-        let interpreter = GTPInterpreter::new();
+        let mut interpreter = GTPInterpreter::new();
         let mut reader = stdin();
 
         let mut komi = 6.5;
@@ -64,20 +64,12 @@ impl Driver {
                 ProtocolVersion => print!("= {}\n\n", protocol_version),
                 ListCommands(s) => print!("= {}\n\n", s),
                 KnownCommand(b) => print!("= {}\n\n", b),
-                BoardSize(size) => {
-                    board_size = size;
-                    game = Game::new(board_size, komi, KgsChinese);
-                    print!("= \n\n");
-                },
+                BoardSize(size) => print!("= \n\n"),
                 ClearBoard      => {
                     game = Game::new(board_size, komi, KgsChinese);
                     print!("= \n\n");
                 },
-                Komi(k)         => {
-                    komi = k;
-                    game.set_komi(k);
-                    print!("= \n\n");
-                },
+                Komi(k)         => print!("= \n\n"),
                 Play(move) => {
                     game = match game.play(move) {
                         Ok(g)  => {print!("= \n\n"); g},

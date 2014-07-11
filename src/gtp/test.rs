@@ -26,11 +26,26 @@ use super::ListCommands;
 
 #[test]
 fn no_newline_at_end_of_list_commands() {
-    let interpreter = GTPInterpreter::new();
+    let mut interpreter = GTPInterpreter::new();
     let commands    = interpreter.read("list_commands\n");
     let expected    = "play\ngenmove\nprotocol_version\nname\nversion\nknown_command\nlist_commands\nquit\nboardsize\nclear_board\nkomi\nshowboard";
     match commands {
         ListCommands(cs) => assert_eq!(expected, cs.as_slice()),
         _                => fail!("wrong match")
     }
+}
+
+#[test]
+fn boardsize_sets_the_correct_size() {
+    let mut interpreter = GTPInterpreter::new();
+    assert_eq!(19, interpreter.game.size());
+    interpreter.read("boardsize 9\n");
+    assert_eq!(9, interpreter.game.size());
+}
+
+#[test]
+fn sets_the_komi() {
+    let mut interpreter = GTPInterpreter::new();
+    interpreter.read("komi 10\n");
+    assert_eq!(10.0, interpreter.komi());
 }

@@ -19,8 +19,10 @@
  *                                                                      *
  ************************************************************************/
 
-use board::move::Move;
 use board::Color;
+use board::move::Move;
+use game::Game;
+use ruleset::KgsChinese;
 
 pub mod driver;
 mod test;
@@ -44,12 +46,22 @@ pub enum Command {
     FinalScore(String)
 }
 
-pub struct GTPInterpreter {
-    pub known_commands: Vec<String>
+pub struct GTPInterpreter<'a> {
+    known_commands: Vec<String>,
+    game: Game<'a>
 }
 
-impl GTPInterpreter {
+impl<'a> GTPInterpreter<'a> {
     pub fn new() -> GTPInterpreter {
+        let komi = 6.5;
+        let boardsize = 19;
+        GTPInterpreter {
+            known_commands: GTPInterpreter::generate_known_commands(),
+            game: Game::new(boardsize, komi, KgsChinese),
+        }
+    }
+
+    fn generate_known_commands() -> Vec<String> {
         let mut known_commands = Vec::new();
         known_commands.push(String::from_str("play"));
         known_commands.push(String::from_str("genmove"));
@@ -63,11 +75,22 @@ impl GTPInterpreter {
         known_commands.push(String::from_str("clear_board"));
         known_commands.push(String::from_str("komi"));
         known_commands.push(String::from_str("showboard"));
-
-        GTPInterpreter {known_commands: known_commands}
+        known_commands
     }
 
-    pub fn read(&self, input: &str) -> Command {
+    pub fn game<'b>(&'b self) -> &'b Game {
+        &self.game
+    }
+
+    pub fn komi(&self) -> f32 {
+        self.game.komi()
+    }
+
+    pub fn boardsize(&self) -> u8 {
+        self.game.size()
+    }
+
+    pub fn read(&mut self, input: &str) -> Command {
         let preprocessed = self.preprocess(input);
 
         if preprocessed.len() == 0 {return Empty};
@@ -81,12 +104,18 @@ impl GTPInterpreter {
             &"list_commands"    => return ListCommands(self.list_commands()),
             &"known_command"    => return KnownCommand(self.known_commands.contains(&String::from_str(command.get(1).clone()))),
             &"boardsize"        => return match from_str::<u8>(*command.get(1)) {
-                Some(size) => BoardSize(size),
+                Some(size) => {
+                    self.game = Game::new(size, self.komi(), KgsChinese);
+                    BoardSize(size)
+                },
                 None       => Error
             },
             &"clear_board"      => return ClearBoard,
             &"komi"             => return match from_str::<f32>(*command.get(1)) {
-                Some(komi) => Komi(komi),
+                Some(komi) => {
+                    self.game.set_komi(komi);
+                    Komi(komi)
+                }
                 None       => Error
             },
             &"genmove"          => return GenMove(Color::from_gtp(*command.get(1))),
