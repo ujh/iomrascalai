@@ -42,10 +42,10 @@ pub enum Command {
     KnownCommand(bool),
     ListCommands(String),
     Quit,
-    BoardSize(u8),
+    BoardSize,
     ClearBoard,
-    Komi(f32),
-    ShowBoard,
+    Komi,
+    ShowBoard(String),
     Empty,
     Error,
     FinalScore(String)
@@ -113,7 +113,7 @@ impl<'a> GTPInterpreter<'a> {
             &"boardsize"        => return match from_str::<u8>(*command.get(1)) {
                 Some(size) => {
                     self.game = Game::new(size, self.komi(), KgsChinese);
-                    BoardSize(size)
+                    BoardSize
                 },
                 None       => Error
             },
@@ -124,7 +124,7 @@ impl<'a> GTPInterpreter<'a> {
             &"komi"             => return match from_str::<f32>(*command.get(1)) {
                 Some(komi) => {
                     self.game.set_komi(komi);
-                    Komi(komi)
+                    Komi
                 }
                 None       => Error
             },
@@ -153,7 +153,7 @@ impl<'a> GTPInterpreter<'a> {
                     }
                 }
             },
-            &"showboard"        => return ShowBoard,
+            &"showboard"        => ShowBoard(format!("\n{}", self.game)),
             &"quit"             => return Quit,
             _                   => return Error
         }

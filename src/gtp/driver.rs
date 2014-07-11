@@ -47,37 +47,40 @@ impl Driver {
     pub fn new() {
         let engine = RandomEngine::new();
         let engine_name = "Iomrascálaí";
-        let engine_version = "0.1";
+        let engine_version = "0.1.0";
         let protocol_version = "2";
 
         let mut interpreter = GTPInterpreter::new(engine);
         let mut reader = stdin();
 
-        let mut komi = 6.5;
-        let mut board_size = 19;
-        let mut game = Game::new(board_size, komi, KgsChinese);
-
         loop {
+            // let result = interpreter.read(reader.read_line().unwrap().as_slice());
+
+            // match result {
+            //     Ok(s) => print!("= {}\n\n", s),
+            //     Err(s) => print!("? {}\n\n", s),
+            //     Quit   => {
+            //         print!("= \n\n");
+            //         return;
+            //     }
+            // }
+
             let command = interpreter.read(reader.read_line().unwrap().as_slice());
 
             match command {
-                Name            => print!("= {}\n\n", engine_name),
-                Version         => print!("= {}\n\n", engine_version),
-                ProtocolVersion => print!("= {}\n\n", protocol_version),
-                ListCommands(s) => print!("= {}\n\n", s),
-                KnownCommand(b) => print!("= {}\n\n", b),
-                BoardSize(size) => print!("= \n\n"),
-                ClearBoard      => print!("= \n\n"),
-                Komi(k)         => print!("= \n\n"),
-                Play            => print!("= \n\n"),
-                PlayError(move) => print!("? Illegal move: {}\n\n", move),
-                GenMove(s)      => print!("= {}\n\n", s),
+                Name               => print!("= {}\n\n", engine_name),
+                Version            => print!("= {}\n\n", engine_version),
+                ProtocolVersion    => print!("= {}\n\n", protocol_version),
+                ListCommands(s)    => print!("= {}\n\n", s),
+                KnownCommand(b)    => print!("= {}\n\n", b),
+                BoardSize          => print!("= \n\n"),
+                ClearBoard         => print!("= \n\n"),
+                Komi               => print!("= \n\n"),
+                Play               => print!("= \n\n"),
+                PlayError(move)    => print!("? Illegal move: {}\n\n", move),
+                GenMove(s)         => print!("= {}\n\n", s),
                 GenMoveError(move) => print!("? Illegal move: {}\n\n", move),
-                ShowBoard       => {
-                    print!("= \n");
-                    println!("{}", game);
-                    print!("\n\n");
-                }
+                ShowBoard(s)       => print!("= {}\n\n", s),
                 Quit            => {print!("= \n\n"); return;},
                 FinalScore(s)   => {print!("= {}\n\n", s)},
                 _               => {print!("? unknown command\n\n");}
