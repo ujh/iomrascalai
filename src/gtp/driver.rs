@@ -81,9 +81,9 @@ impl Driver {
                 GenMove(s)         => print!("= {}\n\n", s),
                 GenMoveError(move) => print!("? Illegal move: {}\n\n", move),
                 ShowBoard(s)       => print!("= {}\n\n", s),
-                Quit            => {print!("= \n\n"); return;},
-                FinalScore(s)   => {print!("= {}\n\n", s)},
-                _               => {print!("? unknown command\n\n");}
+                Quit               => {print!("= \n\n"); return;},
+                FinalScore(s)      => {print!("= {}\n\n", s)},
+                _                  => {print!("? unknown command\n\n");}
             }
         }
 
