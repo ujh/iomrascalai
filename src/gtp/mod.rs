@@ -19,8 +19,11 @@
  *                                                                      *
  ************************************************************************/
 
+
 use board::Color;
 use board::move::Move;
+use engine::Engine;
+use engine::random_engine::RandomEngine;
 use game::Game;
 use ruleset::KgsChinese;
 
@@ -31,7 +34,8 @@ mod test;
 pub enum Command {
     Play,
     PlayError(Move),
-    GenMove(Color),
+    GenMove(String),
+    GenMoveError(Move),
     ProtocolVersion,
     Name,
     Version,
@@ -49,16 +53,18 @@ pub enum Command {
 
 pub struct GTPInterpreter<'a> {
     known_commands: Vec<String>,
-    game: Game<'a>
+    game: Game<'a>,
+    engine: RandomEngine
 }
 
 impl<'a> GTPInterpreter<'a> {
-    pub fn new() -> GTPInterpreter {
+    pub fn new(engine: RandomEngine) -> GTPInterpreter {
         let komi = 6.5;
         let boardsize = 19;
         GTPInterpreter {
             known_commands: GTPInterpreter::generate_known_commands(),
             game: Game::new(boardsize, komi, KgsChinese),
+            engine: engine
         }
     }
 
@@ -122,7 +128,19 @@ impl<'a> GTPInterpreter<'a> {
                 }
                 None       => Error
             },
-            &"genmove"          => return GenMove(Color::from_gtp(*command.get(1))),
+            &"genmove"          => {
+                let color = Color::from_gtp(*command.get(1));
+                let move  = self.engine.gen_move(color, &self.game);
+                match self.game.play(move) {
+                    Ok(g) => {
+                        self.game = g;
+                        GenMove(move.to_gtp())
+                    },
+                    Err(e) => {
+                        GenMoveError(move)
+                    }
+                }
+            },
             &"play"             => {
                 let move = Move::from_gtp(*command.get(1), *command.get(2));
                 match self.game.play(move) {

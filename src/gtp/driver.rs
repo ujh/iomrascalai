@@ -29,6 +29,7 @@ use super::ClearBoard;
 use super::FinalScore;
 use super::GTPInterpreter;
 use super::GenMove;
+use super::GenMoveError;
 use super::KnownCommand;
 use super::Komi;
 use super::ListCommands;
@@ -49,7 +50,7 @@ impl Driver {
         let engine_version = "0.1";
         let protocol_version = "2";
 
-        let mut interpreter = GTPInterpreter::new();
+        let mut interpreter = GTPInterpreter::new(engine);
         let mut reader = stdin();
 
         let mut komi = 6.5;
@@ -70,13 +71,8 @@ impl Driver {
                 Komi(k)         => print!("= \n\n"),
                 Play            => print!("= \n\n"),
                 PlayError(move) => print!("? Illegal move: {}\n\n", move),
-                GenMove(c)      => {
-                    let generated_move = engine.gen_move(c, &game);
-                    game = match game.play(generated_move) {
-                        Ok(g)  => {print!("= {}\n\n", generated_move.to_gtp()); g},
-                        Err(e) => {print!("? Illegal Move: {}\n\n", e); game}
-                    }
-                },
+                GenMove(s)      => print!("= {}\n\n", s),
+                GenMoveError(move) => print!("? Illegal move: {}\n\n", move),
                 ShowBoard       => {
                     print!("= \n");
                     println!("{}", game);
