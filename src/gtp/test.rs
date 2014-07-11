@@ -23,6 +23,7 @@
 
 use engine::random_engine::RandomEngine;
 use super::GTPInterpreter;
+use super::FinalScore;
 use super::ListCommands;
 
 #[test]
@@ -72,4 +73,23 @@ fn clear_board_resets_the_board() {
     interpreter.read("play b a1\n");
     interpreter.read("clear_board\n");
     assert_eq!(0, interpreter.game.move_number());
+}
+
+#[test]
+fn final_score_no_move() {
+    let mut interpreter = GTPInterpreter::new(RandomEngine::new());
+    match interpreter.read("final_score\n") {
+        FinalScore(score) => assert_eq!("W+6.5", score.as_slice()),
+        _ => fail!("FinalScore expected!")
+    }
+}
+
+#[test]
+fn final_score_one_move() {
+    let mut interpreter = GTPInterpreter::new(RandomEngine::new());
+    interpreter.read("play b c2\n");
+    match interpreter.read("final_score\n") {
+        FinalScore(score) => assert_eq!("B+9.5", score.as_slice()),
+        _ => fail!("FinalScore expected!")
+    }
 }
