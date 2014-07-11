@@ -29,7 +29,8 @@ mod test;
 
 #[deriving(Show)]
 pub enum Command {
-    Play(Move),
+    Play,
+    PlayError(Move),
     GenMove(Color),
     ProtocolVersion,
     Name,
@@ -110,7 +111,10 @@ impl<'a> GTPInterpreter<'a> {
                 },
                 None       => Error
             },
-            &"clear_board"      => return ClearBoard,
+            &"clear_board"      => {
+                self.game = Game::new(self.boardsize(), self.komi(), KgsChinese);
+                ClearBoard
+            },
             &"komi"             => return match from_str::<f32>(*command.get(1)) {
                 Some(komi) => {
                     self.game.set_komi(komi);
@@ -119,7 +123,18 @@ impl<'a> GTPInterpreter<'a> {
                 None       => Error
             },
             &"genmove"          => return GenMove(Color::from_gtp(*command.get(1))),
-            &"play"             => return Play(Move::from_gtp(*command.get(1), *command.get(2))),
+            &"play"             => {
+                let move = Move::from_gtp(*command.get(1), *command.get(2));
+                match self.game.play(move) {
+                    Ok(g) => {
+                        self.game = g;
+                        Play
+                    },
+                    Err(e) => {
+                        PlayError(move)
+                    }
+                }
+            },
             &"showboard"        => return ShowBoard,
             &"quit"             => return Quit,
             _                   => return Error

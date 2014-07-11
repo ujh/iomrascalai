@@ -34,6 +34,7 @@ use super::Komi;
 use super::ListCommands;
 use super::Name;
 use super::Play;
+use super::PlayError;
 use super::ProtocolVersion;
 use super::Quit;
 use super::ShowBoard;
@@ -65,17 +66,10 @@ impl Driver {
                 ListCommands(s) => print!("= {}\n\n", s),
                 KnownCommand(b) => print!("= {}\n\n", b),
                 BoardSize(size) => print!("= \n\n"),
-                ClearBoard      => {
-                    game = Game::new(board_size, komi, KgsChinese);
-                    print!("= \n\n");
-                },
+                ClearBoard      => print!("= \n\n"),
                 Komi(k)         => print!("= \n\n"),
-                Play(move) => {
-                    game = match game.play(move) {
-                        Ok(g)  => {print!("= \n\n"); g},
-                        Err(e) => {print!("? Illegal Move: {}\n\n", e); game}
-                    }
-                },
+                Play            => print!("= \n\n"),
+                PlayError(move) => print!("? Illegal move: {}\n\n", move),
                 GenMove(c)      => {
                     let generated_move = engine.gen_move(c, &game);
                     game = match game.play(generated_move) {

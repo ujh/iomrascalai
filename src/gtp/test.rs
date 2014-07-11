@@ -44,8 +44,31 @@ fn boardsize_sets_the_correct_size() {
 }
 
 #[test]
+fn boardsize_resets_the_board() {
+    let mut interpreter = GTPInterpreter::new();
+    interpreter.read("play b a1\n");
+    interpreter.read("boardsize 9\n");
+    assert_eq!(0, interpreter.game.move_number());
+}
+
+#[test]
+fn play_plays_a_move() {
+    let mut interpreter = GTPInterpreter::new();
+    interpreter.read("play b a1\n");
+    assert_eq!(1, interpreter.game.move_number());
+}
+
+#[test]
 fn sets_the_komi() {
     let mut interpreter = GTPInterpreter::new();
     interpreter.read("komi 10\n");
     assert_eq!(10.0, interpreter.komi());
+}
+
+#[test]
+fn clear_board_resets_the_board() {
+    let mut interpreter = GTPInterpreter::new();
+    interpreter.read("play b a1\n");
+    interpreter.read("clear_board\n");
+    assert_eq!(0, interpreter.game.move_number());
 }
