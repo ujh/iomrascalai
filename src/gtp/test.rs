@@ -87,6 +87,7 @@ fn final_score_no_move() {
 #[test]
 fn final_score_one_move() {
     let mut interpreter = GTPInterpreter::new(RandomEngine::new());
+    interpreter.read("boardsize 4\n");
     interpreter.read("play b c2\n");
     match interpreter.read("final_score\n") {
         FinalScore(score) => assert_eq!("B+9.5", score.as_slice()),

@@ -156,6 +156,7 @@ impl<'a> GTPInterpreter<'a> {
             },
             &"showboard"        => ShowBoard(format!("\n{}", self.game)),
             &"quit"             => return Quit,
+            &"final_score"      => return FinalScore(format!("{}", self.game.score())),
             _                   => return Error
         }
     }
