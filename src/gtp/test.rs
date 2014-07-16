@@ -30,7 +30,7 @@ use super::ListCommands;
 fn no_newline_at_end_of_list_commands() {
     let mut interpreter = GTPInterpreter::new(RandomEngine::new());
     let commands    = interpreter.read("list_commands\n");
-    let expected    = "play\ngenmove\nprotocol_version\nname\nversion\nknown_command\nlist_commands\nquit\nboardsize\nclear_board\nkomi\nshowboard";
+    let expected    = "play\ngenmove\nprotocol_version\nname\nversion\nknown_command\nlist_commands\nquit\nboardsize\nclear_board\nkomi\nshowboard\nfinal_score";
     match commands {
         ListCommands(cs) => assert_eq!(expected, cs.as_slice()),
         _                => fail!("wrong match")

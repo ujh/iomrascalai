@@ -82,6 +82,7 @@ impl<'a> GTPInterpreter<'a> {
         known_commands.push(String::from_str("clear_board"));
         known_commands.push(String::from_str("komi"));
         known_commands.push(String::from_str("showboard"));
+        known_commands.push(String::from_str("final_score"));
         known_commands
     }
 
