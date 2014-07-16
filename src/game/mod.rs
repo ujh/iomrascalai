@@ -26,12 +26,14 @@ use board::hash::ZobristHashTable;
 use board::move::Move;
 use board::{Color, Empty, Black, White};
 use ruleset::Ruleset;
+use self::score::Score;
 
 use core::fmt::{Show, Formatter, FormatError};
 use std::rc::Rc;
 
 
 mod game_test;
+mod score;
 
 #[deriving(Clone)]
 pub struct Game<'a> {
@@ -94,9 +96,8 @@ impl<'a> Game<'a> {
         self.board.size()
     }
 
-    pub fn score(&self) ->  (uint, f32) {
-        let (b_score, w_score) = self.board.score();
-        (b_score, w_score as f32 + self.komi)
+    pub fn score(&self) -> Score {
+        Score::new(self.board.score(), self.komi)
     }
 
     pub fn set_komi(&mut self, komi: f32) {

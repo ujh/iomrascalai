@@ -1,6 +1,6 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2014 Thomas Poinsot, Urban Hafner                          *
+ * Copyright 2014 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -18,47 +18,24 @@
  * along with Iomrascálaí.  If not, see <http://www.gnu.org/licenses/>. *
  *                                                                      *
  ************************************************************************/
-
 #![cfg(test)]
 
-use board::Black;
-use board::SuicidePlay;
-use board::White;
-use board::move::Pass;
-use board::move::Play;
-use game::Game;
-use ruleset::KgsChinese;
-use ruleset::Minimal;
+use super::Score;
 
 #[test]
-fn should_start_counting_moves_at_0() {
-    let g = Game::new(5, 6.5, Minimal);
-    assert_eq!(0, g.move_number());
+fn draw() {
+    let score = Score::new((5, 5), 0.0);
+    assert_eq!("0", format!("{}", score).as_slice());
 }
 
 #[test]
-fn should_increment_move_count_by_1_for_each_move() {
-    let mut g = Game::new(5, 6.5, Minimal);
-    g = g.play(Play(Black, 1, 1)).unwrap();
-    assert_eq!(1, g.move_number());
+fn white_win() {
+    let score = Score::new((5, 5), 6.5);
+    assert_eq!("W+6.5", format!("{}", score).as_slice());
 }
 
 #[test]
-fn catch_suicide_moves_in_chinese() {
-    let mut g = Game::new(3, 6.5, KgsChinese);
-
-    g = g.play(Play(Black, 2, 2)).unwrap();
-    g = g.play(Play(White, 1, 2)).unwrap();
-    g = g.play(Play(Black, 2, 1)).unwrap();
-    g = g.play(Play(White, 3, 2)).unwrap();
-    g = g.play(Play(Black, 2, 3)).unwrap();
-    g = g.play(Play(White, 3, 1)).unwrap();
-    g = g.play(Pass(Black)).unwrap();
-    g = g.play(Play(White, 1, 3)).unwrap();
-    g = g.play(Pass(Black)).unwrap();
-
-    let play = g.play(Play(White, 1, 1));
-
-    assert!(play.is_err());
-    assert_eq!(play.unwrap_err(), SuicidePlay);
+fn black_win() {
+    let score = Score::new((10, 5), 1.0);
+    assert_eq!("B+4", format!("{}", score).as_slice());
 }
