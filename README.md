@@ -30,7 +30,7 @@ To play e.g. 10 games against GnuGo, install GoGui and run the
 following command in the top level folder:
 
 ```
-gogui-twogtp -auto -black "gnugo --positional-superko --mode gtp" -white "./bin/iomrascalai --mode-gtp" -verbose -size 9 -alternate -games 10 -sgffile test
+gogui-twogtp -auto -black "gnugo --positional-superko --chinese-rules --mode gtp" -white "./bin/iomrascalai --mode-gtp" -verbose -size 9 -alternate -games 10 -sgffile test
 ```
 
 Resources
