@@ -1,6 +1,6 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2014 Thomas Poinsot, Urban Hafner                          *
+ * Copyright 2014 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -19,46 +19,49 @@
  *                                                                      *
  ************************************************************************/
 
-#![cfg(test)]
-
 use board::Black;
-use board::SuicidePlay;
+use board::Color;
+use board::Empty;
 use board::White;
-use board::move::Pass;
-use board::move::Play;
-use game::Game;
-use ruleset::KgsChinese;
-use ruleset::Minimal;
+use core::fmt::FormatError;
+use core::fmt::Formatter;
+use core::fmt::Show;
+use std::num::abs;
 
-#[test]
-fn should_start_counting_moves_at_0() {
-    let g = Game::new(5, 6.5, Minimal);
-    assert_eq!(0, g.move_number());
+
+pub struct Score {
+    color: Color,
+    score: f32
 }
 
-#[test]
-fn should_increment_move_count_by_1_for_each_move() {
-    let mut g = Game::new(5, 6.5, Minimal);
-    g = g.play(Play(Black, 1, 1)).unwrap();
-    assert_eq!(1, g.move_number());
+mod test;
+
+impl Score {
+    pub fn new(scores: (uint, uint), komi: f32) -> Score {
+        let (bs, ws) = scores;
+        let b_score = bs as f32;
+        let w_score = (ws as f32) + komi;
+        let score = abs(b_score - w_score);
+        let color = if b_score == w_score {
+            Empty
+        } else if b_score > w_score {
+            Black
+        } else {
+            White
+        };
+        Score {color: color, score: score}
+    }
 }
 
-#[test]
-fn catch_suicide_moves_in_chinese() {
-    let mut g = Game::new(3, 6.5, KgsChinese);
-
-    g = g.play(Play(Black, 2, 2)).unwrap();
-    g = g.play(Play(White, 1, 2)).unwrap();
-    g = g.play(Play(Black, 2, 1)).unwrap();
-    g = g.play(Play(White, 3, 2)).unwrap();
-    g = g.play(Play(Black, 2, 3)).unwrap();
-    g = g.play(Play(White, 3, 1)).unwrap();
-    g = g.play(Pass(Black)).unwrap();
-    g = g.play(Play(White, 1, 3)).unwrap();
-    g = g.play(Pass(Black)).unwrap();
-
-    let play = g.play(Play(White, 1, 1));
-
-    assert!(play.is_err());
-    assert_eq!(play.unwrap_err(), SuicidePlay);
+impl Show for Score {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), FormatError> {
+        let color = match self.color {
+            Black => "B+",
+            White => "W+",
+            Empty => ""
+        };
+        let score = format!("{}", self.score);
+        let s = format!("{}{}", color, score);
+        s.fmt(f)
+    }
 }

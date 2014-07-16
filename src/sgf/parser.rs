@@ -101,7 +101,7 @@ impl Parser {
     }
 
     pub fn from_path(path: Path) -> Parser {
-        let contents = File::open(&path).read_to_str();
+        let contents = File::open(&path).read_to_string();
         Parser::new(contents.unwrap())
     }
 

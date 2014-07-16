@@ -26,18 +26,21 @@ use board::hash::ZobristHashTable;
 use board::move::Move;
 use board::{Color, Empty, Black, White};
 use ruleset::Ruleset;
+use self::score::Score;
 
 use core::fmt::{Show, Formatter, FormatError};
 use std::rc::Rc;
 
 
 mod game_test;
+mod score;
 
 #[deriving(Clone)]
 pub struct Game<'a> {
     board: Board<'a>,
     base_zobrist_table: Rc<ZobristHashTable>,
-    komi: f32
+    komi: f32,
+    move_number: u8
 }
 
 impl<'a> Game<'a> {
@@ -48,7 +51,8 @@ impl<'a> Game<'a> {
         Game {
             board: new_board,
             base_zobrist_table: base_zobrist_table,
-            komi: komi
+            komi: komi,
+            move_number: 0
         }
     }
 
@@ -59,6 +63,7 @@ impl<'a> Game<'a> {
             Ok(b) => {
                 let mut new_game_state = self.clone();
                 new_game_state.board = b;
+                new_game_state.move_number += 1;
                 Ok(new_game_state)
             },
             Err(m) => Err(m)
@@ -75,6 +80,10 @@ impl<'a> Game<'a> {
         self.board.ruleset()
     }
 
+    pub fn move_number(&self) -> u8 {
+        self.move_number
+    }
+
     pub fn is_over(&self) -> bool {
         self.board.is_game_over()
     }
@@ -87,9 +96,8 @@ impl<'a> Game<'a> {
         self.board.size()
     }
 
-    pub fn score(&self) ->  (uint, f32) {
-        let (b_score, w_score) = self.board.score();
-        (b_score, w_score as f32 + self.komi)
+    pub fn score(&self) -> Score {
+        Score::new(self.board.score(), self.komi)
     }
 
     pub fn set_komi(&mut self, komi: f32) {
