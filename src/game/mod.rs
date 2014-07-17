@@ -84,6 +84,10 @@ impl<'a> Game<'a> {
         self.move_number
     }
 
+    pub fn next_player(&self) -> Color {
+        self.board.next_player()
+    }
+
     pub fn is_over(&self) -> bool {
         self.board.is_game_over()
     }
@@ -100,6 +104,9 @@ impl<'a> Game<'a> {
         Score::new(self.board.score(), self.komi)
     }
 
+    pub fn winner(&self) -> Color {
+        self.score().color()
+    }
     pub fn set_komi(&mut self, komi: f32) {
         self.komi = komi;
     }

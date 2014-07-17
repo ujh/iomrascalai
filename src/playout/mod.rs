@@ -18,54 +18,27 @@
  * along with Iomrascálaí.  If not, see <http://www.gnu.org/licenses/>. *
  *                                                                      *
  ************************************************************************/
-
-use board::Black;
 use board::Color;
 use board::Empty;
-use board::White;
-use core::fmt::FormatError;
-use core::fmt::Formatter;
-use core::fmt::Show;
-use std::num::abs;
-
-
-pub struct Score {
-    color: Color,
-    score: f32
-}
+use engine::Engine;
+use engine::random_engine::RandomEngine;
+use game::Game;
 
 mod test;
 
-impl Score {
-    pub fn new(scores: (uint, uint), komi: f32) -> Score {
-        let (bs, ws) = scores;
-        let b_score = bs as f32;
-        let w_score = (ws as f32) + komi;
-        let score = abs(b_score - w_score);
-        let color = if b_score == w_score {
-            Empty
-        } else if b_score > w_score {
-            Black
-        } else {
-            White
-        };
-        Score {color: color, score: score}
+pub struct Playout;
+
+impl Playout {
+    pub fn new() -> Playout {
+        Playout
     }
 
-    pub fn color(&self) -> Color {
-        self.color
-    }
-}
-
-impl Show for Score {
-    fn fmt(&self, f: &mut Formatter) -> Result<(), FormatError> {
-        let color = match self.color {
-            Black => "B+",
-            White => "W+",
-            Empty => ""
-        };
-        let score = format!("{}", self.score);
-        let s = format!("{}{}", color, score);
-        s.fmt(f)
+    pub fn run(&self, g: Game) -> Color {
+        let mut game = g;
+        let re = RandomEngine::new();
+        while(!game.is_over()) {
+            game = game.play(re.gen_move(game.next_player(), &game)).unwrap();
+        }
+        game.winner()
     }
 }

@@ -32,6 +32,7 @@ mod cli;
 mod engine;
 mod game;
 mod gtp;
+mod playout;
 mod ruleset;
 mod sgf;
 
