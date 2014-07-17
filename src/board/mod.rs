@@ -135,6 +135,10 @@ impl<'a> Board<'a> {
         }
     }
 
+    pub fn next_player(&self) -> Color {
+        self.previous_player.opposite()
+    }
+
     fn is_same_player(&self, move: &Move) -> bool {
         self.previous_player == move.color()
     }

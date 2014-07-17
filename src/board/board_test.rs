@@ -487,3 +487,20 @@ fn capturing_two_or_more_groups_while_playing_in_an_eye_actually_captures() {
   assert_eq!(b.get_coord(Coord::new(2, 1)), Empty);
   assert_eq!(b.get_coord(Coord::new(2, 2)), White);
 }
+
+#[test]
+fn next_player_should_return_black_without_moves() {
+    let size = 5;
+    let zht = Rc::new(ZobristHashTable::new(size));
+    let mut b = Board::new(size, AnySizeTrompTaylor, zht.clone());
+    assert_eq!(Black, b.next_player());
+}
+
+#[test]
+fn next_player_should_return_with_after_a_single_move() {
+    let size = 5;
+    let zht = Rc::new(ZobristHashTable::new(size));
+    let mut b = Board::new(size, AnySizeTrompTaylor, zht.clone());
+    b = b.play(Play(Black, 1, 1)).unwrap();
+    assert_eq!(White, b.next_player());
+}
