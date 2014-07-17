@@ -113,6 +113,10 @@ impl<'a> Game<'a> {
             println!("{}", c.show());
         }
     }
+
+    pub fn next_player(&self) -> Color {
+        self.board.next_player()
+    }
 }
 
 impl<'a> Show for Game<'a> {

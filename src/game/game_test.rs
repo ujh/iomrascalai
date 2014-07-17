@@ -62,3 +62,9 @@ fn catch_suicide_moves_in_chinese() {
     assert!(play.is_err());
     assert_eq!(play.unwrap_err(), SuicidePlay);
 }
+
+#[test]
+fn next_player_should_return_board_next_player() {
+    let g = Game::new(3, 6.5, KgsChinese);
+    assert_eq!(g.board.next_player(), g.next_player());
+}
