@@ -18,16 +18,17 @@
  * along with Iomrascálaí.  If not, see <http://www.gnu.org/licenses/>. *
  *                                                                      *
  ************************************************************************/
-use std::vec::Vec;
-use std::rc::Rc;
-use std::collections::hashmap::HashSet;
-
 use board::chain::Chain;
 use board::coord::Coord;
 use board::hash::ZobristHashTable;
-use board::move::{Move, Play};
-
+use board::move::Move;
+use board::move::Pass;
+use board::move::Play;
 use ruleset::Ruleset;
+
+use std::collections::hashmap::HashSet;
+use std::rc::Rc;
+use std::vec::Vec;
 
 mod board_test;
 mod coord_test;
@@ -141,6 +142,12 @@ impl<'a> Board<'a> {
 
     fn is_same_player(&self, move: &Move) -> bool {
         self.previous_player == move.color()
+    }
+
+    pub fn legal_moves(&self) -> Vec<Move> {
+        let mut moves = Vec::new();
+        moves.push(Pass(self.next_player()));
+        moves
     }
 
     // Note: Same as get(), the board is indexed starting at 1-1

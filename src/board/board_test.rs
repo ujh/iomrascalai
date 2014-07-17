@@ -504,3 +504,34 @@ fn next_player_should_return_with_after_a_single_move() {
     b = b.play(Play(Black, 1, 1)).unwrap();
     assert_eq!(White, b.next_player());
 }
+
+#[test]
+fn legal_moves_should_include_pass() {
+    let size = 5;
+    let zht = Rc::new(ZobristHashTable::new(size));
+    let mut b = Board::new(size, AnySizeTrompTaylor, zht.clone());
+    let moves = b.legal_moves();
+    assert!(moves.contains(&Pass(Black)));
+}
+
+#[test]
+fn legal_moves_should_return_black_moves_on_a_board_without_moves() {
+    let size = 5;
+    let zht = Rc::new(ZobristHashTable::new(size));
+    let mut b = Board::new(size, AnySizeTrompTaylor, zht.clone());
+    let moves = b.legal_moves();
+    let all_black = moves.iter().all(|m| m.color() == Black);
+    assert!(all_black);
+}
+
+#[test]
+fn legal_moves_should_return_white_moves_on_a_board_with_one_move() {
+    let size = 5;
+    let zht = Rc::new(ZobristHashTable::new(size));
+    let mut b = Board::new(size, AnySizeTrompTaylor, zht.clone());
+    b = b.play(Play(Black, 1, 1)).unwrap();
+    let moves = b.legal_moves();
+    let all_white = moves.iter().all(|m| m.color() == White);
+    assert!(all_white);
+
+}
