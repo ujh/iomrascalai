@@ -22,18 +22,39 @@
 #![cfg(test)]
 
 use board::Black;
+use board::Color;
+use board::Move;
+use board::Pass;
+use board::Play;
 use board::White;
-use board::move::Pass;
+use engine::Engine;
+use engine::RandomEngine;
 use game::Game;
 use ruleset::KgsChinese;
 use super::Playout;
 
+struct PlayoutTestEngine;
+
+impl Engine for PlayoutTestEngine {
+
+    fn gen_move(&self, color: Color, game: &Game) -> Move {
+        Pass(color)
+    }
+}
+
 #[test]
-fn run_should_return_the_winner() {
-    let playout = Playout::new();
+fn run_should_return_white_as_the_winner_for_an_empty_board() {
+    let engine = PlayoutTestEngine;
+    let game = Game::new(3, 6.5, KgsChinese);
+    let playout = Playout::new(engine);
+    assert_eq!(White, playout.run(game));
+}
+
+#[test]
+fn run_should_return_black_as_winner_with_one_move() {
+    let engine = PlayoutTestEngine;
     let mut game = Game::new(3, 6.5, KgsChinese);
-    game = game.play(Pass(Black)).unwrap();
-    game = game.play(Pass(White)).unwrap();
-    let winner = playout.run(game);
-    assert_eq!(White, winner);
+    game = game.play(Play(Black, 1, 1)).unwrap();
+    let playout = Playout::new(engine);
+    assert_eq!(Black, playout.run(game));
 }

@@ -23,7 +23,7 @@ use board::coord::Coord;
 use board::hash::ZobristHashTable;
 pub use board::move::Move;
 pub use board::move::Pass;
-use board::move::Play;
+pub use board::move::Play;
 use ruleset::Ruleset;
 
 use std::collections::hashmap::HashSet;

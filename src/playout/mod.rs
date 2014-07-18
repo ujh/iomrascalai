@@ -19,27 +19,34 @@
  *                                                                      *
  ************************************************************************/
 use board::Color;
+use board::Move;
 use engine::Engine;
-use engine::random_engine::RandomEngine;
+use engine::RandomEngine;
 use game::Game;
 
 mod test;
 
-pub struct Playout;
+pub struct Playout<E> {
+    engine: E
+}
 
 // TODO: Find a way to make this code easier to test. Maybe by using a
 // different Engine that specialized for the tests
-impl Playout {
-    pub fn new() -> Playout {
-        Playout
+impl<E: Engine> Playout<E> {
+    pub fn new(engine: E) -> Playout<E> {
+        Playout { engine: engine }
     }
 
     pub fn run(&self, g: Game) -> Color {
         let mut game = g;
-        let re = RandomEngine::new();
         while(!game.is_over()) {
-            game = game.play(re.gen_move(game.next_player(), &game)).unwrap();
+            let move = self.gen_move(&game);
+            game = game.play(move).unwrap();
         }
         game.winner()
+    }
+
+    fn gen_move(&self, game: &Game) -> Move {
+        self.engine.gen_move(game.next_player(), game)
     }
 }
