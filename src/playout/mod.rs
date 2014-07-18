@@ -19,7 +19,6 @@
  *                                                                      *
  ************************************************************************/
 use board::Color;
-use board::Empty;
 use engine::Engine;
 use engine::random_engine::RandomEngine;
 use game::Game;
@@ -28,6 +27,8 @@ mod test;
 
 pub struct Playout;
 
+// TODO: Find a way to make this code easier to test. Maybe by using a
+// different Engine that specialized for the tests
 impl Playout {
     pub fn new() -> Playout {
         Playout
