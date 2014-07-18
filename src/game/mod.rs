@@ -117,6 +117,10 @@ impl<'a> Game<'a> {
     pub fn next_player(&self) -> Color {
         self.board.next_player()
     }
+
+    pub fn legal_moves(&self) -> Vec<Move> {
+        self.board.legal_moves()
+    }
 }
 
 impl<'a> Show for Game<'a> {
