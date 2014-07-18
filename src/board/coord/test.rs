@@ -92,3 +92,15 @@ fn to_gtp_converts_correctly() {
   assert_eq!(Coord::new(9,10).to_gtp(), String::from_str("J10"));
   assert_eq!(Coord::new(8,10).to_gtp(), String::from_str("H10"));
 }
+
+#[test]
+fn for_board_size_returns_the_right_number_of_coords() {
+    let coords = Coord::for_board_size(3);
+    assert_eq!(9, coords.len());
+}
+
+#[test]
+fn for_board_size_sets_the_coordinates_correctly() {
+    let coords = Coord::for_board_size(1);
+    assert_eq!(coords.get(0), &Coord::new(1,1));
+}

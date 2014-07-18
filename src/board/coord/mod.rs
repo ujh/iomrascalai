@@ -34,6 +34,16 @@ impl Coord {
         Coord {col: col, row: row}
     }
 
+    pub fn for_board_size(size: u8) -> Vec<Coord> {
+        let mut coords = Vec::new();
+        for i in range(0, size) {
+            for j in range(0, size) {
+                coords.push(Coord::new(i+1, j+1));
+            }
+        }
+        coords
+    }
+
     pub fn from_index(id: uint, board_size: u8) -> Coord {
         Coord {col: (id%board_size as uint + 1) as u8, row: (id/board_size as uint + 1) as u8}
     }
