@@ -21,8 +21,8 @@
 use board::chain::Chain;
 use board::coord::Coord;
 use board::hash::ZobristHashTable;
-use board::move::Move;
-use board::move::Pass;
+pub use board::move::Move;
+pub use board::move::Pass;
 use board::move::Play;
 use ruleset::Ruleset;
 

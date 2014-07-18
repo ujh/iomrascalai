@@ -20,7 +20,7 @@
  ************************************************************************/
 
 use engine::Engine;
-use engine::random_engine::RandomEngine;
+use engine::RandomEngine;
 use game::Game;
 use ruleset::KgsChinese;
 use std::io::stdio::stdin;

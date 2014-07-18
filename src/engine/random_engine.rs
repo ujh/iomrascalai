@@ -1,6 +1,6 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2014 Thomas Poinsot                                        *
+ * Copyright 2014 Thomas Poinsot, Urban Hafner                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
