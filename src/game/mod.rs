@@ -84,10 +84,6 @@ impl<'a> Game<'a> {
         self.move_number
     }
 
-    pub fn next_player(&self) -> Color {
-        self.board.next_player()
-    }
-
     pub fn is_over(&self) -> bool {
         self.board.is_game_over()
     }
