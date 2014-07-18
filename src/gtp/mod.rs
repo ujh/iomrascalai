@@ -23,7 +23,7 @@
 use board::Color;
 use board::move::Move;
 use engine::Engine;
-use engine::random_engine::RandomEngine;
+use engine::RandomEngine;
 use game::Game;
 use ruleset::KgsChinese;
 

@@ -21,7 +21,7 @@
 
 #![cfg(test)]
 
-use engine::random_engine::RandomEngine;
+use engine::RandomEngine;
 use super::GTPInterpreter;
 use super::FinalScore;
 use super::ListCommands;

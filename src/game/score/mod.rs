@@ -51,6 +51,10 @@ impl Score {
         };
         Score {color: color, score: score}
     }
+
+    pub fn color(&self) -> Color {
+        self.color
+    }
 }
 
 impl Show for Score {

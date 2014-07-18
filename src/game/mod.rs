@@ -100,6 +100,9 @@ impl<'a> Game<'a> {
         Score::new(self.board.score(), self.komi)
     }
 
+    pub fn winner(&self) -> Color {
+        self.score().color()
+    }
     pub fn set_komi(&mut self, komi: f32) {
         self.komi = komi;
     }

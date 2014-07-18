@@ -1,6 +1,6 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2014 Thomas Poinsot, Urban Hafner                          *
+ * Copyright 2014 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -19,26 +19,42 @@
  *                                                                      *
  ************************************************************************/
 
-use engine::Engine;
+#![cfg(test)]
 
-use board::move::{Move, Pass, Play};
+use board::Black;
 use board::Color;
-
+use board::Move;
+use board::Pass;
+use board::Play;
+use board::White;
+use engine::Engine;
+use engine::RandomEngine;
 use game::Game;
+use ruleset::KgsChinese;
+use super::Playout;
 
-use std::rand::random;
+struct PlayoutTestEngine;
 
-pub struct RandomEngine;
+impl Engine for PlayoutTestEngine {
 
-impl RandomEngine {
-    pub fn new() -> RandomEngine {
-        RandomEngine
+    fn gen_move(&self, color: Color, game: &Game) -> Move {
+        Pass(color)
     }
 }
 
-impl Engine for RandomEngine {
-    fn gen_move(&self, color: Color, game: &Game) -> Move {
-        let moves = game.legal_moves();
-        *moves.get(random::<uint>() % moves.len())
-    }
+#[test]
+fn run_should_return_white_as_the_winner_for_an_empty_board() {
+    let engine = PlayoutTestEngine;
+    let game = Game::new(3, 6.5, KgsChinese);
+    let playout = Playout::new(engine);
+    assert_eq!(White, playout.run(game));
+}
+
+#[test]
+fn run_should_return_black_as_winner_with_one_move() {
+    let engine = PlayoutTestEngine;
+    let mut game = Game::new(3, 6.5, KgsChinese);
+    game = game.play(Play(Black, 1, 1)).unwrap();
+    let playout = Playout::new(engine);
+    assert_eq!(Black, playout.run(game));
 }

@@ -1,6 +1,6 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2014 Thomas Poinsot, Urban Hafner                          *
+ * Copyright 2014 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -18,27 +18,35 @@
  * along with Iomrascálaí.  If not, see <http://www.gnu.org/licenses/>. *
  *                                                                      *
  ************************************************************************/
-
-use engine::Engine;
-
-use board::move::{Move, Pass, Play};
 use board::Color;
-
+use board::Move;
+use engine::Engine;
+use engine::RandomEngine;
 use game::Game;
 
-use std::rand::random;
+mod test;
 
-pub struct RandomEngine;
-
-impl RandomEngine {
-    pub fn new() -> RandomEngine {
-        RandomEngine
-    }
+pub struct Playout<E> {
+    engine: E
 }
 
-impl Engine for RandomEngine {
-    fn gen_move(&self, color: Color, game: &Game) -> Move {
-        let moves = game.legal_moves();
-        *moves.get(random::<uint>() % moves.len())
+// TODO: Find a way to make this code easier to test. Maybe by using a
+// different Engine that specialized for the tests
+impl<E: Engine> Playout<E> {
+    pub fn new(engine: E) -> Playout<E> {
+        Playout { engine: engine }
+    }
+
+    pub fn run(&self, g: Game) -> Color {
+        let mut game = g;
+        while(!game.is_over()) {
+            let move = self.gen_move(&game);
+            game = game.play(move).unwrap();
+        }
+        game.winner()
+    }
+
+    fn gen_move(&self, game: &Game) -> Move {
+        self.engine.gen_move(game.next_player(), game)
     }
 }
