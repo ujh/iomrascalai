@@ -105,58 +105,58 @@ impl<'a> GTPInterpreter<'a> {
 
         let command: Vec<&str> = preprocessed.as_slice().split(' ').collect();
 
-        match command.get(0) {
-            &"name"             => return Name,
-            &"version"          => return Version,
-            &"protocol_version" => return ProtocolVersion,
-            &"list_commands"    => return ListCommands(self.list_commands()),
-            &"known_command"    => return KnownCommand(self.known_commands.contains(&String::from_str(command.get(1).clone()))),
-            &"boardsize"        => return match from_str::<u8>(*command.get(1)) {
+        match command[0] {
+            "name"             => return Name,
+            "version"          => return Version,
+            "protocol_version" => return ProtocolVersion,
+            "list_commands"    => return ListCommands(self.list_commands()),
+            "known_command"    => return KnownCommand(self.known_commands.contains(&String::from_str(command[1].clone()))),
+            "boardsize"        => return match from_str::<u8>(command[1]) {
                 Some(size) => {
                     self.game = Game::new(size, self.komi(), KgsChinese);
                     BoardSize
                 },
                 None       => Error
             },
-            &"clear_board"      => {
+            "clear_board"      => {
                 self.game = Game::new(self.boardsize(), self.komi(), KgsChinese);
                 ClearBoard
             },
-            &"komi"             => return match from_str::<f32>(*command.get(1)) {
+            "komi"             => return match from_str::<f32>(command[1]) {
                 Some(komi) => {
                     self.game.set_komi(komi);
                     Komi
                 }
                 None       => Error
             },
-            &"genmove"          => {
-                let color = Color::from_gtp(*command.get(1));
+            "genmove"          => {
+                let color = Color::from_gtp(command[1]);
                 let move  = self.engine.gen_move(color, &self.game);
                 match self.game.play(move) {
                     Ok(g) => {
                         self.game = g;
                         GenMove(move.to_gtp())
                     },
-                    Err(e) => {
+                    Err(_) => {
                         GenMoveError(move)
                     }
                 }
             },
-            &"play"             => {
-                let move = Move::from_gtp(*command.get(1), *command.get(2));
+            "play"             => {
+                let move = Move::from_gtp(command[1], command[2]);
                 match self.game.play(move) {
                     Ok(g) => {
                         self.game = g;
                         Play
                     },
-                    Err(e) => {
+                    Err(_) => {
                         PlayError(move)
                     }
                 }
             },
-            &"showboard"        => ShowBoard(format!("\n{}", self.game)),
-            &"quit"             => return Quit,
-            &"final_score"      => return FinalScore(format!("{}", self.game.score())),
+            "showboard"        => ShowBoard(format!("\n{}", self.game)),
+            "quit"             => return Quit,
+            "final_score"      => return FinalScore(format!("{}", self.game.score())),
             _                   => return Error
         }
     }

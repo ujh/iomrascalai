@@ -21,7 +21,6 @@
 use board::Color;
 use board::Move;
 use engine::Engine;
-use engine::RandomEngine;
 use game::Game;
 
 mod test;
@@ -39,7 +38,7 @@ impl<E: Engine> Playout<E> {
 
     pub fn run(&self, g: Game) -> Color {
         let mut game = g;
-        while(!game.is_over()) {
+        while !game.is_over() {
             let move = self.gen_move(&game);
             game = game.play(move).unwrap();
         }

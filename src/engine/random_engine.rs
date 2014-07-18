@@ -19,11 +19,9 @@
  *                                                                      *
  ************************************************************************/
 
-use engine::Engine;
-
-use board::move::{Move, Pass, Play};
 use board::Color;
-
+use board::Move;
+use engine::Engine;
 use game::Game;
 
 use std::rand::random;
@@ -39,6 +37,6 @@ impl RandomEngine {
 impl Engine for RandomEngine {
     fn gen_move(&self, color: Color, game: &Game) -> Move {
         let moves = game.legal_moves();
-        *moves.get(random::<uint>() % moves.len())
+        moves[random::<uint>() % moves.len()]
     }
 }

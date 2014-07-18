@@ -355,7 +355,7 @@ fn playing_twice_should_be_illegal_in_tromp_taylor_rules() {
 #[should_fail]
 fn board_size_and_size_of_zobrist_hash_need_to_agree() {
     let zht = Rc::new(ZobristHashTable::new(9));
-    let b   = Board::new(13, AnySizeTrompTaylor, zht.clone());
+    Board::new(13, AnySizeTrompTaylor, zht.clone());
 }
 
 #[test]
@@ -492,7 +492,7 @@ fn capturing_two_or_more_groups_while_playing_in_an_eye_actually_captures() {
 fn next_player_should_return_black_without_moves() {
     let size = 5;
     let zht = Rc::new(ZobristHashTable::new(size));
-    let mut b = Board::new(size, AnySizeTrompTaylor, zht.clone());
+    let b = Board::new(size, AnySizeTrompTaylor, zht.clone());
     assert_eq!(Black, b.next_player());
 }
 
@@ -509,7 +509,7 @@ fn next_player_should_return_with_after_a_single_move() {
 fn legal_moves_should_include_pass() {
     let size = 5;
     let zht = Rc::new(ZobristHashTable::new(size));
-    let mut b = Board::new(size, AnySizeTrompTaylor, zht.clone());
+    let b = Board::new(size, AnySizeTrompTaylor, zht.clone());
     let moves = b.legal_moves();
     assert!(moves.contains(&Pass(Black)));
 }
@@ -518,7 +518,7 @@ fn legal_moves_should_include_pass() {
 fn legal_moves_should_return_black_moves_on_a_board_without_moves() {
     let size = 5;
     let zht = Rc::new(ZobristHashTable::new(size));
-    let mut b = Board::new(size, AnySizeTrompTaylor, zht.clone());
+    let b = Board::new(size, AnySizeTrompTaylor, zht.clone());
     let moves = b.legal_moves();
     let all_black = moves.iter().all(|m| m.color() == Black);
     assert!(all_black);
@@ -539,7 +539,7 @@ fn legal_moves_should_return_white_moves_on_a_board_with_one_move() {
 fn legal_moves_contains_the_right_number_of_moves_for_an_empty_board() {
     let size = 5;
     let zht = Rc::new(ZobristHashTable::new(size));
-    let mut b = Board::new(size, AnySizeTrompTaylor, zht.clone());
+    let b = Board::new(size, AnySizeTrompTaylor, zht.clone());
     assert_eq!(b.legal_moves().len(), 25+1);
 }
 

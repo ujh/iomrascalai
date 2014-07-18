@@ -28,7 +28,6 @@ use board::Pass;
 use board::Play;
 use board::White;
 use engine::Engine;
-use engine::RandomEngine;
 use game::Game;
 use ruleset::KgsChinese;
 use super::Playout;

@@ -19,10 +19,7 @@
  *                                                                      *
  ************************************************************************/
 
-use engine::Engine;
 use engine::RandomEngine;
-use game::Game;
-use ruleset::KgsChinese;
 use std::io::stdio::stdin;
 use super::BoardSize;
 use super::ClearBoard;

@@ -29,7 +29,7 @@ impl ZobristHashTable {
         let mut init_hash = 0;
 
         for i in range(0, self.table.len()/3) {       // We xor together all the hashes corresponding to the Empty color
-            init_hash ^= *self.table.get(i)
+            init_hash ^= self.table[i]
         }
 
         init_hash
@@ -51,6 +51,6 @@ impl ZobristHashTable {
             White => 2
         };
 
-        *self.table.get(color_as_index*self.size as uint + (move.coords().row-1) as uint * self.size as uint + move.coords().col as uint - 1)
+        self.table[color_as_index*self.size as uint + (move.coords().row-1) as uint * self.size as uint + move.coords().col as uint - 1]
     }
 }

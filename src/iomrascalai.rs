@@ -39,7 +39,7 @@ mod sgf;
 fn main() {
   match args().len() {
     1 => cli::Driver::new(),
-    _ => match args().get(1).as_slice() {
+    _ => match args()[1].as_slice() {
       "--mode-gtp" => gtp::driver::Driver::new(),
       _            => cli::Driver::new()
     }

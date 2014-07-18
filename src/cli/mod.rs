@@ -64,7 +64,7 @@ impl Driver {
                 Pass(current_player)
             } else {
                 let coords: Vec<u8> = line.as_slice().trim_chars('\n').split(' ').map(|s| from_str(s).unwrap()).collect();
-                Play(current_player, *coords.get(0), *coords.get(1))
+                Play(current_player, coords[0], coords[1])
             };
 
             g = match g.play(move) {

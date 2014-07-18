@@ -128,8 +128,8 @@ impl<'a> Board<'a> {
 
     pub fn get_chain<'a>(&'a self, c: Coord) -> &'a Chain {
         if c.is_inside(self.size) {
-            let chain_id = *self.board.get(c.to_index(self.size));
-            self.chains.get(chain_id)
+            let chain_id = self.board[c.to_index(self.size)];
+            &self.chains[chain_id]
         } else {
             fail!("You have requested a chain outside of the board");
         }
@@ -255,13 +255,13 @@ impl<'a> Board<'a> {
         match friend_neigh_chains_id.len() {
             0 => self.create_new_chain(move),
             1 => {
-                let final_chain_id = *friend_neigh_chains_id.get(0);
+                let final_chain_id = friend_neigh_chains_id[0];
                 self.add_coord_to_chain(move.coords(), final_chain_id);
             },
             _ => {
                 // Note: We know that friend_neigh_chains_id is sorted, so whatever chains we remove,
                 // we know that the id of the final_chain is still valid.
-                let final_chain_id        = *friend_neigh_chains_id.get(0);
+                let final_chain_id        = friend_neigh_chains_id[0];
                 let mut nb_removed_chains = 0;
 
                 // We assign the stone to the final chain
@@ -273,7 +273,7 @@ impl<'a> Board<'a> {
                     let other_chain_id = other_chain_old_id - nb_removed_chains;
 
                     // We merge the other chain into the final chain.
-                    let other_chain = self.chains.get(other_chain_id).clone();
+                    let other_chain = self.chains[other_chain_id].clone();
                     self.chains.get_mut(final_chain_id).merge(&other_chain);
 
                     // We remove the old chain.
@@ -291,7 +291,7 @@ impl<'a> Board<'a> {
     }
 
     fn update_libs(&mut self, chain_id: uint) {
-        let libs = self.chains.get(chain_id).coords()
+        let libs = self.chains[chain_id].coords()
                                             .iter()
                                             .fold(Vec::new(), |mut acc, c| {
                                                 for &n in c.neighbours(self.size).iter() {
@@ -318,7 +318,7 @@ impl<'a> Board<'a> {
 
     fn update_board_ids_after_id(&mut self, id: uint) {
         for i in range(id, self.chains.len()) {
-            for &coord in self.chains.get(i).coords().iter() {
+            for &coord in self.chains[i].coords().iter() {
                 *self.board.get_mut(coord.to_index(self.size)) = i;
             }
         }
@@ -367,7 +367,7 @@ impl<'a> Board<'a> {
     }
 
     fn remove_chain(&mut self, id: uint) {
-        let coords_to_remove = self.chains.get(id).coords().clone();
+        let coords_to_remove = self.chains[id].coords().clone();
 
         for &coord in coords_to_remove.iter() {
             self.remove_stone(coord)
@@ -401,26 +401,26 @@ impl<'a> Board<'a> {
 
     fn score_tt(&self) -> (uint, uint) {
         let mut black_score = self.board.iter()
-                                        .filter(|&id| self.chains.get(*id).color == Black)
+                                        .filter(|&id| self.chains[*id].color == Black)
                                         .count();
 
 
         let mut white_score = self.board.iter()
-                                        .filter(|&id| self.chains.get(*id).color == White)
+                                        .filter(|&id| self.chains[*id].color == White)
                                         .count();
 
         let mut empty_intersections = Vec::<Coord>::new();
         for i in range(0, self.board.len()) {
-            let id = *self.board.get(i);
+            let id = self.board[i];
 
-            if self.chains.get(id).color == Empty {
+            if self.chains[id].color == Empty {
                 let c = Coord::from_index(i, self.size);
                 empty_intersections.push(c);
             }
         }
 
         while empty_intersections.len() > 0 {
-            let territory = self.build_territory_chain(*empty_intersections.get(0));
+            let territory = self.build_territory_chain(empty_intersections[0]);
 
             match territory.color {
                 Black => black_score += territory.coords().len(),
@@ -484,10 +484,6 @@ impl<'a> Board<'a> {
 
     pub fn ruleset(&self) -> Ruleset {
         self.ruleset
-    }
-
-    pub fn hash(&self) -> u64 {
-        *self.previous_boards_hashes.last().unwrap()
     }
 
     pub fn size(&self) -> u8 {
