@@ -533,5 +533,22 @@ fn legal_moves_should_return_white_moves_on_a_board_with_one_move() {
     let moves = b.legal_moves();
     let all_white = moves.iter().all(|m| m.color() == White);
     assert!(all_white);
+}
 
+#[test]
+fn legal_moves_contains_the_right_number_of_moves_for_an_empty_board() {
+    let size = 5;
+    let zht = Rc::new(ZobristHashTable::new(size));
+    let mut b = Board::new(size, AnySizeTrompTaylor, zht.clone());
+    assert_eq!(b.legal_moves().len(), 25+1);
+}
+
+#[test]
+fn legal_moves_only_contains_legal_moves() {
+    let size = 5;
+    let zht = Rc::new(ZobristHashTable::new(size));
+    let mut b = Board::new(size, AnySizeTrompTaylor, zht.clone());
+    b = b.play(Play(Black, 1, 1)).unwrap();
+    let moves = b.legal_moves();
+    assert!(!moves.iter().any(|m| m == &Play(White, 1, 1)));
 }

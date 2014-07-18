@@ -144,8 +144,11 @@ impl<'a> Board<'a> {
     }
 
     pub fn legal_moves(&self) -> Vec<Move> {
-        let mut moves = Vec::new();
-        moves.push(Pass(self.next_player()));
+        let color = self.next_player();
+        let mut moves : Vec<Move> = Coord::for_board_size(self.size).iter().map(
+            |coord| Play(color, coord.col, coord.row)).filter(
+            |move| self.play(*move).is_ok()).collect();
+        moves.push(Pass(color));
         moves
     }
 
