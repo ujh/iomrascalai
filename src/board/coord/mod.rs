@@ -21,6 +21,8 @@
 use core::fmt::{Show, Formatter, FormatError};
 use std::cmp::Eq;
 
+mod test;
+
 #[deriving(Clone, Hash, PartialEq, Eq)]
 pub struct Coord {
     pub col: u8,

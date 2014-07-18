@@ -31,7 +31,6 @@ use std::rc::Rc;
 use std::vec::Vec;
 
 mod board_test;
-mod coord_test;
 mod chain_test;
 
 mod chain;
