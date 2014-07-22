@@ -23,7 +23,6 @@
 use board::Color;
 use board::move::Move;
 use engine::Engine;
-use engine::RandomEngine;
 use game::Game;
 use ruleset::KgsChinese;
 
@@ -51,24 +50,30 @@ pub enum Command {
     FinalScore(String)
 }
 
-pub struct GTPInterpreter<'a> {
+pub struct GTPInterpreter<'a, E> {
     known_commands: Vec<String>,
     game: Game<'a>,
-    engine: RandomEngine
+    engine: E
 }
 
-impl<'a> GTPInterpreter<'a> {
-    pub fn new<'a>(engine: RandomEngine) -> GTPInterpreter<'a> {
+impl<'a, E: Engine> GTPInterpreter<'a, E> {
+    pub fn new<'a>(engine: E) -> GTPInterpreter<'a, E> {
         let komi = 6.5;
         let boardsize = 19;
-        GTPInterpreter {
-            known_commands: GTPInterpreter::generate_known_commands(),
+        let mut interpreter = GTPInterpreter {
+            known_commands: vec!(),
             game: Game::new(boardsize, komi, KgsChinese),
             engine: engine
-        }
+        };
+        interpreter.initialize();
+        interpreter
     }
 
-    fn generate_known_commands() -> Vec<String> {
+    fn initialize(&mut self) {
+        self.known_commands = self.generate_known_commands();
+    }
+
+    fn generate_known_commands(&self) -> Vec<String> {
         let mut known_commands = Vec::new();
         known_commands.push(String::from_str("play"));
         known_commands.push(String::from_str("genmove"));

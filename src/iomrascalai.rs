@@ -26,8 +26,9 @@ extern crate regex;
 #[phase(plugin)]
 extern crate regex_macros;
 
-use getopts::optopt;
+use engine::RandomEngine;
 use getopts::getopts;
+use getopts::optopt;
 use std::ascii::OwnedStrAsciiExt;
 use std::os::args;
 
@@ -42,15 +43,26 @@ mod sgf;
 
 fn main() {
 
-    let opts = [optopt("m", "mode", "set control mode", "MODE")];
+    let opts = [
+        optopt("m", "mode", "set control mode", "MODE"),
+        optopt("e", "engine", "select an engine", "ENGINE")
+            ];
     let matches = match getopts(args().tail(), opts) {
         Ok(m) => { m }
         Err(f) => { fail!(f.to_string()) }
     };
+    let engine = if matches.opt_present("e") {
+        let engine_name = matches.opt_str("e").unwrap().into_ascii_lower();
+        match engine_name.as_slice() {
+            _ => RandomEngine::new()
+        }
+    } else {
+        RandomEngine::new()
+    };
     if matches.opt_present("m") {
         let mode = matches.opt_str("m").unwrap().into_ascii_lower();
         match mode.as_slice() {
-            "gtp" => gtp::driver::Driver::new(),
+            "gtp" => gtp::driver::Driver::new(engine),
             _     => cli::Driver::new()
         }
     } else {
