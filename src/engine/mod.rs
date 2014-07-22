@@ -18,13 +18,13 @@
  * along with Iomrascálaí.  If not, see <http://www.gnu.org/licenses/>. *
  *                                                                      *
  ************************************************************************/
-use board::move::Move;
+use board::Move;
 use board::Color;
-pub use self::random_engine::RandomEngine;
+pub use self::random::RandomEngine;
 
 use game::Game;
 
-mod random_engine;
+mod random;
 
 pub trait Engine {
     fn gen_move(&self, Color, &Game) -> Move;
