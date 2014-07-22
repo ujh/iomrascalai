@@ -50,14 +50,14 @@ pub enum Command {
     FinalScore(String)
 }
 
-pub struct GTPInterpreter<'a, E> {
+pub struct GTPInterpreter<'a> {
     known_commands: Vec<String>,
     game: Game<'a>,
-    engine: E
+    engine: Box<Engine>
 }
 
-impl<'a, E: Engine> GTPInterpreter<'a, E> {
-    pub fn new<'a>(engine: E) -> GTPInterpreter<'a, E> {
+impl<'a> GTPInterpreter<'a > {
+    pub fn new<'a>(engine: Box<Engine>) -> GTPInterpreter<'a> {
         let komi = 6.5;
         let boardsize = 19;
         let mut interpreter = GTPInterpreter {

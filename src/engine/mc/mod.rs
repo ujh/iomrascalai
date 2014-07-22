@@ -19,6 +19,24 @@
  *                                                                      *
  ************************************************************************/
 
-pub struct McEngine;
+use board::Color;
+use board::Move;
+use board::Pass;
+use game::Game;
+use super::Engine;
 
 mod test;
+
+pub struct McEngine;
+
+impl McEngine {
+    pub fn new() -> McEngine {
+        McEngine
+    }
+}
+
+impl Engine for McEngine {
+    fn gen_move(&self, color: Color, game: &Game) -> Move {
+        Pass(color)
+    }
+}

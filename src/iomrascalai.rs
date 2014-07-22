@@ -26,6 +26,8 @@ extern crate regex;
 #[phase(plugin)]
 extern crate regex_macros;
 
+use engine::Engine;
+use engine::McEngine;
 use engine::RandomEngine;
 use getopts::getopts;
 use getopts::optopt;
@@ -54,10 +56,11 @@ fn main() {
     let engine = if matches.opt_present("e") {
         let engine_name = matches.opt_str("e").unwrap().into_ascii_lower();
         match engine_name.as_slice() {
-            _ => RandomEngine::new()
+            "mc" => box McEngine::new() as Box<Engine>,
+            _    => box RandomEngine::new() as Box<Engine>
         }
     } else {
-        RandomEngine::new()
+        box RandomEngine::new() as Box<Engine>
     };
     if matches.opt_present("m") {
         let mode = matches.opt_str("m").unwrap().into_ascii_lower();

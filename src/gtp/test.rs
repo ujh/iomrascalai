@@ -28,7 +28,7 @@ use super::ListCommands;
 
 #[test]
 fn no_newline_at_end_of_list_commands() {
-    let mut interpreter = GTPInterpreter::new(RandomEngine::new());
+    let mut interpreter = GTPInterpreter::new(box RandomEngine::new());
     let commands    = interpreter.read("list_commands\n");
     let expected    = "play\ngenmove\nprotocol_version\nname\nversion\nknown_command\nlist_commands\nquit\nboardsize\nclear_board\nkomi\nshowboard\nfinal_score";
     match commands {
@@ -39,7 +39,7 @@ fn no_newline_at_end_of_list_commands() {
 
 #[test]
 fn boardsize_sets_the_correct_size() {
-    let mut interpreter = GTPInterpreter::new(RandomEngine::new());
+    let mut interpreter = GTPInterpreter::new(box RandomEngine::new());
     assert_eq!(19, interpreter.game.size());
     interpreter.read("boardsize 9\n");
     assert_eq!(9, interpreter.game.size());
@@ -47,7 +47,7 @@ fn boardsize_sets_the_correct_size() {
 
 #[test]
 fn boardsize_resets_the_board() {
-    let mut interpreter = GTPInterpreter::new(RandomEngine::new());
+    let mut interpreter = GTPInterpreter::new(box RandomEngine::new());
     interpreter.read("play b a1\n");
     interpreter.read("boardsize 9\n");
     assert_eq!(0, interpreter.game.move_number());
@@ -55,21 +55,21 @@ fn boardsize_resets_the_board() {
 
 #[test]
 fn play_plays_a_move() {
-    let mut interpreter = GTPInterpreter::new(RandomEngine::new());
+    let mut interpreter = GTPInterpreter::new(box RandomEngine::new());
     interpreter.read("play b a1\n");
     assert_eq!(1, interpreter.game.move_number());
 }
 
 #[test]
 fn sets_the_komi() {
-    let mut interpreter = GTPInterpreter::new(RandomEngine::new());
+    let mut interpreter = GTPInterpreter::new(box RandomEngine::new());
     interpreter.read("komi 10\n");
     assert_eq!(10.0, interpreter.komi());
 }
 
 #[test]
 fn clear_board_resets_the_board() {
-    let mut interpreter = GTPInterpreter::new(RandomEngine::new());
+    let mut interpreter = GTPInterpreter::new(box RandomEngine::new());
     interpreter.read("play b a1\n");
     interpreter.read("clear_board\n");
     assert_eq!(0, interpreter.game.move_number());
@@ -77,7 +77,7 @@ fn clear_board_resets_the_board() {
 
 #[test]
 fn final_score_no_move() {
-    let mut interpreter = GTPInterpreter::new(RandomEngine::new());
+    let mut interpreter = GTPInterpreter::new(box RandomEngine::new());
     match interpreter.read("final_score\n") {
         FinalScore(score) => assert_eq!("W+6.5", score.as_slice()),
         _ => fail!("FinalScore expected!")
@@ -86,7 +86,7 @@ fn final_score_no_move() {
 
 #[test]
 fn final_score_one_move() {
-    let mut interpreter = GTPInterpreter::new(RandomEngine::new());
+    let mut interpreter = GTPInterpreter::new(box RandomEngine::new());
     interpreter.read("boardsize 4\n");
     interpreter.read("play b c2\n");
     match interpreter.read("final_score\n") {
