@@ -28,6 +28,7 @@ extern crate regex_macros;
 
 use getopts::optopt;
 use getopts::getopts;
+use std::ascii::OwnedStrAsciiExt;
 use std::os::args;
 
 mod board;
@@ -47,7 +48,7 @@ fn main() {
         Err(f) => { fail!(f.to_string()) }
     };
     if matches.opt_present("m") {
-        let mode = matches.opt_str("m").unwrap();
+        let mode = matches.opt_str("m").unwrap().into_ascii_lower();
         match mode.as_slice() {
             "gtp" => gtp::driver::Driver::new(),
             _     => cli::Driver::new()
