@@ -58,7 +58,7 @@ pub struct GTPInterpreter<'a> {
 }
 
 impl<'a> GTPInterpreter<'a> {
-    pub fn new(engine: RandomEngine) -> GTPInterpreter {
+    pub fn new<'a>(engine: RandomEngine) -> GTPInterpreter<'a> {
         let komi = 6.5;
         let boardsize = 19;
         GTPInterpreter {
@@ -132,7 +132,7 @@ impl<'a> GTPInterpreter<'a> {
             "genmove"          => {
                 let color = Color::from_gtp(command[1]);
                 let move  = self.engine.gen_move(color, &self.game);
-                match self.game.play(move) {
+                match self.game.clone().play(move) {
                     Ok(g) => {
                         self.game = g;
                         GenMove(move.to_gtp())
@@ -144,7 +144,7 @@ impl<'a> GTPInterpreter<'a> {
             },
             "play"             => {
                 let move = Move::from_gtp(command[1], command[2]);
-                match self.game.play(move) {
+                match self.game.clone().play(move) {
                     Ok(g) => {
                         self.game = g;
                         Play

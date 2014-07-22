@@ -44,7 +44,7 @@ pub struct Game<'a> {
 }
 
 impl<'a> Game<'a> {
-    pub fn new(size: u8, komi: f32, ruleset: Ruleset) -> Game {
+    pub fn new<'b>(size: u8, komi: f32, ruleset: Ruleset) -> Game<'b> {
         let base_zobrist_table = Rc::new(ZobristHashTable::new(size));
         let new_board = Board::new(size, ruleset, base_zobrist_table.clone());
 
