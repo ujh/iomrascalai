@@ -79,7 +79,6 @@ impl Engine for McEngine {
         let mut stats = HashMap::new();
         let moves = game.legal_moves();
         for move in moves.iter() {
-            println!("Trying move: {}", move);
             for i in range(0u, 1) {
                 let playout = Playout::new(&self.randomEngine);
                 let g = game.play(*move).unwrap();
