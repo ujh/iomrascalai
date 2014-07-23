@@ -24,6 +24,7 @@ use board::Move;
 use board::Pass;
 use game::Game;
 use super::Engine;
+use engine::RandomEngine;
 use playout::Playout;
 
 use std::collections::hashmap::HashMap;
@@ -62,11 +63,13 @@ impl MoveStats {
     }
 }
 
-pub struct McEngine;
+pub struct McEngine {
+    randomEngine: RandomEngine
+}
 
 impl McEngine {
     pub fn new() -> McEngine {
-        McEngine
+        McEngine{randomEngine: RandomEngine::new()}
     }
 
 }
@@ -76,8 +79,9 @@ impl Engine for McEngine {
         let mut stats = HashMap::new();
         let moves = game.legal_moves();
         for move in moves.iter() {
-            for i in range(0u, 100) {
-                let playout = Playout::new(self);
+            println!("Trying move: {}", move);
+            for i in range(0u, 1) {
+                let playout = Playout::new(&self.randomEngine);
                 let g = game.play(*move).unwrap();
                 let winner = playout.run(g);
                 let mut prev_move_stats = stats.find_or_insert(move, MoveStats::new());
