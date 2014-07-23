@@ -19,7 +19,7 @@
  *                                                                      *
  ************************************************************************/
 
-use engine::RandomEngine;
+use engine::Engine;
 use std::io::stdio::stdin;
 use super::BoardSize;
 use super::ClearBoard;
@@ -38,11 +38,12 @@ use super::Quit;
 use super::ShowBoard;
 use super::Version;
 
-pub struct Driver;
+pub struct Driver {
+    engine: Box<Engine>
+}
 
 impl Driver {
-    pub fn new() {
-        let engine = RandomEngine::new();
+    pub fn new(engine: Box<Engine>) {
         let engine_name = "Iomrascálaí";
         let engine_version = "0.1.0";
         let protocol_version = "2";

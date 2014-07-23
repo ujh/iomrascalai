@@ -31,7 +31,7 @@ following command in the top level folder:
 
 ```
 gogui-twogtp -auto -black "gnugo --positional-superko --chinese-rules \
---mode gtp" -white "./bin/iomrascalai --mode-gtp" -verbose -size 9 \
+--mode gtp" -white "./bin/iomrascalai --mode gtp" -verbose -size 9 \
 -alternate -games 10 -sgffile test
 ```
 
@@ -40,7 +40,7 @@ To run a game against GnuGo and view it in GoGui in real time use the following 
 ```
 gogui -computer-both -program "gogui-twogtp -black \"gnugo \
 --positional-superko --chinese-rules --mode gtp\" -white \
-\"./bin/iomrascalai --mode-gtp\" -verbose -size 9" -size 9
+\"./bin/iomrascalai --mode gtp\" -verbose -size 9" -size 9
 ```
 Resources
 =========

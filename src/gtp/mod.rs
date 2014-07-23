@@ -23,7 +23,6 @@
 use board::Color;
 use board::move::Move;
 use engine::Engine;
-use engine::RandomEngine;
 use game::Game;
 use ruleset::KgsChinese;
 
@@ -54,21 +53,27 @@ pub enum Command {
 pub struct GTPInterpreter<'a> {
     known_commands: Vec<String>,
     game: Game<'a>,
-    engine: RandomEngine
+    engine: Box<Engine>
 }
 
-impl<'a> GTPInterpreter<'a> {
-    pub fn new(engine: RandomEngine) -> GTPInterpreter {
+impl<'a> GTPInterpreter<'a > {
+    pub fn new<'a>(engine: Box<Engine>) -> GTPInterpreter<'a> {
         let komi = 6.5;
         let boardsize = 19;
-        GTPInterpreter {
-            known_commands: GTPInterpreter::generate_known_commands(),
+        let mut interpreter = GTPInterpreter {
+            known_commands: vec!(),
             game: Game::new(boardsize, komi, KgsChinese),
             engine: engine
-        }
+        };
+        interpreter.initialize();
+        interpreter
     }
 
-    fn generate_known_commands() -> Vec<String> {
+    fn initialize(&mut self) {
+        self.known_commands = self.generate_known_commands();
+    }
+
+    fn generate_known_commands(&self) -> Vec<String> {
         let mut known_commands = Vec::new();
         known_commands.push(String::from_str("play"));
         known_commands.push(String::from_str("genmove"));
@@ -132,7 +137,7 @@ impl<'a> GTPInterpreter<'a> {
             "genmove"          => {
                 let color = Color::from_gtp(command[1]);
                 let move  = self.engine.gen_move(color, &self.game);
-                match self.game.play(move) {
+                match self.game.clone().play(move) {
                     Ok(g) => {
                         self.game = g;
                         GenMove(move.to_gtp())
@@ -144,7 +149,7 @@ impl<'a> GTPInterpreter<'a> {
             },
             "play"             => {
                 let move = Move::from_gtp(command[1], command[2]);
-                match self.game.play(move) {
+                match self.game.clone().play(move) {
                     Ok(g) => {
                         self.game = g;
                         Play

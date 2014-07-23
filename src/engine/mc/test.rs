@@ -1,6 +1,6 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2014 Thomas Poinsot, Urban Hafner                          *
+ * Copyright 2014 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -19,15 +19,19 @@
  *                                                                      *
  ************************************************************************/
 
-pub use self::mc::McEngine;
-pub use self::random::RandomEngine;
-use board::Color;
-use board::Move;
+#![cfg(test)]
+
+use board::Black;
+use engine::Engine;
 use game::Game;
+use ruleset::KgsChinese;
+use super::McEngine;
 
-mod mc;
-mod random;
-
-pub trait Engine {
-    fn gen_move(&self, Color, &Game) -> Move;
+#[test]
+fn produces_a_move() {
+    let engine = McEngine::new();
+    let game   = Game::new(13, 6.5, KgsChinese);
+    let color  = Black;
+    let move   = engine.gen_move(color, &game);
+    assert_eq!(Black, move.color());
 }

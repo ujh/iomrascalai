@@ -19,12 +19,19 @@
  *                                                                      *
  ************************************************************************/
 #![feature(phase)]
+extern crate core;
+extern crate getopts;
+extern crate rand;
+extern crate regex;
 #[phase(plugin)]
 extern crate regex_macros;
-extern crate regex;
-extern crate core;
-extern crate rand;
 
+use engine::Engine;
+use engine::McEngine;
+use engine::RandomEngine;
+use getopts::getopts;
+use getopts::optopt;
+use std::ascii::OwnedStrAsciiExt;
 use std::os::args;
 
 mod board;
@@ -37,11 +44,31 @@ mod ruleset;
 mod sgf;
 
 fn main() {
-  match args().len() {
-    1 => cli::Driver::new(),
-    _ => match args()[1].as_slice() {
-      "--mode-gtp" => gtp::driver::Driver::new(),
-      _            => cli::Driver::new()
+
+    let opts = [
+        optopt("m", "mode", "set control mode", "MODE"),
+        optopt("e", "engine", "select an engine", "ENGINE")
+            ];
+    let matches = match getopts(args().tail(), opts) {
+        Ok(m) => m,
+        Err(f) => fail!(f.to_string())
+    };
+    let engine = if matches.opt_present("e") {
+        let engine_name = matches.opt_str("e").unwrap().into_ascii_lower();
+        match engine_name.as_slice() {
+            "mc" => box McEngine::new() as Box<Engine>,
+            _    => box RandomEngine::new() as Box<Engine>
+        }
+    } else {
+        box RandomEngine::new() as Box<Engine>
+    };
+    if matches.opt_present("m") {
+        let mode = matches.opt_str("m").unwrap().into_ascii_lower();
+        match mode.as_slice() {
+            "gtp" => gtp::driver::Driver::new(engine),
+            _     => cli::Driver::new()
+        }
+    } else {
+        cli::Driver::new()
     }
-  }
 }
