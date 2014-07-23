@@ -48,7 +48,7 @@ pub enum IllegalMove {
     SuperKoRuleBroken
 }
 
-#[deriving(Clone, Show, Eq, PartialEq)]
+#[deriving(Clone, Show, Eq, PartialEq, Hash)]
 pub enum Color {
     White,
     Black,

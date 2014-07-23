@@ -25,14 +25,14 @@ use game::Game;
 
 mod test;
 
-pub struct Playout<E> {
-    engine: E
+pub struct Playout<'a, E> {
+    engine: &'a E
 }
 
 // TODO: Find a way to make this code easier to test. Maybe by using a
 // different Engine that specialized for the tests
-impl<E: Engine> Playout<E> {
-    pub fn new(engine: E) -> Playout<E> {
+impl<'a, E: Engine> Playout<'a, E> {
+    pub fn new(engine: &E) -> Playout<E> {
         Playout { engine: engine }
     }
 
