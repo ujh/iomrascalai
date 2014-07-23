@@ -50,8 +50,8 @@ fn main() {
         optopt("e", "engine", "select an engine", "ENGINE")
             ];
     let matches = match getopts(args().tail(), opts) {
-        Ok(m) => { m }
-        Err(f) => { fail!(f.to_string()) }
+        Ok(m) => m,
+        Err(f) => fail!(f.to_string())
     };
     let engine = if matches.opt_present("e") {
         let engine_name = matches.opt_str("e").unwrap().into_ascii_lower();
