@@ -20,3 +20,18 @@
  ************************************************************************/
 
 #![cfg(test)]
+
+use board::Black;
+use engine::Engine;
+use game::Game;
+use ruleset::KgsChinese;
+use super::McEngine;
+
+#[test]
+fn produces_a_move() {
+    let engine = McEngine::new();
+    let game   = Game::new(19, 6.5, KgsChinese);
+    let color  = Black;
+    let move   = engine.gen_move(color, &game);
+    assert_eq!(Black, move.color());
+}
