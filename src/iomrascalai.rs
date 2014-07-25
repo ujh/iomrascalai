@@ -35,6 +35,7 @@ use std::ascii::OwnedStrAsciiExt;
 use std::os::args;
 
 mod board;
+mod benchmarks;
 mod cli;
 mod engine;
 mod game;
@@ -47,28 +48,30 @@ fn main() {
 
     let opts = [
         optopt("m", "mode", "set control mode", "MODE"),
-        optopt("e", "engine", "select an engine", "ENGINE")
+        optopt("e", "engine", "select an engine", "ENGINE"),
+        optopt("s", "size", "set the size of the board in the benchmarks", "SIZE"),
+        optopt("r", "runtime", "set the run time of the benchmarks (in s)", "RUNTIME")
             ];
+
     let matches = match getopts(args().tail(), opts) {
         Ok(m) => m,
         Err(f) => fail!(f.to_string())
     };
-    let engine = if matches.opt_present("e") {
-        let engine_name = matches.opt_str("e").unwrap().into_ascii_lower();
-        match engine_name.as_slice() {
-            "mc" => box McEngine::new() as Box<Engine>,
-            _    => box RandomEngine::new() as Box<Engine>
-        }
-    } else {
-        box RandomEngine::new() as Box<Engine>
+
+    let engine_arg = matches.opt_str("e").map(|s| s.into_ascii_lower());
+    let engine = match engine_arg {
+        Some(ref s) if s.as_slice() == "mc" => box McEngine::new() as Box<Engine>,
+        _                                   => box RandomEngine::new() as Box<Engine>
     };
-    if matches.opt_present("m") {
-        let mode = matches.opt_str("m").unwrap().into_ascii_lower();
-        match mode.as_slice() {
-            "gtp" => gtp::driver::Driver::new(engine),
-            _     => cli::Driver::new()
-        }
-    } else {
-        cli::Driver::new()
-    }
+
+    let mode_arg = matches.opt_str("m").map(|s| s.into_ascii_lower());
+    match mode_arg {
+        Some(ref s) if s.as_slice() == "gtp" => gtp::driver::Driver::new(engine),
+        Some(ref s) if s.as_slice() == "pps" => {
+            let size    = matches.opt_str("s").and_then(|s| from_str::<u8>(s.as_slice())).unwrap_or(9);
+            let runtime = matches.opt_str("r").and_then(|s| from_str::<uint>(s.as_slice())).unwrap_or(30);
+            benchmarks::pps(size, runtime)
+        },
+        _                                    => cli::Driver::new()
+    };
 }

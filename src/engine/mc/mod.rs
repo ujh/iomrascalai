@@ -82,7 +82,7 @@ impl Engine for McEngine {
             for i in range(0u, 1) {
                 let playout = Playout::new(&self.randomEngine);
                 let g = game.play(*move).unwrap();
-                let winner = playout.run(g);
+                let winner = playout.run(&g);
                 let mut prev_move_stats = stats.find_or_insert(move, MoveStats::new());
                 if winner == color {
                     prev_move_stats.won();
