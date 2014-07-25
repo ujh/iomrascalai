@@ -311,8 +311,8 @@ impl<'a> Board<'a> {
                   .map(|c| c.id)
                   .collect();
 
-        for &id in adv_chains_ids.iter() {
-            self.update_libs(id);
+        for id in adv_chains_ids.iter() {
+            self.update_libs(*id);
         }
     }
 
