@@ -35,6 +35,7 @@ use std::ascii::OwnedStrAsciiExt;
 use std::os::args;
 
 mod board;
+mod benchmarks;
 mod cli;
 mod engine;
 mod game;
@@ -48,7 +49,8 @@ fn main() {
     let opts = [
         optopt("m", "mode", "set control mode", "MODE"),
         optopt("e", "engine", "select an engine", "ENGINE"),
-        optopt("s", "size", "set the size of the board in the benchmarks", "SIZE")
+        optopt("s", "size", "set the size of the board in the benchmarks", "SIZE"),
+        optopt("r", "runtime", "set the run time of the benchmarks (in s)", "RUNTIME")
             ];
 
     let matches = match getopts(args().tail(), opts) {
@@ -65,7 +67,11 @@ fn main() {
     let mode_arg = matches.opt_str("m").map(|s| s.into_ascii_lower());
     match mode_arg {
         Some(ref s) if s.as_slice() == "gtp" => gtp::driver::Driver::new(engine),
-        Some(ref s) if s.as_slice() == "pps" => println!("size: {}", from_str::<i8>(matches.opt_str("s").unwrap_or("9".to_string()).as_slice())),
+        Some(ref s) if s.as_slice() == "pps" => {
+            let size    = matches.opt_str("s").and_then(|s| from_str::<u8>(s.as_slice())).unwrap_or(9);
+            let runtime = matches.opt_str("r").and_then(|s| from_str::<uint>(s.as_slice())).unwrap_or(30);
+            benchmarks::pps(size, runtime)
+        },
         _                                    => cli::Driver::new()
     };
 }

@@ -36,8 +36,8 @@ impl<'a, E: Engine> Playout<'a, E> {
         Playout { engine: engine }
     }
 
-    pub fn run(&self, g: Game) -> Color {
-        let mut game = g;
+    pub fn run(&self, g: &Game) -> Color {
+        let mut game = g.clone();
         while !game.is_over() {
             let move = self.gen_move(&game);
             game = game.play(move).unwrap();
