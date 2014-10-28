@@ -26,7 +26,7 @@ use board::SuicidePlay;
 use board::SuperKoRuleBroken;
 use board::coord::Coord;
 use board::hash::ZobristHashTable;
-use board::move::{Play, Pass};
+use board::movement::{Play, Pass};
 
 use ruleset::AnySizeTrompTaylor;
 use ruleset::KgsChinese;

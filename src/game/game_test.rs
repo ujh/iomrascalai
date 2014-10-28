@@ -24,8 +24,8 @@
 use board::Black;
 use board::SuicidePlay;
 use board::White;
-use board::move::Pass;
-use board::move::Play;
+use board::movement::Pass;
+use board::movement::Play;
 use game::Game;
 use ruleset::KgsChinese;
 use ruleset::Minimal;

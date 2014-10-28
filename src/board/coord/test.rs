@@ -102,5 +102,5 @@ fn for_board_size_returns_the_right_number_of_coords() {
 #[test]
 fn for_board_size_sets_the_coordinates_correctly() {
     let coords = Coord::for_board_size(1);
-    assert_eq!(coords.get(0), &Coord::new(1,1));
+    assert_eq!(coords[0], Coord::new(1,1));
 }

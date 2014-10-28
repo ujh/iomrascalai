@@ -26,8 +26,8 @@ use board::Color;
 use board::Empty;
 use board::IllegalMove;
 use board::White;
-use board::move::Pass;
-use board::move::Play;
+use board::movement::Pass;
+use board::movement::Play;
 use game::Game;
 use ruleset::Minimal;
 
@@ -38,7 +38,7 @@ pub struct Parser {
 #[deriving(Show, Eq, PartialEq)]
 pub enum Error {
     SyntaxError,
-    IllegalMove
+    IllegalMoveError
 }
 
 #[deriving(Show)]
@@ -113,7 +113,7 @@ impl Parser {
                 Ok(g) => {
                     game = g;
                 },
-                Err(_) => return Err(IllegalMove)
+                Err(_) => return Err(IllegalMoveError)
             }
         }
         Ok(game)

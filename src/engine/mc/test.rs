@@ -32,6 +32,6 @@ fn produces_a_move() {
     let engine = McEngine::new();
     let game   = Game::new(13, 6.5, KgsChinese);
     let color  = Black;
-    let move   = engine.gen_move(color, &game);
-    assert_eq!(Black, move.color());
+    let m      = engine.gen_move(color, &game);
+    assert_eq!(Black, m.color());
 }

@@ -23,7 +23,7 @@ use board::Board;
 use board::IllegalMove;
 use board::coord::Coord;
 use board::hash::ZobristHashTable;
-use board::move::Move;
+use board::movement::Move;
 use board::{Color, Empty, Black, White};
 use ruleset::Ruleset;
 use self::score::Score;
@@ -56,8 +56,8 @@ impl<'a> Game<'a> {
         }
     }
 
-    pub fn play(&self, move: Move) -> Result<Game, IllegalMove> {
-        let new_board = self.board.play(move);
+    pub fn play(&self, m: Move) -> Result<Game, IllegalMove> {
+        let new_board = self.board.play(m);
 
         match new_board {
             Ok(b) => {

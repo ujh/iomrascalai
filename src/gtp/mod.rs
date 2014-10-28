@@ -21,7 +21,7 @@
 
 
 use board::Color;
-use board::move::Move;
+use board::movement::Move;
 use engine::Engine;
 use game::Game;
 use ruleset::KgsChinese;
@@ -53,7 +53,7 @@ pub enum Command {
 pub struct GTPInterpreter<'a> {
     known_commands: Vec<String>,
     game: Game<'a>,
-    engine: Box<Engine>
+    engine: Box<Engine + 'a>
 }
 
 impl<'a> GTPInterpreter<'a > {
@@ -136,26 +136,26 @@ impl<'a> GTPInterpreter<'a > {
             },
             "genmove"          => {
                 let color = Color::from_gtp(command[1]);
-                let move  = self.engine.gen_move(color, &self.game);
-                match self.game.clone().play(move) {
+                let m  = self.engine.gen_move(color, &self.game);
+                match self.game.clone().play(m) {
                     Ok(g) => {
                         self.game = g;
-                        GenMove(move.to_gtp())
+                        GenMove(m.to_gtp())
                     },
                     Err(_) => {
-                        GenMoveError(move)
+                        GenMoveError(m)
                     }
                 }
             },
             "play"             => {
-                let move = Move::from_gtp(command[1], command[2]);
-                match self.game.clone().play(move) {
+                let m = Move::from_gtp(command[1], command[2]);
+                match self.game.clone().play(m) {
                     Ok(g) => {
                         self.game = g;
                         Play
                     },
                     Err(_) => {
-                        PlayError(move)
+                        PlayError(m)
                     }
                 }
             },
@@ -167,26 +167,17 @@ impl<'a> GTPInterpreter<'a > {
     }
 
     fn preprocess(&self, input: &str) -> String {
-        let mut out = String::from_str(input);
-
-        // We remove every control character except for LF et HT
-        // the unsafe block is there because we push_byte
-        unsafe {
-            out = out.as_bytes().iter().fold(String::new(), |mut s, &b| if b == 9 || b == 10 || (b > 31 && b != 127) {s.push_byte(b); s} else {s});
-        }
-
+        // Convert tab to space
+        let horizontal_tab = regex!(r"\t");
+        let without_tabs = horizontal_tab.replace_all(input, " ");
+        // Remove all control characters
+        let cntrls = regex!(r"[:cntrl:]");
+        let without_ctrls = cntrls.replace_all(without_tabs.as_slice(), "");
         // Then we remove anything after a #
-        out = out.as_slice().split('#').next().unwrap().to_string();
-
-        // We convert HT to SPACE (ASCII 9 to ASCII 32)
-        unsafe {
-            out = out.as_bytes().iter().fold(String::new(), |mut s, &b| if b == 9 {s.push_byte(32); s} else {s.push_byte(b); s});
-        }
-
+        let comment = regex!(r"#.*");
+        let without_comment = comment.replace(without_ctrls.as_slice(), "");
         // We remove the whitespaces before/after the string
-        out = out.as_slice().trim().to_string();
-
-        out
+        without_tabs.as_slice().trim().to_string()
     }
 
     fn list_commands(&self) -> String {
@@ -196,7 +187,7 @@ impl<'a> GTPInterpreter<'a > {
             result.push_str(c.as_slice());
             result.push_str("\n");
         }
-        result.pop_char();
+        result.pop();
         result
     }
 }

@@ -21,17 +21,17 @@
 #![cfg(test)]
 
 use board::Black;
-use board::move::Move;
-use board::move::Pass;
+use board::movement::Move;
+use board::movement::Pass;
 
 #[test]
 fn parse_gtp_pass() {
-    let move = Move::from_gtp("B", "PASS");
-    assert_eq!(move, Pass(Black));
+    let m = Move::from_gtp("B", "PASS");
+    assert_eq!(m, Pass(Black));
 }
 
 #[test]
 fn parse_lower_case_gtp_pass() {
-    let move = Move::from_gtp("B", "pass");
-    assert_eq!(move, Pass(Black));
+    let m = Move::from_gtp("B", "pass");
+    assert_eq!(m, Pass(Black));
 }

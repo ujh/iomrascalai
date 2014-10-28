@@ -17,7 +17,7 @@ fn add_stone_adds_the_correct_stone() {
     let mut c1 = Chain::new(1, Black);
     c1.add_stone(Coord::new(14,14));
 
-    assert_eq!(c1.coords().get(0), &Coord::new( 14, 14));
+    assert_eq!(c1.coords()[0], Coord::new( 14, 14));
 }
 
 #[test]

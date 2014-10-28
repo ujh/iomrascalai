@@ -26,8 +26,8 @@ use board::PlayOutOfBoard;
 use board::SamePlayerPlayedTwice;
 use board::SuicidePlay;
 use board::SuperKoRuleBroken;
-use board::move::Pass;
-use board::move::Play;
+use board::movement::Pass;
+use board::movement::Play;
 use game::Game;
 use ruleset::KgsChinese;
 use std::io::stdio::stdin;
@@ -60,16 +60,16 @@ impl Driver {
 
             let line = reader.read_line().unwrap();
 
-            let move = if line.as_slice() == "p\n" {
+            let m = if line.as_slice() == "p\n" {
                 Pass(current_player)
             } else {
                 let coords: Vec<u8> = line.as_slice().trim_chars('\n').split(' ').map(|s| from_str(s).unwrap()).collect();
                 Play(current_player, coords[0], coords[1])
             };
 
-            g = match g.play(move) {
+            g = match g.play(m) {
                 Ok(g)                     => g,
-                Err(PlayOutOfBoard)       => fail!("You can't play on invalid coordinates ({} {})", move.coords().col, move.coords().row),
+                Err(PlayOutOfBoard)       => fail!("You can't play on invalid coordinates ({} {})", m.coords().col, m.coords().row),
                 Err(IntersectionNotEmpty) => fail!("You can't play on a non-empty intersection !"),
                 Err(SuicidePlay)          => fail!("You can't play a suicide move with a ruleset forbidding them! ({})", g.ruleset()),
                 Err(SamePlayerPlayedTwice)=> fail!("You can't play twice"),

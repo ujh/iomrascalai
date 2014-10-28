@@ -31,7 +31,7 @@ use engine::McEngine;
 use engine::RandomEngine;
 use getopts::getopts;
 use getopts::optopt;
-use std::ascii::OwnedStrAsciiExt;
+use std::ascii::OwnedAsciiExt;
 use std::os::args;
 
 mod board;

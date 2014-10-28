@@ -25,7 +25,7 @@ use game::Game;
 
 mod test;
 
-pub struct Playout<'a, E> {
+pub struct Playout<'a, E:'a> {
     engine: &'a E
 }
 
@@ -39,8 +39,8 @@ impl<'a, E: Engine> Playout<'a, E> {
     pub fn run(&self, g: &Game) -> Color {
         let mut game = g.clone();
         while !game.is_over() {
-            let move = self.gen_move(&game);
-            game = game.play(move).unwrap();
+            let m = self.gen_move(&game);
+            game = game.play(m).unwrap();
         }
         game.winner()
     }

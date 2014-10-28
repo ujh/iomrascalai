@@ -38,11 +38,11 @@ use super::Quit;
 use super::ShowBoard;
 use super::Version;
 
-pub struct Driver {
-    engine: Box<Engine>
+pub struct Driver<'a> {
+    engine: Box<Engine + 'a>
 }
 
-impl Driver {
+impl<'a> Driver<'a> {
     pub fn new(engine: Box<Engine>) {
         let engine_name = "Iomrascálaí";
         let engine_version = "0.1.0";
@@ -75,9 +75,9 @@ impl Driver {
                 ClearBoard         => print!("= \n\n"),
                 Komi               => print!("= \n\n"),
                 Play               => print!("= \n\n"),
-                PlayError(move)    => print!("? Illegal move: {}\n\n", move),
+                PlayError(m)       => print!("? Illegal move: {}\n\n", m),
                 GenMove(s)         => print!("= {}\n\n", s),
-                GenMoveError(move) => print!("? Illegal move: {}\n\n", move),
+                GenMoveError(m)    => print!("? Illegal move: {}\n\n", m),
                 ShowBoard(s)       => print!("= {}\n\n", s),
                 Quit               => {print!("= \n\n"); return;},
                 FinalScore(s)      => {print!("= {}\n\n", s)},

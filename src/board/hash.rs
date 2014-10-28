@@ -1,5 +1,5 @@
 use std::rand::random;
-use board::move::{Move, Play};
+use board::movement::{Move, Play};
 use board::{Empty, Black, White};
 
 #[deriving(Show)]
@@ -35,22 +35,22 @@ impl ZobristHashTable {
         init_hash
     }
 
-    pub fn add_stone_to_hash(&self, hash: u64, move: &Move) -> u64 {
-        hash ^ self.get_hash_for(&Play(Empty, move.coords().col, move.coords().row)) ^ self.get_hash_for(move)
+    pub fn add_stone_to_hash(&self, hash: u64, m: &Move) -> u64 {
+        hash ^ self.get_hash_for(&Play(Empty, m.coords().col, m.coords().row)) ^ self.get_hash_for(m)
     }
 
-    pub fn remove_stone_from_hash(&self, hash: u64, move: &Move) -> u64 {
+    pub fn remove_stone_from_hash(&self, hash: u64, m: &Move) -> u64 {
         // As A^B == B^A, removing or adding is the same operation. This method is only added to express intent.
-        self.add_stone_to_hash(hash, move)
+        self.add_stone_to_hash(hash, m)
     }
 
-    fn get_hash_for(&self, move: &Move) -> u64 {
-        let color_as_index = match move.color() {
+    fn get_hash_for(&self, m: &Move) -> u64 {
+        let color_as_index = match m.color() {
             Empty => 0,
             Black => 1,
             White => 2
         };
 
-        self.table[color_as_index*self.size as uint + (move.coords().row-1) as uint * self.size as uint + move.coords().col as uint - 1]
+        self.table[color_as_index*self.size as uint + (m.coords().row-1) as uint * self.size as uint + m.coords().col as uint - 1]
     }
 }
