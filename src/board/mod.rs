@@ -274,7 +274,7 @@ impl<'a> Board<'a> {
 
                     // We merge the other chain into the final chain.
                     let other_chain = self.chains[other_chain_id].clone();
-                    self.chains.get_mut(final_chain_id).merge(&other_chain);
+                    self.chains[final_chain_id].merge(&other_chain);
 
                     // We remove the old chain.
                     self.chains.remove(other_chain_id);
@@ -301,7 +301,7 @@ impl<'a> Board<'a> {
                                                 }
                                                 acc
                                             }).len();
-        self.chains.get_mut(chain_id).libs = libs;
+        self.chains[chain_id].libs = libs;
     }
 
     fn update_chains_libs_of(&mut self, color: Color) {
@@ -319,14 +319,14 @@ impl<'a> Board<'a> {
     fn update_board_ids_after_id(&mut self, id: uint) {
         for i in range(id, self.chains.len()) {
             for &coord in self.chains[i].coords().iter() {
-                *self.board.get_mut(coord.to_index(self.size)) = i;
+                self.board[coord.to_index(self.size)] = i;
             }
         }
     }
 
     fn update_chains_ids_after_id(&mut self, removed_chain_id: uint) {
         for i in range(removed_chain_id, self.chains.len()) {
-            self.chains.get_mut(i).id = i;
+            self.chains[i].id = i;
         }
     }
 
@@ -382,17 +382,17 @@ impl<'a> Board<'a> {
         let mut new_chain   = Chain::new(new_chain_id, m.color());
         new_chain.add_stone(m.coords());
         self.chains.push(new_chain);
-        *self.board.get_mut(m.coords().to_index(self.size)) = new_chain_id;
+        self.board[m.coords().to_index(self.size)] = new_chain_id;
         self.update_libs(new_chain_id);
     }
 
     fn add_coord_to_chain(&mut self, coord: Coord, chain_id: uint) {
-        self.chains.get_mut(chain_id).add_stone(coord);
-       *self.board.get_mut(coord.to_index(self.size)) = chain_id;
+        self.chains[chain_id].add_stone(coord);
+       self.board[coord.to_index(self.size)] = chain_id;
     }
 
     fn remove_stone(&mut self, c: Coord) {
-        *self.board.get_mut(c.to_index(self.size)) = 0;
+        self.board[c.to_index(self.size)] = 0;
     }
 
     pub fn score(&self) -> (uint, uint) {
