@@ -42,9 +42,9 @@ impl Driver {
         let size: u8 = match reader.read_line() {
             Ok(l)  => match from_str(l.as_slice().trim_chars('\n')) {
                 Some(size) => size,
-                None       => fail!("Couldn't convert to a number")
+                None       => panic!("Couldn't convert to a number")
             },
-            Err(_) => fail!("Couldn't read the line")
+            Err(_) => panic!("Couldn't read the line")
         };
 
         let mut g = Game::new(size, 6.5, KgsChinese);
@@ -69,12 +69,12 @@ impl Driver {
 
             g = match g.play(m) {
                 Ok(g)                     => g,
-                Err(PlayOutOfBoard)       => fail!("You can't play on invalid coordinates ({} {})", m.coords().col, m.coords().row),
-                Err(IntersectionNotEmpty) => fail!("You can't play on a non-empty intersection !"),
-                Err(SuicidePlay)          => fail!("You can't play a suicide move with a ruleset forbidding them! ({})", g.ruleset()),
-                Err(SamePlayerPlayedTwice)=> fail!("You can't play twice"),
-                Err(GameAlreadyOver)      => fail!("You can't play after 2 consecutive passes in TrompTaylor rules"),
-                Err(SuperKoRuleBroken)    => fail!("You can't repeat a board position! (Superko rule)")
+                Err(PlayOutOfBoard)       => panic!("You can't play on invalid coordinates ({} {})", m.coords().col, m.coords().row),
+                Err(IntersectionNotEmpty) => panic!("You can't play on a non-empty intersection !"),
+                Err(SuicidePlay)          => panic!("You can't play a suicide move with a ruleset forbidding them! ({})", g.ruleset()),
+                Err(SamePlayerPlayedTwice)=> panic!("You can't play twice"),
+                Err(GameAlreadyOver)      => panic!("You can't play after 2 consecutive passes in TrompTaylor rules"),
+                Err(SuperKoRuleBroken)    => panic!("You can't repeat a board position! (Superko rule)")
             };
 
             current_player = current_player.opposite();

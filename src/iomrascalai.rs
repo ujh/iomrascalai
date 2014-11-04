@@ -55,7 +55,7 @@ fn main() {
 
     let matches = match getopts(args().tail(), opts) {
         Ok(m) => m,
-        Err(f) => fail!(f.to_string())
+        Err(f) => panic!(f.to_string())
     };
 
     let engine_arg = matches.opt_str("e").map(|s| s.into_ascii_lower());

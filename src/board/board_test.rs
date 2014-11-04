@@ -386,8 +386,8 @@ fn replaying_directly_on_a_ko_point_should_be_illegal() {
 
   match b.play(Play(Black, 4, 4)) {
     Err(SuperKoRuleBroken) => (),
-    Ok(_)                  => fail!("Replaying on a ko was allowed"),
-    Err(x)                 => fail!("Engine crashed while trying to replay on a ko : {}", x)
+    Ok(_)                  => panic!("Replaying on a ko was allowed"),
+    Err(x)                 => panic!("Engine crashed while trying to replay on a ko : {}", x)
   }
 }
 

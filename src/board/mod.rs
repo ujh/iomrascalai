@@ -69,7 +69,7 @@ impl Color {
         match lower_gtp_color.as_slice() {
             "w" | "white" => White,
             "b" | "black" => Black,
-            err           => fail!("Can't read the GTP color: {}", err)
+            err           => panic!("Can't read the GTP color: {}", err)
         }
     }
 }
@@ -104,7 +104,7 @@ impl<'a> Clone for Board<'a> {
 impl<'a> Board<'a> {
     pub fn new(size: u8, ruleset: Ruleset, zobrist_base_table: Rc<ZobristHashTable>) -> Board<'a> {
         if size != zobrist_base_table.size() {
-            fail!("Different sizes for board and Zobrist hash table!");
+            panic!("Different sizes for board and Zobrist hash table!");
         }
         Board {
             size: size,
@@ -122,7 +122,7 @@ impl<'a> Board<'a> {
         if c.is_inside(self.size) {
             self.get_chain(c).color
         } else {
-            fail!("You have requested a stone outside of the board");
+            panic!("You have requested a stone outside of the board");
         }
     }
 
@@ -131,7 +131,7 @@ impl<'a> Board<'a> {
             let chain_id = self.board[c.to_index(self.size)];
             &self.chains[chain_id]
         } else {
-            fail!("You have requested a chain outside of the board");
+            panic!("You have requested a chain outside of the board");
         }
     }
 
