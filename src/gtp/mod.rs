@@ -56,8 +56,8 @@ pub struct GTPInterpreter<'a> {
     engine: Box<Engine + 'a>
 }
 
-impl<'a> GTPInterpreter<'a > {
-    pub fn new<'a>(engine: Box<Engine>) -> GTPInterpreter<'a> {
+impl<'a> GTPInterpreter<'a> {
+    pub fn new<'a>(engine: Box<Engine + 'a>) -> GTPInterpreter<'a> {
         let komi = 6.5;
         let boardsize = 19;
         let mut interpreter = GTPInterpreter {
