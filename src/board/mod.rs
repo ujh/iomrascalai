@@ -26,7 +26,7 @@ pub use board::movement::Pass;
 pub use board::movement::Play;
 use ruleset::Ruleset;
 
-use std::collections::hashmap::HashSet;
+use std::collections::HashSet;
 use std::rc::Rc;
 use std::vec::Vec;
 
