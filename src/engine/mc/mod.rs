@@ -22,12 +22,12 @@
 use board::Color;
 use board::Move;
 use board::Pass;
-use game::Game;
-use super::Engine;
 use engine::RandomEngine;
+use game::Game;
 use playout::Playout;
+use super::Engine;
 
-use std::collections::hashmap::HashMap;
+use std::collections::HashMap;
 
 mod test;
 
@@ -85,7 +85,7 @@ impl Engine for McEngine {
             // We use 1 here right now, as it's so damn slow.
             for i in range(0u, 1) {
                 let playout = Playout::new(&self.randomEngine);
-                let g = game.play(*m).unwrap();
+                let g = game.play(m).unwrap();
                 let winner = playout.run(&g);
                 let mut prev_move_stats = stats[m];
                 if winner == color {

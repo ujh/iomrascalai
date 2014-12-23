@@ -19,6 +19,10 @@
  *                                                                      *
  ************************************************************************/
 
+pub use self::Ruleset::AnySizeTrompTaylor;
+pub use self::Ruleset::KgsChinese;
+pub use self::Ruleset::Minimal;
+
 mod test;
 
 #[deriving(Clone, Show, Eq, PartialEq)]

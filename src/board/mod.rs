@@ -18,12 +18,15 @@
  * along with Iomrascálaí.  If not, see <http://www.gnu.org/licenses/>. *
  *                                                                      *
  ************************************************************************/
-use board::chain::Chain;
-use board::coord::Coord;
-use board::hash::ZobristHashTable;
+pub use board::coord::Coord;
+pub use board::hash::ZobristHashTable;
 pub use board::movement::Move;
 pub use board::movement::Pass;
 pub use board::movement::Play;
+pub use self::Color::Black;
+pub use self::Color::Empty;
+pub use self::Color::White;
+use board::chain::Chain;
 use ruleset::Ruleset;
 
 use std::collections::HashSet;
@@ -80,7 +83,7 @@ pub struct Board<'a> {
     board: Vec<uint>,
     chains: Vec<Chain>,
     ruleset: Ruleset,
-    previous_player: Color,
+    previous_player: &'a Color,
     consecutive_passes: u8,
     zobrist_base_table: Rc<ZobristHashTable>,
     previous_boards_hashes: Vec<u64>
@@ -92,8 +95,8 @@ impl<'a> Clone for Board<'a> {
             size                  : self.size,
             board                 : self.board.clone(),
             chains                : self.chains.clone(),
-            ruleset               : self.ruleset,
-            previous_player       : self.previous_player,
+            ruleset               : self.ruleset.clone(),
+            previous_player       : self.previous_player.clone(),
             consecutive_passes    : self.consecutive_passes,
             zobrist_base_table    : self.zobrist_base_table.clone(),
             previous_boards_hashes: self.previous_boards_hashes.clone()
@@ -126,7 +129,7 @@ impl<'a> Board<'a> {
         }
     }
 
-    pub fn get_chain<'a>(&'a self, c: Coord) -> &'a Chain {
+    pub fn get_chain<'b>(&'b self, c: Coord) -> &'b Chain {
         if c.is_inside(self.size) {
             let chain_id = self.board[c.to_index(self.size)];
             &self.chains[chain_id]
@@ -146,22 +149,22 @@ impl<'a> Board<'a> {
     pub fn legal_moves(&self) -> Vec<Move> {
         let color = self.next_player();
         let mut moves : Vec<Move> = Coord::for_board_size(self.size).iter().map(
-            |coord| Play(color, coord.col, coord.row)).filter(
-            |m| self.play(*m).is_ok()).collect();
-        moves.push(Pass(color));
+            |coord| Play(color.clone(), coord.col, coord.row)).filter(
+            |m| self.play(m).is_ok()).collect();
+        moves.push(Pass(color.clone()));
         moves
     }
 
     // Note: Same as get(), the board is indexed starting at 1-1
-    pub fn play(&self, m: Move) -> Result<Board<'a>, IllegalMove> {
+    pub fn play(&self, m: &Move) -> Result<Board<'a>, IllegalMove> {
         // We check is the player is trying to play on a finished game (which is illegal in TT rules)
         if self.is_game_over() && !self.ruleset.game_over_play() {
-            return Err(GameAlreadyOver);
+            return Err(IllegalMove::GameAlreadyOver);
         }
 
         // We check that the same player didn't play twice (except in the minimal ruleset, which is useful for tests)
-        if self.is_same_player(&m) && !self.ruleset.same_player() {
-            return Err(SamePlayerPlayedTwice);
+        if self.is_same_player(m) && !self.ruleset.same_player() {
+            return Err(IllegalMove::SamePlayerPlayedTwice);
         }
 
         // Then we check if the player passed
@@ -175,10 +178,10 @@ impl<'a> Board<'a> {
         // We check if the new move is inside the board (and if it is, if there is no stone there)
         if m.coords().is_inside(self.size) {
             if self.get_coord(m.coords()) != Empty {
-                return Err(IntersectionNotEmpty);
+                return Err(IllegalMove::IntersectionNotEmpty);
             }
         } else {
-            return Err(PlayOutOfBoard);
+            return Err(IllegalMove::PlayOutOfBoard);
         }
 
         let mut new_board = self.clone();
@@ -211,15 +214,15 @@ impl<'a> Board<'a> {
                 new_board.remove_chain(to_remove_id);
                 new_board.update_all_after_id(to_remove_id);
             } else {
-                return Err(SuicidePlay)
+                return Err(IllegalMove::SuicidePlay)
             }
         }
 
         // We update the hash with the changes to the board, and add it to the list of hashes before returning.
-        let hash = new_board.compute_hash(&m, &adv_stones_removed, &friend_stones_removed);
+        let hash = new_board.compute_hash(m, &adv_stones_removed, &friend_stones_removed);
 
         if new_board.previous_boards_hashes.contains(&hash) {
-            return Err(SuperKoRuleBroken)
+            return Err(IllegalMove::SuperKoRuleBroken)
         }
 
         new_board.previous_boards_hashes.push(hash);
@@ -227,7 +230,7 @@ impl<'a> Board<'a> {
         Ok(new_board)
     }
 
-    fn find_neighbouring_friendly_chains_ids(&self, m: Move) -> Vec<uint> {
+    fn find_neighbouring_friendly_chains_ids(&self, m: &Move) -> Vec<uint> {
         let mut friend_neigh_chains_id: Vec<uint> = m.coords().neighbours(self.size)
                   .iter()
                   .filter(|&c| c.is_inside(self.size) && self.get_coord(*c) == m.color())
@@ -242,7 +245,7 @@ impl<'a> Board<'a> {
         friend_neigh_chains_id
     }
 
-    fn merge_or_create_chain(&mut self, m: Move) {
+    fn merge_or_create_chain(&mut self, m: &Move) {
         let friend_neigh_chains_id = self.find_neighbouring_friendly_chains_ids(m);
 
         /*
@@ -340,7 +343,7 @@ impl<'a> Board<'a> {
     }
 
     // Returns a vector of the coords where stones where removed.
-    fn remove_adv_chains_with_no_libs_close_to(&mut self, m: Move) -> Vec<Coord> {
+    fn remove_adv_chains_with_no_libs_close_to(&mut self, m: &Move) -> Vec<Coord> {
         let coords_to_remove = m.coords().neighbours(self.size).iter()
                                       .map(|&coord| self.get_chain(coord))
                                       .filter(|chain| chain.libs == 0 && chain.color != m.color())
@@ -377,7 +380,7 @@ impl<'a> Board<'a> {
         self.update_chains_ids_after_id(id);
     }
 
-    fn create_new_chain(&mut self, m: Move) {
+    fn create_new_chain(&mut self, m: &Move) {
         let new_chain_id    = self.chains.len();
         let mut new_chain   = Chain::new(new_chain_id, m.color());
         new_chain.add_stone(m.coords());

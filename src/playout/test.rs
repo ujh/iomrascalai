@@ -53,7 +53,7 @@ fn run_should_return_white_as_the_winner_for_an_empty_board() {
 fn run_should_return_black_as_winner_with_one_move() {
     let engine = PlayoutTestEngine;
     let mut game = Game::new(3, 6.5, KgsChinese);
-    game = game.play(Play(Black, 1, 1)).unwrap();
+    game = game.play(&Play(Black, 1, 1)).unwrap();
     let playout = Playout::new(&engine);
     assert_eq!(Black, playout.run(&game));
 }

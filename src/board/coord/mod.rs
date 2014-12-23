@@ -18,8 +18,9 @@
  * along with Iomrascálaí.  If not, see <http://www.gnu.org/licenses/>. *
  *                                                                      *
  ************************************************************************/
-use core::fmt::{Show, Formatter, FormatError};
+use core::fmt::Show;
 use std::cmp::Eq;
+use std::fmt;
 
 mod test;
 
@@ -99,7 +100,7 @@ impl Coord {
 }
 
 impl Show for Coord {
-    fn fmt(&self, f: &mut Formatter) -> Result<(), FormatError> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let s = format!("{}, {}", self.col, self.row);
         s.fmt(f)
     }

@@ -85,9 +85,9 @@ impl<'a> Property<'a> {
     fn play(&self, game: Game) -> Result<Game, IllegalMove> {
         if self.is_move() {
             if self.is_pass() {
-                game.play(Pass(self.color()))
+                game.play(&Pass(self.color()))
             } else {
-                game.play(Play(self.color(), self.col(), self.row(game.size())))
+                game.play(&Play(self.color(), self.col(), self.row(game.size())))
             }
         } else {
             Ok(game)
@@ -113,7 +113,7 @@ impl Parser {
                 Ok(g) => {
                     game = g;
                 },
-                Err(_) => return Err(IllegalMoveError)
+                Err(_) => return Err(Error::IllegalMoveError)
             }
         }
         Ok(game)
@@ -136,11 +136,11 @@ impl Parser {
         let mut prev_name = "";
         let re = regex!(r"([:upper:]{1,2})?\[([^]]*)\]");
         for caps in re.captures_iter(self.sgf.as_slice()) {
-            if caps.at(1) == "" {
-                tokens.push(Property {name: prev_name, val: caps.at(2)});
+            if caps.at(1).unwrap() == "" {
+                tokens.push(Property {name: prev_name, val: caps.at(2).unwrap()});
             } else {
-                tokens.push(Property {name: caps.at(1), val: caps.at(2)});
-                prev_name = caps.at(1);
+                tokens.push(Property {name: caps.at(1).unwrap(), val: caps.at(2).unwrap()});
+                prev_name = caps.at(1).unwrap();
             }
         }
         tokens

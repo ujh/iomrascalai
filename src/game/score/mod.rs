@@ -23,10 +23,10 @@ use board::Black;
 use board::Color;
 use board::Empty;
 use board::White;
-use core::fmt::FormatError;
-use core::fmt::Formatter;
+
 use core::fmt::Show;
-use std::num::abs;
+use std::fmt;
+use std::num::Float;
 
 
 pub struct Score {
@@ -41,7 +41,7 @@ impl Score {
         let (bs, ws) = scores;
         let b_score = bs as f32;
         let w_score = (ws as f32) + komi;
-        let score = abs(b_score - w_score);
+        let score = (b_score - w_score).abs();
         let color = if b_score == w_score {
             Empty
         } else if b_score > w_score {
@@ -58,7 +58,7 @@ impl Score {
 }
 
 impl Show for Score {
-    fn fmt(&self, f: &mut Formatter) -> Result<(), FormatError> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let color = match self.color {
             Black => "B+",
             White => "W+",

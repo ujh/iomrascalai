@@ -22,9 +22,8 @@
 #![cfg(test)]
 
 use engine::RandomEngine;
+use super::Command;
 use super::GTPInterpreter;
-use super::FinalScore;
-use super::ListCommands;
 
 #[test]
 fn no_newline_at_end_of_list_commands() {
@@ -32,8 +31,8 @@ fn no_newline_at_end_of_list_commands() {
     let commands    = interpreter.read("list_commands\n");
     let expected    = "play\ngenmove\nprotocol_version\nname\nversion\nknown_command\nlist_commands\nquit\nboardsize\nclear_board\nkomi\nshowboard\nfinal_score";
     match commands {
-        ListCommands(cs) => assert_eq!(expected, cs.as_slice()),
-        _                => panic!("wrong match")
+        Command::ListCommands(cs) => assert_eq!(expected, cs.as_slice()),
+        _                         => panic!("wrong match")
     }
 }
 
@@ -79,8 +78,8 @@ fn clear_board_resets_the_board() {
 fn final_score_no_move() {
     let mut interpreter = GTPInterpreter::new(box RandomEngine::new());
     match interpreter.read("final_score\n") {
-        FinalScore(score) => assert_eq!("W+6.5", score.as_slice()),
-        _ => panic!("FinalScore expected!")
+        Command::FinalScore(score) => assert_eq!("W+6.5", score.as_slice()),
+        _                          => panic!("FinalScore expected!")
     }
 }
 
@@ -90,7 +89,7 @@ fn final_score_one_move() {
     interpreter.read("boardsize 4\n");
     interpreter.read("play b c2\n");
     match interpreter.read("final_score\n") {
-        FinalScore(score) => assert_eq!("B+9.5", score.as_slice()),
-        _ => panic!("FinalScore expected!")
+        Command::FinalScore(score) => assert_eq!("B+9.5", score.as_slice()),
+        _                          => panic!("FinalScore expected!")
     }
 }

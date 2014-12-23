@@ -57,7 +57,7 @@ pub struct GTPInterpreter<'a> {
 }
 
 impl<'a> GTPInterpreter<'a> {
-    pub fn new<'a>(engine: Box<Engine + 'a>) -> GTPInterpreter<'a> {
+    pub fn new<'b>(engine: Box<Engine + 'b>) -> GTPInterpreter<'b> {
         let komi = 6.5;
         let boardsize = 19;
         let mut interpreter = GTPInterpreter {
@@ -106,63 +106,63 @@ impl<'a> GTPInterpreter<'a> {
     pub fn read(&mut self, input: &str) -> Command {
         let preprocessed = self.preprocess(input);
 
-        if preprocessed.len() == 0 {return Empty};
+        if preprocessed.len() == 0 {return Command::Empty};
 
         let command: Vec<&str> = preprocessed.as_slice().split(' ').collect();
 
         match command[0] {
-            "name"             => return Name,
-            "version"          => return Version,
-            "protocol_version" => return ProtocolVersion,
-            "list_commands"    => return ListCommands(self.list_commands()),
-            "known_command"    => return KnownCommand(self.known_commands.contains(&String::from_str(command[1].clone()))),
+            "name"             => return Command::Name,
+            "version"          => return Command::Version,
+            "protocol_version" => return Command::ProtocolVersion,
+            "list_commands"    => return Command::ListCommands(self.list_commands()),
+            "known_command"    => return Command::KnownCommand(self.known_commands.contains(&String::from_str(command[1].clone()))),
             "boardsize"        => return match from_str::<u8>(command[1]) {
                 Some(size) => {
                     self.game = Game::new(size, self.komi(), KgsChinese);
-                    BoardSize
+                    Command::BoardSize
                 },
-                None       => Error
+                None       => Command::Error
             },
             "clear_board"      => {
                 self.game = Game::new(self.boardsize(), self.komi(), KgsChinese);
-                ClearBoard
+                Command::ClearBoard
             },
             "komi"             => return match from_str::<f32>(command[1]) {
                 Some(komi) => {
                     self.game.set_komi(komi);
-                    Komi
+                    Command::Komi
                 }
-                None       => Error
+                None       => Command::Error
             },
             "genmove"          => {
                 let color = Color::from_gtp(command[1]);
                 let m  = self.engine.gen_move(color, &self.game);
-                match self.game.clone().play(m) {
+                match self.game.clone().play(&m) {
                     Ok(g) => {
                         self.game = g;
-                        GenMove(m.to_gtp())
+                        Command::GenMove(m.to_gtp())
                     },
                     Err(_) => {
-                        GenMoveError(m)
+                        Command::GenMoveError(m)
                     }
                 }
             },
             "play"             => {
                 let m = Move::from_gtp(command[1], command[2]);
-                match self.game.clone().play(m) {
+                match self.game.clone().play(&m) {
                     Ok(g) => {
                         self.game = g;
-                        Play
+                        Command::Play
                     },
                     Err(_) => {
-                        PlayError(m)
+                        Command::PlayError(m)
                     }
                 }
             },
-            "showboard"        => ShowBoard(format!("\n{}", self.game)),
-            "quit"             => return Quit,
-            "final_score"      => return FinalScore(format!("{}", self.game.score())),
-            _                   => return Error
+            "showboard"   => Command::ShowBoard(format!("\n{}", self.game)),
+            "quit"        => return Command::Quit,
+            "final_score" => return Command::FinalScore(format!("{}", self.game.score())),
+            _             => return Command::Error
         }
     }
 

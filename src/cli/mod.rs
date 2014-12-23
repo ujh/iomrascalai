@@ -20,16 +20,12 @@
  ************************************************************************/
 
 use board::Black;
-use board::GameAlreadyOver;
-use board::IntersectionNotEmpty;
-use board::PlayOutOfBoard;
-use board::SamePlayerPlayedTwice;
-use board::SuicidePlay;
-use board::SuperKoRuleBroken;
-use board::movement::Pass;
-use board::movement::Play;
+use board::IllegalMove;
+use board::Pass;
+use board::Play;
 use game::Game;
 use ruleset::KgsChinese;
+
 use std::io::stdio::stdin;
 
 pub struct Driver;
@@ -67,14 +63,20 @@ impl Driver {
                 Play(current_player, coords[0], coords[1])
             };
 
-            g = match g.play(m) {
-                Ok(g)                     => g,
-                Err(PlayOutOfBoard)       => panic!("You can't play on invalid coordinates ({} {})", m.coords().col, m.coords().row),
-                Err(IntersectionNotEmpty) => panic!("You can't play on a non-empty intersection !"),
-                Err(SuicidePlay)          => panic!("You can't play a suicide move with a ruleset forbidding them! ({})", g.ruleset()),
-                Err(SamePlayerPlayedTwice)=> panic!("You can't play twice"),
-                Err(GameAlreadyOver)      => panic!("You can't play after 2 consecutive passes in TrompTaylor rules"),
-                Err(SuperKoRuleBroken)    => panic!("You can't repeat a board position! (Superko rule)")
+            g = match g.play(&m) {
+                Ok(g) => g,
+                Err(IllegalMove::PlayOutOfBoard) =>
+                    panic!("You can't play on invalid coordinates ({} {})", m.coords().col, m.coords().row),
+                Err(IllegalMove::IntersectionNotEmpty)  =>
+                    panic!("You can't play on a non-empty intersection !"),
+                Err(IllegalMove::SuicidePlay)           =>
+                    panic!("You can't play a suicide move with a ruleset forbidding them! ({})", g.ruleset()),
+                Err(IllegalMove::SamePlayerPlayedTwice) =>
+                    panic!("You can't play twice"),
+                Err(IllegalMove::GameAlreadyOver)      =>
+                    panic!("You can't play after 2 consecutive passes in TrompTaylor rules"),
+                Err(IllegalMove::SuperKoRuleBroken)    =>
+                    panic!("You can't repeat a board position! (Superko rule)")
             };
 
             current_player = current_player.opposite();

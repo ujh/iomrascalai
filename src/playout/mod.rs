@@ -40,7 +40,7 @@ impl<'a, E: Engine> Playout<'a, E> {
         let mut game = g.clone();
         while !game.is_over() {
             let m = self.gen_move(&game);
-            game = game.play(m).unwrap();
+            game = game.play(&m).unwrap();
         }
         game.winner()
     }

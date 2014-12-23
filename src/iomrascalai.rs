@@ -53,7 +53,7 @@ fn main() {
         optopt("r", "runtime", "set the run time of the benchmarks (in s)", "RUNTIME")
             ];
 
-    let matches = match getopts(args().tail(), opts) {
+    let matches = match getopts(args().tail(), &opts) {
         Ok(m) => m,
         Err(f) => panic!(f.to_string())
     };

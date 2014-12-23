@@ -20,23 +20,10 @@
  ************************************************************************/
 
 use engine::Engine;
-use std::io::stdio::stdin;
-use super::BoardSize;
-use super::ClearBoard;
-use super::FinalScore;
+use super::Command;
 use super::GTPInterpreter;
-use super::GenMove;
-use super::GenMoveError;
-use super::KnownCommand;
-use super::Komi;
-use super::ListCommands;
-use super::Name;
-use super::Play;
-use super::PlayError;
-use super::ProtocolVersion;
-use super::Quit;
-use super::ShowBoard;
-use super::Version;
+
+use std::io::stdio::stdin;
 
 pub struct Driver<'a> {
     engine: Box<Engine + 'a>
@@ -66,22 +53,22 @@ impl<'a> Driver<'a> {
             let command = interpreter.read(reader.read_line().unwrap().as_slice());
 
             match command {
-                Name               => print!("= {}\n\n", engine_name),
-                Version            => print!("= {}\n\n", engine_version),
-                ProtocolVersion    => print!("= {}\n\n", protocol_version),
-                ListCommands(s)    => print!("= {}\n\n", s),
-                KnownCommand(b)    => print!("= {}\n\n", b),
-                BoardSize          => print!("= \n\n"),
-                ClearBoard         => print!("= \n\n"),
-                Komi               => print!("= \n\n"),
-                Play               => print!("= \n\n"),
-                PlayError(m)       => print!("? Illegal move: {}\n\n", m),
-                GenMove(s)         => print!("= {}\n\n", s),
-                GenMoveError(m)    => print!("? Illegal move: {}\n\n", m),
-                ShowBoard(s)       => print!("= {}\n\n", s),
-                Quit               => {print!("= \n\n"); return;},
-                FinalScore(s)      => {print!("= {}\n\n", s)},
-                _                  => {print!("? unknown command\n\n");}
+                Command::Name            => print!("= {}\n\n", engine_name),
+                Command::Version         => print!("= {}\n\n", engine_version),
+                Command::ProtocolVersion => print!("= {}\n\n", protocol_version),
+                Command::ListCommands(s) => print!("= {}\n\n", s),
+                Command::KnownCommand(b) => print!("= {}\n\n", b),
+                Command::BoardSize       => print!("= \n\n"),
+                Command::ClearBoard      => print!("= \n\n"),
+                Command::Komi            => print!("= \n\n"),
+                Command::Play            => print!("= \n\n"),
+                Command::PlayError(m)    => print!("? Illegal move: {}\n\n", m),
+                Command::GenMove(s)      => print!("= {}\n\n", s),
+                Command::GenMoveError(m) => print!("? Illegal move: {}\n\n", m),
+                Command::ShowBoard(s)    => print!("= {}\n\n", s),
+                Command::Quit            => {print!("= \n\n"); return;},
+                Command::FinalScore(s)   => {print!("= {}\n\n", s)},
+                _                        => {print!("? unknown command\n\n");}
             }
         }
 

@@ -18,8 +18,10 @@
  * along with Iomrascálaí.  If not, see <http://www.gnu.org/licenses/>. *
  *                                                                      *
  ************************************************************************/
+pub use self::Move::Pass;
+pub use self::Move::Play;
 use board::Color;
-use board::coord::Coord;
+use board::Coord;
 
 mod test;
 
@@ -44,29 +46,29 @@ impl Move {
     }
 
     pub fn to_gtp(&self) -> String {
-        match self {
-            &Pass(_)           => String::from_str("pass"),
-            &Play(_, col, row) => Coord::new(col, row).to_gtp()
+        match *self {
+            Pass(_)           => String::from_str("pass"),
+            Play(_, col, row) => Coord::new(col, row).to_gtp()
         }
     }
 
-    pub fn color(&self) -> Color {
-        match self {
-            &Play(c, _, _) => c,
-            &Pass(c)       => c
+    pub fn color(&self) -> &Color {
+        match *self {
+            Play(ref c, _, _) => c,
+            Pass(ref c)       => c
         }
     }
 
     pub fn coords(&self) -> Coord {
-        match self {
-            &Play(_, col, row) => Coord::new(col, row),
-            &Pass(_)           => panic!("You have tried to get the coords() of a Pass move")
+        match *self {
+            Play(_, col, row) => Coord::new(col, row),
+            Pass(_)           => panic!("You have tried to get the coords() of a Pass move")
         }
     }
 
     pub fn is_pass(&self) -> bool {
-        match self {
-            &Pass(_) => true,
+        match *self {
+            Pass(_) => true,
             _        => false
         }
     }

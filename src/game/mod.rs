@@ -19,18 +19,21 @@
  *                                                                      *
  ************************************************************************/
 
+use board::Black;
 use board::Board;
+use board::Color;
+use board::Coord;
+use board::Empty;
 use board::IllegalMove;
-use board::coord::Coord;
-use board::hash::ZobristHashTable;
-use board::movement::Move;
-use board::{Color, Empty, Black, White};
+use board::Move;
+use board::White;
+use board::ZobristHashTable;
 use ruleset::Ruleset;
 use self::score::Score;
 
-use core::fmt::{Show, Formatter, FormatError};
+use std::fmt;
+use core::fmt::Show;
 use std::rc::Rc;
-
 
 mod game_test;
 mod score;
@@ -56,7 +59,7 @@ impl<'a> Game<'a> {
         }
     }
 
-    pub fn play(&self, m: Move) -> Result<Game, IllegalMove> {
+    pub fn play(&self, m: &Move) -> Result<Game, IllegalMove> {
         let new_board = self.board.play(m);
 
         match new_board {
@@ -127,7 +130,7 @@ impl<'a> Game<'a> {
 }
 
 impl<'a> Show for Game<'a> {
-    fn fmt(&self, f: &mut Formatter) -> Result<(), FormatError> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut s = format!("komi: {}\n", self.komi);
 
         // First we print the board
