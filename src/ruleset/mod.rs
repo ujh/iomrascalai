@@ -25,7 +25,7 @@ pub use self::Ruleset::Minimal;
 
 mod test;
 
-#[deriving(Clone, Show, Eq, PartialEq)]
+#[deriving(Clone, Show, Eq, PartialEq, Copy)]
 pub enum Ruleset {
     AnySizeTrompTaylor,
     KgsChinese,

@@ -31,6 +31,7 @@ use std::collections::HashMap;
 
 mod test;
 
+#[deriving(Copy)]
 struct MoveStats {
     wins: uint,
     plays: uint
@@ -85,9 +86,9 @@ impl Engine for McEngine {
             // We use 1 here right now, as it's so damn slow.
             for i in range(0u, 1) {
                 let playout = Playout::new(&self.randomEngine);
-                let g = game.play(m).unwrap();
+                let g = game.play(*m).unwrap();
                 let winner = playout.run(&g);
-                let mut prev_move_stats = stats[m];
+                let mut prev_move_stats = stats.get_mut(m).unwrap();
                 if winner == color {
                     prev_move_stats.won();
                 } else {

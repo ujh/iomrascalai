@@ -63,7 +63,7 @@ impl Driver {
                 Play(current_player, coords[0], coords[1])
             };
 
-            g = match g.play(&m) {
+            g = match g.play(m) {
                 Ok(g) => g,
                 Err(IllegalMove::PlayOutOfBoard) =>
                     panic!("You can't play on invalid coordinates ({} {})", m.coords().col, m.coords().row),

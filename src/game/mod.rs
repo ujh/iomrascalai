@@ -59,7 +59,7 @@ impl<'a> Game<'a> {
         }
     }
 
-    pub fn play(&self, m: &Move) -> Result<Game, IllegalMove> {
+    pub fn play<'b>(&'b self, m: Move) -> Result<Game<'b>, IllegalMove> {
         let new_board = self.board.play(m);
 
         match new_board {

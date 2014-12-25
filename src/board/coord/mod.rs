@@ -24,7 +24,7 @@ use std::fmt;
 
 mod test;
 
-#[deriving(Clone, Hash, PartialEq, Eq)]
+#[deriving(Clone, Hash, PartialEq, Eq, Copy)]
 pub struct Coord {
     pub col: u8,
     pub row: u8

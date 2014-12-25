@@ -45,7 +45,7 @@ impl ZobristHashTable {
     }
 
     fn get_hash_for(&self, m: &Move) -> u64 {
-        let color_as_index = match m.color() {
+        let color_as_index = match *m.color() {
             Empty => 0,
             Black => 1,
             White => 2

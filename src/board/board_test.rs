@@ -73,18 +73,18 @@ fn _0_0_is_not_a_valid_coordinate(){
 
 #[test]
 fn play_adds_a_stone_to_the_correct_position() {
-  let zht = Rc::new(ZobristHashTable::new(19));
-  let mut b = Board::new(19, AnySizeTrompTaylor, zht.clone());
+    let zht = Rc::new(ZobristHashTable::new(19));
+    let mut b = Board::new(19, AnySizeTrompTaylor, zht.clone());
 
-  b = b.play(&Play(Black, 14, 14)).unwrap();
+    b = b.play(Play(Black, 14, 14)).unwrap();
 
-  assert!(b.get_coord(Coord::new(14, 14)) == Black);
+    assert!(b.get_coord(Coord::new(14, 14)) == Black);
 
-  for i in range(1u8, 20) {
-    for j in range(1u8 , 20) {
-      assert!(b.get_coord(Coord::new(i, j)) == Empty || (i == 14 && j == 14));
+    for i in range(1u8, 20) {
+        for j in range(1u8 , 20) {
+            assert!(b.get_coord(Coord::new(i, j)) == Empty || (i == 14 && j == 14));
+        }
     }
-  }
 }
 
 #[test]
@@ -92,7 +92,7 @@ fn playing_on_an_illegal_coordinate_should_return_error() {
   let zht = Rc::new(ZobristHashTable::new(9));
   let b = Board::new(9, Minimal, zht.clone());
 
-  assert!(b.play(&Play(Black, 13, 13)).is_err());
+  assert!(b.play(Play(Black, 13, 13)).is_err());
 }
 
 #[test]
@@ -100,9 +100,9 @@ fn playing_on_a_non_empty_intersection_should_return_error() {
   let zht = Rc::new(ZobristHashTable::new(9));
   let b = Board::new(9, Minimal, zht.clone());
 
-  let b = b.play(&Play(Black, 4, 4)).unwrap();
-  assert!(b.play(&Play(Black, 4, 4)).is_err());
-  assert!(b.play(&Play(White, 4, 4)).is_err());
+  let b = b.play(Play(Black, 4, 4)).unwrap();
+  assert!(b.play(Play(Black, 4, 4)).is_err());
+  assert!(b.play(Play(White, 4, 4)).is_err());
 }
 
 #[test]
@@ -110,12 +110,12 @@ fn two_way_merging_works() {
   let zht = Rc::new(ZobristHashTable::new(19));
   let mut b = Board::new(19, Minimal, zht.clone());
 
-  b = b.play(&Play(White, 10, 10)).unwrap();
-  b = b.play(&Play(White, 10, 12)).unwrap();
+  b = b.play(Play(White, 10, 10)).unwrap();
+  b = b.play(Play(White, 10, 12)).unwrap();
 
   assert_eq!(b.chains.len(), 3);
 
-  b = b.play(&Play(White, 10, 11)).unwrap();
+  b = b.play(Play(White, 10, 11)).unwrap();
   let c_id = b.get_chain(Coord::new(10, 10)).id;
 
   assert_eq!(b.get_chain(Coord::new(10, 11)).id, c_id);
@@ -128,13 +128,13 @@ fn three_way_merging_works() {
   let zht = Rc::new(ZobristHashTable::new(19));
   let mut b = Board::new(19, Minimal, zht.clone());
 
-  b = b.play(&Play(White, 10, 10)).unwrap();
-  b = b.play(&Play(White, 11, 11)).unwrap();
-  b = b.play(&Play(White, 10, 12)).unwrap();
+  b = b.play(Play(White, 10, 10)).unwrap();
+  b = b.play(Play(White, 11, 11)).unwrap();
+  b = b.play(Play(White, 10, 12)).unwrap();
 
   assert_eq!(b.chains.len(), 4);
 
-  b = b.play(&Play(White, 10, 11)).unwrap();
+  b = b.play(Play(White, 10, 11)).unwrap();
   let c_id = b.get_chain(Coord::new(10, 10)).id;
 
   assert_eq!(b.get_chain(Coord::new(10, 11)).id, c_id);
@@ -148,14 +148,14 @@ fn four_way_merging_works() {
   let zht = Rc::new(ZobristHashTable::new(19));
   let mut b = Board::new(19, Minimal, zht.clone());
 
-  b = b.play(&Play(White, 10, 10)).unwrap();
-  b = b.play(&Play(White, 9, 11)).unwrap();
-  b = b.play(&Play(White, 11, 11)).unwrap();
-  b = b.play(&Play(White, 10, 12)).unwrap();
+  b = b.play(Play(White, 10, 10)).unwrap();
+  b = b.play(Play(White, 9, 11)).unwrap();
+  b = b.play(Play(White, 11, 11)).unwrap();
+  b = b.play(Play(White, 10, 12)).unwrap();
 
   assert_eq!(b.chains.len(), 5);
 
-  b = b.play(&Play(White, 10, 11)).unwrap();
+  b = b.play(Play(White, 10, 11)).unwrap();
   let c_id = b.get_chain(Coord::new(10, 10)).id;
 
   assert_eq!(b.get_chain(Coord::new(10, 11)).id, c_id);
@@ -170,9 +170,9 @@ fn playing_on_all_libs_in_corner_should_capture() {
   let zht = Rc::new(ZobristHashTable::new(19));
   let mut b = Board::new(19, Minimal, zht.clone());
 
-  b = b.play(&Play(Black, 1, 1)).unwrap();
-  b = b.play(&Play(White, 1, 2)).unwrap();
-  b = b.play(&Play(White, 2, 1)).unwrap();
+  b = b.play(Play(Black, 1, 1)).unwrap();
+  b = b.play(Play(White, 1, 2)).unwrap();
+  b = b.play(Play(White, 2, 1)).unwrap();
 
   assert_eq!(b.get_coord(Coord::new(1, 1)), Empty);
   assert_eq!(b.get_coord(Coord::new(1, 2)), White);
@@ -184,10 +184,10 @@ fn playing_on_all_libs_on_side_should_capture() {
   let zht = Rc::new(ZobristHashTable::new(19));
   let mut b = Board::new(19, Minimal, zht.clone());
 
-  b = b.play(&Play(Black, 1, 3)).unwrap();
-  b = b.play(&Play(White, 1, 2)).unwrap();
-  b = b.play(&Play(White, 1, 4)).unwrap();
-  b = b.play(&Play(White, 2, 3)).unwrap();
+  b = b.play(Play(Black, 1, 3)).unwrap();
+  b = b.play(Play(White, 1, 2)).unwrap();
+  b = b.play(Play(White, 1, 4)).unwrap();
+  b = b.play(Play(White, 2, 3)).unwrap();
 
   assert_eq!(b.get_coord(Coord::new(1, 3)), Empty);
   assert_eq!(b.get_coord(Coord::new(1, 2)), White);
@@ -200,12 +200,12 @@ fn playing_on_all_libs_should_capture() {
   let zht = Rc::new(ZobristHashTable::new(19));
   let mut b = Board::new(19, Minimal, zht.clone());
 
-  b = b.play(&Play(Black, 4, 4)).unwrap();
+  b = b.play(Play(Black, 4, 4)).unwrap();
 
-  b = b.play(&Play(White, 4, 3)).unwrap();
-  b = b.play(&Play(White, 4, 5)).unwrap();
-  b = b.play(&Play(White, 3, 4)).unwrap();
-  b = b.play(&Play(White, 5, 4)).unwrap();
+  b = b.play(Play(White, 4, 3)).unwrap();
+  b = b.play(Play(White, 4, 5)).unwrap();
+  b = b.play(Play(White, 3, 4)).unwrap();
+  b = b.play(Play(White, 5, 4)).unwrap();
 
   assert_eq!(b.get_coord(Coord::new(4, 4)), Empty);
 
@@ -220,15 +220,15 @@ fn playing_on_all_libs_of_a_chain_should_capture() {
   let zht = Rc::new(ZobristHashTable::new(19));
   let mut b = Board::new(19, Minimal, zht.clone());
 
-  b = b.play(&Play(Black, 4, 4)).unwrap();
-  b = b.play(&Play(Black, 4, 5)).unwrap();
+  b = b.play(Play(Black, 4, 4)).unwrap();
+  b = b.play(Play(Black, 4, 5)).unwrap();
 
-  b = b.play(&Play(White, 4, 3)).unwrap();
-  b = b.play(&Play(White, 3, 4)).unwrap();
-  b = b.play(&Play(White, 5, 4)).unwrap();
-  b = b.play(&Play(White, 3, 5)).unwrap();
-  b = b.play(&Play(White, 5, 5)).unwrap();
-  b = b.play(&Play(White, 4, 6)).unwrap();
+  b = b.play(Play(White, 4, 3)).unwrap();
+  b = b.play(Play(White, 3, 4)).unwrap();
+  b = b.play(Play(White, 5, 4)).unwrap();
+  b = b.play(Play(White, 3, 5)).unwrap();
+  b = b.play(Play(White, 5, 5)).unwrap();
+  b = b.play(Play(White, 4, 6)).unwrap();
 
   assert_eq!(b.get_coord(Coord::new(4, 4)), Empty);
   assert_eq!(b.get_coord(Coord::new(4, 5)), Empty);
@@ -246,17 +246,17 @@ fn playing_on_all_libs_of_a_bent_chain_should_capture() {
   let zht = Rc::new(ZobristHashTable::new(19));
   let mut b = Board::new(19, Minimal, zht.clone());
 
-  b = b.play(&Play(Black, 4, 4)).unwrap();
-  b = b.play(&Play(Black, 4, 5)).unwrap();
-  b = b.play(&Play(Black, 3, 4)).unwrap();
+  b = b.play(Play(Black, 4, 4)).unwrap();
+  b = b.play(Play(Black, 4, 5)).unwrap();
+  b = b.play(Play(Black, 3, 4)).unwrap();
 
-  b = b.play(&Play(White, 3, 3)).unwrap();
-  b = b.play(&Play(White, 4, 3)).unwrap();
-  b = b.play(&Play(White, 2, 4)).unwrap();
-  b = b.play(&Play(White, 5, 4)).unwrap();
-  b = b.play(&Play(White, 3, 5)).unwrap();
-  b = b.play(&Play(White, 5, 5)).unwrap();
-  b = b.play(&Play(White, 4, 6)).unwrap();
+  b = b.play(Play(White, 3, 3)).unwrap();
+  b = b.play(Play(White, 4, 3)).unwrap();
+  b = b.play(Play(White, 2, 4)).unwrap();
+  b = b.play(Play(White, 5, 4)).unwrap();
+  b = b.play(Play(White, 3, 5)).unwrap();
+  b = b.play(Play(White, 5, 5)).unwrap();
+  b = b.play(Play(White, 4, 6)).unwrap();
 
   assert_eq!(b.get_coord(Coord::new(4, 4)), Empty);
   assert_eq!(b.get_coord(Coord::new(4, 5)), Empty);
@@ -276,20 +276,20 @@ fn suicide_should_be_legal_in_tromp_taylor_rules() {
   let zht = Rc::new(ZobristHashTable::new(19));
   let mut b = Board::new(19, AnySizeTrompTaylor, zht.clone());
 
-  b = b.play(&Play(Black, 4, 4)).unwrap();
-  b = b.play(&Play(White, 5, 4)).unwrap();
-  b = b.play(&Play(Black, 16, 16)).unwrap();
-  b = b.play(&Play(White, 4, 3)).unwrap();
-  b = b.play(&Play(Black, 16, 15)).unwrap();
-  b = b.play(&Play(White, 3, 3)).unwrap();
-  b = b.play(&Play(Black, 16, 14)).unwrap();
-  b = b.play(&Play(White, 2, 4)).unwrap();
-  b = b.play(&Play(Black, 16, 13)).unwrap();
-  b = b.play(&Play(White, 4, 5)).unwrap();
-  b = b.play(&Play(Black, 16, 12)).unwrap();
-  b = b.play(&Play(White, 3, 5)).unwrap();
+  b = b.play(Play(Black, 4, 4)).unwrap();
+  b = b.play(Play(White, 5, 4)).unwrap();
+  b = b.play(Play(Black, 16, 16)).unwrap();
+  b = b.play(Play(White, 4, 3)).unwrap();
+  b = b.play(Play(Black, 16, 15)).unwrap();
+  b = b.play(Play(White, 3, 3)).unwrap();
+  b = b.play(Play(Black, 16, 14)).unwrap();
+  b = b.play(Play(White, 2, 4)).unwrap();
+  b = b.play(Play(Black, 16, 13)).unwrap();
+  b = b.play(Play(White, 4, 5)).unwrap();
+  b = b.play(Play(Black, 16, 12)).unwrap();
+  b = b.play(Play(White, 3, 5)).unwrap();
 
-  assert!(b.play(&Play(Black, 3, 4)).is_ok());
+  assert!(b.play(Play(Black, 3, 4)).is_ok());
 }
 
 #[test]
@@ -297,17 +297,17 @@ fn suicide_should_be_illegal_in_kgs_chinese_rules() {
     let zht = Rc::new(ZobristHashTable::new(3));
     let mut b = Board::new(3, KgsChinese, zht.clone());
 
-    b = b.play(&Play(Black, 2, 2)).unwrap();
-    b = b.play(&Play(White, 1, 2)).unwrap();
-    b = b.play(&Play(Black, 2, 1)).unwrap();
-    b = b.play(&Play(White, 3, 2)).unwrap();
-    b = b.play(&Play(Black, 2, 3)).unwrap();
-    b = b.play(&Play(White, 3, 1)).unwrap();
-    b = b.play(&Pass(Black)).unwrap();
-    b = b.play(&Play(White, 1, 3)).unwrap();
-    b = b.play(&Pass(Black)).unwrap();
+    b = b.play(Play(Black, 2, 2)).unwrap();
+    b = b.play(Play(White, 1, 2)).unwrap();
+    b = b.play(Play(Black, 2, 1)).unwrap();
+    b = b.play(Play(White, 3, 2)).unwrap();
+    b = b.play(Play(Black, 2, 3)).unwrap();
+    b = b.play(Play(White, 3, 1)).unwrap();
+    b = b.play(Pass(Black)).unwrap();
+    b = b.play(Play(White, 1, 3)).unwrap();
+    b = b.play(Pass(Black)).unwrap();
 
-    let play = b.play(&Play(White, 1, 1));
+    let play = b.play(Play(White, 1, 1));
     assert!(play.is_err());
     assert_eq!(play.unwrap_err(), IllegalMove::SuicidePlay);
 }
@@ -317,20 +317,20 @@ fn suicide_should_remove_the_suicided_chain() {
   let zht = Rc::new(ZobristHashTable::new(19));
   let mut b = Board::new(19, AnySizeTrompTaylor, zht.clone());
 
-  b = b.play(&Play(Black, 4, 4)).unwrap();
-  b = b.play(&Play(White, 5, 4)).unwrap();
-  b = b.play(&Play(Black, 16, 16)).unwrap();
-  b = b.play(&Play(White, 4, 3)).unwrap();
-  b = b.play(&Play(Black, 16, 15)).unwrap();
-  b = b.play(&Play(White, 3, 3)).unwrap();
-  b = b.play(&Play(Black, 16, 14)).unwrap();
-  b = b.play(&Play(White, 2, 4)).unwrap();
-  b = b.play(&Play(Black, 16, 13)).unwrap();
-  b = b.play(&Play(White, 4, 5)).unwrap();
-  b = b.play(&Play(Black, 16, 12)).unwrap();
-  b = b.play(&Play(White, 3, 5)).unwrap();
+  b = b.play(Play(Black, 4, 4)).unwrap();
+  b = b.play(Play(White, 5, 4)).unwrap();
+  b = b.play(Play(Black, 16, 16)).unwrap();
+  b = b.play(Play(White, 4, 3)).unwrap();
+  b = b.play(Play(Black, 16, 15)).unwrap();
+  b = b.play(Play(White, 3, 3)).unwrap();
+  b = b.play(Play(Black, 16, 14)).unwrap();
+  b = b.play(Play(White, 2, 4)).unwrap();
+  b = b.play(Play(Black, 16, 13)).unwrap();
+  b = b.play(Play(White, 4, 5)).unwrap();
+  b = b.play(Play(Black, 16, 12)).unwrap();
+  b = b.play(Play(White, 3, 5)).unwrap();
 
-  b = b.play(&Play(Black, 3, 4)).unwrap();
+  b = b.play(Play(Black, 3, 4)).unwrap();
 
   assert_eq!(b.get_coord(Coord::new(3, 4)), Empty);
   assert_eq!(b.get_coord(Coord::new(4, 4)), Empty);
@@ -348,9 +348,9 @@ fn playing_twice_should_be_illegal_in_tromp_taylor_rules() {
   let zht = Rc::new(ZobristHashTable::new(19));
   let mut b = Board::new(19, AnySizeTrompTaylor, zht.clone());
 
-  b = b.play(&Play(Black, 10, 10)).unwrap();
+  b = b.play(Play(Black, 10, 10)).unwrap();
 
-  assert!(b.play(&Play(Black, 4, 4)).is_err());
+  assert!(b.play(Play(Black, 4, 4)).is_err());
 }
 
 #[test]
@@ -365,11 +365,11 @@ fn after_two_passes_the_game_should_be_over_in_tromp_taylor_rules() {
   let zht = Rc::new(ZobristHashTable::new(19));
   let mut b = Board::new(19, AnySizeTrompTaylor, zht.clone());
 
-  b = b.play(&Pass(Black)).unwrap();
-  b = b.play(&Pass(White)).unwrap();
+  b = b.play(Pass(Black)).unwrap();
+  b = b.play(Pass(White)).unwrap();
   assert!(b.is_game_over());
 
-  assert!(b.play(&Play(Black, 4, 4)).is_err());
+  assert!(b.play(Play(Black, 4, 4)).is_err());
 }
 
 #[test]
@@ -377,16 +377,16 @@ fn replaying_directly_on_a_ko_point_should_be_illegal() {
   let zht = Rc::new(ZobristHashTable::new(19));
   let mut b = Board::new(19, AnySizeTrompTaylor, zht.clone());
 
-  b = b.play(&Play(Black, 4, 4)).unwrap();
-  b = b.play(&Play(White, 5, 4)).unwrap();
-  b = b.play(&Play(Black, 3, 3)).unwrap();
-  b = b.play(&Play(White, 4, 3)).unwrap();
-  b = b.play(&Play(Black, 3, 5)).unwrap();
-  b = b.play(&Play(White, 4, 5)).unwrap();
-  b = b.play(&Play(Black, 2, 4)).unwrap();
-  b = b.play(&Play(White, 3, 4)).unwrap();
+  b = b.play(Play(Black, 4, 4)).unwrap();
+  b = b.play(Play(White, 5, 4)).unwrap();
+  b = b.play(Play(Black, 3, 3)).unwrap();
+  b = b.play(Play(White, 4, 3)).unwrap();
+  b = b.play(Play(Black, 3, 5)).unwrap();
+  b = b.play(Play(White, 4, 5)).unwrap();
+  b = b.play(Play(Black, 2, 4)).unwrap();
+  b = b.play(Play(White, 3, 4)).unwrap();
 
-  match b.play(&Play(Black, 4, 4)) {
+  match b.play(Play(Black, 4, 4)) {
     Err(IllegalMove::SuperKoRuleBroken) => (),
     Ok(_)                               => panic!("Replaying on a ko was allowed"),
     Err(x)                              => panic!("Engine crashed while trying to replay on a ko : {}", x)
@@ -398,16 +398,16 @@ fn counting_simple_case() {
   let zht = Rc::new(ZobristHashTable::new(4));
   let mut b = Board::new(4, Minimal, zht.clone());
 
-  b = b.play(&Play(Black, 2, 1)).unwrap();
-  b = b.play(&Play(White, 3, 1)).unwrap();
-  b = b.play(&Play(Black, 2, 2)).unwrap();
-  b = b.play(&Play(White, 3, 2)).unwrap();
-  b = b.play(&Play(Black, 2, 3)).unwrap();
-  b = b.play(&Play(White, 3, 3)).unwrap();
-  b = b.play(&Play(Black, 2, 4)).unwrap();
-  b = b.play(&Play(White, 3, 4)).unwrap();
-  b = b.play(&Pass(Black)).unwrap();
-  b = b.play(&Pass(White)).unwrap();
+  b = b.play(Play(Black, 2, 1)).unwrap();
+  b = b.play(Play(White, 3, 1)).unwrap();
+  b = b.play(Play(Black, 2, 2)).unwrap();
+  b = b.play(Play(White, 3, 2)).unwrap();
+  b = b.play(Play(Black, 2, 3)).unwrap();
+  b = b.play(Play(White, 3, 3)).unwrap();
+  b = b.play(Play(Black, 2, 4)).unwrap();
+  b = b.play(Play(White, 3, 4)).unwrap();
+  b = b.play(Pass(Black)).unwrap();
+  b = b.play(Pass(White)).unwrap();
 
   let (b_score, w_score) = b.score();
   assert_eq!(b_score, 8);
@@ -421,24 +421,24 @@ fn counting_disjoint_territory() {
   let zht = Rc::new(ZobristHashTable::new(size));
   let mut b = Board::new(size, Minimal, zht.clone());
 
-  b = b.play(&Play(Black, 2, 1)).unwrap();
-  b = b.play(&Play(White, 3, 1)).unwrap();
-  b = b.play(&Play(Black, 2, 2)).unwrap();
-  b = b.play(&Play(White, 3, 2)).unwrap();
-  b = b.play(&Play(Black, 1, 3)).unwrap();
-  b = b.play(&Play(White, 2, 3)).unwrap();
-  b = b.play(&Play(Black, 5, 4)).unwrap();
-  b = b.play(&Play(White, 1, 4)).unwrap();
-  b = b.play(&Play(Black, 4, 4)).unwrap();
-  b = b.play(&Play(White, 5, 3)).unwrap();
-  b = b.play(&Play(Black, 4, 5)).unwrap();
-  b = b.play(&Play(White, 4, 3)).unwrap();
-  b = b.play(&Play(Black, 1, 2)).unwrap();
-  b = b.play(&Play(White, 3, 4)).unwrap();
-  b = b.play(&Pass(Black)).unwrap();
-  b = b.play(&Play(White, 3, 5)).unwrap();
-  b = b.play(&Pass(Black)).unwrap();
-  b = b.play(&Pass(White)).unwrap();
+  b = b.play(Play(Black, 2, 1)).unwrap();
+  b = b.play(Play(White, 3, 1)).unwrap();
+  b = b.play(Play(Black, 2, 2)).unwrap();
+  b = b.play(Play(White, 3, 2)).unwrap();
+  b = b.play(Play(Black, 1, 3)).unwrap();
+  b = b.play(Play(White, 2, 3)).unwrap();
+  b = b.play(Play(Black, 5, 4)).unwrap();
+  b = b.play(Play(White, 1, 4)).unwrap();
+  b = b.play(Play(Black, 4, 4)).unwrap();
+  b = b.play(Play(White, 5, 3)).unwrap();
+  b = b.play(Play(Black, 4, 5)).unwrap();
+  b = b.play(Play(White, 4, 3)).unwrap();
+  b = b.play(Play(Black, 1, 2)).unwrap();
+  b = b.play(Play(White, 3, 4)).unwrap();
+  b = b.play(Pass(Black)).unwrap();
+  b = b.play(Play(White, 3, 5)).unwrap();
+  b = b.play(Pass(Black)).unwrap();
+  b = b.play(Pass(White)).unwrap();
 
   let (b_score, w_score) = b.score();
   assert_eq!(b_score, 9);
@@ -452,16 +452,16 @@ fn counting_with_neutral_points() {
   let zht = Rc::new(ZobristHashTable::new(size));
   let mut b = Board::new(size, Minimal, zht.clone());
 
-  b = b.play(&Play(Black, 2, 1)).unwrap();
-  b = b.play(&Play(White, 3, 1)).unwrap();
-  b = b.play(&Play(Black, 2, 2)).unwrap();
-  b = b.play(&Play(White, 3, 2)).unwrap();
-  b = b.play(&Play(Black, 1, 2)).unwrap();
-  b = b.play(&Play(White, 2, 3)).unwrap();
-  b = b.play(&Pass(Black)).unwrap();
-  b = b.play(&Play(White, 1, 4)).unwrap();
-  b = b.play(&Pass(Black)).unwrap();
-  b = b.play(&Pass(White)).unwrap();
+  b = b.play(Play(Black, 2, 1)).unwrap();
+  b = b.play(Play(White, 3, 1)).unwrap();
+  b = b.play(Play(Black, 2, 2)).unwrap();
+  b = b.play(Play(White, 3, 2)).unwrap();
+  b = b.play(Play(Black, 1, 2)).unwrap();
+  b = b.play(Play(White, 2, 3)).unwrap();
+  b = b.play(Pass(Black)).unwrap();
+  b = b.play(Play(White, 1, 4)).unwrap();
+  b = b.play(Pass(Black)).unwrap();
+  b = b.play(Pass(White)).unwrap();
 
   let (b_score, w_score) = b.score();
   assert_eq!(b_score, 4);
@@ -475,14 +475,14 @@ fn capturing_two_or_more_groups_while_playing_in_an_eye_actually_captures() {
   let zht = Rc::new(ZobristHashTable::new(size));
   let mut b = Board::new(size, AnySizeTrompTaylor, zht.clone());
 
-  b = b.play(&Play(Black, 2, 1)).unwrap();
-  b = b.play(&Play(White, 3, 1)).unwrap();
-  b = b.play(&Play(Black, 1, 2)).unwrap();
-  b = b.play(&Play(White, 2, 2)).unwrap();
-  b = b.play(&Play(Black, 5, 5)).unwrap();
-  b = b.play(&Play(White, 1, 3)).unwrap();
-  b = b.play(&Play(Black, 5, 4)).unwrap();
-  b = b.play(&Play(White, 1, 1)).unwrap();
+  b = b.play(Play(Black, 2, 1)).unwrap();
+  b = b.play(Play(White, 3, 1)).unwrap();
+  b = b.play(Play(Black, 1, 2)).unwrap();
+  b = b.play(Play(White, 2, 2)).unwrap();
+  b = b.play(Play(Black, 5, 5)).unwrap();
+  b = b.play(Play(White, 1, 3)).unwrap();
+  b = b.play(Play(Black, 5, 4)).unwrap();
+  b = b.play(Play(White, 1, 1)).unwrap();
 
   assert_eq!(b.get_coord(Coord::new(1, 1)), White);
   assert_eq!(b.get_coord(Coord::new(1, 2)), Empty);
@@ -503,7 +503,7 @@ fn next_player_should_return_with_after_a_single_move() {
     let size = 5;
     let zht = Rc::new(ZobristHashTable::new(size));
     let mut b = Board::new(size, AnySizeTrompTaylor, zht.clone());
-    b = b.play(&Play(Black, 1, 1)).unwrap();
+    b = b.play(Play(Black, 1, 1)).unwrap();
     assert_eq!(White, b.next_player());
 }
 
@@ -522,7 +522,7 @@ fn legal_moves_should_return_black_moves_on_a_board_without_moves() {
     let zht = Rc::new(ZobristHashTable::new(size));
     let b = Board::new(size, AnySizeTrompTaylor, zht.clone());
     let moves = b.legal_moves();
-    let all_black = moves.iter().all(|m| m.color() == Black);
+    let all_black = moves.iter().all(|m| m.color() == &Black);
     assert!(all_black);
 }
 
@@ -531,9 +531,9 @@ fn legal_moves_should_return_white_moves_on_a_board_with_one_move() {
     let size = 5;
     let zht = Rc::new(ZobristHashTable::new(size));
     let mut b = Board::new(size, AnySizeTrompTaylor, zht.clone());
-    b = b.play(&Play(Black, 1, 1)).unwrap();
+    b = b.play(Play(Black, 1, 1)).unwrap();
     let moves = b.legal_moves();
-    let all_white = moves.iter().all(|m| m.color() == White);
+    let all_white = moves.iter().all(|m| m.color() == &White);
     assert!(all_white);
 }
 
@@ -550,7 +550,7 @@ fn legal_moves_only_contains_legal_moves() {
     let size = 5;
     let zht = Rc::new(ZobristHashTable::new(size));
     let mut b = Board::new(size, AnySizeTrompTaylor, zht.clone());
-    b = b.play(&Play(Black, 1, 1)).unwrap();
+    b = b.play(Play(Black, 1, 1)).unwrap();
     let moves = b.legal_moves();
     assert!(!moves.iter().any(|m| m == &Play(White, 1, 1)));
 }

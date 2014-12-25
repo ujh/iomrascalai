@@ -137,7 +137,7 @@ impl<'a> GTPInterpreter<'a> {
             "genmove"          => {
                 let color = Color::from_gtp(command[1]);
                 let m  = self.engine.gen_move(color, &self.game);
-                match self.game.clone().play(&m) {
+                match self.game.clone().play(m) {
                     Ok(g) => {
                         self.game = g;
                         Command::GenMove(m.to_gtp())
@@ -149,7 +149,7 @@ impl<'a> GTPInterpreter<'a> {
             },
             "play"             => {
                 let m = Move::from_gtp(command[1], command[2]);
-                match self.game.clone().play(&m) {
+                match self.game.clone().play(m) {
                     Ok(g) => {
                         self.game = g;
                         Command::Play

@@ -82,12 +82,12 @@ impl<'a> Property<'a> {
         }
     }
 
-    fn play(&self, game: Game) -> Result<Game, IllegalMove> {
+    fn play<'b>(&'b self, game: Game<'b>) -> Result<Game<'b>, IllegalMove> {
         if self.is_move() {
             if self.is_pass() {
-                game.play(&Pass(self.color()))
+                game.play(Pass(self.color()))
             } else {
-                game.play(&Play(self.color(), self.col(), self.row(game.size())))
+                game.play(Play(self.color(), self.col(), self.row(game.size())))
             }
         } else {
             Ok(game)

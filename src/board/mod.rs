@@ -51,7 +51,7 @@ pub enum IllegalMove {
     SuperKoRuleBroken
 }
 
-#[deriving(Clone, Show, Eq, PartialEq, Hash)]
+#[deriving(Clone, Show, Eq, PartialEq, Hash, Copy)]
 pub enum Color {
     White,
     Black,
@@ -83,7 +83,7 @@ pub struct Board<'a> {
     board: Vec<uint>,
     chains: Vec<Chain>,
     ruleset: Ruleset,
-    previous_player: &'a Color,
+    previous_player: Color,
     consecutive_passes: u8,
     zobrist_base_table: Rc<ZobristHashTable>,
     previous_boards_hashes: Vec<u64>
@@ -96,7 +96,7 @@ impl<'a> Clone for Board<'a> {
             board                 : self.board.clone(),
             chains                : self.chains.clone(),
             ruleset               : self.ruleset.clone(),
-            previous_player       : self.previous_player.clone(),
+            previous_player       : self.previous_player,
             consecutive_passes    : self.consecutive_passes,
             zobrist_base_table    : self.zobrist_base_table.clone(),
             previous_boards_hashes: self.previous_boards_hashes.clone()
@@ -143,27 +143,27 @@ impl<'a> Board<'a> {
     }
 
     fn is_same_player(&self, m: &Move) -> bool {
-        self.previous_player == m.color()
+        self.previous_player == *m.color()
     }
 
     pub fn legal_moves(&self) -> Vec<Move> {
         let color = self.next_player();
         let mut moves : Vec<Move> = Coord::for_board_size(self.size).iter().map(
             |coord| Play(color.clone(), coord.col, coord.row)).filter(
-            |m| self.play(m).is_ok()).collect();
+            |m| self.play(*m).is_ok()).collect();
         moves.push(Pass(color.clone()));
         moves
     }
 
     // Note: Same as get(), the board is indexed starting at 1-1
-    pub fn play(&self, m: &Move) -> Result<Board<'a>, IllegalMove> {
+    pub fn play(&self, m: Move) -> Result<Board, IllegalMove> {
         // We check is the player is trying to play on a finished game (which is illegal in TT rules)
         if self.is_game_over() && !self.ruleset.game_over_play() {
             return Err(IllegalMove::GameAlreadyOver);
         }
 
         // We check that the same player didn't play twice (except in the minimal ruleset, which is useful for tests)
-        if self.is_same_player(m) && !self.ruleset.same_player() {
+        if self.is_same_player(&m) && !self.ruleset.same_player() {
             return Err(IllegalMove::SamePlayerPlayedTwice);
         }
 
@@ -171,7 +171,7 @@ impl<'a> Board<'a> {
         if m.is_pass() {
             let mut new_board = self.clone();
             new_board.consecutive_passes += 1;
-            new_board.previous_player    = m.color();
+            new_board.previous_player    = *m.color();
             return Ok(new_board);
         }
 
@@ -186,16 +186,16 @@ impl<'a> Board<'a> {
 
         let mut new_board = self.clone();
 
-        new_board.previous_player    = m.color();
+        new_board.previous_player    = *m.color();
 
         new_board.consecutive_passes = 0;
 
-        new_board.merge_or_create_chain(m);
+        new_board.merge_or_create_chain(&m);
 
         // We then update the libs of all chains of the opposite color
         new_board.update_chains_libs_of(m.color().opposite());
 
-        let adv_stones_removed = new_board.remove_adv_chains_with_no_libs_close_to(m);
+        let adv_stones_removed = new_board.remove_adv_chains_with_no_libs_close_to(&m);
         new_board.update_all();
 
         let final_chain_id = new_board.get_chain(m.coords()).id;
@@ -219,7 +219,7 @@ impl<'a> Board<'a> {
         }
 
         // We update the hash with the changes to the board, and add it to the list of hashes before returning.
-        let hash = new_board.compute_hash(m, &adv_stones_removed, &friend_stones_removed);
+        let hash = new_board.compute_hash(&m, &adv_stones_removed, &friend_stones_removed);
 
         if new_board.previous_boards_hashes.contains(&hash) {
             return Err(IllegalMove::SuperKoRuleBroken)
@@ -233,7 +233,7 @@ impl<'a> Board<'a> {
     fn find_neighbouring_friendly_chains_ids(&self, m: &Move) -> Vec<uint> {
         let mut friend_neigh_chains_id: Vec<uint> = m.coords().neighbours(self.size)
                   .iter()
-                  .filter(|&c| c.is_inside(self.size) && self.get_coord(*c) == m.color())
+                  .filter(|&c| c.is_inside(self.size) && self.get_coord(*c) == *m.color())
                   .map(|&c| self.get_chain(c).id)
                   .collect();
 
@@ -346,14 +346,14 @@ impl<'a> Board<'a> {
     fn remove_adv_chains_with_no_libs_close_to(&mut self, m: &Move) -> Vec<Coord> {
         let coords_to_remove = m.coords().neighbours(self.size).iter()
                                       .map(|&coord| self.get_chain(coord))
-                                      .filter(|chain| chain.libs == 0 && chain.color != m.color())
+                                      .filter(|chain| chain.libs == 0 && chain.color != *m.color())
                                       .fold(Vec::new(), |acc, chain| acc + chain.coords().as_slice());
 
 
         let mut chain_to_remove_ids: Vec<uint> = m.coords().neighbours(self.size)
                                                          .iter()
                                                          .map(|&coord| self.get_chain(coord))
-                                                         .filter(|chain| chain.libs == 0 && chain.color != m.color())
+                                                         .filter(|chain| chain.libs == 0 && chain.color != *m.color())
                                                          .map(|chain| chain.id)
                                                          .collect();
 
@@ -382,7 +382,7 @@ impl<'a> Board<'a> {
 
     fn create_new_chain(&mut self, m: &Move) {
         let new_chain_id    = self.chains.len();
-        let mut new_chain   = Chain::new(new_chain_id, m.color());
+        let mut new_chain   = Chain::new(new_chain_id, *m.color());
         new_chain.add_stone(m.coords());
         self.chains.push(new_chain);
         self.board[m.coords().to_index(self.size)] = new_chain_id;
@@ -475,7 +475,7 @@ impl<'a> Board<'a> {
         }
 
         for &coord in friend_stones_removed.iter() {
-            hash = self.zobrist_base_table.remove_stone_from_hash(hash, &Play(m.color(), coord.col, coord.row));
+            hash = self.zobrist_base_table.remove_stone_from_hash(hash, &Play(*m.color(), coord.col, coord.row));
         }
 
         hash

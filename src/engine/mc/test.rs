@@ -33,5 +33,5 @@ fn produces_a_move() {
     let game   = Game::new(13, 6.5, KgsChinese);
     let color  = Black;
     let m      = engine.gen_move(color, &game);
-    assert_eq!(Black, m.color());
+    assert_eq!(Black, *m.color());
 }
