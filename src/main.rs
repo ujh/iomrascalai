@@ -25,6 +25,8 @@ extern crate rand;
 extern crate regex;
 #[phase(plugin)]
 extern crate regex_macros;
+extern crate time;
+
 
 use engine::Engine;
 use engine::McEngine;

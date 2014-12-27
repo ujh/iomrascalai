@@ -18,13 +18,12 @@
  * along with Iomrascálaí.  If not, see <http://www.gnu.org/licenses/>. *
  *                                                                      *
  ************************************************************************/
-extern crate time;
 
 use engine::RandomEngine;
 use game::Game;
 use ruleset::KgsChinese;
 use playout::Playout;
-use self::time::get_time;
+use time::get_time;
 
 pub fn pps(size: u8, runtime: uint) {
     let engine = RandomEngine::new();
