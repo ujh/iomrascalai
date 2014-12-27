@@ -30,6 +30,7 @@ use board::Pass;
 use board::Play;
 use board::White;
 use board::ZobristHashTable;
+use board::chain::Chain;
 use ruleset::AnySizeTrompTaylor;
 use ruleset::KgsChinese;
 use ruleset::Minimal;
@@ -553,4 +554,20 @@ fn legal_moves_only_contains_legal_moves() {
     b = b.play(Play(Black, 1, 1)).unwrap();
     let moves = b.legal_moves();
     assert!(!moves.iter().any(|m| m == &Play(White, 1, 1)));
+}
+
+#[test]
+fn ruleset_returns_the_correct_ruleset() {
+    let size = 1;
+    let zht = Rc::new(ZobristHashTable::new(size));
+    let b = Board::new(size, Minimal, zht.clone());
+    assert_eq!(b.ruleset(), Minimal);
+}
+
+#[test]
+fn chains_returns_the_chains_on_the_board() {
+    let size = 1;
+    let zht = Rc::new(ZobristHashTable::new(size));
+    let b = Board::new(size, Minimal, zht.clone());
+    assert_eq!(*b.chains(), vec!(Chain::new(0, Empty)));
 }

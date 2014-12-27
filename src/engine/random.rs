@@ -35,6 +35,8 @@ impl RandomEngine {
 }
 
 impl Engine for RandomEngine {
+
+    #[allow(unused_variables)]
     fn gen_move(&self, color: Color, game: &Game) -> Move {
         let moves = game.legal_moves();
         moves[random::<uint>() % moves.len()]

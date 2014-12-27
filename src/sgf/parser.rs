@@ -37,7 +37,6 @@ pub struct Parser {
 
 #[deriving(Show, Eq, PartialEq)]
 pub enum Error {
-    SyntaxError,
     IllegalMoveError
 }
 
@@ -122,13 +121,13 @@ impl Parser {
     fn size(&self) -> u8 {
         let props = self.tokenize();
         let prop = props.iter().find(|p| p.name == "SZ").unwrap();
-        from_str(prop.val).unwrap()
+        prop.val.parse().unwrap()
     }
 
     fn komi(&self) -> f32 {
         let props = self.tokenize();
         let prop = props.iter().find(|p| p.name == "KM").unwrap();
-        from_str(prop.val).unwrap()
+        prop.val.parse().unwrap()
     }
 
     fn tokenize<'a>(&'a self) -> Vec<Property<'a>> {

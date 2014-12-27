@@ -116,7 +116,7 @@ impl<'a> GTPInterpreter<'a> {
             "protocol_version" => return Command::ProtocolVersion,
             "list_commands"    => return Command::ListCommands(self.list_commands()),
             "known_command"    => return Command::KnownCommand(self.known_commands.contains(&String::from_str(command[1].clone()))),
-            "boardsize"        => return match from_str::<u8>(command[1]) {
+            "boardsize"        => return match command[1].parse::<u8>() {
                 Some(size) => {
                     self.game = Game::new(size, self.komi(), KgsChinese);
                     Command::BoardSize
@@ -127,7 +127,7 @@ impl<'a> GTPInterpreter<'a> {
                 self.game = Game::new(self.boardsize(), self.komi(), KgsChinese);
                 Command::ClearBoard
             },
-            "komi"             => return match from_str::<f32>(command[1]) {
+            "komi"             => return match command[1].parse::<f32>() {
                 Some(komi) => {
                     self.game.set_komi(komi);
                     Command::Komi
@@ -177,7 +177,7 @@ impl<'a> GTPInterpreter<'a> {
         let comment = regex!(r"#.*");
         let without_comment = comment.replace(without_ctrls.as_slice(), "");
         // We remove the whitespaces before/after the string
-        without_tabs.as_slice().trim().to_string()
+        without_comment.as_slice().trim().to_string()
     }
 
     fn list_commands(&self) -> String {

@@ -68,8 +68,8 @@ fn main() {
     match mode_arg {
         Some(ref s) if s.as_slice() == "gtp" => gtp::driver::Driver::new(engine),
         Some(ref s) if s.as_slice() == "pps" => {
-            let size    = matches.opt_str("s").and_then(|s| from_str::<u8>(s.as_slice())).unwrap_or(9);
-            let runtime = matches.opt_str("r").and_then(|s| from_str::<uint>(s.as_slice())).unwrap_or(30);
+            let size    = matches.opt_str("s").and_then(|s| s.as_slice().parse::<u8>()).unwrap_or(9);
+            let runtime = matches.opt_str("r").and_then(|s| s.as_slice().parse::<uint>()).unwrap_or(30);
             benchmarks::pps(size, runtime)
         },
         _                                    => cli::Driver::new()

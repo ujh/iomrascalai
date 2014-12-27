@@ -36,6 +36,7 @@ struct PlayoutTestEngine;
 
 impl Engine for PlayoutTestEngine {
 
+    #[allow(unused_variables)]
     fn gen_move(&self, color: Color, game: &Game) -> Move {
         Pass(color)
     }

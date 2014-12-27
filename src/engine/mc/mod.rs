@@ -65,12 +65,12 @@ impl MoveStats {
 }
 
 pub struct McEngine {
-    randomEngine: RandomEngine
+    random_engine: RandomEngine
 }
 
 impl McEngine {
     pub fn new() -> McEngine {
-        McEngine{randomEngine: RandomEngine::new()}
+        McEngine { random_engine: RandomEngine::new() }
     }
 
 }
@@ -84,8 +84,8 @@ impl Engine for McEngine {
         }
         for m in moves.iter() {
             // We use 1 here right now, as it's so damn slow.
-            for i in range(0u, 1) {
-                let playout = Playout::new(&self.randomEngine);
+            for _ in range(0u, 1) {
+                let playout = Playout::new(&self.random_engine);
                 let g = game.play(*m).unwrap();
                 let winner = playout.run(&g);
                 let mut prev_move_stats = stats.get_mut(m).unwrap();
@@ -98,7 +98,7 @@ impl Engine for McEngine {
         }
         // pass if 0% wins
         // pass if 100% wins
-        if stats.iter().all(|(m, move_stats)| move_stats.all_wins() || move_stats.all_loses()) {
+        if stats.iter().all(|(_, move_stats)| move_stats.all_wins() || move_stats.all_loses()) {
             Pass(color)
         } else {
             let mut m = Pass(color);
