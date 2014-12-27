@@ -1,3 +1,4 @@
 language: rust
 script:
   - make
+sudo: false
