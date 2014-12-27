@@ -30,7 +30,7 @@ use super::McEngine;
 #[test]
 fn produces_a_move() {
     let engine = McEngine::new();
-    let game   = Game::new(13, 6.5, KgsChinese);
+    let game   = Game::new(5, 6.5, KgsChinese);
     let color  = Black;
     let m      = engine.gen_move(color, &game);
     assert_eq!(Black, *m.color());
