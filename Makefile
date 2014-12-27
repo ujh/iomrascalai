@@ -39,7 +39,7 @@ $(EXEC): $(MAIN) $(CRATES)
 
 $(TEST): $(MAIN) $(CRATES)
 	$(RUSTC) --test -o $(TEST) $(MAIN)
-	bin/test --nocapture
+	bin/test --nocapture $(filter)
 
 $(DEBUG): $(MAIN) $(CRATES)
 	$(RUSTC) -g -o $(DEBUG) $(MAIN)
