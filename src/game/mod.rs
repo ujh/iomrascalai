@@ -106,13 +106,7 @@ impl<'a> Game<'a> {
     }
 
     pub fn set_komi(&mut self, komi: f32) {
-        self.base_zobrist_table = Rc::new(ZobristHashTable::new(self.size()));
-        self.board = Board::new(
-            self.size(),
-            komi,
-            self.ruleset(),
-            self.base_zobrist_table.clone());
-        self.move_number = 0;
+        self.board.set_komi(komi);
     }
 
     pub fn board_size(&self) -> u8 {

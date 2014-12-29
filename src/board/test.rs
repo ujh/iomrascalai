@@ -571,3 +571,20 @@ fn chains_returns_the_chains_on_the_board() {
     let b = Board::new(size, 6.5, Minimal, zht.clone());
     assert_eq!(*b.chains(), vec!(Chain::new(0, Empty)));
 }
+
+#[test]
+fn set_komi_updates_the_komi() {
+    let size = 1;
+    let zht = Rc::new(ZobristHashTable::new(size));
+    let mut b = Board::new(size, 6.5, Minimal, zht.clone());
+    b.set_komi(10.0);
+    assert_eq!(b.komi(), 10.0);
+}
+
+#[test]
+fn komi_returns_the_komi() {
+    let size = 1;
+    let zht = Rc::new(ZobristHashTable::new(size));
+    let b = Board::new(size, 6.5, Minimal, zht.clone());
+    assert_eq!(b.komi(), 6.5);
+}

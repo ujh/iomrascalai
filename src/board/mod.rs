@@ -144,6 +144,10 @@ impl<'a> Board<'a> {
         self.komi
     }
 
+    pub fn set_komi(&mut self, komi: f32) {
+        self.komi = komi;
+    }
+
     pub fn next_player(&self) -> Color {
         self.previous_player.opposite()
     }
