@@ -60,13 +60,13 @@ fn main() {
         Err(f) => panic!(f.to_string())
     };
 
-    let engine_arg = matches.opt_str("e").map(|s| s.into_ascii_lower());
+    let engine_arg = matches.opt_str("e").map(|s| s.into_ascii_lowercase());
     let engine = match engine_arg {
         Some(ref s) if s.as_slice() == "mc" => box McEngine::new() as Box<Engine>,
         _                                   => box RandomEngine::new() as Box<Engine>
     };
 
-    let mode_arg = matches.opt_str("m").map(|s| s.into_ascii_lower());
+    let mode_arg = matches.opt_str("m").map(|s| s.into_ascii_lowercase());
     match mode_arg {
         Some(ref s) if s.as_slice() == "gtp" => gtp::driver::Driver::new(engine),
         Some(ref s) if s.as_slice() == "pps" => {
