@@ -42,19 +42,17 @@ mod score;
 pub struct Game<'a> {
     board: Board<'a>,
     base_zobrist_table: Rc<ZobristHashTable>,
-    komi: f32,
     move_number: u8
 }
 
 impl<'a> Game<'a> {
     pub fn new<'b>(size: u8, komi: f32, ruleset: Ruleset) -> Game<'b> {
         let base_zobrist_table = Rc::new(ZobristHashTable::new(size));
-        let new_board = Board::new(size, ruleset, base_zobrist_table.clone());
+        let new_board = Board::new(size, komi, ruleset, base_zobrist_table.clone());
 
         Game {
             board: new_board,
             base_zobrist_table: base_zobrist_table,
-            komi: komi,
             move_number: 0
         }
     }
@@ -92,7 +90,7 @@ impl<'a> Game<'a> {
     }
 
     pub fn komi(&self) -> f32 {
-        self.komi
+        self.board.komi()
     }
 
     pub fn size(&self) -> u8 {
@@ -100,14 +98,21 @@ impl<'a> Game<'a> {
     }
 
     pub fn score(&self) -> Score {
-        Score::new(self.board.score(), self.komi)
+        Score::new(self.board.score(), self.komi())
     }
 
     pub fn winner(&self) -> Color {
         self.score().color()
     }
+
     pub fn set_komi(&mut self, komi: f32) {
-        self.komi = komi;
+        self.base_zobrist_table = Rc::new(ZobristHashTable::new(self.size()));
+        self.board = Board::new(
+            self.size(),
+            komi,
+            self.ruleset(),
+            self.base_zobrist_table.clone());
+        self.move_number = 0;
     }
 
     pub fn board_size(&self) -> u8 {
@@ -131,7 +136,7 @@ impl<'a> Game<'a> {
 
 impl<'a> Show for Game<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let mut s = format!("komi: {}\n", self.komi);
+        let mut s = format!("komi: {}\n", self.komi());
 
         // First we print the board
         for row in range(1u8, self.board.size()+1).rev() {
