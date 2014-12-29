@@ -52,6 +52,7 @@ as inspiration:
 * [Pachi](http://pachi.or.cz/)
 * [Orego](https://github.com/Orego/Orego)
 * [libego](https://github.com/lukaszlew/libego)
+* [Fuego](http://sourceforge.net/projects/fuego/)
 
 License
 =======
