@@ -22,6 +22,8 @@
 use board::Color;
 use board::coord::Coord;
 
+mod test;
+
 #[deriving(Clone, Eq, PartialEq, Show)]
 pub struct Chain {
     pub id   : uint,

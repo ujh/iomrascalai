@@ -28,13 +28,13 @@ pub use self::Color::Empty;
 pub use self::Color::White;
 use board::chain::Chain;
 use ruleset::Ruleset;
+use score::Score;
 
 use std::collections::HashSet;
 use std::rc::Rc;
 use std::vec::Vec;
 
-mod board_test;
-mod chain_test;
+mod test;
 
 mod chain;
 pub mod coord;
@@ -79,45 +79,48 @@ impl Color {
 
 #[deriving(Show)]
 pub struct Board<'a> {
-    size: u8,
-    board: Vec<uint>,
-    chains: Vec<Chain>,
-    ruleset: Ruleset,
-    previous_player: Color,
-    consecutive_passes: u8,
-    zobrist_base_table: Rc<ZobristHashTable>,
-    previous_boards_hashes: Vec<u64>
+    board:                  Vec<uint>,
+    chains:                 Vec<Chain>,
+    consecutive_passes:     u8,
+    komi:                   f32,
+    previous_boards_hashes: Vec<u64>,
+    previous_player:        Color,
+    ruleset:                Ruleset,
+    size:                   u8,
+    zobrist_base_table:     Rc<ZobristHashTable>
 }
 
 impl<'a> Clone for Board<'a> {
     fn clone(&self) -> Board<'a> {
         Board {
-            size                  : self.size,
-            board                 : self.board.clone(),
-            chains                : self.chains.clone(),
-            ruleset               : self.ruleset.clone(),
-            previous_player       : self.previous_player,
-            consecutive_passes    : self.consecutive_passes,
-            zobrist_base_table    : self.zobrist_base_table.clone(),
-            previous_boards_hashes: self.previous_boards_hashes.clone()
+            board:                  self.board.clone(),
+            chains:                 self.chains.clone(),
+            consecutive_passes:     self.consecutive_passes,
+            komi:                   self.komi,
+            previous_boards_hashes: self.previous_boards_hashes.clone(),
+            previous_player:        self.previous_player,
+            ruleset:                self.ruleset.clone(),
+            size:                   self.size,
+            zobrist_base_table:     self.zobrist_base_table.clone()
         }
     }
 }
 
 impl<'a> Board<'a> {
-    pub fn new(size: u8, ruleset: Ruleset, zobrist_base_table: Rc<ZobristHashTable>) -> Board<'a> {
+    pub fn new(size: u8, komi: f32, ruleset: Ruleset, zobrist_base_table: Rc<ZobristHashTable>) -> Board<'a> {
         if size != zobrist_base_table.size() {
             panic!("Different sizes for board and Zobrist hash table!");
         }
         Board {
-            size: size,
-            board: Vec::from_fn(size as uint*size as uint, |_| 0),
-            chains: vec!(Chain::new(0, Empty)),
-            ruleset: ruleset,
-            previous_player: White,
-            consecutive_passes: 0,
-            zobrist_base_table: zobrist_base_table.clone(),
-            previous_boards_hashes: vec!(zobrist_base_table.init_hash())
+            board:                  Vec::from_fn(size as uint*size as uint, |_| 0),
+            chains:                 vec!(Chain::new(0, Empty)),
+            consecutive_passes:     0,
+            komi:                   komi,
+            previous_boards_hashes: vec!(zobrist_base_table.init_hash()),
+            previous_player:        White,
+            ruleset:                ruleset,
+            size:                   size,
+            zobrist_base_table:     zobrist_base_table.clone()
         }
     }
 
@@ -136,6 +139,14 @@ impl<'a> Board<'a> {
         } else {
             panic!("You have requested a chain outside of the board");
         }
+    }
+
+    pub fn komi(&self) -> f32 {
+        self.komi
+    }
+
+    pub fn set_komi(&mut self, komi: f32) {
+        self.komi = komi;
     }
 
     pub fn next_player(&self) -> Color {
@@ -398,8 +409,12 @@ impl<'a> Board<'a> {
         self.board[c.to_index(self.size)] = 0;
     }
 
-    pub fn score(&self) -> (uint, uint) {
-        self.score_tt()
+    pub fn score(&self) -> Score {
+        Score::new(self.score_tt(), self.komi())
+    }
+
+    pub fn winner(&self) -> Color {
+        self.score().color()
     }
 
     fn score_tt(&self) -> (uint, uint) {

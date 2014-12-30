@@ -19,21 +19,21 @@
  *                                                                      *
  ************************************************************************/
 
-use engine::RandomEngine;
 use game::Game;
-use ruleset::KgsChinese;
 use playout::Playout;
+use ruleset::KgsChinese;
+
 use time::get_time;
 
 pub fn pps(size: u8, runtime: uint) {
-    let engine = RandomEngine::new();
-    let game   = Game::new(size, 6.5, KgsChinese);
-    let playout_engine = Playout::new(&engine);
+    let game = Game::new(size, 6.5, KgsChinese);
+    let board = game.board();
+    let playout_engine = Playout::new(board);
     let mut counter = 0;
     let start = get_time().sec;
 
     loop {
-        playout_engine.run(&game);
+        playout_engine.run();
         counter += 1;
 
         if(get_time().sec - start >= runtime as i64) {
