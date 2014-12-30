@@ -29,14 +29,13 @@ use board::Move;
 use board::White;
 use board::ZobristHashTable;
 use ruleset::Ruleset;
-use self::score::Score;
+use score::Score;
 
 use std::fmt;
 use core::fmt::Show;
 use std::rc::Rc;
 
 mod test;
-mod score;
 
 #[deriving(Clone)]
 pub struct Game<'a> {

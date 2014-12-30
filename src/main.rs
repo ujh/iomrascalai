@@ -36,14 +36,15 @@ use getopts::optopt;
 use std::ascii::OwnedAsciiExt;
 use std::os::args;
 
-mod board;
 mod benchmarks;
+mod board;
 mod cli;
 mod engine;
 mod game;
 mod gtp;
 mod playout;
 mod ruleset;
+mod score;
 mod sgf;
 
 fn main() {
