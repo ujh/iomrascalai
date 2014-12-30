@@ -72,7 +72,7 @@ fn main() {
         Some(ref s) if s.as_slice() == "gtp" => gtp::driver::Driver::new(engine),
         Some(ref s) if s.as_slice() == "pps" => {
             let size    = matches.opt_str("s").and_then(|s| s.as_slice().parse::<u8>()).unwrap_or(9);
-            let runtime = matches.opt_str("r").and_then(|s| s.as_slice().parse::<uint>()).unwrap_or(30);
+            let runtime = matches.opt_str("r").and_then(|s| s.as_slice().parse::<i64>()).unwrap_or(30);
             benchmarks::pps(size, runtime)
         },
         _                                    => cli::Driver::new()
