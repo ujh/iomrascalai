@@ -28,6 +28,7 @@ pub use self::Color::Empty;
 pub use self::Color::White;
 use board::chain::Chain;
 use ruleset::Ruleset;
+use score::Score;
 
 use std::collections::HashSet;
 use std::rc::Rc;
@@ -408,8 +409,12 @@ impl<'a> Board<'a> {
         self.board[c.to_index(self.size)] = 0;
     }
 
-    pub fn score(&self) -> (uint, uint) {
-        self.score_tt()
+    pub fn score(&self) -> Score {
+        Score::new(self.score_tt(), self.komi())
+    }
+
+    pub fn winner(&self) -> Color {
+        self.score().color()
     }
 
     fn score_tt(&self) -> (uint, uint) {

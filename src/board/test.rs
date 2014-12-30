@@ -410,7 +410,7 @@ fn counting_simple_case() {
   b = b.play(Pass(Black)).unwrap();
   b = b.play(Pass(White)).unwrap();
 
-  let (b_score, w_score) = b.score();
+  let (b_score, w_score) = b.score_tt();
   assert_eq!(b_score, 8);
   assert_eq!(w_score, 8);
 }
@@ -441,7 +441,7 @@ fn counting_disjoint_territory() {
   b = b.play(Pass(Black)).unwrap();
   b = b.play(Pass(White)).unwrap();
 
-  let (b_score, w_score) = b.score();
+  let (b_score, w_score) = b.score_tt();
   assert_eq!(b_score, 9);
   assert_eq!(w_score, 16);
 }
@@ -464,7 +464,7 @@ fn counting_with_neutral_points() {
   b = b.play(Pass(Black)).unwrap();
   b = b.play(Pass(White)).unwrap();
 
-  let (b_score, w_score) = b.score();
+  let (b_score, w_score) = b.score_tt();
   assert_eq!(b_score, 4);
   assert_eq!(w_score, 20);
 }

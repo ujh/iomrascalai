@@ -97,11 +97,11 @@ impl<'a> Game<'a> {
     }
 
     pub fn score(&self) -> Score {
-        Score::new(self.board.score(), self.komi())
+        self.board.score()
     }
 
     pub fn winner(&self) -> Color {
-        self.score().color()
+        self.board.winner()
     }
 
     pub fn set_komi(&mut self, komi: f32) {
