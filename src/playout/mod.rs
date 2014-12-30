@@ -18,34 +18,32 @@
  * along with Iomrascálaí.  If not, see <http://www.gnu.org/licenses/>. *
  *                                                                      *
  ************************************************************************/
+use board::Board;
 use board::Color;
-use board::Move;
-use engine::Engine;
-use game::Game;
 
-mod test;
+use std::rand::random;
 
-pub struct Playout<'a, E:'a> {
-    engine: &'a E
+pub struct Playout<'a> {
+    board: Board<'a>
 }
 
-// TODO: Find a way to make this code easier to test. Maybe by using a
-// different Engine that specialized for the tests
-impl<'a, E: Engine> Playout<'a, E> {
-    pub fn new(engine: &E) -> Playout<E> {
-        Playout { engine: engine }
+
+impl<'a> Playout<'a> {
+    pub fn new(b: Board) -> Playout {
+        Playout { board: b }
     }
 
-    pub fn run(&self, g: &Game) -> Color {
-        let mut game = g.clone();
-        while !game.is_over() {
-            let m = self.gen_move(&game);
-            game = game.play(m).unwrap();
+    pub fn run(&self) -> Color {
+        let mut board = self.board.clone();
+        let max_moves = board.size() * board.size() * 3;
+        let mut move_count = 0;
+        while !board.is_game_over() && move_count < max_moves {
+            let moves = board.legal_moves();
+            let m = moves[random::<uint>() % moves.len()];
+            board = board.play(m).unwrap();
+            move_count += 1;
         }
-        game.winner()
+        board.winner()
     }
 
-    fn gen_move(&self, game: &Game) -> Move {
-        self.engine.gen_move(game.next_player(), game)
-    }
 }

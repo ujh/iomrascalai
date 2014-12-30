@@ -22,7 +22,6 @@
 use board::Color;
 use board::Move;
 use board::Pass;
-use engine::RandomEngine;
 use game::Game;
 use playout::Playout;
 use super::Engine;
@@ -64,13 +63,11 @@ impl MoveStats {
     }
 }
 
-pub struct McEngine {
-    random_engine: RandomEngine
-}
+pub struct McEngine;
 
 impl McEngine {
     pub fn new() -> McEngine {
-        McEngine { random_engine: RandomEngine::new() }
+        McEngine
     }
 
 }
@@ -85,9 +82,9 @@ impl Engine for McEngine {
         for m in moves.iter() {
             // We use 1 here right now, as it's so damn slow.
             for _ in range(0u, 1) {
-                let playout = Playout::new(&self.random_engine);
                 let g = game.play(*m).unwrap();
-                let winner = playout.run(&g);
+                let playout = Playout::new(g.board());
+                let winner = playout.run();
                 let mut prev_move_stats = stats.get_mut(m).unwrap();
                 if winner == color {
                     prev_move_stats.won();

@@ -112,6 +112,10 @@ impl<'a> Game<'a> {
         self.board.size()
     }
 
+    pub fn board(&self) -> Board {
+        self.board.clone()
+    }
+
     pub fn show_chains(&self) {
         for c in self.board.chains().iter() {
             println!("{}", c.show());
