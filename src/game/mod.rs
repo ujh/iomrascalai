@@ -35,7 +35,7 @@ use std::fmt;
 use core::fmt::Show;
 use std::rc::Rc;
 
-mod game_test;
+mod test;
 mod score;
 
 #[deriving(Clone)]
