@@ -258,46 +258,39 @@ impl<'a> Board<'a> {
     }
 
     // Note: Same as get(), the board is indexed starting at 1-1
-    pub fn play(&self, m: Move) -> Result<Board, IllegalMove> {
+    pub fn play(&mut self, m: Move) -> Result<(), IllegalMove> {
         match self.is_legal(m) {
             Err(e) => return Err(e),
             Ok(_)  => {}
         }
-
+        self.previous_player = *m.color();
         if m.is_pass() {
-            let mut new_board = self.clone();
-            new_board.consecutive_passes += 1;
-            new_board.previous_player    = *m.color();
-            return Ok(new_board);
+            self.consecutive_passes += 1;
+            return Ok(());
         }
-
-        let mut new_board = self.clone();
-
-        new_board.previous_player    = *m.color();
-
-        new_board.consecutive_passes = 0;
+        self.consecutive_passes = 0;
         // Create new chain or merge it with the neighbouring ones. It
         // removes coord from the list of liberties of the
         // neighbouring chains.
-        new_board.merge_or_create_chain(&m);
+        self.merge_or_create_chain(&m);
         // Updates the liberties of the opposing neighbouring chains
-        new_board.update_libs_of_adjacent_opposing_chains(&m);
+        self.update_libs_of_adjacent_opposing_chains(&m);
         // Removes captured opposing chains
-        new_board.adv_stones_removed = new_board.remove_captured_opponent_stones(&m);
+        self.adv_stones_removed = self.remove_captured_opponent_stones(&m);
         // Adds removed stones as liberties to the neighbouring chains
-        new_board.add_removed_adv_stones_as_libs(&m);
+        self.add_removed_adv_stones_as_libs(&m);
         // Checks for suicide play
-        if new_board.get_chain(m.coord()).unwrap().is_captured() {
-            new_board.friend_stones_removed = new_board.remove_suicide_chain(&m);
-            new_board.add_removed_friendly_stones_as_libs(&m);
+        if self.get_chain(m.coord()).unwrap().is_captured() {
+            self.friend_stones_removed = self.remove_suicide_chain(&m);
+            self.add_removed_friendly_stones_as_libs(&m);
         }
-        if new_board.adv_stones_removed.len() == 1 && new_board.friend_stones_removed.len() == 0 {
-            let coord = new_board.adv_stones_removed[0];
-            new_board.ko = Some(coord);
+        if self.adv_stones_removed.len() == 1 && self.friend_stones_removed.len() == 0 {
+            let coord = self.adv_stones_removed[0];
+            self.ko = Some(coord);
         } else {
-            new_board.ko = None;
+            self.ko = None;
         }
-        Ok(new_board)
+        Ok(())
     }
 
     fn add_removed_adv_stones_as_libs(&mut self, m: &Move) {

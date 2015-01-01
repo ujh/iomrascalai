@@ -62,12 +62,12 @@ impl<'a> Game<'a> {
     }
 
     pub fn play<'b>(&'b self, m: Move) -> Result<Game<'b>, IllegalMove> {
-        let new_board = self.board.play(m);
+        let mut new_board = self.board.clone();
 
-        match new_board {
-            Ok(b) => {
+        match new_board.play(m) {
+            Ok(_) => {
                 let mut new_game_state = self.clone();
-                new_game_state.board = b;
+                new_game_state.board = new_board;
                 new_game_state.move_number += 1;
                 if !m.is_pass() {
                     let hash = new_game_state.compute_hash(&m);
