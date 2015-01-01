@@ -36,7 +36,7 @@ impl Driver {
         let mut reader = stdin();
 
         let size: u8 = match reader.read_line() {
-            Ok(l)  => match l.as_slice().trim_chars('\n').parse() {
+            Ok(l)  => match l.as_slice().trim_matches('\n').parse() {
                 Some(size) => size,
                 None       => panic!("Couldn't convert to a number")
             },
@@ -59,7 +59,7 @@ impl Driver {
             let m = if line.as_slice() == "p\n" {
                 Pass(current_player)
             } else {
-                let coords: Vec<u8> = line.as_slice().trim_chars('\n').split(' ').map(|s| s.parse().unwrap()).collect();
+                let coords: Vec<u8> = line.as_slice().trim_matches('\n').split(' ').map(|s| s.parse().unwrap()).collect();
                 Play(current_player, coords[0], coords[1])
             };
 
