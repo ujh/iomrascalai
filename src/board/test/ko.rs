@@ -34,14 +34,14 @@ use sgf::Parser;
 fn replaying_directly_on_a_ko_point_should_be_illegal() {
     let mut b = Board::new(19, 6.5, AnySizeTrompTaylor);
 
-    b = b.play(Play(Black, 4, 4)).unwrap();
-    b = b.play(Play(White, 5, 4)).unwrap();
-    b = b.play(Play(Black, 3, 3)).unwrap();
-    b = b.play(Play(White, 4, 3)).unwrap();
-    b = b.play(Play(Black, 3, 5)).unwrap();
-    b = b.play(Play(White, 4, 5)).unwrap();
-    b = b.play(Play(Black, 2, 4)).unwrap();
-    b = b.play(Play(White, 3, 4)).unwrap();
+    b.play(Play(Black, 4, 4));
+    b.play(Play(White, 5, 4));
+    b.play(Play(Black, 3, 3));
+    b.play(Play(White, 4, 3));
+    b.play(Play(Black, 3, 5));
+    b.play(Play(White, 4, 5));
+    b.play(Play(Black, 2, 4));
+    b.play(Play(White, 3, 4));
 
     let ko = b.play(Play(Black, 4, 4));
     assert_eq!(ko.is_err(), true);
@@ -53,7 +53,7 @@ fn replaying_directly_on_a_ko_point_should_be_illegal() {
 fn positional_super_ko_should_be_legal() {
     let parser   = Parser::from_path(Path::new("fixtures/sgf/positional-superko.sgf"));
     let game     = parser.game().unwrap();
-    let board    = game.board();
+    let mut board    = game.board();
     let super_ko = board.play(Play(White, 2, 9));
     assert_eq!(super_ko.is_ok(), true);
 }
