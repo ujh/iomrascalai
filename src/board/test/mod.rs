@@ -39,6 +39,8 @@ use test::Bencher;
 
 use std::rc::Rc;
 
+mod ko;
+
 #[test]
 fn getting_a_valid_coord_returns_a_color() {
   let zht = Rc::new(ZobristHashTable::new(19));
@@ -373,27 +375,6 @@ fn after_two_passes_the_game_should_be_over_in_tromp_taylor_rules() {
   assert!(b.is_game_over());
 
   assert!(b.play(Play(Black, 4, 4)).is_err());
-}
-
-#[test]
-fn replaying_directly_on_a_ko_point_should_be_illegal() {
-  let zht = Rc::new(ZobristHashTable::new(19));
-  let mut b = Board::new(19, 6.5, AnySizeTrompTaylor, zht.clone());
-
-  b = b.play(Play(Black, 4, 4)).unwrap();
-  b = b.play(Play(White, 5, 4)).unwrap();
-  b = b.play(Play(Black, 3, 3)).unwrap();
-  b = b.play(Play(White, 4, 3)).unwrap();
-  b = b.play(Play(Black, 3, 5)).unwrap();
-  b = b.play(Play(White, 4, 5)).unwrap();
-  b = b.play(Play(Black, 2, 4)).unwrap();
-  b = b.play(Play(White, 3, 4)).unwrap();
-
-  match b.play(Play(Black, 4, 4)) {
-    Err(IllegalMove::SuperKoRuleBroken) => (),
-    Ok(_)                               => panic!("Replaying on a ko was allowed"),
-    Err(x)                              => panic!("Engine crashed while trying to replay on a ko : {}", x)
-  }
 }
 
 #[test]
