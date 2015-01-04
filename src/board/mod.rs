@@ -44,13 +44,13 @@ pub mod movement;
 
 #[derive(Show, Eq, PartialEq)]
 pub enum IllegalMove {
-    PlayOutOfBoard,
-    SuicidePlay,
-    IntersectionNotEmpty,
-    SamePlayerPlayedTwice,
     GameAlreadyOver,
-    SuperKo,
-
+    IntersectionNotEmpty,
+    Ko,
+    PlayOutOfBoard,
+    SamePlayerPlayedTwice,
+    SuicidePlay,
+    SuperKo
 }
 
 #[derive(Clone, Show, Eq, PartialEq, Hash, Copy)]

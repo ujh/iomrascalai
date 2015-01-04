@@ -32,22 +32,20 @@ use sgf::Parser;
 
 #[test]
 fn replaying_directly_on_a_ko_point_should_be_illegal() {
-  let mut g = Game::new(19, 6.5, AnySizeTrompTaylor);
+    let mut g = Game::new(19, 6.5, AnySizeTrompTaylor);
 
-  g = g.play(Play(Black, 4, 4)).unwrap();
-  g = g.play(Play(White, 5, 4)).unwrap();
-  g = g.play(Play(Black, 3, 3)).unwrap();
-  g = g.play(Play(White, 4, 3)).unwrap();
-  g = g.play(Play(Black, 3, 5)).unwrap();
-  g = g.play(Play(White, 4, 5)).unwrap();
-  g = g.play(Play(Black, 2, 4)).unwrap();
-  g = g.play(Play(White, 3, 4)).unwrap();
+    g = g.play(Play(Black, 4, 4)).unwrap();
+    g = g.play(Play(White, 5, 4)).unwrap();
+    g = g.play(Play(Black, 3, 3)).unwrap();
+    g = g.play(Play(White, 4, 3)).unwrap();
+    g = g.play(Play(Black, 3, 5)).unwrap();
+    g = g.play(Play(White, 4, 5)).unwrap();
+    g = g.play(Play(Black, 2, 4)).unwrap();
+    g = g.play(Play(White, 3, 4)).unwrap();
 
-  match g.play(Play(Black, 4, 4)) {
-    Err(IllegalMove::SuperKo) => (),
-    Ok(_)                               => panic!("Replaying on a ko was allowed"),
-    Err(x)                              => panic!("Engine crashed while trying to replay on a ko : {}", x)
-  }
+    let ko = g.play(Play(Black, 4, 4));
+    assert!(ko.is_err());
+    assert_eq!(ko.unwrap_err(), IllegalMove::Ko);
 }
 
 #[test]

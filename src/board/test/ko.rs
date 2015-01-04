@@ -29,34 +29,35 @@ use board::Play;
 use board::White;
 use board::ZobristHashTable;
 use ruleset::AnySizeTrompTaylor;
+use sgf::Parser;
 
 use std::rc::Rc;
 
 #[test]
 fn replaying_directly_on_a_ko_point_should_be_illegal() {
-  let zht = Rc::new(ZobristHashTable::new(19));
-  let mut b = Board::new(19, 6.5, AnySizeTrompTaylor, zht.clone());
+    let zht = Rc::new(ZobristHashTable::new(19));
+    let mut b = Board::new(19, 6.5, AnySizeTrompTaylor, zht.clone());
 
-  b = b.play(Play(Black, 4, 4)).unwrap();
-  b = b.play(Play(White, 5, 4)).unwrap();
-  b = b.play(Play(Black, 3, 3)).unwrap();
-  b = b.play(Play(White, 4, 3)).unwrap();
-  b = b.play(Play(Black, 3, 5)).unwrap();
-  b = b.play(Play(White, 4, 5)).unwrap();
-  b = b.play(Play(Black, 2, 4)).unwrap();
-  b = b.play(Play(White, 3, 4)).unwrap();
+    b = b.play(Play(Black, 4, 4)).unwrap();
+    b = b.play(Play(White, 5, 4)).unwrap();
+    b = b.play(Play(Black, 3, 3)).unwrap();
+    b = b.play(Play(White, 4, 3)).unwrap();
+    b = b.play(Play(Black, 3, 5)).unwrap();
+    b = b.play(Play(White, 4, 5)).unwrap();
+    b = b.play(Play(Black, 2, 4)).unwrap();
+    b = b.play(Play(White, 3, 4)).unwrap();
 
-  match b.play(Play(Black, 4, 4)) {
-    Err(IllegalMove::SuperKo) => (),
-    Ok(_)                               => panic!("Replaying on a ko was allowed"),
-    Err(x)                              => panic!("Engine crashed while trying to replay on a ko : {}", x)
-  }
+    let ko = b.play(Play(Black, 4, 4));
+    assert!(ko.is_err());
+    assert_eq!(ko.unwrap_err(), IllegalMove::Ko);
+
 }
 
 #[test]
 fn positional_super_ko_should_be_legal() {
-    let parser = Parser::from_path(Path::new("fixtures/sgf/positional-superko.sgf"));
-    let game   = parser.game().unwrap();
-    let super_ko = game.play(Play(White, 2, 9));
+    let parser   = Parser::from_path(Path::new("fixtures/sgf/positional-superko.sgf"));
+    let game     = parser.game().unwrap();
+    let board    = game.board();
+    let super_ko = board.play(Play(White, 2, 9));
     assert!(super_ko.is_ok());
 }
