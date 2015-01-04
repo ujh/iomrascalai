@@ -52,3 +52,11 @@ fn replaying_directly_on_a_ko_point_should_be_illegal() {
     Err(x)                              => panic!("Engine crashed while trying to replay on a ko : {}", x)
   }
 }
+
+#[test]
+fn positional_super_ko_should_be_legal() {
+    let parser = Parser::from_path(Path::new("fixtures/sgf/positional-superko.sgf"));
+    let game   = parser.game().unwrap();
+    let super_ko = game.play(Play(White, 2, 9));
+    assert!(super_ko.is_ok());
+}
