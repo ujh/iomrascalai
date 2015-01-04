@@ -23,11 +23,12 @@
 #![cfg(test)]
 
 use board::Black;
-use board::White;
+use board::IllegalMove;
 use board::Play;
+use board::White;
 use game::Game;
 use ruleset::AnySizeTrompTaylor;
-use board::IllegalMove;
+use sgf::Parser;
 
 #[test]
 fn replaying_directly_on_a_ko_point_should_be_illegal() {
@@ -47,4 +48,13 @@ fn replaying_directly_on_a_ko_point_should_be_illegal() {
     Ok(_)                               => panic!("Replaying on a ko was allowed"),
     Err(x)                              => panic!("Engine crashed while trying to replay on a ko : {}", x)
   }
+}
+
+#[test]
+fn positional_super_ko_should_be_illegal() {
+    let parser = Parser::from_path(Path::new("fixtures/sgf/positional-superko.sgf"));
+    let game   = parser.game().unwrap();
+    let super_ko = game.play(Play(White, 2, 9));
+    assert!(super_ko.is_err());
+    assert_eq!(super_ko.unwrap_err(), IllegalMove::SuperKoRuleBroken);
 }
