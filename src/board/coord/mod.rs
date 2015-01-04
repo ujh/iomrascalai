@@ -1,6 +1,7 @@
 /************************************************************************
  *                                                                      *
  * Copyright 2014 Urban Hafner, Thomas Poinsot                          *
+ * Copyright 2015 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -24,7 +25,7 @@ use std::fmt;
 
 mod test;
 
-#[deriving(Clone, Hash, PartialEq, Eq, Copy)]
+#[derive(Clone, Hash, PartialEq, Eq, Copy)]
 pub struct Coord {
     pub col: u8,
     pub row: u8

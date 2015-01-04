@@ -1,6 +1,7 @@
 /************************************************************************
  *                                                                      *
  * Copyright 2014 Thomas Poinsot                                        *
+ * Copyright 2015 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -24,7 +25,7 @@ use board::coord::Coord;
 
 mod test;
 
-#[deriving(Clone, Eq, PartialEq, Show)]
+#[derive(Clone, Eq, PartialEq, Show)]
 pub struct Chain {
     pub id   : uint,
     pub color: Color,

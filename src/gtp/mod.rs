@@ -1,6 +1,7 @@
 /************************************************************************
  *                                                                      *
  * Copyright 2014 Thomas Poinsot, Urban Hafner                          *
+ * Copyright 2015 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -29,7 +30,7 @@ use ruleset::KgsChinese;
 pub mod driver;
 mod test;
 
-#[deriving(Show)]
+#[derive(Show)]
 pub enum Command {
     Play,
     PlayError(Move),

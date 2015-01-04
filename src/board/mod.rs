@@ -1,6 +1,7 @@
 /************************************************************************
  *                                                                      *
  * Copyright 2014 Urban Hafner, Thomas Poinsot                          *
+ * Copyright 2015 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -41,7 +42,7 @@ pub mod coord;
 pub mod hash;
 pub mod movement;
 
-#[deriving(Show, Eq, PartialEq)]
+#[derive(Show, Eq, PartialEq)]
 pub enum IllegalMove {
     PlayOutOfBoard,
     SuicidePlay,
@@ -51,7 +52,7 @@ pub enum IllegalMove {
     SuperKoRuleBroken
 }
 
-#[deriving(Clone, Show, Eq, PartialEq, Hash, Copy)]
+#[derive(Clone, Show, Eq, PartialEq, Hash, Copy)]
 pub enum Color {
     White,
     Black,
@@ -77,7 +78,7 @@ impl Color {
     }
 }
 
-#[deriving(Show)]
+#[derive(Show)]
 pub struct Board<'a> {
     board:                  Vec<uint>,
     chains:                 Vec<Chain>,

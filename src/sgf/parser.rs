@@ -1,6 +1,7 @@
 /************************************************************************
  *                                                                      *
  * Copyright 2014 Urban Hafner                                          *
+ * Copyright 2015 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -35,12 +36,12 @@ pub struct Parser {
     sgf: String
 }
 
-#[deriving(Show, Eq, PartialEq)]
+#[derive(Show, Eq, PartialEq)]
 pub enum Error {
     IllegalMoveError
 }
 
-#[deriving(Show)]
+#[derive(Show)]
 struct Property<'a> {
     name: &'a str,
     val:  &'a str

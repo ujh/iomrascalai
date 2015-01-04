@@ -1,6 +1,7 @@
 /************************************************************************
  *                                                                      *
  * Copyright 2014 Urban Hafner, Thomas Poinsot                          *
+ * Copyright 2015 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -37,7 +38,7 @@ use std::rc::Rc;
 
 mod test;
 
-#[deriving(Clone)]
+#[derive(Clone)]
 pub struct Game<'a> {
     board: Board<'a>,
     base_zobrist_table: Rc<ZobristHashTable>,

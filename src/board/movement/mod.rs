@@ -1,6 +1,7 @@
 /************************************************************************
  *                                                                      *
  * Copyright 2014 Urban Hafner, Thomas Poinsot                          *
+ * Copyright 2015 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -25,7 +26,7 @@ use board::Coord;
 
 mod test;
 
-#[deriving(Show, Eq, PartialEq, Hash, Copy)]
+#[derive(Show, Eq, PartialEq, Hash, Copy)]
 pub enum Move {
     Play(Color, u8, u8),
     Pass(Color)

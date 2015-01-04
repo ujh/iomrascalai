@@ -1,6 +1,7 @@
 /************************************************************************
  *                                                                      *
  * Copyright 2014 Urban Hafner                                          *
+ * Copyright 2015 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -30,7 +31,7 @@ use std::collections::HashMap;
 
 mod test;
 
-#[deriving(Copy)]
+#[derive(Copy)]
 struct MoveStats {
     wins: uint,
     plays: uint
@@ -59,7 +60,7 @@ impl MoveStats {
     }
 
     pub fn win_ratio(&self) -> f32 {
-        self.wins.to_f32().unwrap() / self.plays.to_f32().unwrap()
+        (self.wins as f32) / (self.plays as f32)
     }
 }
 

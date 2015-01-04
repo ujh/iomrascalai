@@ -1,6 +1,7 @@
 /************************************************************************
  *                                                                      *
  * Copyright 2014 Urban Hafner, Thomas Poinsot                          *
+ * Copyright 2015 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -25,7 +26,7 @@ pub use self::Ruleset::Minimal;
 
 mod test;
 
-#[deriving(Clone, Show, Eq, PartialEq, Copy)]
+#[derive(Clone, Show, Eq, PartialEq, Copy)]
 pub enum Ruleset {
     AnySizeTrompTaylor,
     KgsChinese,
