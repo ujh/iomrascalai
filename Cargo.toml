@@ -8,4 +8,3 @@ authors = ["Urban Hafner <contact@urbanhafner.com>", "Thomas Poinsot <thomas.poi
 
 regex           = "*"
 rustc-serialize = "*"
-time            = "*"

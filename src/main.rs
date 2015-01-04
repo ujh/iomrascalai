@@ -1,6 +1,6 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2014 Urban Hafner, Thomas Poinsot                          *
+ * Copyright 2014-2015 Urban Hafner, Thomas Poinsot                     *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -26,7 +26,6 @@ extern crate regex;
 #[phase(plugin)]
 extern crate regex_macros;
 extern crate "rustc-serialize" as rustc_serialize;
-extern crate time;
 extern crate test;
 
 use engine::Engine;
