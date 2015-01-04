@@ -1,6 +1,6 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2014-2015 Urban Hafner, Thomas Poinsot                     *
+ * Copyright 2015 Thomas Poinsot                                        *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -18,33 +18,17 @@
  * along with Iomrascálaí.  If not, see <http://www.gnu.org/licenses/>. *
  *                                                                      *
  ************************************************************************/
-use board::Board;
-use board::Color;
 
-use std::rand::random;
+use playout::Playout;
+use game::Game;
+use ruleset::KgsChinese;
+use test::Bencher;
 
-mod test;
+#[bench]
+fn bench_playout_speed(b: &mut Bencher) {
+    let game = Game::new(5, 6.5, KgsChinese);
+    let board = game.board();
+    let playout_engine = Playout::new(board);
 
-pub struct Playout<'a> {
-    board: Board<'a>
-}
-
-impl<'a> Playout<'a> {
-    pub fn new(b: Board) -> Playout {
-        Playout { board: b }
-    }
-
-    pub fn run(&self) -> Color {
-        let mut board = self.board.clone();
-        let max_moves = board.size() * board.size() * 3;
-        let mut move_count = 0;
-        while !board.is_game_over() && move_count < max_moves {
-            let moves = board.legal_moves();
-            let m = moves[random::<uint>() % moves.len()];
-            board = board.play(m).unwrap();
-            move_count += 1;
-        }
-        board.winner()
-    }
-
+    b.iter(|| {playout_engine.run()})
 }
