@@ -35,6 +35,8 @@ use ruleset::AnySizeTrompTaylor;
 use ruleset::KgsChinese;
 use ruleset::Minimal;
 
+use test::Bencher;
+
 use std::rc::Rc;
 
 #[test]
@@ -587,4 +589,14 @@ fn komi_returns_the_komi() {
     let zht = Rc::new(ZobristHashTable::new(size));
     let b = Board::new(size, 6.5, Minimal, zht.clone());
     assert_eq!(b.komi(), 6.5);
+}
+
+#[bench]
+fn bench_play_method(b: &mut Bencher) {
+    let zht = Rc::new(ZobristHashTable::new(19));
+
+    b.iter(|| {
+        let mut board = Board::new(19, 6.5, AnySizeTrompTaylor, zht.clone());
+        board.play(Play(Black, 14, 14)).unwrap();
+    });
 }

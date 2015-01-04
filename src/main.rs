@@ -27,6 +27,7 @@ extern crate regex;
 extern crate regex_macros;
 extern crate "rustc-serialize" as rustc_serialize;
 extern crate time;
+extern crate test;
 
 use engine::Engine;
 use engine::McEngine;
