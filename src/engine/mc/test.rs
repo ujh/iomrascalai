@@ -1,6 +1,6 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2014 Urban Hafner                                          *
+ * Copyright 2014-2015 Urban Hafner, Thomas Poinsot                     *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -27,6 +27,8 @@ use game::Game;
 use ruleset::KgsChinese;
 use super::McEngine;
 
+use test::Bencher;
+
 #[test]
 fn produces_a_move() {
     let engine = McEngine::new();
@@ -34,4 +36,12 @@ fn produces_a_move() {
     let color  = Black;
     let m      = engine.gen_move(color, &game);
     assert_eq!(Black, *m.color());
+}
+
+#[bench]
+fn bench_engine_move_generation(b: &mut Bencher) {
+    let engine = McEngine::new();
+    let game   = Game::new(5, 6.5, KgsChinese);
+    let color  = Black;
+    b.iter(|| {engine.gen_move(color, &game)})
 }
