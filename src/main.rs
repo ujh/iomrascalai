@@ -37,7 +37,6 @@ use getopts::optopt;
 use std::ascii::OwnedAsciiExt;
 use std::os::args;
 
-mod benchmarks;
 mod board;
 mod cli;
 mod engine;
@@ -53,8 +52,6 @@ fn main() {
     let opts = [
         optopt("m", "mode", "set control mode", "MODE"),
         optopt("e", "engine", "select an engine", "ENGINE"),
-        optopt("s", "size", "set the size of the board in the benchmarks", "SIZE"),
-        optopt("r", "runtime", "set the run time of the benchmarks (in s)", "RUNTIME")
             ];
 
     let matches = match getopts(args().tail(), &opts) {
@@ -71,11 +68,6 @@ fn main() {
     let mode_arg = matches.opt_str("m").map(|s| s.into_ascii_lowercase());
     match mode_arg {
         Some(ref s) if s.as_slice() == "gtp" => gtp::driver::Driver::new(engine),
-        Some(ref s) if s.as_slice() == "pps" => {
-            let size    = matches.opt_str("s").and_then(|s| s.as_slice().parse::<u8>()).unwrap_or(9);
-            let runtime = matches.opt_str("r").and_then(|s| s.as_slice().parse::<i64>()).unwrap_or(30);
-            benchmarks::pps(size, runtime)
-        },
         _                                    => cli::Driver::new()
     };
 }
