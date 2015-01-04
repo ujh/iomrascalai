@@ -47,7 +47,7 @@ fn replaying_directly_on_a_ko_point_should_be_illegal() {
   b = b.play(Play(White, 3, 4)).unwrap();
 
   match b.play(Play(Black, 4, 4)) {
-    Err(IllegalMove::SuperKoRuleBroken) => (),
+    Err(IllegalMove::SuperKo) => (),
     Ok(_)                               => panic!("Replaying on a ko was allowed"),
     Err(x)                              => panic!("Engine crashed while trying to replay on a ko : {}", x)
   }

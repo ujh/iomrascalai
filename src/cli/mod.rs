@@ -75,7 +75,7 @@ impl Driver {
                     panic!("You can't play twice"),
                 Err(IllegalMove::GameAlreadyOver)      =>
                     panic!("You can't play after 2 consecutive passes in TrompTaylor rules"),
-                Err(IllegalMove::SuperKoRuleBroken)    =>
+                Err(IllegalMove::SuperKo)    =>
                     panic!("You can't repeat a board position! (Superko rule)")
             };
 

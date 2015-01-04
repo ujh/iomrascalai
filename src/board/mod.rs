@@ -49,7 +49,8 @@ pub enum IllegalMove {
     IntersectionNotEmpty,
     SamePlayerPlayedTwice,
     GameAlreadyOver,
-    SuperKoRuleBroken
+    SuperKo,
+
 }
 
 #[derive(Clone, Show, Eq, PartialEq, Hash, Copy)]
@@ -234,7 +235,7 @@ impl<'a> Board<'a> {
         let hash = new_board.compute_hash(&m, &adv_stones_removed, &friend_stones_removed);
 
         if new_board.previous_boards_hashes.contains(&hash) {
-            return Err(IllegalMove::SuperKoRuleBroken)
+            return Err(IllegalMove::SuperKo)
         }
 
         new_board.previous_boards_hashes.push(hash);

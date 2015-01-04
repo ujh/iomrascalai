@@ -44,7 +44,7 @@ fn replaying_directly_on_a_ko_point_should_be_illegal() {
   g = g.play(Play(White, 3, 4)).unwrap();
 
   match g.play(Play(Black, 4, 4)) {
-    Err(IllegalMove::SuperKoRuleBroken) => (),
+    Err(IllegalMove::SuperKo) => (),
     Ok(_)                               => panic!("Replaying on a ko was allowed"),
     Err(x)                              => panic!("Engine crashed while trying to replay on a ko : {}", x)
   }
@@ -56,5 +56,5 @@ fn positional_super_ko_should_be_illegal() {
     let game   = parser.game().unwrap();
     let super_ko = game.play(Play(White, 2, 9));
     assert!(super_ko.is_err());
-    assert_eq!(super_ko.unwrap_err(), IllegalMove::SuperKoRuleBroken);
+    assert_eq!(super_ko.unwrap_err(), IllegalMove::SuperKo);
 }
