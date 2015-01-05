@@ -81,48 +81,45 @@ impl Color {
 
 #[derive(Show)]
 pub struct Board<'a> {
-    board:                  Vec<uint>,
-    chains:                 Vec<Chain>,
-    consecutive_passes:     u8,
-    komi:                   f32,
-    previous_boards_hashes: Vec<u64>,
-    previous_player:        Color,
-    ruleset:                Ruleset,
-    size:                   u8,
-    zobrist_base_table:     Rc<ZobristHashTable>
+    adv_stones_removed:    Vec<Coord>,
+    board:                 Vec<uint>,
+    chains:                Vec<Chain>,
+    consecutive_passes:    u8,
+    friend_stones_removed: Vec<Coord>,
+    komi:                  f32,
+    previous_player:       Color,
+    ruleset:               Ruleset,
+    size:                  u8
 }
 
 impl<'a> Clone for Board<'a> {
     fn clone(&self) -> Board<'a> {
         Board {
-            board:                  self.board.clone(),
-            chains:                 self.chains.clone(),
-            consecutive_passes:     self.consecutive_passes,
-            komi:                   self.komi,
-            previous_boards_hashes: self.previous_boards_hashes.clone(),
-            previous_player:        self.previous_player,
-            ruleset:                self.ruleset.clone(),
-            size:                   self.size,
-            zobrist_base_table:     self.zobrist_base_table.clone()
+            adv_stones_removed:    self.adv_stones_removed.clone(),
+            board:                 self.board.clone(),
+            chains:                self.chains.clone(),
+            consecutive_passes:    self.consecutive_passes,
+            friend_stones_removed: self.friend_stones_removed.clone(),
+            komi:                  self.komi,
+            previous_player:       self.previous_player,
+            ruleset:               self.ruleset.clone(),
+            size:                  self.size,
         }
     }
 }
 
 impl<'a> Board<'a> {
-    pub fn new(size: u8, komi: f32, ruleset: Ruleset, zobrist_base_table: Rc<ZobristHashTable>) -> Board<'a> {
-        if size != zobrist_base_table.size() {
-            panic!("Different sizes for board and Zobrist hash table!");
-        }
+    pub fn new(size: u8, komi: f32, ruleset: Ruleset) -> Board<'a> {
         Board {
-            board:                  Vec::from_fn(size as uint*size as uint, |_| 0),
-            chains:                 vec!(Chain::new(0, Empty)),
-            consecutive_passes:     0,
-            komi:                   komi,
-            previous_boards_hashes: vec!(zobrist_base_table.init_hash()),
-            previous_player:        White,
-            ruleset:                ruleset,
-            size:                   size,
-            zobrist_base_table:     zobrist_base_table.clone()
+            adv_stones_removed:    Vec::new(),
+            board:                 Vec::from_fn(size as uint*size as uint, |_| 0),
+            chains:                vec!(Chain::new(0, Empty)),
+            consecutive_passes:    0,
+            friend_stones_removed: Vec::new(),
+            komi:                  komi,
+            previous_player:       White,
+            ruleset:               ruleset,
+            size:                  size
         }
     }
 
@@ -157,6 +154,14 @@ impl<'a> Board<'a> {
 
     fn is_same_player(&self, m: &Move) -> bool {
         self.previous_player == *m.color()
+    }
+
+    pub fn adv_stones_removed(&self) -> &Vec<Coord> {
+        &self.adv_stones_removed
+    }
+
+    pub fn friend_stones_removed(&self) -> &Vec<Coord> {
+        &self.friend_stones_removed
     }
 
     pub fn legal_moves(&self) -> Vec<Move> {
@@ -214,7 +219,7 @@ impl<'a> Board<'a> {
         let final_chain_id = new_board.get_chain(m.coords()).id;
         new_board.update_libs(final_chain_id);
 
-        let mut friend_stones_removed = Vec::new(); // This is only useful is suicide is legal.
+        let mut friend_stones_removed = Vec::new();
 
         if adv_stones_removed.len() > 0 {
             for i in range(1, new_board.chains.len()) {
@@ -230,16 +235,8 @@ impl<'a> Board<'a> {
                 return Err(IllegalMove::SuicidePlay)
             }
         }
-
-        // We update the hash with the changes to the board, and add it to the list of hashes before returning.
-        let hash = new_board.compute_hash(&m, &adv_stones_removed, &friend_stones_removed);
-
-        if new_board.previous_boards_hashes.contains(&hash) {
-            return Err(IllegalMove::SuperKo)
-        }
-
-        new_board.previous_boards_hashes.push(hash);
-
+        new_board.friend_stones_removed = friend_stones_removed;
+        new_board.adv_stones_removed = adv_stones_removed;
         Ok(new_board)
     }
 
@@ -482,20 +479,6 @@ impl<'a> Board<'a> {
         }
 
         territory_chain
-    }
-
-    fn compute_hash(&self, m: &Move, adv_stones_removed: &Vec<Coord>, friend_stones_removed: &Vec<Coord>) -> u64 {
-        let mut hash = self.zobrist_base_table.add_stone_to_hash(*self.previous_boards_hashes.last().unwrap(), m);
-
-        for &coord in adv_stones_removed.iter() {
-            hash = self.zobrist_base_table.remove_stone_from_hash(hash, &Play(m.color().opposite(), coord.col, coord.row));
-        }
-
-        for &coord in friend_stones_removed.iter() {
-            hash = self.zobrist_base_table.remove_stone_from_hash(hash, &Play(*m.color(), coord.col, coord.row));
-        }
-
-        hash
     }
 
     pub fn is_game_over(&self) -> bool {

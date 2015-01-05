@@ -27,16 +27,12 @@ use board::Board;
 use board::IllegalMove;
 use board::Play;
 use board::White;
-use board::ZobristHashTable;
 use ruleset::AnySizeTrompTaylor;
 use sgf::Parser;
 
-use std::rc::Rc;
-
 #[test]
 fn replaying_directly_on_a_ko_point_should_be_illegal() {
-    let zht = Rc::new(ZobristHashTable::new(19));
-    let mut b = Board::new(19, 6.5, AnySizeTrompTaylor, zht.clone());
+    let mut b = Board::new(19, 6.5, AnySizeTrompTaylor);
 
     b = b.play(Play(Black, 4, 4)).unwrap();
     b = b.play(Play(White, 5, 4)).unwrap();
@@ -48,7 +44,7 @@ fn replaying_directly_on_a_ko_point_should_be_illegal() {
     b = b.play(Play(White, 3, 4)).unwrap();
 
     let ko = b.play(Play(Black, 4, 4));
-    assert!(ko.is_err());
+    assert_eq!(ko.is_err(), true);
     assert_eq!(ko.unwrap_err(), IllegalMove::Ko);
 
 }
@@ -59,5 +55,5 @@ fn positional_super_ko_should_be_legal() {
     let game     = parser.game().unwrap();
     let board    = game.board();
     let super_ko = board.play(Play(White, 2, 9));
-    assert!(super_ko.is_ok());
+    assert_eq!(super_ko.is_ok(), true);
 }
