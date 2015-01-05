@@ -29,14 +29,15 @@ use board::IllegalMove;
 use board::Move;
 use board::Play;
 use board::White;
-use board::ZobristHashTable;
 use ruleset::Ruleset;
 use score::Score;
+use self::hash::ZobristHashTable;
 
 use std::fmt;
 use core::fmt::Show;
 use std::rc::Rc;
 
+mod hash;
 mod test;
 
 #[derive(Clone)]

@@ -20,7 +20,6 @@
  *                                                                      *
  ************************************************************************/
 pub use board::coord::Coord;
-pub use board::hash::ZobristHashTable;
 pub use board::movement::Move;
 pub use board::movement::Pass;
 pub use board::movement::Play;
@@ -32,14 +31,12 @@ use ruleset::Ruleset;
 use score::Score;
 
 use std::collections::HashSet;
-use std::rc::Rc;
 use std::vec::Vec;
 
 mod test;
 
 mod chain;
 pub mod coord;
-pub mod hash;
 pub mod movement;
 
 #[derive(Show, Eq, PartialEq)]
@@ -114,7 +111,7 @@ impl<'a> Board<'a> {
     pub fn new(size: u8, komi: f32, ruleset: Ruleset) -> Board<'a> {
         Board {
             adv_stones_removed:    Vec::new(),
-            board:                 Vec::from_fn(size as uint*size as uint, |_| 0),
+            board:                 range(0, size as uint*size as uint).map(|_| 0).collect(),
             chains:                vec!(Chain::new(0, Empty)),
             consecutive_passes:    0,
             friend_stones_removed: Vec::new(),
