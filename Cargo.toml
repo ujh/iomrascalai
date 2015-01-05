@@ -7,4 +7,5 @@ authors = ["Urban Hafner <contact@urbanhafner.com>", "Thomas Poinsot <thomas.poi
 [dependencies]
 
 regex           = "*"
+regex_macros    = "*"
 rustc-serialize = "*"
