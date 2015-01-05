@@ -1,6 +1,6 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2014 Urban Hafner                                          *
+ * Copyright 2014-2015 Urban Hafner, Thomas Poinsot                     *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -23,10 +23,11 @@ use board::Color;
 
 use std::rand::random;
 
+mod test;
+
 pub struct Playout<'a> {
     board: Board<'a>
 }
-
 
 impl<'a> Playout<'a> {
     pub fn new(b: Board) -> Playout {

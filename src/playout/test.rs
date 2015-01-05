@@ -1,6 +1,6 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2014 Urban Hafner, Thomas Poinsot                          *
+ * Copyright 2015 Thomas Poinsot                                        *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -19,27 +19,16 @@
  *                                                                      *
  ************************************************************************/
 
-use game::Game;
 use playout::Playout;
+use game::Game;
 use ruleset::KgsChinese;
+use test::Bencher;
 
-use time::get_time;
-
-pub fn pps(size: u8, runtime: i64) {
-    let game = Game::new(size, 6.5, KgsChinese);
+#[bench]
+fn bench_playout_speed(b: &mut Bencher) {
+    let game = Game::new(5, 6.5, KgsChinese);
     let board = game.board();
     let playout_engine = Playout::new(board);
-    let mut counter = 0;
-    let start = get_time().sec;
 
-    loop {
-        playout_engine.run();
-        counter += 1;
-
-        if (get_time().sec - start) >= runtime {
-            break;
-        }
-    }
-
-    println!("Playout per second: {}", counter/runtime);
+    b.iter(|| {playout_engine.run()})
 }
