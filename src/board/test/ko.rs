@@ -1,6 +1,7 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2014-2015 Urban Hafner                                     *
+ * Copyright 2014 Urban Hafner, Thomas Poinsot                          *
+ * Copyright 2015 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -19,7 +20,40 @@
  *                                                                      *
  ************************************************************************/
 
-pub use self::parser::Parser;
+#![cfg(test)]
 
-pub mod parser;
-mod test;
+use board::Black;
+use board::Board;
+use board::IllegalMove;
+use board::Play;
+use board::White;
+use ruleset::AnySizeTrompTaylor;
+use sgf::Parser;
+
+#[test]
+fn replaying_directly_on_a_ko_point_should_be_illegal() {
+    let mut b = Board::new(19, 6.5, AnySizeTrompTaylor);
+
+    b = b.play(Play(Black, 4, 4)).unwrap();
+    b = b.play(Play(White, 5, 4)).unwrap();
+    b = b.play(Play(Black, 3, 3)).unwrap();
+    b = b.play(Play(White, 4, 3)).unwrap();
+    b = b.play(Play(Black, 3, 5)).unwrap();
+    b = b.play(Play(White, 4, 5)).unwrap();
+    b = b.play(Play(Black, 2, 4)).unwrap();
+    b = b.play(Play(White, 3, 4)).unwrap();
+
+    let ko = b.play(Play(Black, 4, 4));
+    assert_eq!(ko.is_err(), true);
+    assert_eq!(ko.unwrap_err(), IllegalMove::Ko);
+
+}
+
+#[test]
+fn positional_super_ko_should_be_legal() {
+    let parser   = Parser::from_path(Path::new("fixtures/sgf/positional-superko.sgf"));
+    let game     = parser.game().unwrap();
+    let board    = game.board();
+    let super_ko = board.play(Play(White, 2, 9));
+    assert_eq!(super_ko.is_ok(), true);
+}

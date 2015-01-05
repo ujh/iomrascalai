@@ -36,11 +36,6 @@ pub struct Parser {
     sgf: String
 }
 
-#[derive(Show, Eq, PartialEq)]
-pub enum Error {
-    IllegalMoveError
-}
-
 #[derive(Show)]
 struct Property<'a> {
     name: &'a str,
@@ -105,7 +100,7 @@ impl Parser {
         Parser::new(contents.unwrap())
     }
 
-    pub fn game(&self) -> Result<Game, Error> {
+    pub fn game(&self) -> Result<Game, IllegalMove> {
         let mut game = Game::new(self.size(), self.komi(), Minimal);
         let props = self.tokenize();
         for prop in props.iter() {
@@ -113,7 +108,7 @@ impl Parser {
                 Ok(g) => {
                     game = g;
                 },
-                Err(_) => return Err(Error::IllegalMoveError)
+                Err(e) => return Err(e)
             }
         }
         Ok(game)

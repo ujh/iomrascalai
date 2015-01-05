@@ -1,6 +1,7 @@
 /************************************************************************
  *                                                                      *
  * Copyright 2014 Urban Hafner, Thomas Poinsot                          *
+ * Copyright 2015 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -75,8 +76,10 @@ impl Driver {
                     panic!("You can't play twice"),
                 Err(IllegalMove::GameAlreadyOver)      =>
                     panic!("You can't play after 2 consecutive passes in TrompTaylor rules"),
-                Err(IllegalMove::SuperKoRuleBroken)    =>
-                    panic!("You can't repeat a board position! (Superko rule)")
+                Err(IllegalMove::SuperKo)    =>
+                    panic!("You can't repeat a board position! (Superko rule)"),
+                Err(IllegalMove::Ko) =>
+                    panic!("You can't play a Ko!")
             };
 
             current_player = current_player.opposite();

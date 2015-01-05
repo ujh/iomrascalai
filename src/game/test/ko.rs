@@ -1,6 +1,7 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2014 Thomas Poinsot, Urban Hafner                          *
+ * Copyright 2014 Urban Hafner, Thomas Poinsot                          *
+ * Copyright 2015 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -23,48 +24,35 @@
 
 use board::Black;
 use board::IllegalMove;
-use board::Pass;
 use board::Play;
 use board::White;
 use game::Game;
-use ruleset::KgsChinese;
-use ruleset::Minimal;
+use ruleset::AnySizeTrompTaylor;
+use sgf::Parser;
 
 #[test]
-fn should_start_counting_moves_at_0() {
-    let g = Game::new(5, 6.5, Minimal);
-    assert_eq!(0, g.move_number());
+fn replaying_directly_on_a_ko_point_should_be_illegal() {
+    let mut g = Game::new(19, 6.5, AnySizeTrompTaylor);
+
+    g = g.play(Play(Black, 4, 4)).unwrap();
+    g = g.play(Play(White, 5, 4)).unwrap();
+    g = g.play(Play(Black, 3, 3)).unwrap();
+    g = g.play(Play(White, 4, 3)).unwrap();
+    g = g.play(Play(Black, 3, 5)).unwrap();
+    g = g.play(Play(White, 4, 5)).unwrap();
+    g = g.play(Play(Black, 2, 4)).unwrap();
+    g = g.play(Play(White, 3, 4)).unwrap();
+
+    let ko = g.play(Play(Black, 4, 4));
+    assert!(ko.is_err());
+    assert_eq!(ko.unwrap_err(), IllegalMove::Ko);
 }
 
 #[test]
-fn should_increment_move_count_by_1_for_each_move() {
-    let mut g = Game::new(5, 6.5, Minimal);
-    g = g.play(Play(Black, 1, 1)).unwrap();
-    assert_eq!(1, g.move_number());
-}
-
-#[test]
-fn catch_suicide_moves_in_chinese() {
-    let mut g = Game::new(3, 6.5, KgsChinese);
-
-    g = g.play(Play(Black, 2, 2)).unwrap();
-    g = g.play(Play(White, 1, 2)).unwrap();
-    g = g.play(Play(Black, 2, 1)).unwrap();
-    g = g.play(Play(White, 3, 2)).unwrap();
-    g = g.play(Play(Black, 2, 3)).unwrap();
-    g = g.play(Play(White, 3, 1)).unwrap();
-    g = g.play(Pass(Black)).unwrap();
-    g = g.play(Play(White, 1, 3)).unwrap();
-    g = g.play(Pass(Black)).unwrap();
-
-    let play = g.play(Play(White, 1, 1));
-
-    assert!(play.is_err());
-    assert_eq!(play.unwrap_err(), IllegalMove::SuicidePlay);
-}
-
-#[test]
-fn next_player_should_return_board_next_player() {
-    let g = Game::new(3, 6.5, KgsChinese);
-    assert_eq!(g.board.next_player(), g.next_player());
+fn positional_super_ko_should_be_illegal() {
+    let parser = Parser::from_path(Path::new("fixtures/sgf/positional-superko.sgf"));
+    let game   = parser.game().unwrap();
+    let super_ko = game.play(Play(White, 2, 9));
+    assert!(super_ko.is_err());
+    assert_eq!(super_ko.unwrap_err(), IllegalMove::SuperKo);
 }
