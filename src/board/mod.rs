@@ -86,6 +86,7 @@ pub struct Board<'a> {
     chains:                Vec<Chain>,
     consecutive_passes:    u8,
     friend_stones_removed: Vec<Coord>,
+    ko:                    Option<Coord>,
     komi:                  f32,
     previous_player:       Color,
     ruleset:               Ruleset,
@@ -100,6 +101,7 @@ impl<'a> Clone for Board<'a> {
             chains:                self.chains.clone(),
             consecutive_passes:    self.consecutive_passes,
             friend_stones_removed: self.friend_stones_removed.clone(),
+            ko:                    self.ko,
             komi:                  self.komi,
             previous_player:       self.previous_player,
             ruleset:               self.ruleset.clone(),
@@ -116,6 +118,7 @@ impl<'a> Board<'a> {
             chains:                vec!(Chain::new(0, Empty)),
             consecutive_passes:    0,
             friend_stones_removed: Vec::new(),
+            ko:                    None,
             komi:                  komi,
             previous_player:       White,
             ruleset:               ruleset,
@@ -202,6 +205,10 @@ impl<'a> Board<'a> {
             return Err(IllegalMove::PlayOutOfBoard);
         }
 
+        if self.ko.is_some() && m.coords() == self.ko.unwrap() {
+            return Err(IllegalMove::Ko);
+        }
+
         let mut new_board = self.clone();
 
         new_board.previous_player    = *m.color();
@@ -235,6 +242,13 @@ impl<'a> Board<'a> {
                 return Err(IllegalMove::SuicidePlay)
             }
         }
+        if adv_stones_removed.len() == 1 && friend_stones_removed.len() == 0 {
+            let coord = adv_stones_removed[0];
+            new_board.ko = Some(coord);
+        } else {
+            new_board.ko = None;
+        }
+
         new_board.friend_stones_removed = friend_stones_removed;
         new_board.adv_stones_removed = adv_stones_removed;
         Ok(new_board)
