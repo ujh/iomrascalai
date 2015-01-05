@@ -25,8 +25,17 @@ use ruleset::KgsChinese;
 use test::Bencher;
 
 #[bench]
-fn bench_playout_speed(b: &mut Bencher) {
-    let game = Game::new(5, 6.5, KgsChinese);
+fn bench_9x9_playout_speed(b: &mut Bencher) {
+    let game = Game::new(9, 6.5, KgsChinese);
+    let board = game.board();
+    let playout_engine = Playout::new(board);
+
+    b.iter(|| {playout_engine.run()})
+}
+
+#[bench]
+fn bench_19x19_playout_speed(b: &mut Bencher) {
+    let game = Game::new(19, 6.5, KgsChinese);
     let board = game.board();
     let playout_engine = Playout::new(board);
 
