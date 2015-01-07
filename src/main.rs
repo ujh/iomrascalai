@@ -18,12 +18,12 @@
  * along with Iomrascálaí.  If not, see <http://www.gnu.org/licenses/>. *
  *                                                                      *
  ************************************************************************/
-#![feature(phase)]
+#![feature(plugin)]
 extern crate core;
 extern crate getopts;
 extern crate rand;
 extern crate regex;
-#[phase(plugin)]
+#[plugin]
 extern crate regex_macros;
 extern crate "rustc-serialize" as rustc_serialize;
 extern crate test;
