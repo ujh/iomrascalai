@@ -16,12 +16,6 @@ See the [Github issues](https://github.com/ujh/iomrascalai/issues) for
 planned features and bugs and
 [join the mailing list](https://groups.google.com/forum/#!forum/iomrascalai)
 and [the chat](https://gitter.im/ujh/iomrascalai) for discussion.
-Please note that (almost) all development on Iomrascálaí is supposed
-to happen with pair programming. If you want to contribute please
-[contact me](http://urbanhafner.com) and I can set you up with a
-pairing partner and (eventually) give you access to the Trello board
-and Github repository. If that is not possible then we're also
-accepting pull requests in a pinch.
 
 Testing
 =======
