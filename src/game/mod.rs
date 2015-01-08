@@ -96,7 +96,7 @@ impl<'a> Game<'a> {
     // Note: This method uses 1-1 as the origin point, not 0-0. 19-19 is a valid coordinate in a 19-sized board, while 0-0 is not.
     //       this is done because I think it makes more sense in the context of go. (Least surprise principle, etc...)
     pub fn get(&self, col: u8, row: u8) -> Color {
-        self.board.get_coord(Coord::new(col, row))
+        self.board.color(Coord::new(col, row))
     }
 
     pub fn ruleset(&self) -> Ruleset {
@@ -168,7 +168,7 @@ impl<'a> String for Game<'a> {
             for col in range(1u8, self.board.size()+1) {
                 let current_coords = Coord::new(col, row);
 
-                match self.board.get_coord(current_coords) {
+                match self.board.color(current_coords) {
                     Empty => {
                         let hoshis = &[4u8,10,16];
                         if  hoshis.contains(&row) && hoshis.contains(&col) {

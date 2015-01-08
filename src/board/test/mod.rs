@@ -42,7 +42,7 @@ mod ko;
 fn getting_a_valid_coord_returns_a_color() {
   let b = Board::new(19, 6.5, AnySizeTrompTaylor);
 
-  assert_eq!(b.get_coord(Coord::new(10, 10)), Empty);
+  assert_eq!(b.color(Coord::new(10, 10)), Empty);
 }
 
 #[test]
@@ -50,15 +50,15 @@ fn getting_a_valid_coord_returns_a_color() {
 fn getting_invalid_coordinates_fails() {
   let b = Board::new(19, 6.5, AnySizeTrompTaylor);
 
-  b.get_coord(Coord::new(14, 21));
-  b.get_coord(Coord::new(21, 14));
+  b.color(Coord::new(14, 21));
+  b.color(Coord::new(21, 14));
 }
 
 #[test]
 fn _19_19_is_a_valid_coordinate(){
   let b = Board::new(19, 6.5, AnySizeTrompTaylor);
 
-  assert_eq!(b.get_coord(Coord::new(19, 19)), Empty);
+  assert_eq!(b.color(Coord::new(19, 19)), Empty);
 }
 
 #[test]
@@ -66,7 +66,7 @@ fn _19_19_is_a_valid_coordinate(){
 fn _0_0_is_not_a_valid_coordinate(){
   let b = Board::new(19, 6.5, AnySizeTrompTaylor);
 
-  b.get_coord(Coord::new(0, 0));
+  b.color(Coord::new(0, 0));
 }
 
 #[test]
@@ -75,11 +75,11 @@ fn play_adds_a_stone_to_the_correct_position() {
 
     b = b.play(Play(Black, 14, 14)).unwrap();
 
-    assert!(b.get_coord(Coord::new(14, 14)) == Black);
+    assert!(b.color(Coord::new(14, 14)) == Black);
 
     for i in range(1u8, 20) {
         for j in range(1u8 , 20) {
-            assert!(b.get_coord(Coord::new(i, j)) == Empty || (i == 14 && j == 14));
+            assert!(b.color(Coord::new(i, j)) == Empty || (i == 14 && j == 14));
         }
     }
 }
@@ -165,9 +165,9 @@ fn playing_on_all_libs_in_corner_should_capture() {
   b = b.play(Play(White, 1, 2)).unwrap();
   b = b.play(Play(White, 2, 1)).unwrap();
 
-  assert_eq!(b.get_coord(Coord::new(1, 1)), Empty);
-  assert_eq!(b.get_coord(Coord::new(1, 2)), White);
-  assert_eq!(b.get_coord(Coord::new(2, 1)), White);
+  assert_eq!(b.color(Coord::new(1, 1)), Empty);
+  assert_eq!(b.color(Coord::new(1, 2)), White);
+  assert_eq!(b.color(Coord::new(2, 1)), White);
 }
 
 #[test]
@@ -179,10 +179,10 @@ fn playing_on_all_libs_on_side_should_capture() {
   b = b.play(Play(White, 1, 4)).unwrap();
   b = b.play(Play(White, 2, 3)).unwrap();
 
-  assert_eq!(b.get_coord(Coord::new(1, 3)), Empty);
-  assert_eq!(b.get_coord(Coord::new(1, 2)), White);
-  assert_eq!(b.get_coord(Coord::new(1, 4)), White);
-  assert_eq!(b.get_coord(Coord::new(2, 3)), White);
+  assert_eq!(b.color(Coord::new(1, 3)), Empty);
+  assert_eq!(b.color(Coord::new(1, 2)), White);
+  assert_eq!(b.color(Coord::new(1, 4)), White);
+  assert_eq!(b.color(Coord::new(2, 3)), White);
 }
 
 #[test]
@@ -196,12 +196,12 @@ fn playing_on_all_libs_should_capture() {
   b = b.play(Play(White, 3, 4)).unwrap();
   b = b.play(Play(White, 5, 4)).unwrap();
 
-  assert_eq!(b.get_coord(Coord::new(4, 4)), Empty);
+  assert_eq!(b.color(Coord::new(4, 4)), Empty);
 
-  assert_eq!(b.get_coord(Coord::new(4, 3)), White);
-  assert_eq!(b.get_coord(Coord::new(4, 5)), White);
-  assert_eq!(b.get_coord(Coord::new(3, 4)), White);
-  assert_eq!(b.get_coord(Coord::new(5, 4)), White);
+  assert_eq!(b.color(Coord::new(4, 3)), White);
+  assert_eq!(b.color(Coord::new(4, 5)), White);
+  assert_eq!(b.color(Coord::new(3, 4)), White);
+  assert_eq!(b.color(Coord::new(5, 4)), White);
 }
 
 #[test]
@@ -218,15 +218,15 @@ fn playing_on_all_libs_of_a_chain_should_capture() {
   b = b.play(Play(White, 5, 5)).unwrap();
   b = b.play(Play(White, 4, 6)).unwrap();
 
-  assert_eq!(b.get_coord(Coord::new(4, 4)), Empty);
-  assert_eq!(b.get_coord(Coord::new(4, 5)), Empty);
+  assert_eq!(b.color(Coord::new(4, 4)), Empty);
+  assert_eq!(b.color(Coord::new(4, 5)), Empty);
 
-  assert_eq!(b.get_coord(Coord::new(4, 3)), White);
-  assert_eq!(b.get_coord(Coord::new(3, 4)), White);
-  assert_eq!(b.get_coord(Coord::new(5, 4)), White);
-  assert_eq!(b.get_coord(Coord::new(3, 5)), White);
-  assert_eq!(b.get_coord(Coord::new(5, 5)), White);
-  assert_eq!(b.get_coord(Coord::new(4, 6)), White);
+  assert_eq!(b.color(Coord::new(4, 3)), White);
+  assert_eq!(b.color(Coord::new(3, 4)), White);
+  assert_eq!(b.color(Coord::new(5, 4)), White);
+  assert_eq!(b.color(Coord::new(3, 5)), White);
+  assert_eq!(b.color(Coord::new(5, 5)), White);
+  assert_eq!(b.color(Coord::new(4, 6)), White);
 }
 
 #[test]
@@ -245,17 +245,17 @@ fn playing_on_all_libs_of_a_bent_chain_should_capture() {
   b = b.play(Play(White, 5, 5)).unwrap();
   b = b.play(Play(White, 4, 6)).unwrap();
 
-  assert_eq!(b.get_coord(Coord::new(4, 4)), Empty);
-  assert_eq!(b.get_coord(Coord::new(4, 5)), Empty);
-  assert_eq!(b.get_coord(Coord::new(3, 4)), Empty);
+  assert_eq!(b.color(Coord::new(4, 4)), Empty);
+  assert_eq!(b.color(Coord::new(4, 5)), Empty);
+  assert_eq!(b.color(Coord::new(3, 4)), Empty);
 
-  assert_eq!(b.get_coord(Coord::new(3, 3)), White);
-  assert_eq!(b.get_coord(Coord::new(4, 3)), White);
-  assert_eq!(b.get_coord(Coord::new(2, 4)), White);
-  assert_eq!(b.get_coord(Coord::new(5, 4)), White);
-  assert_eq!(b.get_coord(Coord::new(3, 5)), White);
-  assert_eq!(b.get_coord(Coord::new(5, 5)), White);
-  assert_eq!(b.get_coord(Coord::new(4, 6)), White);
+  assert_eq!(b.color(Coord::new(3, 3)), White);
+  assert_eq!(b.color(Coord::new(4, 3)), White);
+  assert_eq!(b.color(Coord::new(2, 4)), White);
+  assert_eq!(b.color(Coord::new(5, 4)), White);
+  assert_eq!(b.color(Coord::new(3, 5)), White);
+  assert_eq!(b.color(Coord::new(5, 5)), White);
+  assert_eq!(b.color(Coord::new(4, 6)), White);
 }
 
 #[test]
@@ -316,15 +316,15 @@ fn suicide_should_remove_the_suicided_chain() {
 
   b = b.play(Play(Black, 3, 4)).unwrap();
 
-  assert_eq!(b.get_coord(Coord::new(3, 4)), Empty);
-  assert_eq!(b.get_coord(Coord::new(4, 4)), Empty);
+  assert_eq!(b.color(Coord::new(3, 4)), Empty);
+  assert_eq!(b.color(Coord::new(4, 4)), Empty);
 
-  assert_eq!(b.get_coord(Coord::new(5, 4)), White);
-  assert_eq!(b.get_coord(Coord::new(4, 3)), White);
-  assert_eq!(b.get_coord(Coord::new(3, 3)), White);
-  assert_eq!(b.get_coord(Coord::new(2, 4)), White);
-  assert_eq!(b.get_coord(Coord::new(4, 5)), White);
-  assert_eq!(b.get_coord(Coord::new(3, 5)), White);
+  assert_eq!(b.color(Coord::new(5, 4)), White);
+  assert_eq!(b.color(Coord::new(4, 3)), White);
+  assert_eq!(b.color(Coord::new(3, 3)), White);
+  assert_eq!(b.color(Coord::new(2, 4)), White);
+  assert_eq!(b.color(Coord::new(4, 5)), White);
+  assert_eq!(b.color(Coord::new(3, 5)), White);
 }
 
 #[test]
@@ -428,10 +428,10 @@ fn capturing_two_or_more_groups_while_playing_in_an_eye_actually_captures() {
   b = b.play(Play(Black, 5, 4)).unwrap();
   b = b.play(Play(White, 1, 1)).unwrap();
 
-  assert_eq!(b.get_coord(Coord::new(1, 1)), White);
-  assert_eq!(b.get_coord(Coord::new(1, 2)), Empty);
-  assert_eq!(b.get_coord(Coord::new(2, 1)), Empty);
-  assert_eq!(b.get_coord(Coord::new(2, 2)), White);
+  assert_eq!(b.color(Coord::new(1, 1)), White);
+  assert_eq!(b.color(Coord::new(1, 2)), Empty);
+  assert_eq!(b.color(Coord::new(2, 1)), Empty);
+  assert_eq!(b.color(Coord::new(2, 2)), White);
 }
 
 #[test]

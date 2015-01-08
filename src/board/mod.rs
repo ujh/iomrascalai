@@ -140,7 +140,7 @@ impl<'a> Board<'a> {
         &self.neighbours[c]
     }
 
-    pub fn get_coord(&self, c: Coord) -> Color {
+    pub fn color(&self, c: Coord) -> Color {
         if c.is_inside(self.size) {
             self.get_chain(c).color
         } else {
@@ -212,7 +212,7 @@ impl<'a> Board<'a> {
 
         // We check if the new move is inside the board (and if it is, if there is no stone there)
         if m.coord().is_inside(self.size) {
-            if self.get_coord(m.coord()) != Empty {
+            if self.color(m.coord()) != Empty {
                 return Err(IllegalMove::IntersectionNotEmpty);
             }
         } else {
@@ -271,7 +271,7 @@ impl<'a> Board<'a> {
     fn find_neighbouring_friendly_chains_ids(&self, m: &Move) -> Vec<usize> {
         let mut friend_neigh_chains_id: Vec<usize> = self.neighbours(m.coord())
                   .iter()
-                  .filter(|&c| c.is_inside(self.size) && self.get_coord(*c) == *m.color())
+                  .filter(|&c| c.is_inside(self.size) && self.color(*c) == *m.color())
                   .map(|&c| self.get_chain(c).id)
                   .collect();
 
@@ -336,7 +336,7 @@ impl<'a> Board<'a> {
                                             .iter()
                                             .fold(Vec::new(), |mut acc, c| {
                                                 for &n in self.neighbours(*c).iter() {
-                                                    if n.is_inside(self.size) && self.get_coord(n) == Empty && !acc.contains(&n) {
+                                                    if n.is_inside(self.size) && self.color(n) == Empty && !acc.contains(&n) {
                                                         acc.push(n);
                                                     }
                                                 }
@@ -491,7 +491,7 @@ impl<'a> Board<'a> {
             if !territory_chain.coords().contains(&current_coord) {territory_chain.add_stone(current_coord);}
 
             for &coord in self.neighbours(current_coord).iter() {
-                match self.get_coord(coord) {
+                match self.color(coord) {
                     Empty => if !territory_chain.coords().contains(&coord) {to_visit.push(coord)},
                     col   => if territory_chain.color != Empty && territory_chain.color != col {
                         neutral = true;
