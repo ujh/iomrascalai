@@ -67,7 +67,7 @@ impl Driver {
             g = match g.play(m) {
                 Ok(g) => g,
                 Err(IllegalMove::PlayOutOfBoard) =>
-                    panic!("You can't play on invalid coordinates ({} {})", m.coords().col, m.coords().row),
+                    panic!("You can't play on invalid coordinates ({} {})", m.coord().col, m.coord().row),
                 Err(IllegalMove::IntersectionNotEmpty)  =>
                     panic!("You can't play on a non-empty intersection !"),
                 Err(IllegalMove::SuicidePlay)           =>

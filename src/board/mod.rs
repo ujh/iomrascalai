@@ -30,8 +30,10 @@ use board::chain::Chain;
 use ruleset::Ruleset;
 use score::Score;
 
+use std::collections::HashMap;
 use std::collections::HashSet;
 use std::vec::Vec;
+use std::rc::Rc;
 
 mod test;
 
@@ -85,9 +87,10 @@ pub struct Board<'a> {
     friend_stones_removed: Vec<Coord>,
     ko:                    Option<Coord>,
     komi:                  f32,
+    neighbours:            Rc<HashMap<Coord, Vec<Coord>>>,
     previous_player:       Color,
     ruleset:               Ruleset,
-    size:                  u8
+    size:                  u8,
 }
 
 impl<'a> Clone for Board<'a> {
@@ -100,6 +103,7 @@ impl<'a> Clone for Board<'a> {
             friend_stones_removed: self.friend_stones_removed.clone(),
             ko:                    self.ko,
             komi:                  self.komi,
+            neighbours:            self.neighbours.clone(),
             previous_player:       self.previous_player,
             ruleset:               self.ruleset.clone(),
             size:                  self.size,
@@ -117,10 +121,23 @@ impl<'a> Board<'a> {
             friend_stones_removed: Vec::new(),
             ko:                    None,
             komi:                  komi,
+            neighbours:            Board::setup_neighbours(size),
             previous_player:       White,
             ruleset:               ruleset,
-            size:                  size
+            size:                  size,
         }
+    }
+
+    fn setup_neighbours(size: u8) -> Rc<HashMap<Coord, Vec<Coord>>> {
+        let mut neighbours = HashMap::new();
+        for coord in Coord::for_board_size(size).iter() {
+            neighbours.insert(*coord, coord.neighbours(size));
+        }
+        Rc::new(neighbours)
+    }
+
+    fn neighbours(&self, c: Coord) -> &Vec<Coord> {
+        &self.neighbours[c]
     }
 
     pub fn get_coord(&self, c: Coord) -> Color {
@@ -194,15 +211,15 @@ impl<'a> Board<'a> {
         }
 
         // We check if the new move is inside the board (and if it is, if there is no stone there)
-        if m.coords().is_inside(self.size) {
-            if self.get_coord(m.coords()) != Empty {
+        if m.coord().is_inside(self.size) {
+            if self.get_coord(m.coord()) != Empty {
                 return Err(IllegalMove::IntersectionNotEmpty);
             }
         } else {
             return Err(IllegalMove::PlayOutOfBoard);
         }
 
-        if self.ko.is_some() && m.coords() == self.ko.unwrap() {
+        if self.ko.is_some() && m.coord() == self.ko.unwrap() {
             return Err(IllegalMove::Ko);
         }
 
@@ -220,7 +237,7 @@ impl<'a> Board<'a> {
         let adv_stones_removed = new_board.remove_adv_chains_with_no_libs_close_to(&m);
         new_board.update_all();
 
-        let final_chain_id = new_board.get_chain(m.coords()).id;
+        let final_chain_id = new_board.get_chain(m.coord()).id;
         new_board.update_libs(final_chain_id);
 
         let mut friend_stones_removed = Vec::new();
@@ -229,10 +246,10 @@ impl<'a> Board<'a> {
             for i in range(1, new_board.chains.len()) {
                 new_board.update_libs(i);
             }
-        } else if new_board.get_chain(m.coords()).libs == 0 {
+        } else if new_board.get_chain(m.coord()).libs == 0 {
             if self.ruleset.suicide_allowed() {
-                friend_stones_removed.push_all(new_board.get_chain(m.coords()).coords().as_slice());
-                let to_remove_id = new_board.get_chain(m.coords()).id;
+                friend_stones_removed.push_all(new_board.get_chain(m.coord()).coords().as_slice());
+                let to_remove_id = new_board.get_chain(m.coord()).id;
                 new_board.remove_chain(to_remove_id);
                 new_board.update_all_after_id(to_remove_id);
             } else {
@@ -252,7 +269,7 @@ impl<'a> Board<'a> {
     }
 
     fn find_neighbouring_friendly_chains_ids(&self, m: &Move) -> Vec<uint> {
-        let mut friend_neigh_chains_id: Vec<uint> = m.coords().neighbours(self.size)
+        let mut friend_neigh_chains_id: Vec<uint> = self.neighbours(m.coord())
                   .iter()
                   .filter(|&c| c.is_inside(self.size) && self.get_coord(*c) == *m.color())
                   .map(|&c| self.get_chain(c).id)
@@ -280,7 +297,7 @@ impl<'a> Board<'a> {
             0 => self.create_new_chain(m),
             1 => {
                 let final_chain_id = friend_neigh_chains_id[0];
-                self.add_coord_to_chain(m.coords(), final_chain_id);
+                self.add_coord_to_chain(m.coord(), final_chain_id);
             },
             _ => {
                 // Note: We know that friend_neigh_chains_id is sorted, so whatever chains we remove,
@@ -289,7 +306,7 @@ impl<'a> Board<'a> {
                 let mut nb_removed_chains = 0;
 
                 // We assign the stone to the final chain
-                self.add_coord_to_chain(m.coords(), final_chain_id);
+                self.add_coord_to_chain(m.coord(), final_chain_id);
 
                 for &other_chain_old_id in friend_neigh_chains_id.slice(1, friend_neigh_chains_id.len()).iter() {
                     // The ids stored in friend_neigh_chains_id may be out of date since we remove chains from self.chains
@@ -318,7 +335,7 @@ impl<'a> Board<'a> {
         let libs = self.chains[chain_id].coords()
                                             .iter()
                                             .fold(Vec::new(), |mut acc, c| {
-                                                for &n in c.neighbours(self.size).iter() {
+                                                for &n in self.neighbours(*c).iter() {
                                                     if n.is_inside(self.size) && self.get_coord(n) == Empty && !acc.contains(&n) {
                                                         acc.push(n);
                                                     }
@@ -365,13 +382,13 @@ impl<'a> Board<'a> {
 
     // Returns a vector of the coords where stones where removed.
     fn remove_adv_chains_with_no_libs_close_to(&mut self, m: &Move) -> Vec<Coord> {
-        let coords_to_remove = m.coords().neighbours(self.size).iter()
+        let coords_to_remove = self.neighbours(m.coord()).iter()
                                       .map(|&coord| self.get_chain(coord))
                                       .filter(|chain| chain.libs == 0 && chain.color != *m.color())
                                       .fold(Vec::new(), |acc, chain| acc + chain.coords().as_slice());
 
 
-        let mut chain_to_remove_ids: Vec<uint> = m.coords().neighbours(self.size)
+        let mut chain_to_remove_ids: Vec<uint> = self.neighbours(m.coord())
                                                          .iter()
                                                          .map(|&coord| self.get_chain(coord))
                                                          .filter(|chain| chain.libs == 0 && chain.color != *m.color())
@@ -404,9 +421,9 @@ impl<'a> Board<'a> {
     fn create_new_chain(&mut self, m: &Move) {
         let new_chain_id    = self.chains.len();
         let mut new_chain   = Chain::new(new_chain_id, *m.color());
-        new_chain.add_stone(m.coords());
+        new_chain.add_stone(m.coord());
         self.chains.push(new_chain);
-        self.board[m.coords().to_index(self.size)] = new_chain_id;
+        self.board[m.coord().to_index(self.size)] = new_chain_id;
         self.update_libs(new_chain_id);
     }
 
@@ -473,7 +490,7 @@ impl<'a> Board<'a> {
             let current_coord = to_visit.pop().unwrap();
             if !territory_chain.coords().contains(&current_coord) {territory_chain.add_stone(current_coord);}
 
-            for &coord in current_coord.neighbours(self.size).iter() {
+            for &coord in self.neighbours(current_coord).iter() {
                 match self.get_coord(coord) {
                     Empty => if !territory_chain.coords().contains(&coord) {to_visit.push(coord)},
                     col   => if territory_chain.color != Empty && territory_chain.color != col {
