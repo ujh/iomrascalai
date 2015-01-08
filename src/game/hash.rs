@@ -62,7 +62,7 @@ impl ZobristHashTable {
     }
 
     pub fn add_stone_to_hash(&self, hash: u64, m: &Move) -> u64 {
-        hash ^ self.get_hash_for(&Play(Empty, m.coords().col, m.coords().row)) ^ self.get_hash_for(m)
+        hash ^ self.get_hash_for(&Play(Empty, m.coord().col, m.coord().row)) ^ self.get_hash_for(m)
     }
 
     pub fn remove_stone_from_hash(&self, hash: u64, m: &Move) -> u64 {
@@ -77,6 +77,6 @@ impl ZobristHashTable {
             White => 2
         };
 
-        self.table[color_as_index*self.size as uint + (m.coords().row-1) as uint * self.size as uint + m.coords().col as uint - 1]
+        self.table[color_as_index*self.size as uint + (m.coord().row-1) as uint * self.size as uint + m.coord().col as uint - 1]
     }
 }

@@ -60,7 +60,7 @@ impl Move {
         }
     }
 
-    pub fn coords(&self) -> Coord {
+    pub fn coord(&self) -> Coord {
         match *self {
             Play(_, col, row) => Coord::new(col, row),
             Pass(_)           => panic!("You have tried to get the coords() of a Pass move")
