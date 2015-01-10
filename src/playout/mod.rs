@@ -40,7 +40,7 @@ impl<'a> Playout<'a> {
         let mut move_count = 0;
         while !board.is_game_over() && move_count < max_moves {
             let moves = board.legal_moves();
-            let m = moves[random::<uint>() % moves.len()];
+            let m = moves[random::<usize>() % moves.len()];
             board = board.play(m).unwrap();
             move_count += 1;
         }

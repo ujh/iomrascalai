@@ -81,7 +81,7 @@ impl Color {
 #[derive(Show)]
 pub struct Board<'a> {
     adv_stones_removed:    Vec<Coord>,
-    board:                 Vec<uint>,
+    board:                 Vec<usize>,
     chains:                Vec<Chain>,
     consecutive_passes:    u8,
     friend_stones_removed: Vec<Coord>,
@@ -115,7 +115,7 @@ impl<'a> Board<'a> {
     pub fn new(size: u8, komi: f32, ruleset: Ruleset) -> Board<'a> {
         Board {
             adv_stones_removed:    Vec::new(),
-            board:                 range(0, size as uint*size as uint).map(|_| 0).collect(),
+            board:                 range(0, size as usize*size as usize).map(|_| 0).collect(),
             chains:                vec!(Chain::new(0, Empty)),
             consecutive_passes:    0,
             friend_stones_removed: Vec::new(),
@@ -268,8 +268,8 @@ impl<'a> Board<'a> {
         Ok(new_board)
     }
 
-    fn find_neighbouring_friendly_chains_ids(&self, m: &Move) -> Vec<uint> {
-        let mut friend_neigh_chains_id: Vec<uint> = self.neighbours(m.coord())
+    fn find_neighbouring_friendly_chains_ids(&self, m: &Move) -> Vec<usize> {
+        let mut friend_neigh_chains_id: Vec<usize> = self.neighbours(m.coord())
                   .iter()
                   .filter(|&c| c.is_inside(self.size) && self.get_coord(*c) == *m.color())
                   .map(|&c| self.get_chain(c).id)
@@ -331,7 +331,7 @@ impl<'a> Board<'a> {
         }
     }
 
-    fn update_libs(&mut self, chain_id: uint) {
+    fn update_libs(&mut self, chain_id: usize) {
         let libs = self.chains[chain_id].coords()
                                             .iter()
                                             .fold(Vec::new(), |mut acc, c| {
@@ -346,7 +346,7 @@ impl<'a> Board<'a> {
     }
 
     fn update_chains_libs_of(&mut self, color: Color) {
-        let adv_chains_ids: HashSet<uint> = self.chains
+        let adv_chains_ids: HashSet<usize> = self.chains
                   .iter()
                   .filter(|c| c.color == color)
                   .map(|c| c.id)
@@ -357,7 +357,7 @@ impl<'a> Board<'a> {
         }
     }
 
-    fn update_board_ids_after_id(&mut self, id: uint) {
+    fn update_board_ids_after_id(&mut self, id: usize) {
         for i in range(id, self.chains.len()) {
             for &coord in self.chains[i].coords().iter() {
                 self.board[coord.to_index(self.size)] = i;
@@ -365,13 +365,13 @@ impl<'a> Board<'a> {
         }
     }
 
-    fn update_chains_ids_after_id(&mut self, removed_chain_id: uint) {
+    fn update_chains_ids_after_id(&mut self, removed_chain_id: usize) {
         for i in range(removed_chain_id, self.chains.len()) {
             self.chains[i].id = i;
         }
     }
 
-    fn update_all_after_id(&mut self, id: uint) {
+    fn update_all_after_id(&mut self, id: usize) {
         self.update_board_ids_after_id(id);
         self.update_chains_ids_after_id(id);
     }
@@ -388,7 +388,7 @@ impl<'a> Board<'a> {
                                       .fold(Vec::new(), |acc, chain| acc + chain.coords().as_slice());
 
 
-        let mut chain_to_remove_ids: Vec<uint> = self.neighbours(m.coord())
+        let mut chain_to_remove_ids: Vec<usize> = self.neighbours(m.coord())
                                                          .iter()
                                                          .map(|&coord| self.get_chain(coord))
                                                          .filter(|chain| chain.libs == 0 && chain.color != *m.color())
@@ -407,7 +407,7 @@ impl<'a> Board<'a> {
         coords_to_remove
     }
 
-    fn remove_chain(&mut self, id: uint) {
+    fn remove_chain(&mut self, id: usize) {
         let coords_to_remove = self.chains[id].coords().clone();
 
         for &coord in coords_to_remove.iter() {
@@ -427,7 +427,7 @@ impl<'a> Board<'a> {
         self.update_libs(new_chain_id);
     }
 
-    fn add_coord_to_chain(&mut self, coord: Coord, chain_id: uint) {
+    fn add_coord_to_chain(&mut self, coord: Coord, chain_id: usize) {
         self.chains[chain_id].add_stone(coord);
        self.board[coord.to_index(self.size)] = chain_id;
     }
@@ -444,7 +444,7 @@ impl<'a> Board<'a> {
         self.score().color()
     }
 
-    fn score_tt(&self) -> (uint, uint) {
+    fn score_tt(&self) -> (usize, usize) {
         let mut black_score = self.board.iter()
                                         .filter(|&id| self.chains[*id].color == Black)
                                         .count();

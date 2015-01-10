@@ -27,14 +27,14 @@ mod test;
 
 #[derive(Clone, Eq, PartialEq, Show)]
 pub struct Chain {
-    pub id   : uint,
+    pub id   : usize,
     pub color: Color,
-    pub libs : uint,
+    pub libs : usize,
     coords   : Vec<Coord>
 }
 
 impl Chain {
-    pub fn new(id: uint, color: Color) -> Chain {
+    pub fn new(id: usize, color: Color) -> Chain {
         Chain {coords: Vec::new(), color: color, id: id, libs: 1}
     }
 
@@ -54,7 +54,7 @@ impl Chain {
         self.coords
             .iter()
             .fold(
-                format!("{:<3}| {:5}, libs: {:2}, stones: ", self.id, self.color, self.libs),
+                format!("{:<3}| {:?}, libs: {:2}, stones: ", self.id, self.color, self.libs),
                 |s, c| s + format!(" {},{} |", c.col, c.row).as_slice()
             )
     }

@@ -44,8 +44,10 @@ fn replaying_directly_on_a_ko_point_should_be_illegal() {
     g = g.play(Play(White, 3, 4)).unwrap();
 
     let ko = g.play(Play(Black, 4, 4));
-    assert!(ko.is_err());
-    assert_eq!(ko.unwrap_err(), IllegalMove::Ko);
+    match ko {
+        Err(e) => assert_eq!(e, IllegalMove::Ko),
+        Ok(_)  => panic!("expected Err")
+    }
 }
 
 #[test]
@@ -53,6 +55,8 @@ fn positional_super_ko_should_be_illegal() {
     let parser = Parser::from_path(Path::new("fixtures/sgf/positional-superko.sgf"));
     let game   = parser.game().unwrap();
     let super_ko = game.play(Play(White, 2, 9));
-    assert!(super_ko.is_err());
-    assert_eq!(super_ko.unwrap_err(), IllegalMove::SuperKo);
+    match super_ko {
+        Err(e) => assert_eq!(e, IllegalMove::SuperKo),
+        Ok(_)  => panic!("expected Err")
+    }
 }

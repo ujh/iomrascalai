@@ -6,6 +6,7 @@ authors = ["Urban Hafner <contact@urbanhafner.com>", "Thomas Poinsot <thomas.poi
 
 [dependencies]
 
+getopts         = "*"
 regex           = "*"
 regex_macros    = "*"
 rustc-serialize = "*"

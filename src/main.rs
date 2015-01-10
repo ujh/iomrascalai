@@ -60,8 +60,8 @@ fn main() {
 
     let engine_arg = matches.opt_str("e").map(|s| s.into_ascii_lowercase());
     let engine = match engine_arg {
-        Some(ref s) if s.as_slice() == "mc" => box McEngine::new() as Box<Engine>,
-        _                                   => box RandomEngine::new() as Box<Engine>
+        Some(ref s) if s.as_slice() == "mc" => Box::new(McEngine::new()) as Box<Engine>,
+        _                                   => Box::new(RandomEngine::new()) as Box<Engine>
     };
 
     let mode_arg = matches.opt_str("m").map(|s| s.into_ascii_lowercase());

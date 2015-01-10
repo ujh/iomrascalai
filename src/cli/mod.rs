@@ -53,7 +53,7 @@ impl Driver {
                 return;
             }
 
-            print!("{} to play (Enter coordinates separated by space) or p to pass: ", current_player);
+            print!("{:?} to play (Enter coordinates separated by space) or p to pass: ", current_player);
 
             let line = reader.read_line().unwrap();
 
@@ -71,7 +71,7 @@ impl Driver {
                 Err(IllegalMove::IntersectionNotEmpty)  =>
                     panic!("You can't play on a non-empty intersection !"),
                 Err(IllegalMove::SuicidePlay)           =>
-                    panic!("You can't play a suicide move with a ruleset forbidding them! ({})", g.ruleset()),
+                    panic!("You can't play a suicide move with a ruleset forbidding them! ({:?})", g.ruleset()),
                 Err(IllegalMove::SamePlayerPlayedTwice) =>
                     panic!("You can't play twice"),
                 Err(IllegalMove::GameAlreadyOver)      =>

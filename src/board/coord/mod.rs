@@ -46,8 +46,8 @@ impl Coord {
         coords
     }
 
-    pub fn from_index(id: uint, board_size: u8) -> Coord {
-        Coord {col: (id%board_size as uint + 1) as u8, row: (id/board_size as uint + 1) as u8}
+    pub fn from_index(id: usize, board_size: u8) -> Coord {
+        Coord {col: (id%board_size as usize + 1) as u8, row: (id/board_size as usize + 1) as u8}
     }
 
     pub fn neighbours(&self, board_size: u8) -> Vec<Coord> {
@@ -65,8 +65,8 @@ impl Coord {
         neighbours
     }
 
-    pub fn to_index(&self, board_size: u8) -> uint {
-        (self.col as uint-1 + (self.row as uint-1)*board_size as uint)
+    pub fn to_index(&self, board_size: u8) -> usize {
+        (self.col as usize-1 + (self.row as usize-1)*board_size as usize)
     }
 
     pub fn is_inside(&self, board_size: u8) -> bool {

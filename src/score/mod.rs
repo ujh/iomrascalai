@@ -24,7 +24,7 @@ use board::Color;
 use board::Empty;
 use board::White;
 
-use core::fmt::Show;
+use core::fmt::String;
 use std::fmt;
 use std::num::Float;
 
@@ -37,7 +37,7 @@ pub struct Score {
 mod test;
 
 impl Score {
-    pub fn new(scores: (uint, uint), komi: f32) -> Score {
+    pub fn new(scores: (usize, usize), komi: f32) -> Score {
         let (bs, ws) = scores;
         let b_score = bs as f32;
         let w_score = (ws as f32) + komi;
@@ -57,7 +57,7 @@ impl Score {
     }
 }
 
-impl Show for Score {
+impl String for Score {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let color = match self.color {
             Black => "B+",

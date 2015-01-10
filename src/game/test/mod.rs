@@ -62,8 +62,10 @@ fn catch_suicide_moves_in_chinese() {
 
     let play = g.play(Play(White, 1, 1));
 
-    assert!(play.is_err());
-    assert_eq!(play.unwrap_err(), IllegalMove::SuicidePlay);
+    match play {
+        Err(e) => assert_eq!(e, IllegalMove::SuicidePlay),
+        Ok(v)  => panic!("Expected Err!")
+    }
 }
 
 #[test]

@@ -39,7 +39,7 @@ impl ZobristHashTable {
         let mut table = Vec::new();
 
         for _ in range(0i8, 3) {
-            for _ in range(0, (size as uint)*(size as uint)) {
+            for _ in range(0, (size as usize)*(size as usize)) {
                 table.push(random::<u64>());
             }
         }
@@ -77,6 +77,6 @@ impl ZobristHashTable {
             White => 2
         };
 
-        self.table[color_as_index*self.size as uint + (m.coord().row-1) as uint * self.size as uint + m.coord().col as uint - 1]
+        self.table[color_as_index*self.size as usize + (m.coord().row-1) as usize * self.size as usize + m.coord().col as usize - 1]
     }
 }

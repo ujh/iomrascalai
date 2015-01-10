@@ -33,8 +33,8 @@ mod test;
 
 #[derive(Copy)]
 struct MoveStats {
-    wins: uint,
-    plays: uint
+    wins: usize,
+    plays: usize
 }
 
 impl MoveStats {
@@ -82,7 +82,7 @@ impl Engine for McEngine {
         }
         for m in moves.iter() {
             // We use 1 here right now, as it's so damn slow.
-            for _ in range(0u, 1) {
+            for _ in range(0us, 1) {
                 let g = game.play(*m).unwrap();
                 let playout = Playout::new(g.board());
                 let winner = playout.run();
