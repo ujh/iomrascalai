@@ -230,7 +230,6 @@ impl<'a> Board<'a> {
         new_board.consecutive_passes = 0;
 
         new_board.merge_or_create_chain(&m);
-
         // We then update the libs of all chains of the opposite color
         new_board.update_chains_libs_of(m.color().opposite());
 
@@ -246,7 +245,7 @@ impl<'a> Board<'a> {
             for i in range(1, new_board.chains.len()) {
                 new_board.update_libs(i);
             }
-        } else if new_board.get_chain(m.coord()).libs == 0 {
+        } else if new_board.get_chain(m.coord()).is_captured() {
             if self.ruleset.suicide_allowed() {
                 friend_stones_removed.push_all(new_board.get_chain(m.coord()).coords().as_slice());
                 let to_remove_id = new_board.get_chain(m.coord()).id;
@@ -332,17 +331,15 @@ impl<'a> Board<'a> {
     }
 
     fn update_libs(&mut self, chain_id: usize) {
-        let libs = self.chains[chain_id].coords()
-                                            .iter()
-                                            .fold(Vec::new(), |mut acc, c| {
-                                                for &n in self.neighbours(*c).iter() {
-                                                    if n.is_inside(self.size) && self.color(n) == Empty && !acc.contains(&n) {
-                                                        acc.push(n);
-                                                    }
-                                                }
-                                                acc
-                                            }).len();
-        self.chains[chain_id].libs = libs;
+        for &coord in self.chains[chain_id].coords().clone().iter() {
+            for &n in self.neighbours(coord).clone().iter() {
+                if self.color(n) == Empty {
+                    self.chains[chain_id].add_liberty(n);
+                } else {
+                    self.chains[chain_id].remove_liberty(n);
+                }
+            }
+        }
     }
 
     fn update_chains_libs_of(&mut self, color: Color) {
@@ -382,18 +379,19 @@ impl<'a> Board<'a> {
 
     // Returns a vector of the coords where stones where removed.
     fn remove_adv_chains_with_no_libs_close_to(&mut self, m: &Move) -> Vec<Coord> {
+        let color = m.color().opposite();
         let coords_to_remove = self.neighbours(m.coord()).iter()
-                                      .map(|&coord| self.get_chain(coord))
-                                      .filter(|chain| chain.libs == 0 && chain.color != *m.color())
-                                      .fold(Vec::new(), |acc, chain| acc + chain.coords().as_slice());
+            .map(|&coord| self.get_chain(coord))
+            .filter(|chain| chain.is_captured() && chain.color == color)
+            .fold(Vec::new(), |acc, chain| acc + chain.coords().as_slice());
 
 
         let mut chain_to_remove_ids: Vec<usize> = self.neighbours(m.coord())
-                                                         .iter()
-                                                         .map(|&coord| self.get_chain(coord))
-                                                         .filter(|chain| chain.libs == 0 && chain.color != *m.color())
-                                                         .map(|chain| chain.id)
-                                                         .collect();
+            .iter()
+            .map(|&coord| self.get_chain(coord))
+            .filter(|chain| chain.is_captured() && chain.color == color)
+            .map(|chain| chain.id)
+            .collect();
 
         chain_to_remove_ids.sort();
         chain_to_remove_ids.dedup();
@@ -523,5 +521,35 @@ impl<'a> Board<'a> {
 
     pub fn chains<'b>(&'b self) -> &'b Vec<Chain> {
         &self.chains
+    }
+
+    pub fn as_string(&self) -> String {
+        let mut s = String::new();
+                // First we print the board
+        for row in range(1u8, self.size()+1).rev() {
+
+            // Prints the row number
+            s.push_str(format!("{:2} ", row).as_slice());
+
+            // Prints the actual row
+            for col in range(1u8, self.size()+1) {
+                let current_coords = Coord::new(col, row);
+
+                match self.color(current_coords) {
+                    Empty => {
+                        let hoshis = &[4u8,10,16];
+                        if  hoshis.contains(&row) && hoshis.contains(&col) {
+                            s.push_str("+ ");
+                        } else {
+                            s.push_str(". ");
+                        }
+                    },
+                    White => { s.push_str("O "); },
+                    Black => { s.push_str("X "); }
+                }
+            }
+            s.push_str("\n");
+        }
+        s
     }
 }

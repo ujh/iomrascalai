@@ -21,41 +21,53 @@
  ************************************************************************/
 
 use board::Color;
-use board::coord::Coord;
+use board::Coord;
+
+use std::collections::HashSet;
 
 mod test;
 
 #[derive(Clone, Eq, PartialEq, Show)]
 pub struct Chain {
-    pub id   : usize,
+    coords:   Vec<Coord>,
+    libs:     HashSet<Coord>,
     pub color: Color,
-    pub libs : usize,
-    coords   : Vec<Coord>
+    pub id:   usize,
 }
 
 impl Chain {
     pub fn new(id: usize, color: Color) -> Chain {
-        Chain {coords: Vec::new(), color: color, id: id, libs: 1}
+        Chain {coords: Vec::new(), color: color, id: id, libs: HashSet::new()}
     }
 
     pub fn add_stone(&mut self, coord: Coord) {
         self.coords.push(coord);
     }
 
+    pub fn add_liberty(&mut self, coord: Coord) {
+        self.libs.insert(coord);
+    }
+
+    pub fn remove_liberty(&mut self, coord: Coord) {
+        self.libs.remove(&coord);
+    }
+
     pub fn merge(&mut self, c: &Chain) {
         self.coords.push_all(c.coords.as_slice());
+        for &l in c.libs.iter() {
+            self.libs.insert(l);
+        }
     }
 
     pub fn coords<'a>(&'a self) -> &'a Vec<Coord> {
         &self.coords
     }
 
+    pub fn is_captured(&self) -> bool {
+        self.libs.len() == 0
+    }
+
     pub fn show(&self) -> String {
-        self.coords
-            .iter()
-            .fold(
-                format!("{:<3}| {:?}, libs: {:2}, stones: ", self.id, self.color, self.libs),
-                |s, c| s + format!(" {},{} |", c.col, c.row).as_slice()
-            )
+        format!("{:<3}| {:?}, libs: {:?}, stones: {:?}", self.id, self.color, self.libs, self.coords)
     }
 }

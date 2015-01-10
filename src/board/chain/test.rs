@@ -62,8 +62,8 @@ fn show_returns_a_legible_string_for_the_chain() {
     c1.add_stone(Coord::new(7,7));
     c1.add_stone(Coord::new(7,8));
     c1.add_stone(Coord::new(7,9));
-    c1.libs = 8;
+    c1.add_liberty(Coord::new(1,1));
 
-    let expected = String::from_str("1  | Black, libs:  8, stones:  7,7 | 7,8 | 7,9 |");
+    let expected = String::from_str("1  | Black, libs: HashSet {\"(1,1)\"}, stones: [\"(7,7)\", \"(7,8)\", \"(7,9)\"]");
     assert_eq!(c1.show(), expected);
 }
