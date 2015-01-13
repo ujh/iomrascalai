@@ -201,34 +201,28 @@ impl<'a> Board<'a> {
 
     pub fn legal_moves(&self) -> Vec<Move> {
         let color = self.next_player();
-        let mut moves : Vec<Move> = Coord::for_board_size(self.size).iter().map(
-            |coord| Play(color.clone(), coord.col, coord.row)).filter(
-            |m| self.play(*m).is_ok()).collect();
+        let mut moves : Vec<Move> = Coord::for_board_size(self.size)
+            .iter()
+            .map(|coord| Play(color.clone(), coord.col, coord.row))
+            .filter(|m| self.is_legal(*m).is_ok()).collect();
         moves.push(Pass(color.clone()));
         moves
     }
 
-    // Note: Same as get(), the board is indexed starting at 1-1
-    pub fn play(&self, m: Move) -> Result<Board, IllegalMove> {
-        // We check is the player is trying to play on a finished game (which is illegal in TT rules)
+    pub fn is_legal(&self, m: Move) -> Result<(), IllegalMove> {
+        // Can't play if the game is already over
         if self.is_game_over() && !self.ruleset.game_over_play() {
             return Err(IllegalMove::GameAlreadyOver);
         }
-
-        // We check that the same player didn't play twice (except in the minimal ruleset, which is useful for tests)
+        // Player can't play twice
         if self.is_same_player(&m) && !self.ruleset.same_player() {
             return Err(IllegalMove::SamePlayerPlayedTwice);
         }
-
-        // Then we check if the player passed
+        // Pass is always allowed
         if m.is_pass() {
-            let mut new_board = self.clone();
-            new_board.consecutive_passes += 1;
-            new_board.previous_player    = *m.color();
-            return Ok(new_board);
+            return Ok(());
         }
-
-        // We check if the new move is inside the board (and if it is, if there is no stone there)
+        // Can't play outside of the board or on an occupied coord
         if m.coord().is_inside(self.size) {
             if self.color(m.coord()) != Empty {
                 return Err(IllegalMove::IntersectionNotEmpty);
@@ -236,9 +230,45 @@ impl<'a> Board<'a> {
         } else {
             return Err(IllegalMove::PlayOutOfBoard);
         }
-
+        // Can't play on a Ko point
         if self.ko.is_some() && m.coord() == self.ko.unwrap() {
             return Err(IllegalMove::Ko);
+        }
+        // Can't play suicide move
+        if !self.ruleset.suicide_allowed() {
+            // All neighbours must be occupied
+            if self.neighbours(m.coord()).iter().all(|&c| self.color(c) != Empty) {
+                // A move is a suicide move if all of the opposing,
+                // neighbouring chain has more than one liberty and all of
+                // our own chains have only one liberty.
+                let enemy_chains_with_other_libs = self.neighbours(m.coord())
+                    .iter()
+                    .filter(|&c| self.color(*c) == m.color().opposite())
+                    .all(|&c| self.get_chain(c).unwrap().liberties().len() > 1);
+                let own_chains_without_other_libs = self.neighbours(m.coord())
+                    .iter()
+                    .filter(|&c| self.color(*c) == *m.color())
+                    .all(|&c| self.get_chain(c).unwrap().liberties().len() <= 1);
+                if enemy_chains_with_other_libs && own_chains_without_other_libs {
+                    return Err(IllegalMove::SuicidePlay);
+                }
+            }
+        }
+        Ok(())
+    }
+
+    // Note: Same as get(), the board is indexed starting at 1-1
+    pub fn play(&self, m: Move) -> Result<Board, IllegalMove> {
+        match self.is_legal(m) {
+            Err(e) => return Err(e),
+            Ok(_)  => {}
+        }
+
+        if m.is_pass() {
+            let mut new_board = self.clone();
+            new_board.consecutive_passes += 1;
+            new_board.previous_player    = *m.color();
+            return Ok(new_board);
         }
 
         let mut new_board = self.clone();
@@ -258,12 +288,8 @@ impl<'a> Board<'a> {
         new_board.add_removed_adv_stones_as_libs(&m);
         // Checks for suicide play
         if new_board.get_chain(m.coord()).unwrap().is_captured() {
-            if new_board.ruleset.suicide_allowed() {
-                new_board.friend_stones_removed = new_board.remove_suicide_chain(&m);
-                new_board.add_removed_friendly_stones_as_libs(&m);
-            } else {
-                return Err(IllegalMove::SuicidePlay)
-            }
+            new_board.friend_stones_removed = new_board.remove_suicide_chain(&m);
+            new_board.add_removed_friendly_stones_as_libs(&m);
         }
         if new_board.adv_stones_removed.len() == 1 && new_board.friend_stones_removed.len() == 0 {
             let coord = new_board.adv_stones_removed[0];
