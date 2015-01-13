@@ -99,7 +99,7 @@ pub struct Board<'a> {
     friend_stones_removed: Vec<Coord>,
     ko:                    Option<Coord>,
     komi:                  f32,
-    neighbours:            Rc<HashMap<Coord, Vec<Coord>>>,
+    neighbours:            Rc<Vec<Vec<Coord>>>,
     previous_player:       Color,
     ruleset:               Ruleset,
     size:                  u8,
@@ -140,16 +140,16 @@ impl<'a> Board<'a> {
         }
     }
 
-    fn setup_neighbours(size: u8) -> Rc<HashMap<Coord, Vec<Coord>>> {
-        let mut neighbours = HashMap::new();
+    fn setup_neighbours(size: u8) -> Rc<Vec<Vec<Coord>>> {
+        let mut neighbours = Vec::new();
         for coord in Coord::for_board_size(size).iter() {
-            neighbours.insert(*coord, coord.neighbours(size));
+            neighbours.push(coord.neighbours(size));
         }
         Rc::new(neighbours)
     }
 
     fn neighbours(&self, c: Coord) -> &Vec<Coord> {
-        &self.neighbours[c]
+        &self.neighbours[c.to_index(self.size)]
     }
 
     pub fn color(&self, c: Coord) -> Color {
