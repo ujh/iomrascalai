@@ -96,7 +96,7 @@ impl<'a> Game<'a> {
     // Note: This method uses 1-1 as the origin point, not 0-0. 19-19 is a valid coordinate in a 19-sized board, while 0-0 is not.
     //       this is done because I think it makes more sense in the context of go. (Least surprise principle, etc...)
     pub fn get(&self, col: u8, row: u8) -> Color {
-        self.board.get_coord(Coord::new(col, row))
+        self.board.color(Coord::new(col, row))
     }
 
     pub fn ruleset(&self) -> Ruleset {
@@ -158,31 +158,7 @@ impl<'a> String for Game<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut s = format!("komi: {}\n", self.komi());
 
-        // First we print the board
-        for row in range(1u8, self.board.size()+1).rev() {
-
-            // Prints the row number
-            s.push_str(format!("{:2} ", row).as_slice());
-
-            // Prints the actual row
-            for col in range(1u8, self.board.size()+1) {
-                let current_coords = Coord::new(col, row);
-
-                match self.board.get_coord(current_coords) {
-                    Empty => {
-                        let hoshis = &[4u8,10,16];
-                        if  hoshis.contains(&row) && hoshis.contains(&col) {
-                            s.push_str("+ ");
-                        } else {
-                            s.push_str(". ");
-                        }
-                    },
-                    White => { s.push_str("O "); },
-                    Black => { s.push_str("X "); }
-                }
-            }
-            s.push_str("\n");
-        }
+        s.push_str(self.board.as_string().as_slice());
 
         // Then we print the col numbers under the board
         s.push_str(format!("{:3}", "").as_slice());
