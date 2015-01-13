@@ -102,19 +102,19 @@ fn playing_on_a_non_empty_intersection_should_return_error() {
 
 #[test]
 fn two_way_merging_works() {
-  let mut b = Board::new(19, 6.5, Minimal);
+    let mut b = Board::new(19, 6.5, Minimal);
 
-  b = b.play(Play(White, 10, 10)).unwrap();
-  b = b.play(Play(White, 10, 12)).unwrap();
+    b = b.play(Play(White, 10, 10)).unwrap();
+    b = b.play(Play(White, 10, 12)).unwrap();
 
-  assert_eq!(b.chains.len(), 3);
+    assert_eq!(b.chains.len(), 2);
 
-  b = b.play(Play(White, 10, 11)).unwrap();
-  let c_id = b.get_chain(Coord::new(10, 10)).id;
+    b = b.play(Play(White, 10, 11)).unwrap();
+    let c_id = b.get_chain(Coord::new(10, 10)).unwrap().id();
 
-  assert_eq!(b.get_chain(Coord::new(10, 11)).id, c_id);
-  assert_eq!(b.get_chain(Coord::new(10, 12)).id, c_id);
-  assert_eq!(b.chains.len(), 2)
+    assert_eq!(b.get_chain(Coord::new(10, 11)).unwrap().id(), c_id);
+    assert_eq!(b.get_chain(Coord::new(10, 12)).unwrap().id(), c_id);
+    assert_eq!(b.chains.len(), 1)
 }
 
 #[test]
@@ -125,15 +125,15 @@ fn three_way_merging_works() {
   b = b.play(Play(White, 11, 11)).unwrap();
   b = b.play(Play(White, 10, 12)).unwrap();
 
-  assert_eq!(b.chains.len(), 4);
+  assert_eq!(b.chains.len(), 3);
 
   b = b.play(Play(White, 10, 11)).unwrap();
-  let c_id = b.get_chain(Coord::new(10, 10)).id;
+  let c_id = b.get_chain(Coord::new(10, 10)).unwrap().id();
 
-  assert_eq!(b.get_chain(Coord::new(10, 11)).id, c_id);
-  assert_eq!(b.get_chain(Coord::new(11, 11)).id, c_id);
-  assert_eq!(b.get_chain(Coord::new(10, 12)).id, c_id);
-  assert_eq!(b.chains.len(), 2)
+  assert_eq!(b.get_chain(Coord::new(10, 11)).unwrap().id(), c_id);
+  assert_eq!(b.get_chain(Coord::new(11, 11)).unwrap().id(), c_id);
+  assert_eq!(b.get_chain(Coord::new(10, 12)).unwrap().id(), c_id);
+  assert_eq!(b.chains.len(), 1)
 }
 
 #[test]
@@ -145,16 +145,16 @@ fn four_way_merging_works() {
   b = b.play(Play(White, 11, 11)).unwrap();
   b = b.play(Play(White, 10, 12)).unwrap();
 
-  assert_eq!(b.chains.len(), 5);
+  assert_eq!(b.chains.len(), 4);
 
   b = b.play(Play(White, 10, 11)).unwrap();
-  let c_id = b.get_chain(Coord::new(10, 10)).id;
+  let c_id = b.get_chain(Coord::new(10, 10)).unwrap().id();
 
-  assert_eq!(b.get_chain(Coord::new(10, 11)).id, c_id);
-  assert_eq!(b.get_chain(Coord::new(9 , 11)).id, c_id);
-  assert_eq!(b.get_chain(Coord::new(11, 11)).id, c_id);
-  assert_eq!(b.get_chain(Coord::new(10, 12)).id, c_id);
-  assert_eq!(b.chains.len(), 2)
+  assert_eq!(b.get_chain(Coord::new(10, 11)).unwrap().id(), c_id);
+  assert_eq!(b.get_chain(Coord::new(9 , 11)).unwrap().id(), c_id);
+  assert_eq!(b.get_chain(Coord::new(11, 11)).unwrap().id(), c_id);
+  assert_eq!(b.get_chain(Coord::new(10, 12)).unwrap().id(), c_id);
+  assert_eq!(b.chains.len(), 1)
 }
 
 #[test]
@@ -369,30 +369,30 @@ fn counting_simple_case() {
 
 #[test]
 fn counting_disjoint_territory() {
-  let mut b = Board::new(5, 6.5, Minimal);
+    let mut b = Board::new(5, 6.5, Minimal);
 
-  b = b.play(Play(Black, 2, 1)).unwrap();
-  b = b.play(Play(White, 3, 1)).unwrap();
-  b = b.play(Play(Black, 2, 2)).unwrap();
-  b = b.play(Play(White, 3, 2)).unwrap();
-  b = b.play(Play(Black, 1, 3)).unwrap();
-  b = b.play(Play(White, 2, 3)).unwrap();
-  b = b.play(Play(Black, 5, 4)).unwrap();
-  b = b.play(Play(White, 1, 4)).unwrap();
-  b = b.play(Play(Black, 4, 4)).unwrap();
-  b = b.play(Play(White, 5, 3)).unwrap();
-  b = b.play(Play(Black, 4, 5)).unwrap();
-  b = b.play(Play(White, 4, 3)).unwrap();
-  b = b.play(Play(Black, 1, 2)).unwrap();
-  b = b.play(Play(White, 3, 4)).unwrap();
-  b = b.play(Pass(Black)).unwrap();
-  b = b.play(Play(White, 3, 5)).unwrap();
-  b = b.play(Pass(Black)).unwrap();
-  b = b.play(Pass(White)).unwrap();
+    b = b.play(Play(Black, 2, 1)).unwrap();
+    b = b.play(Play(White, 3, 1)).unwrap();
+    b = b.play(Play(Black, 2, 2)).unwrap();
+    b = b.play(Play(White, 3, 2)).unwrap();
+    b = b.play(Play(Black, 1, 3)).unwrap();
+    b = b.play(Play(White, 2, 3)).unwrap();
+    b = b.play(Play(Black, 5, 4)).unwrap();
+    b = b.play(Play(White, 1, 4)).unwrap();
+    b = b.play(Play(Black, 4, 4)).unwrap();
+    b = b.play(Play(White, 5, 3)).unwrap();
+    b = b.play(Play(Black, 4, 5)).unwrap();
+    b = b.play(Play(White, 4, 3)).unwrap();
+    b = b.play(Play(Black, 1, 2)).unwrap();
+    b = b.play(Play(White, 3, 4)).unwrap();
+    b = b.play(Pass(Black)).unwrap();
+    b = b.play(Play(White, 3, 5)).unwrap();
+    b = b.play(Pass(Black)).unwrap();
+    b = b.play(Pass(White)).unwrap();
 
-  let (b_score, w_score) = b.score_tt();
-  assert_eq!(b_score, 9);
-  assert_eq!(w_score, 16);
+    let (b_score, w_score) = b.score_tt();
+    assert_eq!(b_score, 9);
+    assert_eq!(w_score, 16);
 }
 
 #[test]
@@ -417,21 +417,21 @@ fn counting_with_neutral_points() {
 
 #[test]
 fn capturing_two_or_more_groups_while_playing_in_an_eye_actually_captures() {
-  let mut b = Board::new(5, 6.5, AnySizeTrompTaylor);
+    let mut b = Board::new(5, 6.5, AnySizeTrompTaylor);
 
-  b = b.play(Play(Black, 2, 1)).unwrap();
-  b = b.play(Play(White, 3, 1)).unwrap();
-  b = b.play(Play(Black, 1, 2)).unwrap();
-  b = b.play(Play(White, 2, 2)).unwrap();
-  b = b.play(Play(Black, 5, 5)).unwrap();
-  b = b.play(Play(White, 1, 3)).unwrap();
-  b = b.play(Play(Black, 5, 4)).unwrap();
-  b = b.play(Play(White, 1, 1)).unwrap();
+    b = b.play(Play(Black, 2, 1)).unwrap();
+    b = b.play(Play(White, 3, 1)).unwrap();
+    b = b.play(Play(Black, 1, 2)).unwrap();
+    b = b.play(Play(White, 2, 2)).unwrap();
+    b = b.play(Play(Black, 5, 5)).unwrap();
+    b = b.play(Play(White, 1, 3)).unwrap();
+    b = b.play(Play(Black, 5, 4)).unwrap();
+    b = b.play(Play(White, 1, 1)).unwrap();
 
-  assert_eq!(b.color(Coord::new(1, 1)), White);
-  assert_eq!(b.color(Coord::new(1, 2)), Empty);
-  assert_eq!(b.color(Coord::new(2, 1)), Empty);
-  assert_eq!(b.color(Coord::new(2, 2)), White);
+    assert_eq!(b.color(Coord::new(1, 1)), White);
+    assert_eq!(b.color(Coord::new(1, 2)), Empty);
+    assert_eq!(b.color(Coord::new(2, 1)), Empty);
+    assert_eq!(b.color(Coord::new(2, 2)), White);
 }
 
 #[test]
@@ -489,12 +489,6 @@ fn legal_moves_only_contains_legal_moves() {
 fn ruleset_returns_the_correct_ruleset() {
     let b = Board::new(1, 6.5, Minimal);
     assert_eq!(b.ruleset(), Minimal);
-}
-
-#[test]
-fn chains_returns_the_chains_on_the_board() {
-    let b = Board::new(1, 6.5, Minimal);
-    assert_eq!(*b.chains(), vec!(Chain::new(0, Empty)));
 }
 
 #[test]

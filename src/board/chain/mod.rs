@@ -29,19 +29,36 @@ mod test;
 
 #[derive(Clone, Eq, PartialEq, Show)]
 pub struct Chain {
-    coords:   Vec<Coord>,
-    libs:     HashSet<Coord>,
-    pub color: Color,
-    pub id:   usize,
+    color:  Color,
+    coords: Vec<Coord>,
+    id:     usize,
+    libs:   HashSet<Coord>,
 }
 
 impl Chain {
-    pub fn new(id: usize, color: Color) -> Chain {
-        Chain {coords: Vec::new(), color: color, id: id, libs: HashSet::new()}
+    pub fn new(id: usize, color: Color, c: Coord, libs: Vec<Coord>) -> Chain {
+        Chain {
+            color:  color,
+            coords: vec!(c),
+            id:     id,
+            libs:   libs.into_iter().collect(),
+        }
     }
 
-    pub fn add_stone(&mut self, coord: Coord) {
-        self.coords.push(coord);
+    pub fn color(&self) -> Color {
+        self.color
+    }
+
+    pub fn coords<'a>(&'a self) -> &'a Vec<Coord> {
+        &self.coords
+    }
+
+    pub fn id(&self) -> usize {
+        self.id
+    }
+
+    pub fn set_id(&mut self, id: usize) {
+        self.id = id;
     }
 
     pub fn add_liberty(&mut self, coord: Coord) {
@@ -57,10 +74,6 @@ impl Chain {
         for &l in c.libs.iter() {
             self.libs.insert(l);
         }
-    }
-
-    pub fn coords<'a>(&'a self) -> &'a Vec<Coord> {
-        &self.coords
     }
 
     pub fn is_captured(&self) -> bool {
