@@ -53,6 +53,10 @@ impl Chain {
         &self.coords
     }
 
+    pub fn liberties(&self) -> &HashSet<Coord> {
+        &self.libs
+    }
+
     pub fn id(&self) -> usize {
         self.id
     }
@@ -69,11 +73,8 @@ impl Chain {
         self.libs.remove(&coord);
     }
 
-    pub fn merge(&mut self, c: &Chain) {
-        self.coords.push_all(c.coords.as_slice());
-        for &l in c.libs.iter() {
-            self.libs.insert(l);
-        }
+    pub fn add_coord(&mut self, coord: Coord) {
+        self.coords.push(coord);
     }
 
     pub fn is_captured(&self) -> bool {

@@ -6,11 +6,11 @@ use board::Coord;
 
 #[test]
 fn show_returns_a_legible_string_for_the_chain() {
-    let mut c1 = Chain::new(1, Black, Coord::new(7,7), vec!(Coord::new(1,1)));
+    let mut c = Chain::new(1, Black, Coord::new(7,7), vec!(Coord::new(1,1)));
 
-    c1.merge(&Chain::new(2, Black, Coord::new(7,8), vec!()));
-    c1.merge(&Chain::new(2, Black, Coord::new(7,9), vec!()));
+    c.add_coord(Coord::new(7,8));
+    c.add_coord(Coord::new(7,9));
 
     let expected = String::from_str("1  | Black, libs: HashSet {\"(1,1)\"}, stones: [\"(7,7)\", \"(7,8)\", \"(7,9)\"]");
-    assert_eq!(c1.show(), expected);
+    assert_eq!(c.show(), expected);
 }

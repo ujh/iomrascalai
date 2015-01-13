@@ -361,10 +361,15 @@ impl<'a> Board<'a> {
             if other_chain_old_id != final_chain_id {
                 let other_chain_id = other_chain_old_id - nb_removed_chains;
                 // We merge the other chain into the final chain.
-                let other_chain = self.chains[other_chain_id].clone();
-                self.chains[final_chain_id].merge(&other_chain);
-                // We remove the old chain.
-                self.move_stones_to_chain_and_remove(other_chain_id, final_chain_id);
+                let other_chain = self.chains.remove(other_chain_id);
+                for &coord in other_chain.coords().iter() {
+                    self.board[coord.to_index(self.size)] = Some(final_chain_id);
+                    self.chains[final_chain_id].add_coord(coord);
+                }
+                for &lib in other_chain.liberties().iter() {
+                    self.chains[final_chain_id].add_liberty(lib);
+                }
+                self.update_all_after_id(other_chain_id);
                 nb_removed_chains += 1;
             }
         }
@@ -437,18 +442,6 @@ impl<'a> Board<'a> {
 
         self.chains.remove(id);
         self.update_all_after_id(id);
-    }
-
-    fn move_stones_to_chain_and_remove(&mut self, old_chain_id: usize, new_chain_id: usize) {
-        let coords_to_move = self.chains[old_chain_id].coords().clone();
-
-        for &coord in coords_to_move.iter() {
-            self.board[coord.to_index(self.size)] = Some(new_chain_id);
-        }
-
-        self.chains.remove(old_chain_id);
-        self.update_all_after_id(new_chain_id);
-
     }
 
     fn create_new_chain(&mut self, m: &Move) -> usize {
