@@ -357,14 +357,16 @@ impl<'a> Board<'a> {
         chain_ids.push(new_chain_id);
         let final_chain_id = chain_ids[0];
         let mut nb_removed_chains = 0;
-        for &other_chain_old_id in chain_ids.slice(1, chain_ids.len()).iter() {
-            let other_chain_id = other_chain_old_id - nb_removed_chains;
-            // We merge the other chain into the final chain.
-            let other_chain = self.chains[other_chain_id].clone();
-            self.chains[final_chain_id].merge(&other_chain);
-            // We remove the old chain.
-            self.move_stones_to_chain_and_remove(other_chain_id, final_chain_id);
-            nb_removed_chains += 1;
+        for &other_chain_old_id in chain_ids.iter() {
+            if other_chain_old_id != final_chain_id {
+                let other_chain_id = other_chain_old_id - nb_removed_chains;
+                // We merge the other chain into the final chain.
+                let other_chain = self.chains[other_chain_id].clone();
+                self.chains[final_chain_id].merge(&other_chain);
+                // We remove the old chain.
+                self.move_stones_to_chain_and_remove(other_chain_id, final_chain_id);
+                nb_removed_chains += 1;
+            }
         }
         // Removes the played stone from the liberty
         self.chains[final_chain_id].remove_liberty(m.coord());
