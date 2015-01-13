@@ -201,9 +201,10 @@ impl<'a> Board<'a> {
 
     pub fn legal_moves(&self) -> Vec<Move> {
         let color = self.next_player();
-        let mut moves : Vec<Move> = Coord::for_board_size(self.size).iter().map(
-            |coord| Play(color.clone(), coord.col, coord.row)).filter(
-            |m| self.play(*m).is_ok()).collect();
+        let mut moves : Vec<Move> = Coord::for_board_size(self.size)
+            .iter()
+            .map(|coord| Play(color.clone(), coord.col, coord.row))
+            .filter(|m| self.is_legal(*m).is_ok()).collect();
         moves.push(Pass(color.clone()));
         moves
     }
