@@ -73,7 +73,7 @@ fn _0_0_is_not_a_valid_coordinate(){
 fn play_adds_a_stone_to_the_correct_position() {
     let mut b = Board::new(19, 6.5, AnySizeTrompTaylor);
 
-    b = b.play(Play(Black, 14, 14)).unwrap();
+    b.play(Play(Black, 14, 14));
 
     assert!(b.color(Coord::new(14, 14)) == Black);
 
@@ -86,30 +86,30 @@ fn play_adds_a_stone_to_the_correct_position() {
 
 #[test]
 fn playing_on_an_illegal_coordinate_should_return_error() {
-  let b = Board::new(9, 6.5, Minimal);
+    let mut b = Board::new(9, 6.5, Minimal);
 
-  assert!(b.play(Play(Black, 13, 13)).is_err());
+    assert!(b.play(Play(Black, 13, 13)).is_err());
 }
 
 #[test]
 fn playing_on_a_non_empty_intersection_should_return_error() {
-  let b = Board::new(9, 6.5, Minimal);
+    let mut b = Board::new(9, 6.5, Minimal);
 
-  let b = b.play(Play(Black, 4, 4)).unwrap();
-  assert!(b.play(Play(Black, 4, 4)).is_err());
-  assert!(b.play(Play(White, 4, 4)).is_err());
+    b.play(Play(Black, 4, 4));
+    assert!(b.play(Play(Black, 4, 4)).is_err());
+    assert!(b.play(Play(White, 4, 4)).is_err());
 }
 
 #[test]
 fn two_way_merging_works() {
     let mut b = Board::new(19, 6.5, Minimal);
 
-    b = b.play(Play(White, 10, 10)).unwrap();
-    b = b.play(Play(White, 10, 12)).unwrap();
+    b.play(Play(White, 10, 10));
+    b.play(Play(White, 10, 12));
 
     assert_eq!(b.chains.len(), 2);
 
-    b = b.play(Play(White, 10, 11)).unwrap();
+    b.play(Play(White, 10, 11));
     let c_id = b.get_chain(Coord::new(10, 10)).unwrap().id();
 
     assert_eq!(b.get_chain(Coord::new(10, 11)).unwrap().id(), c_id);
@@ -119,178 +119,178 @@ fn two_way_merging_works() {
 
 #[test]
 fn three_way_merging_works() {
-  let mut b = Board::new(19, 6.5, Minimal);
+    let mut b = Board::new(19, 6.5, Minimal);
 
-  b = b.play(Play(White, 10, 10)).unwrap();
-  b = b.play(Play(White, 11, 11)).unwrap();
-  b = b.play(Play(White, 10, 12)).unwrap();
+    b.play(Play(White, 10, 10));
+    b.play(Play(White, 11, 11));
+    b.play(Play(White, 10, 12));
 
-  assert_eq!(b.chains.len(), 3);
+    assert_eq!(b.chains.len(), 3);
 
-  b = b.play(Play(White, 10, 11)).unwrap();
-  let c_id = b.get_chain(Coord::new(10, 10)).unwrap().id();
+    b.play(Play(White, 10, 11));
+    let c_id = b.get_chain(Coord::new(10, 10)).unwrap().id();
 
-  assert_eq!(b.get_chain(Coord::new(10, 11)).unwrap().id(), c_id);
-  assert_eq!(b.get_chain(Coord::new(11, 11)).unwrap().id(), c_id);
-  assert_eq!(b.get_chain(Coord::new(10, 12)).unwrap().id(), c_id);
-  assert_eq!(b.chains.len(), 1)
+    assert_eq!(b.get_chain(Coord::new(10, 11)).unwrap().id(), c_id);
+    assert_eq!(b.get_chain(Coord::new(11, 11)).unwrap().id(), c_id);
+    assert_eq!(b.get_chain(Coord::new(10, 12)).unwrap().id(), c_id);
+    assert_eq!(b.chains.len(), 1)
 }
 
 #[test]
 fn four_way_merging_works() {
-  let mut b = Board::new(19, 6.5, Minimal);
+    let mut b = Board::new(19, 6.5, Minimal);
 
-  b = b.play(Play(White, 10, 10)).unwrap();
-  b = b.play(Play(White, 9, 11)).unwrap();
-  b = b.play(Play(White, 11, 11)).unwrap();
-  b = b.play(Play(White, 10, 12)).unwrap();
+    b.play(Play(White, 10, 10));
+    b.play(Play(White, 9, 11));
+    b.play(Play(White, 11, 11));
+    b.play(Play(White, 10, 12));
 
-  assert_eq!(b.chains.len(), 4);
+    assert_eq!(b.chains.len(), 4);
 
-  b = b.play(Play(White, 10, 11)).unwrap();
-  let c_id = b.get_chain(Coord::new(10, 10)).unwrap().id();
+    b.play(Play(White, 10, 11));
+    let c_id = b.get_chain(Coord::new(10, 10)).unwrap().id();
 
-  assert_eq!(b.get_chain(Coord::new(10, 11)).unwrap().id(), c_id);
-  assert_eq!(b.get_chain(Coord::new(9 , 11)).unwrap().id(), c_id);
-  assert_eq!(b.get_chain(Coord::new(11, 11)).unwrap().id(), c_id);
-  assert_eq!(b.get_chain(Coord::new(10, 12)).unwrap().id(), c_id);
-  assert_eq!(b.chains.len(), 1)
+    assert_eq!(b.get_chain(Coord::new(10, 11)).unwrap().id(), c_id);
+    assert_eq!(b.get_chain(Coord::new(9 , 11)).unwrap().id(), c_id);
+    assert_eq!(b.get_chain(Coord::new(11, 11)).unwrap().id(), c_id);
+    assert_eq!(b.get_chain(Coord::new(10, 12)).unwrap().id(), c_id);
+    assert_eq!(b.chains.len(), 1)
 }
 
 #[test]
 fn playing_on_all_libs_in_corner_should_capture() {
-  let mut b = Board::new(19, 6.5, Minimal);
+    let mut b = Board::new(19, 6.5, Minimal);
 
-  b = b.play(Play(Black, 1, 1)).unwrap();
-  b = b.play(Play(White, 1, 2)).unwrap();
-  b = b.play(Play(White, 2, 1)).unwrap();
+    b.play(Play(Black, 1, 1));
+    b.play(Play(White, 1, 2));
+    b.play(Play(White, 2, 1));
 
-  assert_eq!(b.color(Coord::new(1, 1)), Empty);
-  assert_eq!(b.color(Coord::new(1, 2)), White);
-  assert_eq!(b.color(Coord::new(2, 1)), White);
+    assert_eq!(b.color(Coord::new(1, 1)), Empty);
+    assert_eq!(b.color(Coord::new(1, 2)), White);
+    assert_eq!(b.color(Coord::new(2, 1)), White);
 }
 
 #[test]
 fn playing_on_all_libs_on_side_should_capture() {
-  let mut b = Board::new(19, 6.5, Minimal);
+    let mut b = Board::new(19, 6.5, Minimal);
 
-  b = b.play(Play(Black, 1, 3)).unwrap();
-  b = b.play(Play(White, 1, 2)).unwrap();
-  b = b.play(Play(White, 1, 4)).unwrap();
-  b = b.play(Play(White, 2, 3)).unwrap();
+    b.play(Play(Black, 1, 3));
+    b.play(Play(White, 1, 2));
+    b.play(Play(White, 1, 4));
+    b.play(Play(White, 2, 3));
 
-  assert_eq!(b.color(Coord::new(1, 3)), Empty);
-  assert_eq!(b.color(Coord::new(1, 2)), White);
-  assert_eq!(b.color(Coord::new(1, 4)), White);
-  assert_eq!(b.color(Coord::new(2, 3)), White);
+    assert_eq!(b.color(Coord::new(1, 3)), Empty);
+    assert_eq!(b.color(Coord::new(1, 2)), White);
+    assert_eq!(b.color(Coord::new(1, 4)), White);
+    assert_eq!(b.color(Coord::new(2, 3)), White);
 }
 
 #[test]
 fn playing_on_all_libs_should_capture() {
-  let mut b = Board::new(19, 6.5, Minimal);
+    let mut b = Board::new(19, 6.5, Minimal);
 
-  b = b.play(Play(Black, 4, 4)).unwrap();
+    b.play(Play(Black, 4, 4));
 
-  b = b.play(Play(White, 4, 3)).unwrap();
-  b = b.play(Play(White, 4, 5)).unwrap();
-  b = b.play(Play(White, 3, 4)).unwrap();
-  b = b.play(Play(White, 5, 4)).unwrap();
+    b.play(Play(White, 4, 3));
+    b.play(Play(White, 4, 5));
+    b.play(Play(White, 3, 4));
+    b.play(Play(White, 5, 4));
 
-  assert_eq!(b.color(Coord::new(4, 4)), Empty);
+    assert_eq!(b.color(Coord::new(4, 4)), Empty);
 
-  assert_eq!(b.color(Coord::new(4, 3)), White);
-  assert_eq!(b.color(Coord::new(4, 5)), White);
-  assert_eq!(b.color(Coord::new(3, 4)), White);
-  assert_eq!(b.color(Coord::new(5, 4)), White);
+    assert_eq!(b.color(Coord::new(4, 3)), White);
+    assert_eq!(b.color(Coord::new(4, 5)), White);
+    assert_eq!(b.color(Coord::new(3, 4)), White);
+    assert_eq!(b.color(Coord::new(5, 4)), White);
 }
 
 #[test]
 fn playing_on_all_libs_of_a_chain_should_capture() {
-  let mut b = Board::new(19, 6.5, Minimal);
+    let mut b = Board::new(19, 6.5, Minimal);
 
-  b = b.play(Play(Black, 4, 4)).unwrap();
-  b = b.play(Play(Black, 4, 5)).unwrap();
+    b.play(Play(Black, 4, 4));
+    b.play(Play(Black, 4, 5));
 
-  b = b.play(Play(White, 4, 3)).unwrap();
-  b = b.play(Play(White, 3, 4)).unwrap();
-  b = b.play(Play(White, 5, 4)).unwrap();
-  b = b.play(Play(White, 3, 5)).unwrap();
-  b = b.play(Play(White, 5, 5)).unwrap();
-  b = b.play(Play(White, 4, 6)).unwrap();
+    b.play(Play(White, 4, 3));
+    b.play(Play(White, 3, 4));
+    b.play(Play(White, 5, 4));
+    b.play(Play(White, 3, 5));
+    b.play(Play(White, 5, 5));
+    b.play(Play(White, 4, 6));
 
-  assert_eq!(b.color(Coord::new(4, 4)), Empty);
-  assert_eq!(b.color(Coord::new(4, 5)), Empty);
+    assert_eq!(b.color(Coord::new(4, 4)), Empty);
+    assert_eq!(b.color(Coord::new(4, 5)), Empty);
 
-  assert_eq!(b.color(Coord::new(4, 3)), White);
-  assert_eq!(b.color(Coord::new(3, 4)), White);
-  assert_eq!(b.color(Coord::new(5, 4)), White);
-  assert_eq!(b.color(Coord::new(3, 5)), White);
-  assert_eq!(b.color(Coord::new(5, 5)), White);
-  assert_eq!(b.color(Coord::new(4, 6)), White);
+    assert_eq!(b.color(Coord::new(4, 3)), White);
+    assert_eq!(b.color(Coord::new(3, 4)), White);
+    assert_eq!(b.color(Coord::new(5, 4)), White);
+    assert_eq!(b.color(Coord::new(3, 5)), White);
+    assert_eq!(b.color(Coord::new(5, 5)), White);
+    assert_eq!(b.color(Coord::new(4, 6)), White);
 }
 
 #[test]
 fn playing_on_all_libs_of_a_bent_chain_should_capture() {
-  let mut b = Board::new(19, 6.5, Minimal);
+    let mut b = Board::new(19, 6.5, Minimal);
 
-  b = b.play(Play(Black, 4, 4)).unwrap();
-  b = b.play(Play(Black, 4, 5)).unwrap();
-  b = b.play(Play(Black, 3, 4)).unwrap();
+    b.play(Play(Black, 4, 4));
+    b.play(Play(Black, 4, 5));
+    b.play(Play(Black, 3, 4));
 
-  b = b.play(Play(White, 3, 3)).unwrap();
-  b = b.play(Play(White, 4, 3)).unwrap();
-  b = b.play(Play(White, 2, 4)).unwrap();
-  b = b.play(Play(White, 5, 4)).unwrap();
-  b = b.play(Play(White, 3, 5)).unwrap();
-  b = b.play(Play(White, 5, 5)).unwrap();
-  b = b.play(Play(White, 4, 6)).unwrap();
+    b.play(Play(White, 3, 3));
+    b.play(Play(White, 4, 3));
+    b.play(Play(White, 2, 4));
+    b.play(Play(White, 5, 4));
+    b.play(Play(White, 3, 5));
+    b.play(Play(White, 5, 5));
+    b.play(Play(White, 4, 6));
 
-  assert_eq!(b.color(Coord::new(4, 4)), Empty);
-  assert_eq!(b.color(Coord::new(4, 5)), Empty);
-  assert_eq!(b.color(Coord::new(3, 4)), Empty);
+    assert_eq!(b.color(Coord::new(4, 4)), Empty);
+    assert_eq!(b.color(Coord::new(4, 5)), Empty);
+    assert_eq!(b.color(Coord::new(3, 4)), Empty);
 
-  assert_eq!(b.color(Coord::new(3, 3)), White);
-  assert_eq!(b.color(Coord::new(4, 3)), White);
-  assert_eq!(b.color(Coord::new(2, 4)), White);
-  assert_eq!(b.color(Coord::new(5, 4)), White);
-  assert_eq!(b.color(Coord::new(3, 5)), White);
-  assert_eq!(b.color(Coord::new(5, 5)), White);
-  assert_eq!(b.color(Coord::new(4, 6)), White);
+    assert_eq!(b.color(Coord::new(3, 3)), White);
+    assert_eq!(b.color(Coord::new(4, 3)), White);
+    assert_eq!(b.color(Coord::new(2, 4)), White);
+    assert_eq!(b.color(Coord::new(5, 4)), White);
+    assert_eq!(b.color(Coord::new(3, 5)), White);
+    assert_eq!(b.color(Coord::new(5, 5)), White);
+    assert_eq!(b.color(Coord::new(4, 6)), White);
 }
 
 #[test]
 fn suicide_should_be_legal_in_tromp_taylor_rules() {
-  let mut b = Board::new(19, 6.5, AnySizeTrompTaylor);
+    let mut b = Board::new(19, 6.5, AnySizeTrompTaylor);
 
-  b = b.play(Play(Black, 4, 4)).unwrap();
-  b = b.play(Play(White, 5, 4)).unwrap();
-  b = b.play(Play(Black, 16, 16)).unwrap();
-  b = b.play(Play(White, 4, 3)).unwrap();
-  b = b.play(Play(Black, 16, 15)).unwrap();
-  b = b.play(Play(White, 3, 3)).unwrap();
-  b = b.play(Play(Black, 16, 14)).unwrap();
-  b = b.play(Play(White, 2, 4)).unwrap();
-  b = b.play(Play(Black, 16, 13)).unwrap();
-  b = b.play(Play(White, 4, 5)).unwrap();
-  b = b.play(Play(Black, 16, 12)).unwrap();
-  b = b.play(Play(White, 3, 5)).unwrap();
+    b.play(Play(Black, 4, 4));
+    b.play(Play(White, 5, 4));
+    b.play(Play(Black, 16, 16));
+    b.play(Play(White, 4, 3));
+    b.play(Play(Black, 16, 15));
+    b.play(Play(White, 3, 3));
+    b.play(Play(Black, 16, 14));
+    b.play(Play(White, 2, 4));
+    b.play(Play(Black, 16, 13));
+    b.play(Play(White, 4, 5));
+    b.play(Play(Black, 16, 12));
+    b.play(Play(White, 3, 5));
 
-  assert!(b.play(Play(Black, 3, 4)).is_ok());
+    assert!(b.play(Play(Black, 3, 4)).is_ok());
 }
 
 #[test]
 fn suicide_should_be_illegal_in_kgs_chinese_rules() {
     let mut b = Board::new(3, 6.5, KgsChinese);
 
-    b = b.play(Play(Black, 2, 2)).unwrap();
-    b = b.play(Play(White, 1, 2)).unwrap();
-    b = b.play(Play(Black, 2, 1)).unwrap();
-    b = b.play(Play(White, 3, 2)).unwrap();
-    b = b.play(Play(Black, 2, 3)).unwrap();
-    b = b.play(Play(White, 3, 1)).unwrap();
-    b = b.play(Pass(Black)).unwrap();
-    b = b.play(Play(White, 1, 3)).unwrap();
-    b = b.play(Pass(Black)).unwrap();
+    b.play(Play(Black, 2, 2));
+    b.play(Play(White, 1, 2));
+    b.play(Play(Black, 2, 1));
+    b.play(Play(White, 3, 2));
+    b.play(Play(Black, 2, 3));
+    b.play(Play(White, 3, 1));
+    b.play(Pass(Black));
+    b.play(Play(White, 1, 3));
+    b.play(Pass(Black));
 
     let play = b.play(Play(White, 1, 1));
     assert!(play.is_err());
@@ -299,96 +299,96 @@ fn suicide_should_be_illegal_in_kgs_chinese_rules() {
 
 #[test]
 fn suicide_should_remove_the_suicided_chain() {
-  let mut b = Board::new(19, 6.5, AnySizeTrompTaylor);
+    let mut b = Board::new(19, 6.5, AnySizeTrompTaylor);
 
-  b = b.play(Play(Black, 4, 4)).unwrap();
-  b = b.play(Play(White, 5, 4)).unwrap();
-  b = b.play(Play(Black, 16, 16)).unwrap();
-  b = b.play(Play(White, 4, 3)).unwrap();
-  b = b.play(Play(Black, 16, 15)).unwrap();
-  b = b.play(Play(White, 3, 3)).unwrap();
-  b = b.play(Play(Black, 16, 14)).unwrap();
-  b = b.play(Play(White, 2, 4)).unwrap();
-  b = b.play(Play(Black, 16, 13)).unwrap();
-  b = b.play(Play(White, 4, 5)).unwrap();
-  b = b.play(Play(Black, 16, 12)).unwrap();
-  b = b.play(Play(White, 3, 5)).unwrap();
+    b.play(Play(Black, 4, 4));
+    b.play(Play(White, 5, 4));
+    b.play(Play(Black, 16, 16));
+    b.play(Play(White, 4, 3));
+    b.play(Play(Black, 16, 15));
+    b.play(Play(White, 3, 3));
+    b.play(Play(Black, 16, 14));
+    b.play(Play(White, 2, 4));
+    b.play(Play(Black, 16, 13));
+    b.play(Play(White, 4, 5));
+    b.play(Play(Black, 16, 12));
+    b.play(Play(White, 3, 5));
 
-  b = b.play(Play(Black, 3, 4)).unwrap();
+    b.play(Play(Black, 3, 4));
 
-  assert_eq!(b.color(Coord::new(3, 4)), Empty);
-  assert_eq!(b.color(Coord::new(4, 4)), Empty);
+    assert_eq!(b.color(Coord::new(3, 4)), Empty);
+    assert_eq!(b.color(Coord::new(4, 4)), Empty);
 
-  assert_eq!(b.color(Coord::new(5, 4)), White);
-  assert_eq!(b.color(Coord::new(4, 3)), White);
-  assert_eq!(b.color(Coord::new(3, 3)), White);
-  assert_eq!(b.color(Coord::new(2, 4)), White);
-  assert_eq!(b.color(Coord::new(4, 5)), White);
-  assert_eq!(b.color(Coord::new(3, 5)), White);
+    assert_eq!(b.color(Coord::new(5, 4)), White);
+    assert_eq!(b.color(Coord::new(4, 3)), White);
+    assert_eq!(b.color(Coord::new(3, 3)), White);
+    assert_eq!(b.color(Coord::new(2, 4)), White);
+    assert_eq!(b.color(Coord::new(4, 5)), White);
+    assert_eq!(b.color(Coord::new(3, 5)), White);
 }
 
 #[test]
 fn playing_twice_should_be_illegal_in_tromp_taylor_rules() {
-  let mut b = Board::new(19, 6.5, AnySizeTrompTaylor);
+    let mut b = Board::new(19, 6.5, AnySizeTrompTaylor);
 
-  b = b.play(Play(Black, 10, 10)).unwrap();
+    b.play(Play(Black, 10, 10));
 
-  assert!(b.play(Play(Black, 4, 4)).is_err());
+    assert!(b.play(Play(Black, 4, 4)).is_err());
 }
 
 #[test]
 fn after_two_passes_the_game_should_be_over_in_tromp_taylor_rules() {
-  let mut b = Board::new(19, 6.5, AnySizeTrompTaylor);
+    let mut b = Board::new(19, 6.5, AnySizeTrompTaylor);
 
-  b = b.play(Pass(Black)).unwrap();
-  b = b.play(Pass(White)).unwrap();
-  assert!(b.is_game_over());
+    b.play(Pass(Black));
+    b.play(Pass(White));
+    assert!(b.is_game_over());
 
-  assert!(b.play(Play(Black, 4, 4)).is_err());
+    assert!(b.play(Play(Black, 4, 4)).is_err());
 }
 
 #[test]
 fn counting_simple_case() {
-  let mut b = Board::new(4, 6.5, Minimal);
+    let mut b = Board::new(4, 6.5, Minimal);
 
-  b = b.play(Play(Black, 2, 1)).unwrap();
-  b = b.play(Play(White, 3, 1)).unwrap();
-  b = b.play(Play(Black, 2, 2)).unwrap();
-  b = b.play(Play(White, 3, 2)).unwrap();
-  b = b.play(Play(Black, 2, 3)).unwrap();
-  b = b.play(Play(White, 3, 3)).unwrap();
-  b = b.play(Play(Black, 2, 4)).unwrap();
-  b = b.play(Play(White, 3, 4)).unwrap();
-  b = b.play(Pass(Black)).unwrap();
-  b = b.play(Pass(White)).unwrap();
+    b.play(Play(Black, 2, 1));
+    b.play(Play(White, 3, 1));
+    b.play(Play(Black, 2, 2));
+    b.play(Play(White, 3, 2));
+    b.play(Play(Black, 2, 3));
+    b.play(Play(White, 3, 3));
+    b.play(Play(Black, 2, 4));
+    b.play(Play(White, 3, 4));
+    b.play(Pass(Black));
+    b.play(Pass(White));
 
-  let (b_score, w_score) = b.score_tt();
-  assert_eq!(b_score, 8);
-  assert_eq!(w_score, 8);
+    let (b_score, w_score) = b.score_tt();
+    assert_eq!(b_score, 8);
+    assert_eq!(w_score, 8);
 }
 
 #[test]
 fn counting_disjoint_territory() {
     let mut b = Board::new(5, 6.5, Minimal);
 
-    b = b.play(Play(Black, 2, 1)).unwrap();
-    b = b.play(Play(White, 3, 1)).unwrap();
-    b = b.play(Play(Black, 2, 2)).unwrap();
-    b = b.play(Play(White, 3, 2)).unwrap();
-    b = b.play(Play(Black, 1, 3)).unwrap();
-    b = b.play(Play(White, 2, 3)).unwrap();
-    b = b.play(Play(Black, 5, 4)).unwrap();
-    b = b.play(Play(White, 1, 4)).unwrap();
-    b = b.play(Play(Black, 4, 4)).unwrap();
-    b = b.play(Play(White, 5, 3)).unwrap();
-    b = b.play(Play(Black, 4, 5)).unwrap();
-    b = b.play(Play(White, 4, 3)).unwrap();
-    b = b.play(Play(Black, 1, 2)).unwrap();
-    b = b.play(Play(White, 3, 4)).unwrap();
-    b = b.play(Pass(Black)).unwrap();
-    b = b.play(Play(White, 3, 5)).unwrap();
-    b = b.play(Pass(Black)).unwrap();
-    b = b.play(Pass(White)).unwrap();
+    b.play(Play(Black, 2, 1));
+    b.play(Play(White, 3, 1));
+    b.play(Play(Black, 2, 2));
+    b.play(Play(White, 3, 2));
+    b.play(Play(Black, 1, 3));
+    b.play(Play(White, 2, 3));
+    b.play(Play(Black, 5, 4));
+    b.play(Play(White, 1, 4));
+    b.play(Play(Black, 4, 4));
+    b.play(Play(White, 5, 3));
+    b.play(Play(Black, 4, 5));
+    b.play(Play(White, 4, 3));
+    b.play(Play(Black, 1, 2));
+    b.play(Play(White, 3, 4));
+    b.play(Pass(Black));
+    b.play(Play(White, 3, 5));
+    b.play(Pass(Black));
+    b.play(Pass(White));
 
     let (b_score, w_score) = b.score_tt();
     assert_eq!(b_score, 9);
@@ -397,36 +397,36 @@ fn counting_disjoint_territory() {
 
 #[test]
 fn counting_with_neutral_points() {
-  let mut b = Board::new(5, 6.5, Minimal);
+    let mut b = Board::new(5, 6.5, Minimal);
 
-  b = b.play(Play(Black, 2, 1)).unwrap();
-  b = b.play(Play(White, 3, 1)).unwrap();
-  b = b.play(Play(Black, 2, 2)).unwrap();
-  b = b.play(Play(White, 3, 2)).unwrap();
-  b = b.play(Play(Black, 1, 2)).unwrap();
-  b = b.play(Play(White, 2, 3)).unwrap();
-  b = b.play(Pass(Black)).unwrap();
-  b = b.play(Play(White, 1, 4)).unwrap();
-  b = b.play(Pass(Black)).unwrap();
-  b = b.play(Pass(White)).unwrap();
+    b.play(Play(Black, 2, 1));
+    b.play(Play(White, 3, 1));
+    b.play(Play(Black, 2, 2));
+    b.play(Play(White, 3, 2));
+    b.play(Play(Black, 1, 2));
+    b.play(Play(White, 2, 3));
+    b.play(Pass(Black));
+    b.play(Play(White, 1, 4));
+    b.play(Pass(Black));
+    b.play(Pass(White));
 
-  let (b_score, w_score) = b.score_tt();
-  assert_eq!(b_score, 4);
-  assert_eq!(w_score, 20);
+    let (b_score, w_score) = b.score_tt();
+    assert_eq!(b_score, 4);
+    assert_eq!(w_score, 20);
 }
 
 #[test]
 fn capturing_two_or_more_groups_while_playing_in_an_eye_actually_captures() {
     let mut b = Board::new(5, 6.5, AnySizeTrompTaylor);
 
-    b = b.play(Play(Black, 2, 1)).unwrap();
-    b = b.play(Play(White, 3, 1)).unwrap();
-    b = b.play(Play(Black, 1, 2)).unwrap();
-    b = b.play(Play(White, 2, 2)).unwrap();
-    b = b.play(Play(Black, 5, 5)).unwrap();
-    b = b.play(Play(White, 1, 3)).unwrap();
-    b = b.play(Play(Black, 5, 4)).unwrap();
-    b = b.play(Play(White, 1, 1)).unwrap();
+    b.play(Play(Black, 2, 1));
+    b.play(Play(White, 3, 1));
+    b.play(Play(Black, 1, 2));
+    b.play(Play(White, 2, 2));
+    b.play(Play(Black, 5, 5));
+    b.play(Play(White, 1, 3));
+    b.play(Play(Black, 5, 4));
+    b.play(Play(White, 1, 1));
 
     assert_eq!(b.color(Coord::new(1, 1)), White);
     assert_eq!(b.color(Coord::new(1, 2)), Empty);
@@ -441,9 +441,9 @@ fn next_player_should_return_black_without_moves() {
 }
 
 #[test]
-fn next_player_should_return_with_after_a_single_move() {
+fn next_player_should_return_white_after_a_single_move() {
     let mut b = Board::new(5, 6.5, AnySizeTrompTaylor);
-    b = b.play(Play(Black, 1, 1)).unwrap();
+    b.play(Play(Black, 1, 1));
     assert_eq!(White, b.next_player());
 }
 
@@ -465,7 +465,7 @@ fn legal_moves_should_return_black_moves_on_a_board_without_moves() {
 #[test]
 fn legal_moves_should_return_white_moves_on_a_board_with_one_move() {
     let mut b = Board::new(5, 6.5, AnySizeTrompTaylor);
-    b = b.play(Play(Black, 1, 1)).unwrap();
+    b.play(Play(Black, 1, 1));
     let moves = b.legal_moves();
     let all_white = moves.iter().all(|m| m.color() == &White);
     assert!(all_white);
@@ -480,7 +480,7 @@ fn legal_moves_contains_the_right_number_of_moves_for_an_empty_board() {
 #[test]
 fn legal_moves_only_contains_legal_moves() {
     let mut b = Board::new(5, 6.5, AnySizeTrompTaylor);
-    b = b.play(Play(Black, 1, 1)).unwrap();
+    b.play(Play(Black, 1, 1));
     let moves = b.legal_moves();
     assert!(!moves.iter().any(|m| m == &Play(White, 1, 1)));
 }
