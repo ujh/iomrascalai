@@ -39,7 +39,7 @@ impl Coord {
         let mut coords = Vec::new();
         for i in range(0, size) {
             for j in range(0, size) {
-                coords.push(Coord::new(i+1, j+1));
+                coords.push(Coord::new(j+1, i+1));
             }
         }
         coords
