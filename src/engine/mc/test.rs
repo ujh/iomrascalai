@@ -34,11 +34,3 @@ fn newly_produced_move_stats_should_have_0pc_win_ratio() {
   let ms = MoveStats::new();
   assert_eq!(ms.win_ratio(), 0f32);
 }
-
-#[bench]
-fn bench_engine_move_generation(b: &mut Bencher) {
-    let engine = McEngine::new();
-    let game   = Game::new(5, 6.5, KgsChinese);
-    let color  = Black;
-    b.iter(|| {engine.gen_move(color, &game)})
-}
