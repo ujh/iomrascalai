@@ -60,7 +60,11 @@ impl MoveStats {
     }
 
     pub fn win_ratio(&self) -> f32 {
-        (self.wins as f32) / (self.plays as f32)
+        if self.plays == 0 {
+            0f32
+        } else {
+            (self.wins as f32) / (self.plays as f32)
+        }
     }
 }
 
@@ -81,8 +85,7 @@ impl Engine for McEngine {
             stats.insert(m, MoveStats::new());
         }
         for m in moves.iter() {
-            // We use 1 here right now, as it's so damn slow.
-            for _ in range(0us, 1) {
+            for _ in range(0us, 1000) {
                 let g = game.play(*m).unwrap();
                 let playout = Playout::new(g.board());
                 let winner = playout.run();
