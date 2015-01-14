@@ -25,7 +25,7 @@ use board::Black;
 use engine::Engine;
 use game::Game;
 use ruleset::KgsChinese;
-use super::McEngine;
+use super::{McEngine, MoveStats};
 
 use test::Bencher;
 
@@ -36,6 +36,12 @@ fn produces_a_move() {
     let color  = Black;
     let m      = engine.gen_move(color, &game);
     assert_eq!(Black, *m.color());
+}
+
+#[test]
+fn newly_produced_move_stats_should_have_0pc_win_ratio() {
+  let ms = MoveStats::new();
+  assert_eq!(ms.win_ratio(), 0f32);
 }
 
 #[bench]
