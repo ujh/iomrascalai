@@ -1,7 +1,7 @@
 /************************************************************************
  *                                                                      *
  * Copyright 2014 Urban Hafner, Thomas Poinsot                          *
- * Copyright 2015 Urban Hafner                                          *
+ * Copyright 2015 Urban Hafner, Thomas Poinsot                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -45,7 +45,10 @@ pub struct Game<'a> {
     board: Board<'a>,
     move_number: u8,
     previous_boards_hashes: Vec<u64>,
-    zobrist_base_table: Rc<ZobristHashTable>
+    zobrist_base_table: Rc<ZobristHashTable>,
+    main_time: int, // main time in s
+    byo_time: int, // byo yomi time in s
+    byo_stones: int // stones per byo yomi period
 }
 
 impl<'a> Game<'a> {
@@ -57,7 +60,10 @@ impl<'a> Game<'a> {
             board: new_board,
             move_number: 0,
             previous_boards_hashes: vec!(zobrist_base_table.init_hash()),
-            zobrist_base_table: zobrist_base_table
+            zobrist_base_table: zobrist_base_table,
+            main_time: 0,
+            byo_time: 30,
+            byo_stones: 1
         }
     }
 
@@ -115,6 +121,18 @@ impl<'a> Game<'a> {
         self.board.komi()
     }
 
+    pub fn main_time(&self) -> int {
+        self.main_time
+    }
+
+    pub fn byo_time(&self) -> int {
+        self.byo_time
+    }
+
+    pub fn byo_stones(&self) -> int {
+        self.byo_stones
+    }
+
     pub fn size(&self) -> u8 {
         self.board.size()
     }
@@ -129,6 +147,18 @@ impl<'a> Game<'a> {
 
     pub fn set_komi(&mut self, komi: f32) {
         self.board.set_komi(komi);
+    }
+
+    pub fn set_main_time(&mut self, time: int) {
+        self.main_time = time;
+    }
+
+    pub fn set_byo_time(&mut self, time: int) {
+        self.byo_time = time;
+    }
+
+    pub fn set_byo_stones(&mut self, stones: int) {
+        self.byo_stones = stones;
     }
 
     pub fn board_size(&self) -> u8 {

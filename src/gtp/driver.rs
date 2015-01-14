@@ -1,6 +1,7 @@
 /************************************************************************
  *                                                                      *
  * Copyright 2014 Urban Hafner, Thomas Poinsot                          *
+ * Copyright 2015 Thomas Poinsot                                        *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -70,6 +71,7 @@ impl<'a> Driver<'a> {
                 Command::ShowBoard(s)    => print!("= {}\n\n", s),
                 Command::Quit            => {print!("= \n\n"); return;},
                 Command::FinalScore(s)   => {print!("= {}\n\n", s)},
+                Command::TimeSettings    => {print!("= \n\n")},
                 _                        => {print!("? unknown command\n\n");}
             }
         }

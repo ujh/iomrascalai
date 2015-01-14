@@ -1,7 +1,7 @@
 /************************************************************************
  *                                                                      *
  * Copyright 2014 Thomas Poinsot, Urban Hafner                          *
- * Copyright 2015 Urban Hafner                                          *
+ * Copyright 2015 Urban Hafner, Thomas Poinsot                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -48,7 +48,8 @@ pub enum Command {
     ShowBoard(String),
     Empty,
     Error,
-    FinalScore(String)
+    FinalScore(String),
+    TimeSettings
 }
 
 pub struct GTPInterpreter<'a> {
@@ -91,6 +92,7 @@ impl<'a> GTPInterpreter<'a> {
         known_commands.push(String::from_str("komi"));
         known_commands.push(String::from_str("showboard"));
         known_commands.push(String::from_str("final_score"));
+        known_commands.push(String::from_str("time_settings"));
         known_commands
     }
 
@@ -104,6 +106,18 @@ impl<'a> GTPInterpreter<'a> {
 
     pub fn ruleset(&self) -> Ruleset {
         self.ruleset
+    }
+
+    pub fn main_time(&self) -> int {
+        self.game.main_time()
+    }
+
+    pub fn byo_time(&self) -> int {
+        self.game.byo_time()
+    }
+
+    pub fn byo_stones(&self) -> int {
+        self.game.byo_stones()
     }
 
     pub fn boardsize(&self) -> u8 {
@@ -169,6 +183,17 @@ impl<'a> GTPInterpreter<'a> {
             "showboard"   => Command::ShowBoard(format!("\n{}", self.game)),
             "quit"        => return Command::Quit,
             "final_score" => return Command::FinalScore(format!("{}", self.game.score())),
+            "time_settings" => {
+                match (command[1].parse::<int>(), command[2].parse::<int>(), command[3].parse::<int>()) {
+                    (Some(main), Some(byo), Some(stones)) => {
+                        self.game.set_main_time(main);
+                        self.game.set_byo_time(byo);
+                        self.game.set_byo_stones(stones);
+                        Command::TimeSettings
+                    }
+                    _ => Command::Error
+                }
+            },
             _             => return Command::Error
         }
     }
