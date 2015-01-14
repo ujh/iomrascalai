@@ -86,9 +86,9 @@ impl Engine for McEngine {
             stats.insert(m, MoveStats::new());
         }
         for m in moves.iter() {
+            let g = game.play(*m).unwrap();
+            let playout = Playout::new(g.board());
             for _ in range(0us, 1000) {
-                let g = game.play(*m).unwrap();
-                let playout = Playout::new(g.board());
                 let winner = playout.run();
                 let mut prev_move_stats = stats.get_mut(m).unwrap();
                 if winner == color {
