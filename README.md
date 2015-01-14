@@ -12,7 +12,7 @@ that we're using the Rust nightly build and not 0.10!
 Development
 ===========
 
-See the [Github issues](https://github.com/ujh/iomrascalai/issues) for
+See the [Trello board](https://trello.com/b/3lIYxva7/development) for
 planned features and bugs and
 [join the mailing list](https://groups.google.com/forum/#!forum/iomrascalai)
 and [the chat](https://gitter.im/ujh/iomrascalai) for discussion.
