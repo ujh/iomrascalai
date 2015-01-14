@@ -103,6 +103,7 @@ pub struct Board<'a> {
     previous_player:       Color,
     ruleset:               Ruleset,
     size:                  u8,
+    vacant:                Vec<Coord>,
 }
 
 impl<'a> Clone for Board<'a> {
@@ -119,6 +120,7 @@ impl<'a> Clone for Board<'a> {
             previous_player:       self.previous_player,
             ruleset:               self.ruleset.clone(),
             size:                  self.size,
+            vacant:                self.vacant.clone(),
         }
     }
 }
@@ -137,6 +139,7 @@ impl<'a> Board<'a> {
             previous_player:       White,
             ruleset:               ruleset,
             size:                  size,
+            vacant:                Coord::for_board_size(size),
         }
     }
 
@@ -201,7 +204,7 @@ impl<'a> Board<'a> {
 
     pub fn legal_moves(&self) -> Vec<Move> {
         let color = self.next_player();
-        let mut moves : Vec<Move> = Coord::for_board_size(self.size)
+        let mut moves : Vec<Move> = self.vacant
             .iter()
             .map(|coord| Play(color.clone(), coord.col, coord.row))
             .filter(|m| self.is_legal(*m).is_ok()).collect();
@@ -290,7 +293,15 @@ impl<'a> Board<'a> {
         } else {
             self.ko = None;
         }
+        self.update_vacant(&m);
         Ok(())
+    }
+
+    fn update_vacant(&mut self, m: &Move) {
+        let pos = self.vacant.iter().position(|&c| c == m.coord()).unwrap();
+        self.vacant.swap_remove(pos);
+        self.vacant.push_all(self.adv_stones_removed.as_slice());
+        self.vacant.push_all(self.friend_stones_removed.as_slice());
     }
 
     fn add_removed_adv_stones_as_libs(&mut self, m: &Move) {
