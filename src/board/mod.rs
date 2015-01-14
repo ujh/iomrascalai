@@ -514,17 +514,7 @@ impl<'a> Board<'a> {
                 None => {}
             }
         }
-        let mut empty_intersections = Vec::<Coord>::new();
-        for i in range(0, self.board.len()) {
-            let possible_chain_id = self.board[i];
-            match possible_chain_id {
-                None => {
-                    let c = Coord::from_index(i, self.size);
-                    empty_intersections.push(c);
-                },
-                Some(_) => {}
-            }
-        }
+        let mut empty_intersections = self.vacant.clone();
         while empty_intersections.len() > 0 {
             let territory = self.build_territory_chain(empty_intersections[0]);
 
