@@ -20,22 +20,85 @@
  ************************************************************************/
 #![cfg(test)]
 
+use board::Black;
+use board::Board;
+use board::Pass;
+use board::Play;
+use board::White;
+use ruleset::Minimal;
+
 use super::Score;
 
 #[test]
-fn draw() {
-    let score = Score::new((5, 5), 0.0);
-    assert_eq!("0", format!("{}", score).as_slice());
-}
+fn counting_simple_case() {
+    let mut b = Board::new(4, 6.5, Minimal);
 
-#[test]
-fn white_win() {
-    let score = Score::new((5, 5), 6.5);
+    b.play(Play(Black, 2, 1));
+    b.play(Play(White, 3, 1));
+    b.play(Play(Black, 2, 2));
+    b.play(Play(White, 3, 2));
+    b.play(Play(Black, 2, 3));
+    b.play(Play(White, 3, 3));
+    b.play(Play(Black, 2, 4));
+    b.play(Play(White, 3, 4));
+    b.play(Pass(Black));
+    b.play(Pass(White));
+
+    let score = b.score();
+    assert_eq!(8, score.black_stones());
+    assert_eq!(8, score.white_stones());
+    assert_eq!(White, score.color());
     assert_eq!("W+6.5", format!("{}", score).as_slice());
 }
 
 #[test]
-fn black_win() {
-    let score = Score::new((10, 5), 1.0);
-    assert_eq!("B+4", format!("{}", score).as_slice());
+fn counting_disjoint_territory() {
+    let mut b = Board::new(5, 6.5, Minimal);
+
+    b.play(Play(Black, 2, 1));
+    b.play(Play(White, 3, 1));
+    b.play(Play(Black, 2, 2));
+    b.play(Play(White, 3, 2));
+    b.play(Play(Black, 1, 3));
+    b.play(Play(White, 2, 3));
+    b.play(Play(Black, 5, 4));
+    b.play(Play(White, 1, 4));
+    b.play(Play(Black, 4, 4));
+    b.play(Play(White, 5, 3));
+    b.play(Play(Black, 4, 5));
+    b.play(Play(White, 4, 3));
+    b.play(Play(Black, 1, 2));
+    b.play(Play(White, 3, 4));
+    b.play(Pass(Black));
+    b.play(Play(White, 3, 5));
+    b.play(Pass(Black));
+    b.play(Pass(White));
+
+    let score = b.score();
+    assert_eq!(9, score.black_stones());
+    assert_eq!(16, score.white_stones());
+    assert_eq!(White, score.color());
+    assert_eq!("W+13.5", format!("{}", score).as_slice());
+}
+
+#[test]
+fn counting_with_neutral_points() {
+    let mut b = Board::new(5, 6.5, Minimal);
+
+    b.play(Play(Black, 2, 1));
+    b.play(Play(White, 3, 1));
+    b.play(Play(Black, 2, 2));
+    b.play(Play(White, 3, 2));
+    b.play(Play(Black, 1, 2));
+    b.play(Play(White, 2, 3));
+    b.play(Pass(Black));
+    b.play(Play(White, 1, 4));
+    b.play(Pass(Black));
+    b.play(Pass(White));
+
+    let score = b.score();
+    assert_eq!(4, score.black_stones());
+    assert_eq!(20, score.white_stones());
+    assert_eq!(White, score.color());
+    assert_eq!("W+22.5", format!("{}", score).as_slice());
 }
