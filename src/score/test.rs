@@ -1,6 +1,6 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2014 Urban Hafner                                          *
+ * Copyright 2014-2015 Urban Hafner                                     *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *

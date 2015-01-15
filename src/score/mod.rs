@@ -1,6 +1,6 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2014 Urban Hafner                                          *
+ * Copyright 2014-2015 Urban Hafner                                     *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -33,8 +33,7 @@ use std::num::Float;
 
 pub struct Score {
     black_stones: usize,
-    color:        Color,
-    score:        f32,
+    komi:         f32,
     white_stones: usize,
 }
 
@@ -62,21 +61,37 @@ impl Score {
     // in an instance method.
     pub fn new(board: &Board) -> Score {
         let (bs, ws) = Score::score_tt(board);
-        let b_score = bs as f32;
-        let w_score = (ws as f32) + board.komi();
-        let score = (b_score - w_score).abs();
-        let color = if b_score == w_score {
+        Score {
+            black_stones: bs,
+            komi:         board.komi(),
+            white_stones: ws
+        }
+    }
+
+    pub fn color(&self) -> Color {
+        let white_adjusted = self.white_stones as f32 + self.komi;
+        if self.black_stones as f32 == white_adjusted {
             Empty
-        } else if b_score > w_score {
+        } else if self.black_stones as f32 > white_adjusted {
             Black
         } else {
             White
-        };
-        Score {color: color, score: score, white_stones: ws, black_stones: bs}
+        }
     }
 
-    // TODO: Make this private
-    pub fn score_tt(board: &Board) -> (usize, usize) {
+    pub fn white_stones(&self) -> usize {
+        self.white_stones
+    }
+
+    pub fn black_stones(&self) -> usize {
+        self.black_stones
+    }
+
+    fn score(&self) -> f32 {
+        (self.black_stones as f32 - (self.white_stones as f32 + self.komi)).abs()
+    }
+
+    fn score_tt(board: &Board) -> (usize, usize) {
         let mut black_score = 0;
         let mut white_score = 0;
         for point in board.points().iter() {
@@ -131,27 +146,16 @@ impl Score {
         territory_chain
     }
 
-    pub fn color(&self) -> Color {
-        self.color
-    }
-
-    pub fn white_stones(&self) -> usize {
-        self.white_stones
-    }
-
-    pub fn black_stones(&self) -> usize {
-        self.black_stones
-    }
 }
 
 impl String for Score {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let color = match self.color {
+        let color = match self.color() {
             Black => "B+",
             White => "W+",
             Empty => ""
         };
-        let score = format!("{}", self.score);
+        let score = format!("{}", self.score());
         let s = format!("{}{}", color, score);
         s.fmt(f)
     }
