@@ -29,6 +29,7 @@ pub use self::Color::Empty;
 pub use self::Color::White;
 use ruleset::Ruleset;
 use score::Score;
+use self::point::Point;
 
 use std::collections::HashMap;
 use std::collections::HashSet;
@@ -38,6 +39,7 @@ use std::rc::Rc;
 mod test;
 
 mod chain;
+mod point;
 pub mod coord;
 pub mod movement;
 
@@ -90,10 +92,12 @@ impl Territory {
     }
 }
 
+
+
 #[derive(Show)]
 pub struct Board<'a> {
     adv_stones_removed:    Vec<Coord>,
-    board:                 Vec<Option<usize>>,
+    board:                 Vec<Point>,
     chains:                Vec<Chain>,
     consecutive_passes:    u8,
     friend_stones_removed: Vec<Coord>,
@@ -129,7 +133,7 @@ impl<'a> Board<'a> {
     pub fn new(size: u8, komi: f32, ruleset: Ruleset) -> Board<'a> {
         Board {
             adv_stones_removed:    Vec::new(),
-            board:                 range(0, size as usize*size as usize).map(|_| None).collect(),
+            board:                 range(0, size as usize*size as usize).map(|_| Point::new()).collect(),
             chains:                Vec::new(),
             consecutive_passes:    0,
             friend_stones_removed: Vec::new(),
@@ -155,26 +159,20 @@ impl<'a> Board<'a> {
         &self.neighbours[c.to_index(self.size)]
     }
 
-    pub fn color(&self, c: Coord) -> Color {
-        if c.is_inside(self.size) {
-            match self.get_chain(c) {
-                Some(chain) => chain.color(),
-                None        => Empty,
-            }
-        } else {
-            panic!("You have requested a stone outside of the board");
-        }
+    pub fn color(&self, c: &Coord) -> Color {
+        self.board[c.to_index(self.size)].color
+    }
+
+    pub fn chain_id(&self, c: &Coord) -> usize {
+        self.board[c.to_index(self.size)].chain_id
     }
 
     pub fn get_chain<'b>(&'b self, c: Coord) -> Option<&'b Chain> {
-        if c.is_inside(self.size) {
-            let possible_chain_id = self.board[c.to_index(self.size)];
-            match possible_chain_id {
-                Some(chain_id) => Some(&self.chains[chain_id]),
-                None           => None
-            }
+        let ref point = self.board[c.to_index(self.size)];
+        if point.color != Empty {
+            Some(&self.chains[point.chain_id])
         } else {
-            panic!("You have requested a chain outside of the board");
+            None
         }
     }
 
@@ -227,7 +225,7 @@ impl<'a> Board<'a> {
         }
         // Can't play outside of the board or on an occupied coord
         if m.coord().is_inside(self.size) {
-            if self.color(m.coord()) != Empty {
+            if self.color(&m.coord()) != Empty {
                 return Err(IllegalMove::IntersectionNotEmpty);
             }
         } else {
@@ -240,17 +238,17 @@ impl<'a> Board<'a> {
         // Can't play suicide move
         if !self.ruleset.suicide_allowed() {
             // All neighbours must be occupied
-            if self.neighbours(m.coord()).iter().all(|&c| self.color(c) != Empty) {
+            if self.neighbours(m.coord()).iter().all(|c| self.color(c) != Empty) {
                 // A move is a suicide move if all of the opposing,
                 // neighbouring chain has more than one liberty and all of
                 // our own chains have only one liberty.
                 let enemy_chains_with_other_libs = self.neighbours(m.coord())
                     .iter()
-                    .filter(|&c| self.color(*c) == m.color().opposite())
+                    .filter(|&c| self.color(c) == m.color().opposite())
                     .all(|&c| self.get_chain(c).unwrap().liberties().len() > 1);
                 let own_chains_without_other_libs = self.neighbours(m.coord())
                     .iter()
-                    .filter(|&c| self.color(*c) == *m.color())
+                    .filter(|&c| self.color(c) == *m.color())
                     .all(|&c| self.get_chain(c).unwrap().liberties().len() <= 1);
                 if enemy_chains_with_other_libs && own_chains_without_other_libs {
                     return Err(IllegalMove::SuicidePlay);
@@ -308,13 +306,10 @@ impl<'a> Board<'a> {
         let color = *m.color();
         let mut libs: HashMap<Coord, Vec<usize>> = HashMap::new();
         for &coord in self.adv_stones_removed.iter() {
-            let chain_ids = self.neighbours(coord).
-                iter()
-                .map(|&c| self.get_chain(c))
-                .filter(|possible_chain| possible_chain.is_some())
-                .map(|possible_chain| possible_chain.unwrap())
-                .filter(|chain| chain.color() == color)
-                .map(|chain| chain.id())
+            let chain_ids = self.neighbours(coord)
+                .iter()
+                .filter(|&c| self.color(c) == color)
+                .map(|c| self.chain_id(c))
                 .collect();
             libs.insert(coord, chain_ids);
         }
@@ -329,13 +324,10 @@ impl<'a> Board<'a> {
         let color = m.color().opposite();
         let mut libs: HashMap<Coord, Vec<usize>> = HashMap::new();
         for &coord in self.adv_stones_removed.iter() {
-            let chain_ids = self.neighbours(coord).
-                iter()
-                .map(|&c| self.get_chain(c))
-                .filter(|possible_chain| possible_chain.is_some())
-                .map(|possible_chain| possible_chain.unwrap())
-                .filter(|chain| chain.color() == color)
-                .map(|chain| chain.id())
+            let chain_ids = self.neighbours(coord)
+                .iter()
+                .filter(|&c| self.color(c) == color)
+                .map(|c| self.chain_id(c))
                 .collect();
             libs.insert(coord, chain_ids);
         }
@@ -351,11 +343,8 @@ impl<'a> Board<'a> {
         let color = m.color().opposite();
         let adv_chains_ids: HashSet<usize> = self.neighbours(coord)
             .iter()
-            .map(|&c| self.get_chain(c))
-            .filter(|possible_chain| possible_chain.is_some())
-            .map(|possible_chain| possible_chain.unwrap())
-            .filter(|chain| chain.color() == color)
-            .map(|chain| chain.id())
+            .filter(|&c| self.color(c) == color)
+            .map(|c| self.chain_id(c))
             .collect();
         for &id in adv_chains_ids.iter() {
             self.chains[id].remove_liberty(coord);
@@ -365,11 +354,8 @@ impl<'a> Board<'a> {
     fn find_neighbouring_friendly_chains_ids(&self, m: &Move) -> Vec<usize> {
         let mut friend_neigh_chains_id: Vec<usize> = self.neighbours(m.coord())
             .iter()
-            .map(|&c| self.get_chain(c))
-            .filter(|possible_chain| possible_chain.is_some())
-            .map(|possible_chain| possible_chain.unwrap())
-            .filter(|chain| chain.color() == *m.color())
-            .map(|chain| chain.id())
+            .filter(|&c| self.color(c) == *m.color())
+            .map(|c| self.chain_id(c))
             .collect();
         // We need to sort the chain by ascending id so that later we
         // know that friend_neigh_chains_id[0] has the lowest id. It
@@ -393,7 +379,7 @@ impl<'a> Board<'a> {
                 // We merge the other chain into the final chain.
                 let other_chain = self.chains.remove(other_chain_id);
                 for &coord in other_chain.coords().iter() {
-                    self.board[coord.to_index(self.size)] = Some(final_chain_id);
+                    self.board[coord.to_index(self.size)].chain_id = final_chain_id;
                     self.chains[final_chain_id].add_coord(coord);
                 }
                 for &lib in other_chain.liberties().iter() {
@@ -410,7 +396,7 @@ impl<'a> Board<'a> {
     fn update_board_ids_after_id(&mut self, id: usize) {
         for i in range(id, self.chains.len()) {
             for &coord in self.chains[i].coords().iter() {
-                self.board[coord.to_index(self.size)] = Some(i);
+                self.board[coord.to_index(self.size)].chain_id = i;
             }
         }
     }
@@ -431,20 +417,16 @@ impl<'a> Board<'a> {
         let color = m.color().opposite();
         let coords_to_remove = self.neighbours(coord)
             .iter()
-            .map(|&c| self.get_chain(c))
-            .filter(|possible_chain| possible_chain.is_some())
-            .map(|possible_chain| possible_chain.unwrap())
-            .filter(|chain| chain.is_captured() && chain.color() == color)
-            .flat_map(|chain| chain.coords().iter())
+            .filter(|&c| self.color(c) == color)
+            .filter(|&c| self.get_chain(*c).unwrap().is_captured())
+            .flat_map(|&c| self.get_chain(c).unwrap().coords().iter())
             .cloned()
             .collect();
         let mut chains_to_remove: Vec<usize> = self.neighbours(coord)
             .iter()
-            .map(|&c| self.get_chain(c))
-            .filter(|possible_chain| possible_chain.is_some())
-            .map(|possible_chain| possible_chain.unwrap())
-            .filter(|chain| chain.is_captured() && chain.color() == color)
-            .map(|chain| chain.id())
+            .filter(|&c| self.color(c) == color)
+            .filter(|&c| self.get_chain(*c).unwrap().is_captured())
+            .map(|c| self.chain_id(c))
             .collect();
         chains_to_remove.sort();
         chains_to_remove.dedup();
@@ -458,7 +440,7 @@ impl<'a> Board<'a> {
 
     fn remove_suicide_chain(&mut self, m: &Move) -> Vec<Coord> {
         let coords_to_remove = self.get_chain(m.coord()).unwrap().coords().clone();
-        let chain_id = self.get_chain(m.coord()).unwrap().id();
+        let chain_id = self.chain_id(&m.coord());
         self.remove_chain(chain_id);
         coords_to_remove
     }
@@ -479,16 +461,20 @@ impl<'a> Board<'a> {
         let mut new_chain   = Chain::new(
             new_chain_id, *m.color(), m.coord(), self.liberties(&m.coord()));
         self.chains.push(new_chain);
-        self.board[m.coord().to_index(self.size)] = Some(new_chain_id);
+        self.board[m.coord().to_index(self.size)].chain_id = new_chain_id;
+        self.board[m.coord().to_index(self.size)].color = *m.color();
         new_chain_id
     }
 
     fn liberties(&self, c: &Coord) -> Vec<Coord> {
-        self.neighbours(*c).iter().filter(|&c| self.color(*c) == Empty).cloned().collect()
+        self.neighbours(*c).iter().filter(|&c| self.color(c) == Empty).cloned().collect()
     }
 
     fn remove_stone(&mut self, c: Coord) {
-        self.board[c.to_index(self.size)] = None;
+        // Resetting the chain_id is not strictly necessary, but will
+        // make debugging easier.
+        self.board[c.to_index(self.size)].chain_id = -1;
+        self.board[c.to_index(self.size)].color = Empty;
     }
 
     pub fn score(&self) -> Score {
@@ -502,16 +488,11 @@ impl<'a> Board<'a> {
     fn score_tt(&self) -> (usize, usize) {
         let mut black_score = 0;
         let mut white_score = 0;
-        for &possible_id in self.board.iter() {
-            match possible_id {
-                Some(id) => {
-                    if self.chains[id].color() == Black {
-                        black_score += 1;
-                    } else {
-                        white_score += 1;
-                    }
-                },
-                None => {}
+        for point in self.board.iter() {
+            match point.color {
+                Black => { black_score += 1; },
+                Empty => {},
+                White => { white_score += 1; },
             }
         }
         let mut empty_intersections = self.vacant.clone();
@@ -541,7 +522,7 @@ impl<'a> Board<'a> {
             if !territory_chain.coords.contains(&current_coord) {territory_chain.coords.push(current_coord);}
 
             for &coord in self.neighbours(current_coord).iter() {
-                match self.color(coord) {
+                match self.color(&coord) {
                     Empty => if !territory_chain.coords.contains(&coord) {to_visit.push(coord)},
                     col   => if territory_chain.color != Empty && territory_chain.color != col {
                         neutral = true;
@@ -587,7 +568,7 @@ impl<'a> Board<'a> {
             for col in range(1u8, self.size()+1) {
                 let current_coords = Coord::new(col, row);
 
-                match self.color(current_coords) {
+                match self.color(&current_coords) {
                     Empty => {
                         let hoshis = &[4u8,10,16];
                         if  hoshis.contains(&row) && hoshis.contains(&col) {

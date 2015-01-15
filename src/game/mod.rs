@@ -96,7 +96,7 @@ impl<'a> Game<'a> {
     // Note: This method uses 1-1 as the origin point, not 0-0. 19-19 is a valid coordinate in a 19-sized board, while 0-0 is not.
     //       this is done because I think it makes more sense in the context of go. (Least surprise principle, etc...)
     pub fn get(&self, col: u8, row: u8) -> Color {
-        self.board.color(Coord::new(col, row))
+        self.board.color(&Coord::new(col, row))
     }
 
     pub fn ruleset(&self) -> Ruleset {
