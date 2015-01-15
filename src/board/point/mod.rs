@@ -1,6 +1,6 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2014-2015 Urban Hafner, Thomas Poinsot                     *
+ * Copyright 2015 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -19,18 +19,18 @@
  *                                                                      *
  ************************************************************************/
 
-#![cfg(test)]
+use super::Color;
+use super::Empty;
 
-use board::Black;
-use engine::Engine;
-use game::Game;
-use ruleset::KgsChinese;
-use super::{McEngine, MoveStats};
+#[derive(Clone, Show)]
+pub struct Point {
+    pub chain_id: usize,
+    pub color: Color,
+}
 
-use test::Bencher;
+impl Point {
 
-#[test]
-fn newly_produced_move_stats_should_have_0pc_win_ratio() {
-  let ms = MoveStats::new();
-  assert_eq!(ms.win_ratio(), 0f32);
+    pub fn new() -> Point {
+        Point { chain_id: 0, color: Empty }
+    }
 }
