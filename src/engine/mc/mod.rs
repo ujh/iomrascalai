@@ -27,8 +27,12 @@ use board::Resign;
 use game::Game;
 use playout::Playout;
 use super::Engine;
+use board::Black;
 
 use std::collections::HashMap;
+
+use time::PreciseTime;
+use std::time::duration::Duration;
 
 mod test;
 
@@ -76,19 +80,44 @@ impl McEngine {
         McEngine
     }
 
+    fn is_time_to_stop(&self, game: &Game, duration: Duration) -> bool {
+        let micros = duration.num_microseconds().unwrap() as u32;
+
+        let time_per_move = match (game.main_time(), game.byo_time()) {
+            (main, byo) if main == 0 => { // We're in byo-yomi
+                (byo * 1_000 / game.byo_stones()) as u32
+            }
+            (main, byo) if byo == 0  => { // We have an absolute clock
+                let est_max_nb_move_left = ((game.board_size() * game.board_size()) as f64  * 1.5f64) as u32 - game.move_number() as u32;
+                println!("| est_max_nb_move_left: {} |", est_max_nb_move_left);
+                main as u32 * 1_000 / est_max_nb_move_left
+            }
+            (main, _)   if main > 0  => {
+                // Dumb strategy for the moment, we use the main time to play about the first half of the game;
+                let est_half_game = game.board_size() as u32 * game.board_size()  as u32 / 2 - game.move_number() as u32;
+                main as u32 * 1_000 / est_half_game
+            }
+            (main, byo) => panic!("The timer run into a strange configuration: main time: {}, byo time: {}", main, byo)
+        };
+
+        time_per_move - micros <= 2_000_000
+    }
 }
 
 impl Engine for McEngine {
     fn gen_move(&self, color: Color, game: &Game) -> Move {
         let moves = game.legal_moves();
+        let start_time = PreciseTime::now();
         let mut stats = HashMap::new();
         for m in moves.iter() {
             stats.insert(m, MoveStats::new());
         }
+
         for m in moves.iter() {
             let g = game.play(*m).unwrap();
             let playout = Playout::new(g.board());
-            for _ in range(0us, 1000) {
+            let mut counter = 0;
+            loop {
                 let winner = playout.run();
                 let mut prev_move_stats = stats.get_mut(m).unwrap();
                 if winner == color {
@@ -96,6 +125,9 @@ impl Engine for McEngine {
                 } else {
                     prev_move_stats.lost();
                 }
+
+                if (counter%100 == 0 && self.is_time_to_stop(game, start_time.to(PreciseTime::now()))) { break; }
+                counter += 1;
             }
         }
         // resign if 0% wins
@@ -116,5 +148,4 @@ impl Engine for McEngine {
             m
         }
     }
-
 }

@@ -46,9 +46,10 @@ pub struct Game<'a> {
     move_number: u8,
     previous_boards_hashes: Vec<u64>,
     zobrist_base_table: Rc<ZobristHashTable>,
-    main_time: int, // main time in s
-    byo_time: int, // byo yomi time in s
-    byo_stones: int // stones per byo yomi period
+    main_time: i32, // main time in ms
+    byo_time: i32, // byo yomi time in ms
+    byo_stones: i32, // stones per byo yomi period
+    byo_stones_remaining: i32
 }
 
 impl<'a> Game<'a> {
@@ -63,7 +64,8 @@ impl<'a> Game<'a> {
             zobrist_base_table: zobrist_base_table,
             main_time: 0,
             byo_time: 30,
-            byo_stones: 1
+            byo_stones: 1,
+            byo_stones_remaining: 1
         }
     }
 
@@ -75,7 +77,13 @@ impl<'a> Game<'a> {
                 let mut new_game_state = self.clone();
                 new_game_state.board = new_board;
                 new_game_state.move_number += 1;
-                if !m.is_pass() && !m.is_resign(){
+                new_game_state.byo_stones_remaining = if self.byo_stones_remaining == 1 {
+                    self.byo_stones
+                } else {
+                    self.byo_stones_remaining - 1
+                };
+
+                if !m.is_pass() && !m.is_resign() {
                     let hash = new_game_state.compute_hash(&m);
                     if new_game_state.previous_boards_hashes.contains(&hash) {
                         return Err(IllegalMove::SuperKo)
@@ -121,15 +129,15 @@ impl<'a> Game<'a> {
         self.board.komi()
     }
 
-    pub fn main_time(&self) -> int {
+    pub fn main_time(&self) -> i32 {
         self.main_time
     }
 
-    pub fn byo_time(&self) -> int {
+    pub fn byo_time(&self) -> i32 {
         self.byo_time
     }
 
-    pub fn byo_stones(&self) -> int {
+    pub fn byo_stones(&self) -> i32 {
         self.byo_stones
     }
 
@@ -149,16 +157,22 @@ impl<'a> Game<'a> {
         self.board.set_komi(komi);
     }
 
-    pub fn set_main_time(&mut self, time: int) {
-        self.main_time = time;
+    pub fn set_main_time(&mut self, time: i32) {
+        self.main_time = if time < 0 {
+            0
+        } else {
+            time
+        };
     }
 
-    pub fn set_byo_time(&mut self, time: int) {
+    pub fn set_byo_time(&mut self, time: i32) {
         self.byo_time = time;
     }
 
-    pub fn set_byo_stones(&mut self, stones: int) {
-        self.byo_stones = stones;
+    pub fn set_byo_stones(&mut self, stones: i32) {
+        let actual = if stones < 1 { 1 } else { stones };
+        self.byo_stones = actual;
+        self.byo_stones_remaining = actual;
     }
 
     pub fn board_size(&self) -> u8 {

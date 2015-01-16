@@ -27,6 +27,8 @@ use engine::Engine;
 use game::Game;
 use ruleset::Ruleset;
 
+use time::PreciseTime;
+
 pub mod driver;
 mod test;
 
@@ -108,15 +110,15 @@ impl<'a> GTPInterpreter<'a> {
         self.ruleset
     }
 
-    pub fn main_time(&self) -> int {
+    pub fn main_time(&self) -> i32 {
         self.game.main_time()
     }
 
-    pub fn byo_time(&self) -> int {
+    pub fn byo_time(&self) -> i32 {
         self.game.byo_time()
     }
 
-    pub fn byo_stones(&self) -> int {
+    pub fn byo_stones(&self) -> i32 {
         self.game.byo_stones()
     }
 
@@ -157,10 +159,14 @@ impl<'a> GTPInterpreter<'a> {
             },
             "genmove"          => {
                 let color = Color::from_gtp(command[1]);
+                let start_time = PreciseTime::now();
                 let m  = self.engine.gen_move(color, &self.game);
                 match self.game.clone().play(m) {
                     Ok(g) => {
                         self.game = g;
+                        let time_left = self.game.main_time();
+                        self.game.set_main_time(time_left - (start_time.to(PreciseTime::now()).num_milliseconds()) as i32);
+                        println!("| time left before: {} -> after: {}", time_left, self.game.main_time());
                         Command::GenMove(m.to_gtp())
                     },
                     Err(_) => {
@@ -184,10 +190,10 @@ impl<'a> GTPInterpreter<'a> {
             "quit"        => return Command::Quit,
             "final_score" => return Command::FinalScore(format!("{}", self.game.score())),
             "time_settings" => {
-                match (command[1].parse::<int>(), command[2].parse::<int>(), command[3].parse::<int>()) {
+                match (command[1].parse::<i32>(), command[2].parse::<i32>(), command[3].parse::<i32>()) {
                     (Some(main), Some(byo), Some(stones)) => {
-                        self.game.set_main_time(main);
-                        self.game.set_byo_time(byo);
+                        self.game.set_main_time(main * 1000);
+                        self.game.set_byo_time(byo * 1000);
                         self.game.set_byo_stones(stones);
                         Command::TimeSettings
                     }
