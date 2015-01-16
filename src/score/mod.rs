@@ -82,28 +82,43 @@ impl Score {
     }
 
     fn score_tt(board: &Board) -> (usize, usize) {
-        let mut black_score = 0;
-        let mut white_score = 0;
-        for point in board.points().iter() {
-            match point.color {
-                Black => { black_score += 1; },
-                Empty => {},
-                White => { white_score += 1; },
-            }
-        }
+        let (black_stones, white_stones) = Score::count_stones(board);
+        let (black_territory, white_territory) = Score::count_territory(board);
+        let black_score = black_stones + black_territory;
+        let white_score = white_stones + white_territory;
+        (black_score, white_score)
+    }
+
+    fn count_territory(board: &Board) -> (usize, usize) {
+        let mut black = 0;
+        let mut white = 0;
         let mut empty_intersections = board.vacant().clone();
         while empty_intersections.len() > 0 {
             let territory = Score::build_territory_chain(empty_intersections[0], board);
-
             match territory.color {
-                Black => black_score += territory.coords.len(),
-                White => white_score += territory.coords.len(),
+                Black => black += territory.coords.len(),
+                White => white += territory.coords.len(),
                 Empty => () // This territory is not enclosed by a single color
             }
-
-            empty_intersections = empty_intersections.into_iter().filter(|coord| !territory.coords.contains(coord)).collect();
+            empty_intersections = empty_intersections
+                .into_iter()
+                .filter(|coord| !territory.coords.contains(coord))
+                .collect();
         }
-        (black_score, white_score)
+        (black, white)
+    }
+
+    fn count_stones(board: &Board) -> (usize, usize) {
+        let mut black = 0;
+        let mut white = 0;
+        for point in board.points().iter() {
+            match point.color {
+                Black => { black += 1; },
+                Empty => {},
+                White => { white += 1; },
+            }
+        }
+        (black, white)
     }
 
     fn build_territory_chain(first_intersection: Coord, board: &Board) -> Territory {
