@@ -27,8 +27,6 @@ use board::Play;
 use board::White;
 use ruleset::Minimal;
 
-use super::Score;
-
 #[test]
 fn counting_simple_case() {
     let mut b = Board::new(4, 6.5, Minimal);
@@ -48,7 +46,7 @@ fn counting_simple_case() {
     assert_eq!(8, score.black_stones());
     assert_eq!(8, score.white_stones());
     assert_eq!(White, score.color());
-    assert_eq!("W+6.5", format!("{}", score).as_slice());
+    assert_eq!("W+6.5", format!("{}", score));
 }
 
 #[test]
@@ -78,7 +76,7 @@ fn counting_disjoint_territory() {
     assert_eq!(9, score.black_stones());
     assert_eq!(16, score.white_stones());
     assert_eq!(White, score.color());
-    assert_eq!("W+13.5", format!("{}", score).as_slice());
+    assert_eq!("W+13.5", format!("{}", score));
 }
 
 #[test]
@@ -100,5 +98,5 @@ fn counting_with_neutral_points() {
     assert_eq!(4, score.black_stones());
     assert_eq!(20, score.white_stones());
     assert_eq!(White, score.color());
-    assert_eq!("W+22.5", format!("{}", score).as_slice());
+    assert_eq!("W+22.5", format!("{}", score));
 }
