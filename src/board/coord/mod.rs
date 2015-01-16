@@ -24,7 +24,7 @@ use std::cmp::Eq;
 
 mod test;
 
-#[derive(Clone, Hash, PartialEq, Eq, Copy)]
+#[derive(Clone, Hash, PartialEq, Eq, Copy, Ord, PartialOrd)]
 pub struct Coord {
     pub col: u8,
     pub row: u8

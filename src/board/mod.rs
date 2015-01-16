@@ -80,20 +80,6 @@ impl Color {
     }
 }
 
-struct Territory {
-    color:  Color,
-    coords: Vec<Coord>,
-}
-
-impl Territory {
-
-    pub fn new() -> Territory {
-        Territory { color: Empty, coords: Vec::new() }
-    }
-}
-
-
-
 #[derive(Show)]
 pub struct Board<'a> {
     adv_stones_removed:    Vec<Coord>,
@@ -155,8 +141,16 @@ impl<'a> Board<'a> {
         Rc::new(neighbours)
     }
 
-    fn neighbours(&self, c: Coord) -> &Vec<Coord> {
+    pub fn neighbours(&self, c: Coord) -> &Vec<Coord> {
         &self.neighbours[c.to_index(self.size)]
+    }
+
+    pub fn points(&self) -> &Vec<Point> {
+        &self.board
+    }
+
+    pub fn vacant(&self) -> &Vec<Coord> {
+        &self.vacant
     }
 
     pub fn color(&self, c: &Coord) -> Color {
@@ -478,66 +472,11 @@ impl<'a> Board<'a> {
     }
 
     pub fn score(&self) -> Score {
-        Score::new(self.score_tt(), self.komi())
+        Score::new(self)
     }
 
     pub fn winner(&self) -> Color {
         self.score().color()
-    }
-
-    fn score_tt(&self) -> (usize, usize) {
-        let mut black_score = 0;
-        let mut white_score = 0;
-        for point in self.board.iter() {
-            match point.color {
-                Black => { black_score += 1; },
-                Empty => {},
-                White => { white_score += 1; },
-            }
-        }
-        let mut empty_intersections = self.vacant.clone();
-        while empty_intersections.len() > 0 {
-            let territory = self.build_territory_chain(empty_intersections[0]);
-
-            match territory.color {
-                Black => black_score += territory.coords.len(),
-                White => white_score += territory.coords.len(),
-                Empty => () // This territory is not enclosed by a single color
-            }
-
-            empty_intersections = empty_intersections.into_iter().filter(|coord| !territory.coords.contains(coord)).collect();
-        }
-        (black_score, white_score)
-    }
-
-    fn build_territory_chain(&self, first_intersection: Coord) -> Territory {
-        let mut territory_chain = Territory::new();
-        let mut to_visit = Vec::new();
-        let mut neutral  = false;
-
-        to_visit.push(first_intersection);
-
-        while to_visit.len() > 0 {
-            let current_coord = to_visit.pop().unwrap();
-            if !territory_chain.coords.contains(&current_coord) {territory_chain.coords.push(current_coord);}
-
-            for &coord in self.neighbours(current_coord).iter() {
-                match self.color(&coord) {
-                    Empty => if !territory_chain.coords.contains(&coord) {to_visit.push(coord)},
-                    col   => if territory_chain.color != Empty && territory_chain.color != col {
-                        neutral = true;
-                    } else {
-                        territory_chain.color = col;
-                    }
-                }
-            }
-        }
-
-        if neutral {
-            territory_chain.color = Empty;
-        }
-
-        territory_chain
     }
 
     pub fn is_game_over(&self) -> bool {
