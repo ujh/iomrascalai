@@ -1,6 +1,7 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2014-2015 Urban Hafner                                     *
+ * Copyright 2014 Urban Hafner, Thomas Poinsot                          *
+ * Copyright 2015 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -25,31 +26,20 @@ use board::Color;
 use board::Coord;
 use board::Empty;
 use board::White;
+use self::territory::Territory;
 
 use core::fmt::String;
 use std::fmt;
 use std::num::Float;
 
+mod territory;
+mod test;
 
 pub struct Score {
     black_stones: usize,
     komi:         f32,
     white_stones: usize,
 }
-
-struct Territory {
-    color:  Color,
-    coords: Vec<Coord>,
-}
-
-impl Territory {
-
-    pub fn new() -> Territory {
-        Territory { color: Empty, coords: Vec::new() }
-    }
-}
-
-mod test;
 
 impl Score {
 
