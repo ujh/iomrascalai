@@ -25,13 +25,35 @@ use board::Coord;
 use board::Empty;
 
 pub struct Territory {
-    pub color:  Color,
-    pub coords: Vec<Coord>,
+    color:  Color,
+    coords: Vec<Coord>,
 }
 
 impl Territory {
 
     pub fn new() -> Territory {
         Territory { color: Empty, coords: Vec::new() }
+    }
+
+    pub fn contains(&self, c: &Coord) -> bool {
+        self.coords.contains(c)
+    }
+
+    pub fn color(&self) -> Color {
+        self.color
+    }
+
+    pub fn set_color(&mut self, c: Color) {
+        self.color = c;
+    }
+
+    pub fn size(&self) -> usize {
+        self.coords.len()
+    }
+
+    pub fn add(&mut self, c: Coord) {
+        if !self.contains(&c) {
+            self.coords.push(c)
+        }
     }
 }

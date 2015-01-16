@@ -95,14 +95,14 @@ impl Score {
         let mut empty_intersections = board.vacant().clone();
         while empty_intersections.len() > 0 {
             let territory = Score::build_territory_chain(empty_intersections[0], board);
-            match territory.color {
-                Black => black += territory.coords.len(),
-                White => white += territory.coords.len(),
+            match territory.color() {
+                Black => black += territory.size(),
+                White => white += territory.size(),
                 Empty => () // This territory is not enclosed by a single color
             }
             empty_intersections = empty_intersections
                 .into_iter()
-                .filter(|coord| !territory.coords.contains(coord))
+                .filter(|coord| !territory.contains(coord))
                 .collect();
         }
         (black, white)
@@ -130,22 +130,21 @@ impl Score {
 
         while to_visit.len() > 0 {
             let current_coord = to_visit.pop().unwrap();
-            if !territory_chain.coords.contains(&current_coord) {territory_chain.coords.push(current_coord);}
-
+            territory_chain.add(current_coord);
             for &coord in board.neighbours(current_coord).iter() {
                 match board.color(&coord) {
-                    Empty => if !territory_chain.coords.contains(&coord) {to_visit.push(coord)},
-                    col   => if territory_chain.color != Empty && territory_chain.color != col {
+                    Empty => if !territory_chain.contains(&coord) {to_visit.push(coord)},
+                    col   => if territory_chain.color() != Empty && territory_chain.color() != col {
                         neutral = true;
                     } else {
-                        territory_chain.color = col;
+                        territory_chain.set_color(col);
                     }
                 }
             }
         }
 
         if neutral {
-            territory_chain.color = Empty;
+            territory_chain.set_color(Empty);
         }
 
         territory_chain
