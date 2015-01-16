@@ -22,6 +22,7 @@
 use engine::Engine;
 use super::Command;
 use super::GTPInterpreter;
+use version;
 
 use std::io::stdio::stdin;
 
@@ -32,7 +33,7 @@ pub struct Driver<'a> {
 impl<'a> Driver<'a> {
     pub fn new(engine: Box<Engine>) {
         let engine_name = "Iomrascálaí";
-        let engine_version = "0.1.0";
+        let engine_version = version::version();
         let protocol_version = "2";
 
         let mut interpreter = GTPInterpreter::new(engine);
