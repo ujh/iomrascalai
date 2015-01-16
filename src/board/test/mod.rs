@@ -37,6 +37,7 @@ use ruleset::Minimal;
 
 use test::Bencher;
 
+mod eye;
 mod ko;
 
 #[test]

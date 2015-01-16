@@ -195,6 +195,10 @@ impl Board {
         self.previous_player.opposite()
     }
 
+    pub fn is_eye(&self, coord: &Coord, color: Color) -> bool {
+        true
+    }
+
     fn is_same_player(&self, m: &Move) -> bool {
         self.previous_player == *m.color()
     }
