@@ -145,6 +145,8 @@ impl Score {
 
         if neutral {
             territory_chain.set_color(Empty);
+        } else {
+            territory_chain.dedup();
         }
 
         territory_chain

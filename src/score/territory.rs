@@ -52,8 +52,11 @@ impl Territory {
     }
 
     pub fn add(&mut self, c: Coord) {
-        if !self.contains(&c) {
-            self.coords.push(c)
-        }
+        self.coords.push(c)
+    }
+
+    pub fn dedup(&mut self) {
+        self.coords.sort();
+        self.coords.dedup();
     }
 }
