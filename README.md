@@ -23,19 +23,21 @@ Testing
 To play 10 games against GnuGo, install GoGui and run the
 following command in the top level folder:
 
-```
-gogui-twogtp -auto -black "gnugo --positional-superko --chinese-rules \
---mode gtp" -white "./target/release/iomrascálaí --mode gtp" -verbose -size 9 \
--alternate -games 10 -sgffile test
+``` sh
+GNUGO="gnugo --mode gtp --level 0 --chinese-rules --positional-superko --capture-all-dead"
+IOMRASCALAI="./target/release/iomrascálaí -m gtp -e mc"
+gogui-twogtp -auto -black "$GNUGO" -white "$IOMRASCALAI" -verbose -size 9 -alternate -games 10 -sgffile test
 ```
 
 To run a game against GnuGo and view it in GoGui in real time use the following command (add `-auto` if a new game should automatically be started when a game is finished):
 
+``` sh
+GNUGO="gnugo --mode gtp --level 0 --chinese-rules --positional-superko --capture-all-dead"
+IOMRASCALAI="./target/release/iomrascálaí -m gtp -e mc"
+TWOGTP="gogui-twogtp -black \"$GNUGO\" -white \"$IOMRASCALAI\" -verbose -size 9"
+gogui -computer-both -program "$TWOGTP" -size 9
 ```
-gogui -computer-both -program "gogui-twogtp -black \"gnugo \
---positional-superko --chinese-rules --mode gtp\" -white \
-\"./target/release/iomrascálaí --mode gtp\" -verbose -size 9" -size 9
-```
+
 Resources
 =========
 
