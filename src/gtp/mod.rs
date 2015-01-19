@@ -1,7 +1,7 @@
 /************************************************************************
  *                                                                      *
  * Copyright 2014 Thomas Poinsot, Urban Hafner                          *
- * Copyright 2015 Urban Hafner                                          *
+ * Copyright 2015 Urban Hafner, Thomas Poinsot                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -26,6 +26,7 @@ use board::movement::Move;
 use engine::Engine;
 use game::Game;
 use ruleset::KgsChinese;
+use time::PreciseTime;
 
 pub mod driver;
 mod test;
@@ -48,7 +49,8 @@ pub enum Command {
     ShowBoard(String),
     Empty,
     Error,
-    FinalScore(String)
+    FinalScore(String),
+    TimeSettings
 }
 
 pub struct GTPInterpreter<'a> {
@@ -89,6 +91,7 @@ impl<'a> GTPInterpreter<'a> {
         known_commands.push(String::from_str("komi"));
         known_commands.push(String::from_str("showboard"));
         known_commands.push(String::from_str("final_score"));
+        known_commands.push(String::from_str("time_settings"));
         known_commands
     }
 
@@ -98,6 +101,18 @@ impl<'a> GTPInterpreter<'a> {
 
     pub fn komi(&self) -> f32 {
         self.game.komi()
+    }
+
+    pub fn main_time(&self) -> u64 {
+        self.game.main_time()
+    }
+
+    pub fn byo_time(&self) -> u64 {
+        self.game.byo_time()
+    }
+
+    pub fn byo_stones(&self) -> i32 {
+        self.game.byo_stones()
     }
 
     pub fn boardsize(&self) -> u8 {
@@ -126,6 +141,9 @@ impl<'a> GTPInterpreter<'a> {
             },
             "clear_board"      => {
                 self.game = Game::new(self.boardsize(), self.komi(), KgsChinese);
+                self.game.set_main_time(0);
+                self.game.set_byo_time(30_000);
+                self.game.set_byo_stones(1);
                 Command::ClearBoard
             },
             "komi"             => return match command[1].parse::<f32>() {
@@ -135,19 +153,7 @@ impl<'a> GTPInterpreter<'a> {
                 }
                 None       => Command::Error
             },
-            "genmove"          => {
-                let color = Color::from_gtp(command[1]);
-                let m  = self.engine.gen_move(color, &self.game);
-                match self.game.clone().play(m) {
-                    Ok(g) => {
-                        self.game = g;
-                        Command::GenMove(m.to_gtp())
-                    },
-                    Err(_) => {
-                        Command::GenMoveError(m)
-                    }
-                }
-            },
+            "genmove"          => self.gen_move_for(Color::from_gtp(command[1])),
             "play"             => {
                 let m = Move::from_gtp(command[1], command[2]);
                 match self.game.clone().play(m) {
@@ -163,6 +169,17 @@ impl<'a> GTPInterpreter<'a> {
             "showboard"   => Command::ShowBoard(format!("\n{}", self.game)),
             "quit"        => return Command::Quit,
             "final_score" => return Command::FinalScore(format!("{}", self.game.score())),
+            "time_settings" => {
+                match (command[1].parse::<u64>(), command[2].parse::<u64>(), command[3].parse::<i32>()) {
+                    (Some(main), Some(byo), Some(stones)) => {
+                        self.game.set_main_time(main * 1000);
+                        self.game.set_byo_time(byo * 1000);
+                        self.game.set_byo_stones(stones);
+                        Command::TimeSettings
+                    }
+                    _ => Command::Error 
+                }
+            },
             _             => return Command::Error
         }
     }
@@ -190,5 +207,60 @@ impl<'a> GTPInterpreter<'a> {
         }
         result.pop();
         result
+    }
+
+    fn gen_move_for(&mut self, color: Color) -> Command {
+        let start_time = PreciseTime::now();
+        let time_budget = self.compute_time_budget();
+        println!("| Time budget for this move: {} |", time_budget);
+        let m  = self.engine.gen_move(color, &self.game, time_budget);
+
+        match self.game.clone().play(m) {
+            Ok(g) => {
+                self.game = g;
+                let time_left = self.game.main_time();
+
+                let new_time_left = if time_left > start_time.to(PreciseTime::now()).num_milliseconds() as u64 {
+                    time_left - start_time.to(PreciseTime::now()).num_milliseconds() as u64
+                } else {
+                    0u64
+                };
+
+                println!("| New time left: {} |", new_time_left);
+                self.game.set_main_time(new_time_left);
+                Command::GenMove(m.to_gtp())
+            },
+            Err(_) => {
+                Command::GenMoveError(m)
+            }
+        }
+    }
+
+    fn compute_time_budget(&self) -> u64 {
+        let max_time = match (self.game.main_time(), self.game.byo_time()) {
+            (main, byo) if main == 0 => { // We're in byo-yomi
+                byo / self.game.byo_stones() as u64
+            }
+            (main, byo) if byo == 0  => { // We have an absolute clock
+                let weighted_board_size = (self.game.board_size() * self.game.board_size()) as f64  * 1.5f64;
+                let est_max_nb_move_left = weighted_board_size as u64 - self.game.move_number() as u64;
+                main / est_max_nb_move_left
+            } 
+            (main, _)   if main > 0  => {
+                // Dumb strategy for the moment, we use the main time to play about the first half of the game;
+                let est_half_game = self.game.board_size() as u64 * self.game.board_size()  as u64 / 2 - self.game.move_number() as u64;
+                main / est_half_game
+            }
+            (main, byo) => panic!("The timer run into a strange configuration: main time: {}, byo time: {}", main, byo)
+        };
+
+        let lag_time = 1000;
+        if max_time < lag_time {
+            // If we have less than lag time to think, try to use half of it.
+            lag_time / 2
+        } else {
+            max_time - lag_time
+        }
+        
     }
 }

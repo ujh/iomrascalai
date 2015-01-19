@@ -26,8 +26,12 @@ use board::Pass;
 use game::Game;
 use playout::Playout;
 use super::Engine;
+use board::Black;
 
 use std::collections::HashMap;
+
+use time::PreciseTime;
+use std::time::duration::Duration;
 
 mod test;
 
@@ -74,20 +78,22 @@ impl McEngine {
     pub fn new() -> McEngine {
         McEngine
     }
-
 }
 
 impl Engine for McEngine {
-    fn gen_move(&self, color: Color, game: &Game) -> Move {
+    fn gen_move(&self, color: Color, game: &Game, time_to_stop: u64) -> Move {
+        let start_time = PreciseTime::now();
         let mut stats = HashMap::new();
         let moves = game.legal_moves();
         for m in moves.iter() {
             stats.insert(m, MoveStats::new());
         }
+
         for m in moves.iter() {
-            for _ in range(0us, 1000) {
-                let g = game.play(*m).unwrap();
-                let playout = Playout::new(g.board());
+            let g = game.play(*m).unwrap();
+            let playout = Playout::new(g.board());
+            let mut counter = 0;
+            loop {
                 let winner = playout.run();
                 let mut prev_move_stats = stats.get_mut(m).unwrap();
                 if winner == color {
@@ -95,6 +101,9 @@ impl Engine for McEngine {
                 } else {
                     prev_move_stats.lost();
                 }
+
+                if counter%100 == 0 && start_time.to(PreciseTime::now()).num_milliseconds() as u64 >= time_to_stop { break; }
+                counter += 1;
             }
         }
         // pass if 0% wins
@@ -113,5 +122,4 @@ impl Engine for McEngine {
             m
         }
     }
-
 }
