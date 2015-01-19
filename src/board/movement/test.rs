@@ -21,8 +21,10 @@
 #![cfg(test)]
 
 use board::Black;
-use board::movement::Move;
-use board::movement::Pass;
+use board::White;
+use super::Move;
+use super::Pass;
+use super::Resign;
 
 #[test]
 fn parse_gtp_pass() {
@@ -34,4 +36,36 @@ fn parse_gtp_pass() {
 fn parse_lower_case_gtp_pass() {
     let m = Move::from_gtp("B", "pass");
     assert_eq!(m, Pass(Black));
+}
+
+#[test]
+// TODO: Will this ever happen?
+fn parse_resign() {
+    let m = Move::from_gtp("W", "resign");
+    assert_eq!(m, Resign(White));
+}
+
+#[test]
+fn produce_gtp_resign() {
+    let m = Resign(White);
+    assert_eq!("resign", m.to_gtp());
+}
+
+#[test]
+fn extract_color_from_resign() {
+    let m = Resign(White);
+    assert_eq!(&White, m.color());
+}
+
+#[test]
+#[should_fail]
+fn fail_when_trying_to_get_coord_of_resign() {
+    let m = Resign(White);
+    m.coord(); // This should blow up
+}
+
+#[test]
+fn is_resign_recognizes_resigns() {
+    let m = Resign(White);
+    assert!(m.is_resign());
 }

@@ -21,6 +21,7 @@
  ************************************************************************/
 pub use self::Move::Pass;
 pub use self::Move::Play;
+pub use self::Move::Resign;
 use board::Color;
 use board::Coord;
 
@@ -28,8 +29,9 @@ mod test;
 
 #[derive(Show, Eq, PartialEq, Hash, Copy)]
 pub enum Move {
+    Pass(Color),
     Play(Color, u8, u8),
-    Pass(Color)
+    Resign(Color),
 }
 
 impl Move {
@@ -38,8 +40,9 @@ impl Move {
         let lower_gtp_vertex: String = gtp_vertex.chars().map(|c| c.to_lowercase()).collect();
 
         match lower_gtp_vertex.as_slice() {
-            "pass" => { Pass(color) },
-            _      => {
+            "pass"   => { Pass(color) },
+            "resign" => { Resign(color) },
+            _        => {
                 let coord = Coord::from_gtp(gtp_vertex);
                 Play(color, coord.col, coord.row)
             }
@@ -49,28 +52,38 @@ impl Move {
     pub fn to_gtp(&self) -> String {
         match *self {
             Pass(_)           => String::from_str("pass"),
-            Play(_, col, row) => Coord::new(col, row).to_gtp()
+            Play(_, col, row) => Coord::new(col, row).to_gtp(),
+            Resign(_)         => String::from_str("resign"),
         }
     }
 
     pub fn color(&self) -> &Color {
         match *self {
             Play(ref c, _, _) => c,
-            Pass(ref c)       => c
+            Pass(ref c)       => c,
+            Resign(ref c)     => c,
         }
     }
 
     pub fn coord(&self) -> Coord {
         match *self {
             Play(_, col, row) => Coord::new(col, row),
-            Pass(_)           => panic!("You have tried to get the coords() of a Pass move")
+            Pass(_)           => panic!("You have tried to get the coord() of a Pass move"),
+            Resign(_)         => panic!("You have tried to get the coord() of a Resign"),
         }
     }
 
     pub fn is_pass(&self) -> bool {
         match *self {
             Pass(_) => true,
-            _        => false
+            _       => false
+        }
+    }
+
+    pub fn is_resign(&self) -> bool {
+        match *self {
+            Resign(_) => true,
+            _         => false,
         }
     }
 }
