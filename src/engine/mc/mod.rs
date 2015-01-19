@@ -23,6 +23,7 @@
 use board::Color;
 use board::Move;
 use board::Pass;
+use board::Resign;
 use game::Game;
 use playout::Playout;
 use super::Engine;
@@ -55,7 +56,7 @@ impl MoveStats {
         self.wins == self.plays
     }
 
-    pub fn all_loses(&self) -> bool {
+    pub fn all_losses(&self) -> bool {
         self.wins == 0
     }
 
@@ -97,9 +98,11 @@ impl Engine for McEngine {
                 }
             }
         }
-        // pass if 0% wins
+        // resign if 0% wins
+        if stats.values().all(|stats| stats.all_losses()) {
+            Resign(color)
         // pass if 100% wins
-        if stats.iter().all(|(_, move_stats)| move_stats.all_wins() || move_stats.all_loses()) {
+        } else if stats.values().all(|stats| stats.all_wins()) {
             Pass(color)
         } else {
             let mut m = Pass(color);

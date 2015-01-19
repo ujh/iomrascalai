@@ -19,14 +19,15 @@
  * along with Iomrascálaí.  If not, see <http://www.gnu.org/licenses/>. *
  *                                                                      *
  ************************************************************************/
-pub use board::chain::Chain;
-pub use board::coord::Coord;
-pub use board::movement::Move;
-pub use board::movement::Pass;
-pub use board::movement::Play;
 pub use self::Color::Black;
 pub use self::Color::Empty;
 pub use self::Color::White;
+pub use self::chain::Chain;
+pub use self::coord::Coord;
+pub use self::movement::Move;
+pub use self::movement::Pass;
+pub use self::movement::Play;
+pub use self::movement::Resign;
 use ruleset::Ruleset;
 use score::Score;
 use self::point::Point;
