@@ -194,7 +194,7 @@ impl<'a> Board<'a> {
         &self.friend_stones_removed
     }
 
-    pub fn legal_moves(&self) -> Vec<Move> {
+    pub fn legal_moves_without_superko_check(&self) -> Vec<Move> {
         let color = self.next_player();
         let mut moves : Vec<Move> = self.vacant
             .iter()

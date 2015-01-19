@@ -60,3 +60,11 @@ fn positional_super_ko_should_be_illegal() {
         Ok(_)  => panic!("expected Err")
     }
 }
+
+#[test]
+fn legal_moves_shouldnt_contain_super_ko_moves() {
+    let parser   = Parser::from_path(Path::new("fixtures/sgf/positional-superko.sgf"));
+    let game     = parser.game().unwrap();
+    let super_ko = Play(White, 2, 9);
+    assert!(!game.legal_moves().contains(&super_ko), "super ko move found");
+}

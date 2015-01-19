@@ -150,7 +150,11 @@ impl<'a> Game<'a> {
     }
 
     pub fn legal_moves(&self) -> Vec<Move> {
-        self.board.legal_moves()
+        self.board
+            .legal_moves_without_superko_check()
+            .into_iter()
+            .filter(|&m| self.play(m).is_ok())
+            .collect()
     }
 }
 
