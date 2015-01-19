@@ -22,7 +22,7 @@
 
 
 use board::Color;
-use board::movement::Move;
+use board::Move;
 use engine::Engine;
 use game::Game;
 use ruleset::KgsChinese;

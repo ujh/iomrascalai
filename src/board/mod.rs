@@ -39,9 +39,9 @@ use std::rc::Rc;
 mod test;
 
 mod chain;
+mod coord;
+mod movement;
 mod point;
-pub mod coord;
-pub mod movement;
 
 #[derive(Show, Eq, PartialEq)]
 pub enum IllegalMove {
