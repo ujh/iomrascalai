@@ -381,14 +381,14 @@ fn next_player_should_return_white_after_a_single_move() {
 #[test]
 fn legal_moves_should_include_pass() {
     let b = Board::new(5, 6.5, AnySizeTrompTaylor);
-    let moves = b.legal_moves();
+    let moves = b.legal_moves_without_superko_check();
     assert!(moves.contains(&Pass(Black)));
 }
 
 #[test]
 fn legal_moves_should_return_black_moves_on_a_board_without_moves() {
     let b = Board::new(5, 6.5, AnySizeTrompTaylor);
-    let moves = b.legal_moves();
+    let moves = b.legal_moves_without_superko_check();
     let all_black = moves.iter().all(|m| m.color() == &Black);
     assert!(all_black);
 }
@@ -397,7 +397,7 @@ fn legal_moves_should_return_black_moves_on_a_board_without_moves() {
 fn legal_moves_should_return_white_moves_on_a_board_with_one_move() {
     let mut b = Board::new(5, 6.5, AnySizeTrompTaylor);
     b.play(Play(Black, 1, 1));
-    let moves = b.legal_moves();
+    let moves = b.legal_moves_without_superko_check();
     let all_white = moves.iter().all(|m| m.color() == &White);
     assert!(all_white);
 }
@@ -405,14 +405,14 @@ fn legal_moves_should_return_white_moves_on_a_board_with_one_move() {
 #[test]
 fn legal_moves_contains_the_right_number_of_moves_for_an_empty_board() {
     let b = Board::new(5, 6.5, AnySizeTrompTaylor);
-    assert_eq!(b.legal_moves().len(), 25+1);
+    assert_eq!(b.legal_moves_without_superko_check().len(), 25+1);
 }
 
 #[test]
 fn legal_moves_only_contains_legal_moves() {
     let mut b = Board::new(5, 6.5, AnySizeTrompTaylor);
     b.play(Play(Black, 1, 1));
-    let moves = b.legal_moves();
+    let moves = b.legal_moves_without_superko_check();
     assert!(!moves.iter().any(|m| m == &Play(White, 1, 1)));
 }
 
