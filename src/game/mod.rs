@@ -69,7 +69,7 @@ impl<'a> Game<'a> {
                 let mut new_game_state = self.clone();
                 new_game_state.board = new_board;
                 new_game_state.move_number += 1;
-                if !m.is_pass() {
+                if !m.is_pass() && !m.is_resign(){
                     let hash = new_game_state.compute_hash(&m);
                     if new_game_state.previous_boards_hashes.contains(&hash) {
                         return Err(IllegalMove::SuperKo)

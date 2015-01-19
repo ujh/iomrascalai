@@ -26,6 +26,7 @@ use board::Black;
 use board::IllegalMove;
 use board::Pass;
 use board::Play;
+use board::Resign;
 use board::White;
 use game::Game;
 use ruleset::KgsChinese;
@@ -72,4 +73,11 @@ fn catch_suicide_moves_in_chinese() {
 fn next_player_should_return_board_next_player() {
     let g = Game::new(3, 6.5, KgsChinese);
     assert_eq!(g.board.next_player(), g.next_player());
+}
+
+#[test]
+fn it_should_handle_resign() {
+    let g = Game::new(9, 6.5, KgsChinese);
+    let res = g.play(Resign(Black));
+    assert!(res.is_ok());
 }
