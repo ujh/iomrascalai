@@ -130,6 +130,15 @@ fn resigning_means_the_other_player_won() {
 }
 
 #[test]
+fn legal_moves_should_return_nothing_after_a_resign() {
+    let mut b = Board::new(9, 6.5, Minimal);
+
+    b.play(Resign(Black));
+
+    assert_eq!(vec!(), b.legal_moves_without_superko_check());
+}
+
+#[test]
 fn two_way_merging_works() {
     let mut b = Board::new(19, 6.5, Minimal);
 

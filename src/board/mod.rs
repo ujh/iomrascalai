@@ -199,13 +199,17 @@ impl<'a> Board<'a> {
     }
 
     pub fn legal_moves_without_superko_check(&self) -> Vec<Move> {
-        let color = self.next_player();
-        let mut moves : Vec<Move> = self.vacant
-            .iter()
-            .map(|coord| Play(color.clone(), coord.col, coord.row))
-            .filter(|m| self.is_legal(*m).is_ok()).collect();
-        moves.push(Pass(color.clone()));
-        moves
+        if self.is_game_over() {
+            vec!()
+        } else {
+            let color = self.next_player();
+            let mut moves : Vec<Move> = self.vacant
+                .iter()
+                .map(|coord| Play(color.clone(), coord.col, coord.row))
+                .filter(|m| self.is_legal(*m).is_ok()).collect();
+            moves.push(Pass(color.clone()));
+            moves
+        }
     }
 
     pub fn is_legal(&self, m: Move) -> Result<(), IllegalMove> {
