@@ -46,8 +46,8 @@ pub struct Game<'a> {
     move_number: u8,
     previous_boards_hashes: Vec<u64>,
     zobrist_base_table: Rc<ZobristHashTable>,
-    main_time: i32, // main time in ms
-    byo_time: i32, // byo yomi time in ms
+    main_time: u64, // main time in ms
+    byo_time: u64, // byo yomi time in ms
     byo_stones: i32, // stones per byo yomi period
     byo_stones_remaining: i32
 }
@@ -129,11 +129,11 @@ impl<'a> Game<'a> {
         self.board.komi()
     }
 
-    pub fn main_time(&self) -> i32 {
+    pub fn main_time(&self) -> u64 {
         self.main_time
     }
 
-    pub fn byo_time(&self) -> i32 {
+    pub fn byo_time(&self) -> u64 {
         self.byo_time
     }
 
@@ -157,15 +157,11 @@ impl<'a> Game<'a> {
         self.board.set_komi(komi);
     }
 
-    pub fn set_main_time(&mut self, time: i32) {
-        self.main_time = if time < 0 {
-            0
-        } else {
-            time
-        };
+    pub fn set_main_time(&mut self, time: u64) {
+        self.main_time = time
     }
 
-    pub fn set_byo_time(&mut self, time: i32) {
+    pub fn set_byo_time(&mut self, time: u64) {
         self.byo_time = time;
     }
 
