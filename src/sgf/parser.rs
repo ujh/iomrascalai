@@ -26,9 +26,9 @@ use board::Black;
 use board::Color;
 use board::Empty;
 use board::IllegalMove;
+use board::Pass;
+use board::Play;
 use board::White;
-use board::movement::Pass;
-use board::movement::Play;
 use game::Game;
 use ruleset::Minimal;
 

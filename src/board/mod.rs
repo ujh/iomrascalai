@@ -19,14 +19,15 @@
  * along with Iomrascálaí.  If not, see <http://www.gnu.org/licenses/>. *
  *                                                                      *
  ************************************************************************/
-pub use board::chain::Chain;
-pub use board::coord::Coord;
-pub use board::movement::Move;
-pub use board::movement::Pass;
-pub use board::movement::Play;
 pub use self::Color::Black;
 pub use self::Color::Empty;
 pub use self::Color::White;
+pub use self::chain::Chain;
+pub use self::coord::Coord;
+pub use self::movement::Move;
+pub use self::movement::Pass;
+pub use self::movement::Play;
+pub use self::movement::Resign;
 use ruleset::Ruleset;
 use score::Score;
 use self::point::Point;
@@ -39,9 +40,9 @@ use std::rc::Rc;
 mod test;
 
 mod chain;
+mod coord;
+mod movement;
 mod point;
-pub mod coord;
-pub mod movement;
 
 #[derive(Show, Eq, PartialEq)]
 pub enum IllegalMove {
@@ -91,6 +92,7 @@ pub struct Board<'a> {
     komi:                  f32,
     neighbours:            Rc<Vec<Vec<Coord>>>,
     previous_player:       Color,
+    resigned_by:           Color,
     ruleset:               Ruleset,
     size:                  u8,
     vacant:                Vec<Coord>,
@@ -108,6 +110,7 @@ impl<'a> Clone for Board<'a> {
             komi:                  self.komi,
             neighbours:            self.neighbours.clone(),
             previous_player:       self.previous_player,
+            resigned_by:           self.resigned_by,
             ruleset:               self.ruleset.clone(),
             size:                  self.size,
             vacant:                self.vacant.clone(),
@@ -127,6 +130,7 @@ impl<'a> Board<'a> {
             komi:                  komi,
             neighbours:            Board::setup_neighbours(size),
             previous_player:       White,
+            resigned_by:           Empty,
             ruleset:               ruleset,
             size:                  size,
             vacant:                Coord::for_board_size(size),
@@ -195,13 +199,17 @@ impl<'a> Board<'a> {
     }
 
     pub fn legal_moves_without_superko_check(&self) -> Vec<Move> {
-        let color = self.next_player();
-        let mut moves : Vec<Move> = self.vacant
-            .iter()
-            .map(|coord| Play(color.clone(), coord.col, coord.row))
-            .filter(|m| self.is_legal(*m).is_ok()).collect();
-        moves.push(Pass(color.clone()));
-        moves
+        if self.is_game_over() {
+            vec!()
+        } else {
+            let color = self.next_player();
+            let mut moves : Vec<Move> = self.vacant
+                .iter()
+                .map(|coord| Play(color.clone(), coord.col, coord.row))
+                .filter(|m| self.is_legal(*m).is_ok()).collect();
+            moves.push(Pass(color.clone()));
+            moves
+        }
     }
 
     pub fn is_legal(&self, m: Move) -> Result<(), IllegalMove> {
@@ -215,6 +223,11 @@ impl<'a> Board<'a> {
         }
         // Pass is always allowed
         if m.is_pass() {
+            return Ok(());
+        }
+        // Resigning is allowed here, as the game over check has
+        // already been passed successfully
+        if m.is_resign() {
             return Ok(());
         }
         // Can't play outside of the board or on an occupied coord
@@ -264,6 +277,10 @@ impl<'a> Board<'a> {
             return Ok(());
         }
         self.consecutive_passes = 0;
+        if m.is_resign() {
+            self.resigned_by = *m.color();
+            return Ok(());
+        }
         // Create new chain or merge it with the neighbouring ones. It
         // removes coord from the list of liberties of the
         // neighbouring chains.
@@ -476,11 +493,14 @@ impl<'a> Board<'a> {
     }
 
     pub fn winner(&self) -> Color {
-        self.score().color()
+        match self.resigned_by {
+            Empty => self.score().color(),
+            color => color.opposite(),
+        }
     }
 
     pub fn is_game_over(&self) -> bool {
-        self.consecutive_passes == 2
+        self.consecutive_passes == 2 || self.resigned_by != Empty
     }
 
     pub fn ruleset(&self) -> Ruleset {

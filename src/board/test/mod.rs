@@ -23,13 +23,14 @@
 
 use board::Black;
 use board::Board;
+use board::Chain;
 use board::Coord;
 use board::Empty;
 use board::IllegalMove;
 use board::Pass;
 use board::Play;
+use board::Resign;
 use board::White;
-use board::chain::Chain;
 use ruleset::AnySizeTrompTaylor;
 use ruleset::KgsChinese;
 use ruleset::Minimal;
@@ -98,6 +99,43 @@ fn playing_on_a_non_empty_intersection_should_return_error() {
     b.play(Play(Black, 4, 4));
     assert!(b.play(Play(Black, 4, 4)).is_err());
     assert!(b.play(Play(White, 4, 4)).is_err());
+}
+
+#[test]
+fn resigning_is_recognized_as_game_over() {
+    let mut b = Board::new(9, 6.5, Minimal);
+
+    b.play(Resign(Black));
+    assert!(b.is_game_over(), "Game should be over after a resign");
+}
+
+#[test]
+fn its_not_possible_to_play_after_a_resign() {
+    let mut b = Board::new(9, 6.5, AnySizeTrompTaylor);
+
+    b.play(Resign(Black));
+    let res = b.play(Play(White, 1, 1));
+    assert!(res.is_err());
+    assert_eq!(IllegalMove::GameAlreadyOver, res.unwrap_err());
+}
+
+#[test]
+fn resigning_means_the_other_player_won() {
+    let mut b = Board::new(9, 6.5, AnySizeTrompTaylor);
+    b.play(Play(Black, 1, 1));
+    b.play(Play(White, 2, 2));
+    b.play(Resign(Black));
+
+    assert_eq!(White, b.winner());
+}
+
+#[test]
+fn legal_moves_should_return_nothing_after_a_resign() {
+    let mut b = Board::new(9, 6.5, Minimal);
+
+    b.play(Resign(Black));
+
+    assert_eq!(vec!(), b.legal_moves_without_superko_check());
 }
 
 #[test]
