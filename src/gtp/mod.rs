@@ -25,7 +25,8 @@ use board::Color;
 use board::Move;
 use engine::Engine;
 use game::Game;
-use ruleset::KgsChinese;
+use ruleset::CGOS;
+use ruleset::Ruleset;
 
 pub mod driver;
 mod test;
@@ -52,19 +53,22 @@ pub enum Command {
 }
 
 pub struct GTPInterpreter<'a> {
-    known_commands: Vec<String>,
+    engine: Box<Engine + 'a>,
     game: Game<'a>,
-    engine: Box<Engine + 'a>
+    known_commands: Vec<String>,
+    ruleset: Ruleset,
 }
 
 impl<'a> GTPInterpreter<'a> {
     pub fn new<'b>(engine: Box<Engine + 'b>) -> GTPInterpreter<'b> {
-        let komi = 6.5;
+        let komi      = 6.5;
         let boardsize = 19;
+        let ruleset   = CGOS;
         let mut interpreter = GTPInterpreter {
+            engine: engine,
+            game: Game::new(boardsize, komi, ruleset),
             known_commands: vec!(),
-            game: Game::new(boardsize, komi, KgsChinese),
-            engine: engine
+            ruleset: ruleset,
         };
         interpreter.initialize();
         interpreter
@@ -100,6 +104,10 @@ impl<'a> GTPInterpreter<'a> {
         self.game.komi()
     }
 
+    pub fn ruleset(&self) -> Ruleset {
+        self.ruleset
+    }
+
     pub fn boardsize(&self) -> u8 {
         self.game.size()
     }
@@ -119,13 +127,13 @@ impl<'a> GTPInterpreter<'a> {
             "known_command"    => return Command::KnownCommand(self.known_commands.contains(&String::from_str(command[1].clone()))),
             "boardsize"        => return match command[1].parse::<u8>() {
                 Some(size) => {
-                    self.game = Game::new(size, self.komi(), KgsChinese);
+                    self.game = Game::new(size, self.komi(), self.ruleset());
                     Command::BoardSize
                 },
                 None       => Command::Error
             },
             "clear_board"      => {
-                self.game = Game::new(self.boardsize(), self.komi(), KgsChinese);
+                self.game = Game::new(self.boardsize(), self.komi(), self.ruleset());
                 Command::ClearBoard
             },
             "komi"             => return match command[1].parse::<f32>() {
