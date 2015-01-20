@@ -49,6 +49,8 @@ as inspiration:
 * [Orego](https://github.com/Orego/Orego)
 * [libego](https://github.com/lukaszlew/libego)
 * [Fuego](http://sourceforge.net/projects/fuego/)
+* [oakfoam](http://oakfoam.com/)
+* [GnuGo](https://www.gnu.org/software/gnugo/)
 
 License
 =======
