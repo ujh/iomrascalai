@@ -31,8 +31,12 @@ extern crate test;
 use engine::Engine;
 use engine::McEngine;
 use engine::RandomEngine;
+use version::version;
+
 use getopts::getopts;
+use getopts::optflag;
 use getopts::optopt;
+use getopts::usage;
 use std::ascii::OwnedAsciiExt;
 use std::os::args;
 
@@ -50,14 +54,27 @@ mod version;
 fn main() {
 
     let opts = [
-        optopt("m", "mode", "set control mode", "MODE"),
-        optopt("e", "engine", "select an engine", "ENGINE"),
-            ];
+        optopt("m", "mode", "set control mode (defaults to cli)", "cli|gtp"),
+        optopt("e", "engine", "select an engine (defaults to random)", "mc|random"),
+        optflag("h", "help", "print this help menu"),
+        optflag("v", "version", "print the version number"),
+        ];
 
     let matches = match getopts(args().tail(), &opts) {
         Ok(m) => m,
         Err(f) => panic!(f.to_string())
     };
+
+    if matches.opt_present("h") {
+        let program = args()[0].clone();
+        let brief = format!("Usage: {} [options]", program);
+        print!("{}", usage(brief.as_slice(), &opts));
+        return;
+    }
+    if matches.opt_present("v") {
+        println!("Iomrascálaí {}", version::version());
+        return;
+    }
 
     let engine_arg = matches.opt_str("e").map(|s| s.into_ascii_lowercase());
     let engine = match engine_arg {
