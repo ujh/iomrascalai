@@ -22,7 +22,23 @@
 
 #![cfg(test)]
 
+use super::AnySizeTrompTaylor;
 use super::CGOS;
+
+#[test]
+fn tromp_taylor_allows_suicide() {
+    assert_eq!(true, AnySizeTrompTaylor.suicide_allowed());
+}
+
+#[test]
+fn tromp_taylor_forbids_a_player_playing_twice() {
+    assert_eq!(false, AnySizeTrompTaylor.same_player());
+}
+
+#[test]
+fn tromp_taylor_forbids_game_over_play() {
+    assert_eq!(false, AnySizeTrompTaylor.game_over_play());
+}
 
 #[test]
 fn cgos_forbids_suicide() {
