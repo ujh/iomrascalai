@@ -54,6 +54,7 @@ impl Ruleset {
     pub fn suicide_allowed(&self) -> bool {
         match *self {
             AnySizeTrompTaylor => true,
+            Minimal            => true,
             _ => false
         }
     }

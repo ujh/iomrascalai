@@ -25,6 +25,7 @@
 use super::AnySizeTrompTaylor;
 use super::CGOS;
 use super::KgsChinese;
+use super::Minimal;
 
 #[test]
 fn tromp_taylor_allows_suicide() {
@@ -69,4 +70,19 @@ fn kgs_chinese_forbids_a_player_playing_twice() {
 #[test]
 fn kgs_chinese_forbids_game_over_play() {
     assert_eq!(false, KgsChinese.game_over_play());
+}
+
+#[test]
+fn minimal_allows_suicide() {
+    assert_eq!(true, Minimal.suicide_allowed());
+}
+
+#[test]
+fn minimal_allows_a_player_playing_twice() {
+    assert_eq!(true, Minimal.same_player());
+}
+
+#[test]
+fn minimal_allows_game_over_play() {
+    assert_eq!(true, Minimal.game_over_play());
 }
