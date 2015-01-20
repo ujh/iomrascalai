@@ -1,6 +1,7 @@
 /************************************************************************
  *                                                                      *
  * Copyright 2014 Urban Hafner, Thomas Poinsot                          *
+ * Copyright 2015 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -20,3 +21,20 @@
  ************************************************************************/
 
 #![cfg(test)]
+
+use super::CGOS;
+
+#[test]
+fn cgos_forbids_suicide() {
+    assert_eq!(false, CGOS.suicide_allowed());
+}
+
+#[test]
+fn cgos_forbids_a_player_playing_twice() {
+    assert_eq!(false, CGOS.same_player());
+}
+
+#[test]
+fn cgos_forbids_game_over_play() {
+    assert_eq!(false, CGOS.game_over_play());
+}

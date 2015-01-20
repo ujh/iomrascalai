@@ -21,6 +21,7 @@
  ************************************************************************/
 
 pub use self::Ruleset::AnySizeTrompTaylor;
+pub use self::Ruleset::CGOS;
 pub use self::Ruleset::KgsChinese;
 pub use self::Ruleset::Minimal;
 
@@ -29,8 +30,9 @@ mod test;
 #[derive(Clone, Show, Eq, PartialEq, Copy)]
 pub enum Ruleset {
     AnySizeTrompTaylor,
+    CGOS,
     KgsChinese,
-    Minimal
+    Minimal,
 }
 
 impl Ruleset {
