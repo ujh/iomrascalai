@@ -20,6 +20,7 @@
  ************************************************************************/
 
 use engine::Engine;
+use ruleset::Ruleset;
 use super::Command;
 use super::GTPInterpreter;
 use version;
@@ -31,12 +32,12 @@ pub struct Driver<'a> {
 }
 
 impl<'a> Driver<'a> {
-    pub fn new(engine: Box<Engine>) {
+    pub fn new(ruleset: Ruleset, engine: Box<Engine>) {
         let engine_name = "Iomrascálaí";
         let engine_version = version::version();
         let protocol_version = "2";
 
-        let mut interpreter = GTPInterpreter::new(engine);
+        let mut interpreter = GTPInterpreter::new(ruleset, engine);
         let mut reader = stdin();
 
         loop {

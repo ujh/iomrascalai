@@ -25,7 +25,6 @@ use board::Color;
 use board::Move;
 use engine::Engine;
 use game::Game;
-use ruleset::CGOS;
 use ruleset::Ruleset;
 
 pub mod driver;
@@ -60,10 +59,9 @@ pub struct GTPInterpreter<'a> {
 }
 
 impl<'a> GTPInterpreter<'a> {
-    pub fn new<'b>(engine: Box<Engine + 'b>) -> GTPInterpreter<'b> {
+    pub fn new<'b>(ruleset: Ruleset, engine: Box<Engine + 'b>) -> GTPInterpreter<'b> {
         let komi      = 6.5;
         let boardsize = 19;
-        let ruleset   = CGOS;
         let mut interpreter = GTPInterpreter {
             engine: engine,
             game: Game::new(boardsize, komi, ruleset),

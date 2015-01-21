@@ -25,14 +25,14 @@ use board::IllegalMove;
 use board::Pass;
 use board::Play;
 use game::Game;
-use ruleset::KgsChinese;
+use ruleset::Ruleset;
 
 use std::io::stdio::stdin;
 
 pub struct Driver;
 
 impl Driver {
-    pub fn new() {
+    pub fn new(ruleset: Ruleset) {
         print!("Please enter the size of the new game: ");
         let mut reader = stdin();
 
@@ -44,7 +44,7 @@ impl Driver {
             Err(_) => panic!("Couldn't read the line")
         };
 
-        let mut g = Game::new(size, 6.5, KgsChinese);
+        let mut g = Game::new(size, 6.5, ruleset);
         let mut current_player = Black;
 
         loop {

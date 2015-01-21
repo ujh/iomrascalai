@@ -1,6 +1,5 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2014 Urban Hafner, Thomas Poinsot                          *
  * Copyright 2015 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
@@ -22,67 +21,34 @@
 
 #![cfg(test)]
 
-use super::AnySizeTrompTaylor;
-use super::CGOS;
-use super::KgsChinese;
-use super::Minimal;
+use ruleset::AnySizeTrompTaylor;
+use ruleset::CGOS;
+use ruleset::KgsChinese;
+use ruleset::Minimal;
+use ruleset::Ruleset;
 
 #[test]
-fn tromp_taylor_allows_suicide() {
-    assert_eq!(true, AnySizeTrompTaylor.suicide_allowed());
+fn parses_tromp_taylor() {
+    assert_eq!(AnySizeTrompTaylor, Ruleset::from_string(String::from_str("tromp-taylor")));
 }
 
 #[test]
-fn tromp_taylor_forbids_a_player_playing_twice() {
-    assert_eq!(false, AnySizeTrompTaylor.same_player());
+fn parses_cgos() {
+    assert_eq!(CGOS, Ruleset::from_string(String::from_str("cgos")));
 }
 
 #[test]
-fn tromp_taylor_forbids_game_over_play() {
-    assert_eq!(false, AnySizeTrompTaylor.game_over_play());
+fn parses_chinese() {
+    assert_eq!(KgsChinese, Ruleset::from_string(String::from_str("chinese")));
 }
 
 #[test]
-fn cgos_forbids_suicide() {
-    assert_eq!(false, CGOS.suicide_allowed());
+fn parses_minimal() {
+    assert_eq!(Minimal, Ruleset::from_string(String::from_str("minimal")));
 }
 
 #[test]
-fn cgos_forbids_a_player_playing_twice() {
-    assert_eq!(false, CGOS.same_player());
-}
-
-#[test]
-fn cgos_forbids_game_over_play() {
-    assert_eq!(false, CGOS.game_over_play());
-}
-
-#[test]
-fn kgs_chinese_forbids_suicide() {
-    assert_eq!(false, KgsChinese.suicide_allowed());
-}
-
-#[test]
-fn kgs_chinese_forbids_a_player_playing_twice() {
-    assert_eq!(false, KgsChinese.same_player());
-}
-
-#[test]
-fn kgs_chinese_forbids_game_over_play() {
-    assert_eq!(false, KgsChinese.game_over_play());
-}
-
-#[test]
-fn minimal_allows_suicide() {
-    assert_eq!(true, Minimal.suicide_allowed());
-}
-
-#[test]
-fn minimal_allows_a_player_playing_twice() {
-    assert_eq!(true, Minimal.same_player());
-}
-
-#[test]
-fn minimal_allows_game_over_play() {
-    assert_eq!(true, Minimal.game_over_play());
+#[should_fail]
+fn fails_with_unknown() {
+    Ruleset::from_string(String::from_str("unknown"));
 }
