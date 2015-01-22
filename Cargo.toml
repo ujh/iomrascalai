@@ -1,7 +1,7 @@
 [package]
 
 name = "iomrascálaí"
-version = "0.2.0"
+version = "0.1.0"
 authors = ["Urban Hafner <contact@urbanhafner.com>", "Thomas Poinsot <thomas.poinsot1@gmail.com>"]
 
 [dependencies]
