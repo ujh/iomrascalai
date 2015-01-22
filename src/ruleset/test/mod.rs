@@ -20,52 +20,71 @@
  *                                                                      *
  ************************************************************************/
 
-pub use self::Ruleset::AnySizeTrompTaylor;
-pub use self::Ruleset::CGOS;
-pub use self::Ruleset::KgsChinese;
-pub use self::Ruleset::Minimal;
+#![cfg(test)]
 
-mod test;
+use super::AnySizeTrompTaylor;
+use super::CGOS;
+use super::KgsChinese;
+use super::Minimal;
 
-#[derive(Clone, Show, Eq, PartialEq, Copy)]
-pub enum Ruleset {
-    AnySizeTrompTaylor,
-    CGOS,
-    KgsChinese,
-    Minimal,
+mod from_string;
+
+#[test]
+fn tromp_taylor_allows_suicide() {
+    assert_eq!(true, AnySizeTrompTaylor.suicide_allowed());
 }
 
-impl Ruleset {
+#[test]
+fn tromp_taylor_forbids_a_player_playing_twice() {
+    assert_eq!(false, AnySizeTrompTaylor.same_player());
+}
 
-    pub fn from_string(s: String) -> Ruleset {
-        match s.as_slice() {
-            "tromp-taylor" => AnySizeTrompTaylor,
-            "cgos"         => CGOS,
-            "chinese"      => KgsChinese,
-            "minimal"      => Minimal,
-            _              => panic!("Unknown ruleset '{}'", s),
-        }
-    }
+#[test]
+fn tromp_taylor_forbids_game_over_play() {
+    assert_eq!(false, AnySizeTrompTaylor.game_over_play());
+}
 
-    pub fn game_over_play(&self) -> bool {
-        match *self {
-            Minimal => true,
-            _ => false
-        }
-    }
+#[test]
+fn cgos_forbids_suicide() {
+    assert_eq!(false, CGOS.suicide_allowed());
+}
 
-    pub fn same_player(&self) -> bool {
-        match *self {
-            Minimal => true,
-            _ => false
-        }
-    }
+#[test]
+fn cgos_forbids_a_player_playing_twice() {
+    assert_eq!(false, CGOS.same_player());
+}
 
-    pub fn suicide_allowed(&self) -> bool {
-        match *self {
-            AnySizeTrompTaylor => true,
-            Minimal            => true,
-            _ => false
-        }
-    }
+#[test]
+fn cgos_forbids_game_over_play() {
+    assert_eq!(false, CGOS.game_over_play());
+}
+
+#[test]
+fn kgs_chinese_forbids_suicide() {
+    assert_eq!(false, KgsChinese.suicide_allowed());
+}
+
+#[test]
+fn kgs_chinese_forbids_a_player_playing_twice() {
+    assert_eq!(false, KgsChinese.same_player());
+}
+
+#[test]
+fn kgs_chinese_forbids_game_over_play() {
+    assert_eq!(false, KgsChinese.game_over_play());
+}
+
+#[test]
+fn minimal_allows_suicide() {
+    assert_eq!(true, Minimal.suicide_allowed());
+}
+
+#[test]
+fn minimal_allows_a_player_playing_twice() {
+    assert_eq!(true, Minimal.same_player());
+}
+
+#[test]
+fn minimal_allows_game_over_play() {
+    assert_eq!(true, Minimal.game_over_play());
 }

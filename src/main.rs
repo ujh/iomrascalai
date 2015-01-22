@@ -31,6 +31,8 @@ extern crate test;
 use engine::Engine;
 use engine::McEngine;
 use engine::RandomEngine;
+use ruleset::KgsChinese;
+use ruleset::Ruleset;
 use version::version;
 
 use getopts::getopts;
@@ -56,6 +58,7 @@ fn main() {
     let opts = [
         optopt("m", "mode", "set control mode (defaults to cli)", "cli|gtp"),
         optopt("e", "engine", "select an engine (defaults to random)", "mc|random"),
+        optopt("r", "ruleset", "select the ruleset (defaults to chinese)", "cgos|chinese|tromp-taylor|minimal"),
         optflag("h", "help", "print this help menu"),
         optflag("v", "version", "print the version number"),
         ];
@@ -75,16 +78,19 @@ fn main() {
         println!("Iomrascálaí {}", version::version());
         return;
     }
-
     let engine_arg = matches.opt_str("e").map(|s| s.into_ascii_lowercase());
     let engine = match engine_arg {
         Some(ref s) if s.as_slice() == "mc" => Box::new(McEngine::new()) as Box<Engine>,
         _                                   => Box::new(RandomEngine::new()) as Box<Engine>
     };
-
+    let rules_arg = matches.opt_str("r").map(|s| s.into_ascii_lowercase());
+    let ruleset = match rules_arg {
+        Some(r) => Ruleset::from_string(r),
+        None    => KgsChinese
+    };
     let mode_arg = matches.opt_str("m").map(|s| s.into_ascii_lowercase());
     match mode_arg {
-        Some(ref s) if s.as_slice() == "gtp" => gtp::driver::Driver::new(engine),
-        _                                    => cli::Driver::new()
+        Some(ref s) if s.as_slice() == "gtp" => gtp::driver::Driver::new(ruleset, engine),
+        _                                    => cli::Driver::new(ruleset)
     };
 }

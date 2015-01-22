@@ -1,6 +1,6 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2014 Urban Hafner, Thomas Poinsot                          *
+ * Copyright 2015 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -20,3 +20,35 @@
  ************************************************************************/
 
 #![cfg(test)]
+
+use ruleset::AnySizeTrompTaylor;
+use ruleset::CGOS;
+use ruleset::KgsChinese;
+use ruleset::Minimal;
+use ruleset::Ruleset;
+
+#[test]
+fn parses_tromp_taylor() {
+    assert_eq!(AnySizeTrompTaylor, Ruleset::from_string(String::from_str("tromp-taylor")));
+}
+
+#[test]
+fn parses_cgos() {
+    assert_eq!(CGOS, Ruleset::from_string(String::from_str("cgos")));
+}
+
+#[test]
+fn parses_chinese() {
+    assert_eq!(KgsChinese, Ruleset::from_string(String::from_str("chinese")));
+}
+
+#[test]
+fn parses_minimal() {
+    assert_eq!(Minimal, Ruleset::from_string(String::from_str("minimal")));
+}
+
+#[test]
+#[should_fail]
+fn fails_with_unknown() {
+    Ruleset::from_string(String::from_str("unknown"));
+}
