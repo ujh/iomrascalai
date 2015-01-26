@@ -28,7 +28,7 @@ use board::Empty;
 use board::White;
 use self::territory::Territory;
 
-use core::fmt::String;
+use core::fmt::Display;
 use std::fmt;
 use std::num::Float;
 
@@ -154,7 +154,7 @@ impl Score {
 
 }
 
-impl String for Score {
+impl Display for Score {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let color = match self.color() {
             Black => "B+",

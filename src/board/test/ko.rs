@@ -44,9 +44,10 @@ fn replaying_directly_on_a_ko_point_should_be_illegal() {
     b.play(Play(White, 3, 4));
 
     let ko = b.play(Play(Black, 4, 4));
-    assert_eq!(ko.is_err(), true);
-    assert_eq!(ko.unwrap_err(), IllegalMove::Ko);
-
+    match ko {
+        Err(e) => assert_eq!(e, IllegalMove::Ko),
+        Ok(_)  => panic!("Error expected")
+    }
 }
 
 #[test]

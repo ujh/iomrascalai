@@ -99,7 +99,7 @@ impl Coord {
     }
 }
 
-impl fmt::Show for Coord {
+impl fmt::Debug for Coord {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let s = format!("({},{})", self.col, self.row);
         s.fmt(f)

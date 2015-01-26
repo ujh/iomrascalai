@@ -34,8 +34,9 @@ use self::point::Point;
 
 use std::collections::HashMap;
 use std::collections::HashSet;
-use std::vec::Vec;
+use std::fmt;
 use std::rc::Rc;
+use std::vec::Vec;
 
 mod test;
 
@@ -54,6 +55,14 @@ pub enum IllegalMove {
     SuicidePlay,
     SuperKo
 }
+
+impl fmt::Display for IllegalMove {
+
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        format!("{:?}", self).fmt(f)
+    }
+}
+
 
 #[derive(Clone, Show, Eq, PartialEq, Hash, Copy)]
 pub enum Color {

@@ -34,7 +34,7 @@ use score::Score;
 use self::hash::ZobristHashTable;
 
 use std::fmt;
-use core::fmt::String;
+use core::fmt::Display;
 use std::rc::Rc;
 
 mod hash;
@@ -158,7 +158,7 @@ impl<'a> Game<'a> {
     }
 }
 
-impl<'a> String for Game<'a> {
+impl<'a> Display for Game<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut s = format!("komi: {}\n", self.komi());
 

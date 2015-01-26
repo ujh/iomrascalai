@@ -115,8 +115,10 @@ fn its_not_possible_to_play_after_a_resign() {
 
     b.play(Resign(Black));
     let res = b.play(Play(White, 1, 1));
-    assert!(res.is_err());
-    assert_eq!(IllegalMove::GameAlreadyOver, res.unwrap_err());
+    match res {
+        Err(e) => assert_eq!(e, IllegalMove::GameAlreadyOver),
+        Ok(_)  => panic!("error expected")
+    }
 }
 
 #[test]
@@ -330,8 +332,10 @@ fn suicide_should_be_illegal_in_kgs_chinese_rules() {
     b.play(Pass(Black));
 
     let play = b.play(Play(White, 1, 1));
-    assert!(play.is_err());
-    assert_eq!(play.unwrap_err(), IllegalMove::SuicidePlay);
+    match play {
+        Err(e) => assert_eq!(e, IllegalMove::SuicidePlay),
+        Ok(_)  => panic!("Error expected")
+    }
 }
 
 #[test]
