@@ -101,7 +101,9 @@ impl Engine for McEngine {
                 } else {
                     prev_move_stats.lost();
                 }
-
+                // Is that even correct? I mean, we want to exit even
+                // the for loop here. And playing all possible moves
+                // in order isn't nice, either.
                 if counter%100 == 0 && start_time.to(PreciseTime::now()).num_milliseconds() as u64 >= time_to_stop { break; }
                 counter += 1;
             }

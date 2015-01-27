@@ -26,6 +26,7 @@ use board::Move;
 use engine::Engine;
 use game::Game;
 use ruleset::Ruleset;
+use timer::Timer;
 
 use time::PreciseTime;
 
@@ -59,6 +60,7 @@ pub struct GTPInterpreter<'a> {
     game: Game<'a>,
     known_commands: Vec<String>,
     ruleset: Ruleset,
+    timer: Timer,
 }
 
 impl<'a> GTPInterpreter<'a> {
@@ -70,6 +72,7 @@ impl<'a> GTPInterpreter<'a> {
             game: Game::new(boardsize, komi, ruleset),
             known_commands: vec!(),
             ruleset: ruleset,
+            timer: Timer::new(),
         };
         interpreter.initialize();
         interpreter
@@ -111,15 +114,15 @@ impl<'a> GTPInterpreter<'a> {
     }
 
     pub fn main_time(&self) -> u64 {
-        self.game.main_time()
+        self.timer.main_time()
     }
 
     pub fn byo_time(&self) -> u64 {
-        self.game.byo_time()
+        self.timer.byo_time()
     }
 
     pub fn byo_stones(&self) -> i32 {
-        self.game.byo_stones()
+        self.timer.byo_stones()
     }
 
     pub fn boardsize(&self) -> u8 {
@@ -148,9 +151,9 @@ impl<'a> GTPInterpreter<'a> {
             },
             "clear_board"      => {
                 self.game = Game::new(self.boardsize(), self.komi(), self.ruleset());
-                self.game.set_main_time(0);
-                self.game.set_byo_time(30_000);
-                self.game.set_byo_stones(1);
+                self.timer.set_main_time(0);
+                self.timer.set_byo_time(30_000);
+                self.timer.set_byo_stones(1);
                 Command::ClearBoard
             },
             "komi"             => return match command[1].parse::<f32>() {
@@ -179,9 +182,9 @@ impl<'a> GTPInterpreter<'a> {
             "time_settings" => {
                 match (command[1].parse::<u64>(), command[2].parse::<u64>(), command[3].parse::<i32>()) {
                     (Some(main), Some(byo), Some(stones)) => {
-                        self.game.set_main_time(main * 1000);
-                        self.game.set_byo_time(byo * 1000);
-                        self.game.set_byo_stones(stones);
+                        self.timer.set_main_time(main * 1000);
+                        self.timer.set_byo_time(byo * 1000);
+                        self.timer.set_byo_stones(stones);
                         Command::TimeSettings
                     }
                     _ => Command::Error
@@ -225,7 +228,7 @@ impl<'a> GTPInterpreter<'a> {
         match self.game.clone().play(m) {
             Ok(g) => {
                 self.game = g;
-                let time_left = self.game.main_time();
+                let time_left = self.timer.main_time();
 
                 let new_time_left = if time_left > start_time.to(PreciseTime::now()).num_milliseconds() as u64 {
                     time_left - start_time.to(PreciseTime::now()).num_milliseconds() as u64
@@ -234,7 +237,8 @@ impl<'a> GTPInterpreter<'a> {
                 };
 
                 println!("| New time left: {} |", new_time_left);
-                self.game.set_main_time(new_time_left);
+                self.timer.set_main_time(new_time_left);
+                self.timer.play();
                 Command::GenMove(m.to_gtp())
             },
             Err(_) => {
@@ -244,9 +248,9 @@ impl<'a> GTPInterpreter<'a> {
     }
 
     fn compute_time_budget(&self) -> u64 {
-        let max_time = match (self.game.main_time(), self.game.byo_time()) {
+        let max_time = match (self.timer.main_time(), self.timer.byo_time()) {
             (main, byo) if main == 0 => { // We're in byo-yomi
-                byo / self.game.byo_stones() as u64
+                byo / self.timer.byo_stones() as u64
             }
             (main, byo) if byo == 0  => { // We have an absolute clock
                 let weighted_board_size = (self.game.board_size() * self.game.board_size()) as f64  * 1.5f64;

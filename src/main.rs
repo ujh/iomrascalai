@@ -52,6 +52,7 @@ mod playout;
 mod ruleset;
 mod score;
 mod sgf;
+mod timer;
 mod version;
 
 fn main() {
