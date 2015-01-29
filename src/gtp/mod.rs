@@ -221,7 +221,7 @@ impl<'a> GTPInterpreter<'a> {
 
     fn gen_move_for(&mut self, color: Color) -> Command {
         let start_time = PreciseTime::now();
-        let time_budget = self.compute_time_budget();
+        let time_budget = self.timer.compute_time_budget(&self.game);
         println!("| Time budget for this move: {} |", time_budget);
         let m  = self.engine.gen_move(color, &self.game, time_budget);
 
@@ -247,31 +247,4 @@ impl<'a> GTPInterpreter<'a> {
         }
     }
 
-    fn compute_time_budget(&self) -> u64 {
-        let max_time = match (self.timer.main_time(), self.timer.byo_time()) {
-            (main, byo) if main == 0 => { // We're in byo-yomi
-                byo / self.timer.byo_stones() as u64
-            }
-            (main, byo) if byo == 0  => { // We have an absolute clock
-                let weighted_board_size = (self.game.board_size() * self.game.board_size()) as f64  * 1.5f64;
-                let est_max_nb_move_left = weighted_board_size as u64 - self.game.move_number() as u64;
-                main / est_max_nb_move_left
-            }
-            (main, _)   if main > 0  => {
-                // Dumb strategy for the moment, we use the main time to play about the first half of the game;
-                let est_half_game = self.game.board_size() as u64 * self.game.board_size()  as u64 / 2 - self.game.move_number() as u64;
-                main / est_half_game
-            }
-            (main, byo) => panic!("The timer run into a strange configuration: main time: {}, byo time: {}", main, byo)
-        };
-
-        let lag_time = 1000;
-        if max_time < lag_time {
-            // If we have less than lag time to think, try to use half of it.
-            lag_time / 2
-        } else {
-            max_time - lag_time
-        }
-
-    }
 }

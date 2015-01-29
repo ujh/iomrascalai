@@ -23,6 +23,7 @@
 #![cfg(test)]
 
 use engine::RandomEngine;
+use game::Info;
 use ruleset::Minimal;
 use super::Command;
 use super::GTPInterpreter;

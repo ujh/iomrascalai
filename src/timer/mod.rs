@@ -19,6 +19,8 @@
  *                                                                      *
  ************************************************************************/
 
+use game::Info;
+
 mod test;
 
 pub struct Timer {
@@ -74,4 +76,30 @@ impl Timer {
         self.byo_stones_remaining = actual;
     }
 
+    pub fn compute_time_budget<T: Info>(&self, game: &T) -> u64 {
+        let max_time = match (self.main_time(), self.byo_time()) {
+            (main, byo) if main == 0 => { // We're in byo-yomi
+                byo / self.byo_stones() as u64
+            }
+            (main, byo) if byo == 0  => { // We have an absolute clock
+                let weighted_board_size = (game.board_size() * game.board_size()) as f64  * 1.5f64;
+                let est_max_nb_move_left = weighted_board_size as u64 - game.move_number() as u64;
+                main / est_max_nb_move_left
+            }
+            (main, _)   if main > 0  => {
+                // Dumb strategy for the moment, we use the main time to play about the first half of the game;
+                let est_half_game = game.board_size() as u64 * game.board_size()  as u64 / 2 - game.move_number() as u64;
+                main / est_half_game
+            }
+            (main, byo) => panic!("The timer run into a strange configuration: main time: {}, byo time: {}", main, byo)
+        };
+
+        let lag_time = 1000;
+        if max_time < lag_time {
+            // If we have less than lag time to think, try to use half of it.
+            lag_time / 2
+        } else {
+            max_time - lag_time
+        }
+    }
 }
