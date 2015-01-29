@@ -22,7 +22,7 @@
 use super::Color;
 use super::Empty;
 
-#[derive(Clone, Show)]
+#[derive(Clone, Debug)]
 pub struct Point {
     pub chain_id: usize,
     pub color: Color,

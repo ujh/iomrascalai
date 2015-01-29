@@ -27,7 +27,7 @@ use std::collections::HashSet;
 
 mod test;
 
-#[derive(Clone, Eq, PartialEq, Show)]
+#[derive(Clone, Eq, PartialEq, Debug)]
 pub struct Chain {
     color:  Color,
     coords: Vec<Coord>,

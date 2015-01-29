@@ -28,7 +28,7 @@ use board::White;
 
 use std::rand::random;
 
-#[derive(Show)]
+#[derive(Debug)]
 pub struct ZobristHashTable {
     table: Vec<u64>,
     size : u8

@@ -27,7 +27,7 @@ pub use self::Ruleset::Minimal;
 
 mod test;
 
-#[derive(Clone, Show, Eq, PartialEq, Copy)]
+#[derive(Clone, Debug, Eq, PartialEq, Copy)]
 pub enum Ruleset {
     AnySizeTrompTaylor,
     CGOS,

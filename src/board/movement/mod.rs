@@ -27,7 +27,7 @@ use board::Coord;
 
 mod test;
 
-#[derive(Show, Eq, PartialEq, Hash, Copy)]
+#[derive(Debug, Eq, PartialEq, Hash, Copy)]
 pub enum Move {
     Pass(Color),
     Play(Color, u8, u8),

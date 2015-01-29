@@ -45,7 +45,7 @@ mod coord;
 mod movement;
 mod point;
 
-#[derive(Show, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq)]
 pub enum IllegalMove {
     GameAlreadyOver,
     IntersectionNotEmpty,
@@ -64,7 +64,7 @@ impl fmt::Display for IllegalMove {
 }
 
 
-#[derive(Clone, Show, Eq, PartialEq, Hash, Copy)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Copy)]
 pub enum Color {
     White,
     Black,
@@ -90,7 +90,7 @@ impl Color {
     }
 }
 
-#[derive(Show)]
+#[derive(Debug)]
 pub struct Board<'a> {
     adv_stones_removed:    Vec<Coord>,
     board:                 Vec<Point>,

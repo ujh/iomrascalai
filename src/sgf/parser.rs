@@ -36,7 +36,7 @@ pub struct Parser {
     sgf: String
 }
 
-#[derive(Show)]
+#[derive(Debug)]
 struct Property<'a> {
     name: &'a str,
     val:  &'a str

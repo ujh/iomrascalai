@@ -30,7 +30,7 @@ use ruleset::Ruleset;
 pub mod driver;
 mod test;
 
-#[derive(Show)]
+#[derive(Debug)]
 pub enum Command {
     Play,
     PlayError(Move),
