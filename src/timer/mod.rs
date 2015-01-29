@@ -21,6 +21,8 @@
 
 use game::Info;
 
+use time::PreciseTime;
+
 mod test;
 
 pub struct Timer {
@@ -28,6 +30,7 @@ pub struct Timer {
     byo_time: u64, // byo yomi time in ms
     byo_stones: i32, // stones per byo yomi period
     byo_stones_remaining: i32,
+    start_time: PreciseTime,
 }
 
 impl Timer {
@@ -38,11 +41,23 @@ impl Timer {
             byo_time: 30,
             byo_stones: 1,
             byo_stones_remaining: 1,
+            start_time: PreciseTime::now(),
         }
 
     }
 
-    pub fn play(&mut self) {
+    pub fn start(&mut self) {
+        self.start_time = PreciseTime::now()
+    }
+
+    pub fn stop(&mut self) {
+        let time_left = self.main_time();
+        let new_time_left = if time_left > self.start_time.to(PreciseTime::now()).num_milliseconds() as u64 {
+            time_left - self.start_time.to(PreciseTime::now()).num_milliseconds() as u64
+        } else {
+            0u64
+        };
+        self.set_main_time(new_time_left);
         self.byo_stones_remaining = if self.byo_stones_remaining == 1 {
             self.byo_stones
         } else {
@@ -76,7 +91,7 @@ impl Timer {
         self.byo_stones_remaining = actual;
     }
 
-    pub fn compute_time_budget<T: Info>(&self, game: &T) -> u64 {
+    pub fn budget<T: Info>(&self, game: &T) -> u64 {
         let max_time = match (self.main_time(), self.byo_time()) {
             (main, byo) if main == 0 => { // We're in byo-yomi
                 byo / self.byo_stones() as u64

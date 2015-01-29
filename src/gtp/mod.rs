@@ -28,8 +28,6 @@ use game::Game;
 use ruleset::Ruleset;
 use timer::Timer;
 
-use time::PreciseTime;
-
 pub mod driver;
 mod test;
 
@@ -220,25 +218,12 @@ impl<'a> GTPInterpreter<'a> {
     }
 
     fn gen_move_for(&mut self, color: Color) -> Command {
-        let start_time = PreciseTime::now();
-        let time_budget = self.timer.compute_time_budget(&self.game);
-        println!("| Time budget for this move: {} |", time_budget);
-        let m  = self.engine.gen_move(color, &self.game, time_budget);
-
+        self.timer.start();
+        let m  = self.engine.gen_move(color, &self.game, self.timer.budget(&self.game));
         match self.game.clone().play(m) {
             Ok(g) => {
                 self.game = g;
-                let time_left = self.timer.main_time();
-
-                let new_time_left = if time_left > start_time.to(PreciseTime::now()).num_milliseconds() as u64 {
-                    time_left - start_time.to(PreciseTime::now()).num_milliseconds() as u64
-                } else {
-                    0u64
-                };
-
-                println!("| New time left: {} |", new_time_left);
-                self.timer.set_main_time(new_time_left);
-                self.timer.play();
+                self.timer.stop();
                 Command::GenMove(m.to_gtp())
             },
             Err(_) => {
