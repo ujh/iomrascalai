@@ -161,7 +161,21 @@ impl<'a> GTPInterpreter<'a> {
                 }
                 Err(_) => Command::Error
             },
-            "genmove"          => self.gen_move_for(Color::from_gtp(command[1])),
+            "genmove"          => {
+                let color = Color::from_gtp(command[1]);
+                self.timer.start();
+                let m  = self.engine.gen_move(color, &self.game, self.timer.budget(&self.game));
+                match self.game.clone().play(m) {
+                    Ok(g) => {
+                        self.game = g;
+                        self.timer.stop();
+                        Command::GenMove(m.to_gtp())
+                    },
+                    Err(_) => {
+                        Command::GenMoveError(m)
+                    }
+                }
+            },
             "play"             => {
                 let m = Move::from_gtp(command[1], command[2]);
                 match self.game.clone().play(m) {
@@ -215,21 +229,6 @@ impl<'a> GTPInterpreter<'a> {
         }
         result.pop();
         result
-    }
-
-    fn gen_move_for(&mut self, color: Color) -> Command {
-        self.timer.start();
-        let m  = self.engine.gen_move(color, &self.game, self.timer.budget(&self.game));
-        match self.game.clone().play(m) {
-            Ok(g) => {
-                self.game = g;
-                self.timer.stop();
-                Command::GenMove(m.to_gtp())
-            },
-            Err(_) => {
-                Command::GenMoveError(m)
-            }
-        }
     }
 
 }
