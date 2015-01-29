@@ -20,6 +20,7 @@
  *                                                                      *
  ************************************************************************/
 
+use board::Black;
 use board::Color;
 use board::Move;
 use board::Pass;
@@ -27,12 +28,11 @@ use board::Resign;
 use game::Game;
 use playout::Playout;
 use super::Engine;
-use board::Black;
 
 use std::collections::HashMap;
-
-use time::PreciseTime;
+use std::rand::random;
 use std::time::duration::Duration;
+use time::PreciseTime;
 
 mod test;
 
@@ -89,25 +89,22 @@ impl Engine for McEngine {
         for m in moves.iter() {
             stats.insert(m, MoveStats::new());
         }
-
-        for m in moves.iter() {
-            let g = game.play(*m).unwrap();
+        let mut counter = 0;
+        loop {
+            let m = moves[random::<usize>() % moves.len()];
+            let g = game.play(m).unwrap();
             let playout = Playout::new(g.board());
-            let mut counter = 0;
-            loop {
-                let winner = playout.run();
-                let mut prev_move_stats = stats.get_mut(m).unwrap();
-                if winner == color {
-                    prev_move_stats.won();
-                } else {
-                    prev_move_stats.lost();
-                }
-                // Is that even correct? I mean, we want to exit even
-                // the for loop here. And playing all possible moves
-                // in order isn't nice, either.
-                if counter%100 == 0 && start_time.to(PreciseTime::now()).num_milliseconds() as u64 >= time_to_stop { break; }
-                counter += 1;
+            let winner = playout.run();
+            let mut prev_move_stats = stats.get_mut(&m).unwrap();
+            if winner == color {
+                prev_move_stats.won();
+            } else {
+                prev_move_stats.lost();
             }
+            if counter % 100 == 0 && start_time.to(PreciseTime::now()).num_milliseconds() as u64 >= time_to_stop {
+                break;
+            }
+            counter += 1;
         }
         // resign if 0% wins
         if stats.values().all(|stats| stats.all_losses()) {
