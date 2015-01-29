@@ -25,7 +25,7 @@ use super::Command;
 use super::GTPInterpreter;
 use version;
 
-use std::io::stdio::stdin;
+use std::old_io::stdio::stdin;
 
 pub struct Driver<'a> {
     engine: Box<Engine + 'a>

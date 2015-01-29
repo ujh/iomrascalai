@@ -80,8 +80,8 @@ impl McEngine {
 
 impl Engine for McEngine {
     fn gen_move(&self, color: Color, game: &Game) -> Move {
-        let mut stats = HashMap::new();
         let moves = game.legal_moves();
+        let mut stats = HashMap::new();
         for m in moves.iter() {
             stats.insert(m, MoveStats::new());
         }

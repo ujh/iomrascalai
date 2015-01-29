@@ -27,7 +27,7 @@ use board::Play;
 use game::Game;
 use ruleset::Ruleset;
 
-use std::io::stdio::stdin;
+use std::old_io::stdio::stdin;
 
 pub struct Driver;
 
