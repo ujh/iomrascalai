@@ -31,6 +31,7 @@ extern crate test;
 use engine::Engine;
 use engine::McEngine;
 use engine::RandomEngine;
+use gtp::driver::Driver;
 use ruleset::KgsChinese;
 use ruleset::Ruleset;
 use version::version;
@@ -43,7 +44,6 @@ use std::ascii::OwnedAsciiExt;
 use std::os::args;
 
 mod board;
-mod cli;
 mod engine;
 mod game;
 mod gtp;
@@ -56,7 +56,6 @@ mod version;
 fn main() {
 
     let opts = [
-        optopt("m", "mode", "set control mode (defaults to cli)", "cli|gtp"),
         optopt("e", "engine", "select an engine (defaults to random)", "mc|random"),
         optopt("r", "ruleset", "select the ruleset (defaults to chinese)", "cgos|chinese|tromp-taylor|minimal"),
         optflag("h", "help", "print this help menu"),
@@ -88,9 +87,5 @@ fn main() {
         Some(r) => Ruleset::from_string(r),
         None    => KgsChinese
     };
-    let mode_arg = matches.opt_str("m").map(|s| s.into_ascii_lowercase());
-    match mode_arg {
-        Some(ref s) if s.as_slice() == "gtp" => gtp::driver::Driver::new(ruleset, engine),
-        _                                    => cli::Driver::new(ruleset)
-    };
+    Driver::new(ruleset, engine);
 }

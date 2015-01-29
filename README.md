@@ -25,7 +25,7 @@ following command in the top level folder:
 
 ``` sh
 GNUGO="gnugo --mode gtp --level 0 --chinese-rules --positional-superko --capture-all-dead"
-IOMRASCALAI="./target/release/iomrascálaí -m gtp -e mc"
+IOMRASCALAI="./target/release/iomrascálaí -e mc"
 gogui-twogtp -auto -black "$GNUGO" -white "$IOMRASCALAI" -verbose -size 9 -alternate -games 10 -sgffile test
 ```
 
@@ -33,7 +33,7 @@ To run a game against GnuGo and view it in GoGui in real time use the following 
 
 ``` sh
 GNUGO="gnugo --mode gtp --level 0 --chinese-rules --positional-superko --capture-all-dead"
-IOMRASCALAI="./target/release/iomrascálaí -m gtp -e mc"
+IOMRASCALAI="./target/release/iomrascálaí -e mc"
 TWOGTP="gogui-twogtp -black \"$GNUGO\" -white \"$IOMRASCALAI\" -verbose -size 9"
 gogui -computer-both -program "$TWOGTP" -size 9
 ```
