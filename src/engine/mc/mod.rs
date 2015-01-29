@@ -79,6 +79,7 @@ impl McEngine {
     pub fn new() -> McEngine {
         McEngine
     }
+}
 
 impl Engine for McEngine {
     fn gen_move(&self, color: Color, game: &Game, time_to_stop: u64) -> Move {
