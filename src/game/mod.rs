@@ -42,8 +42,7 @@ mod test;
 
 pub trait Info {
 
-    fn board_size(&self) -> u8;
-    fn move_number(&self) -> u8;
+    fn vacant_point_count(&self) -> u16;
 
 }
 
@@ -51,7 +50,7 @@ pub trait Info {
 #[derive(Clone)]
 pub struct Game<'a> {
     board: Board<'a>,
-    move_number: u8,
+    move_number: u16,
     previous_boards_hashes: Vec<u64>,
     zobrist_base_table: Rc<ZobristHashTable>
 }
@@ -111,6 +110,10 @@ impl<'a> Game<'a> {
         self.board.ruleset()
     }
 
+    pub fn move_number(&self) -> u16 {
+        self.move_number
+    }
+
     pub fn is_over(&self) -> bool {
         self.board.is_game_over()
     }
@@ -133,6 +136,10 @@ impl<'a> Game<'a> {
 
     pub fn set_komi(&mut self, komi: f32) {
         self.board.set_komi(komi);
+    }
+
+    pub fn board_size(&self) -> u8 {
+        self.board.size()
     }
 
     pub fn board(&self) -> Board {
@@ -176,12 +183,7 @@ impl<'a> Display for Game<'a> {
 
 impl<'a> Info for Game<'a> {
 
-    fn board_size(&self) -> u8 {
-        self.board.size()
+    fn vacant_point_count(&self) -> u16 {
+        self.board.vacant_point_count()
     }
-
-    fn move_number(&self) -> u8 {
-        self.move_number
-    }
-
 }

@@ -21,6 +21,7 @@
 
 use game::Info;
 
+use std::num::Float;
 use time::PreciseTime;
 
 mod test;
@@ -37,7 +38,7 @@ impl Timer {
 
     pub fn new() -> Timer {
         Timer {
-            main_time: 0,
+            main_time: 300000, // 5min
             byo_time: 30,
             byo_stones: 1,
             byo_stones_remaining: 1,
@@ -91,30 +92,19 @@ impl Timer {
         self.byo_stones_remaining = actual;
     }
 
-    pub fn budget<T: Info>(&self, game: &T) -> u64 {
-        let max_time = match (self.main_time(), self.byo_time()) {
-            (main, byo) if main == 0 => { // We're in byo-yomi
-                byo / self.byo_stones() as u64
-            }
-            (main, byo) if byo == 0  => { // We have an absolute clock
-                let weighted_board_size = (game.board_size() * game.board_size()) as f64  * 1.5f64;
-                let est_max_nb_move_left = weighted_board_size as u64 - game.move_number() as u64;
-                main / est_max_nb_move_left
-            }
-            (main, _)   if main > 0  => {
-                // Dumb strategy for the moment, we use the main time to play about the first half of the game;
-                let est_half_game = game.board_size() as u64 * game.board_size()  as u64 / 2 - game.move_number() as u64;
-                main / est_half_game
-            }
-            (main, byo) => panic!("The timer run into a strange configuration: main time: {}, byo time: {}", main, byo)
-        };
+    fn C(&self) -> f32 {
+        0.5
+    }
 
-        let lag_time = 1000;
-        if max_time < lag_time {
-            // If we have less than lag time to think, try to use half of it.
-            lag_time / 2
+    pub fn budget<T: Info>(&self, game: &T) -> u64 {
+        // If there's still main time left
+        if self.main_time() > 0 {
+            // TODO: Are there issues with all these values being ints?
+            (self.main_time() as f32 / (self.C() * game.vacant_point_count() as f32)).floor() as u64
         } else {
-            max_time - lag_time
+            // Else use byoyomi time
+            // TODO: Does that need to be adjusted wrt to time_left?
+            (self.byo_time() as f32 / self.byo_stones() as f32).floor() as u64
         }
     }
 }
