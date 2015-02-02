@@ -249,7 +249,13 @@ impl<'a> Board<'a> {
         }
         // Can't play on a Ko point
         if self.ko.is_some() && m.coord() == self.ko.unwrap() {
-            return Err(IllegalMove::Ko);
+            if self.neighbours(m.coord())
+                .iter()
+                .filter(|&c| self.color(c) == m.color().opposite())
+                .map(|&c| self.get_chain(c).unwrap())
+                .any(|chain| chain.liberties().len() == 1 && chain.coords().len() == 1) {
+                    return Err(IllegalMove::Ko);
+                }
         }
         // Can't play suicide move
         if !self.ruleset.suicide_allowed() {
