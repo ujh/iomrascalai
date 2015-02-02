@@ -53,9 +53,29 @@ impl Timer {
     }
 
     pub fn reset(&mut self) {
+        self.main_time_left  = self.main_time;
+        self.byo_time_left   = self.byo_time;
         self.byo_stones_left = self.byo_stones;
+        self.start();
     }
 
+    pub fn setup(&mut self, main_in_s: i64, byo_in_s: i64, stones: i32) {
+        self.set_main_time(main_in_s * 1000);
+        self.set_byo_time(byo_in_s * 1000);
+        self.set_byo_stones(stones);
+        self.start();
+    }
+
+    pub fn update(&mut self, time_in_s: i64, stones: i32) {
+        if stones == 0 {
+            self.main_time_left = time_in_s * 1000;
+        } else {
+            self.main_time_left  = 0;
+            self.byo_time_left   = time_in_s * 1000;
+            self.byo_stones_left = stones;
+        }
+        self.start();
+    }
 
     pub fn start(&mut self) {
         self.start_time = PreciseTime::now()
@@ -90,7 +110,7 @@ impl Timer {
         self.main_time_left
     }
 
-    pub fn set_main_time(&mut self, time: i64) {
+    fn set_main_time(&mut self, time: i64) {
         self.main_time = time;
         self.main_time_left = time;
     }
@@ -99,7 +119,7 @@ impl Timer {
         self.byo_time
     }
 
-    pub fn set_byo_time(&mut self, time: i64) {
+    fn set_byo_time(&mut self, time: i64) {
         self.byo_time = time;
         self.byo_time_left = time;
     }
@@ -108,7 +128,7 @@ impl Timer {
         self.byo_stones
     }
 
-    pub fn set_byo_stones(&mut self, stones: i32) {
+    fn set_byo_stones(&mut self, stones: i32) {
         self.byo_stones = stones;
         self.byo_stones_left = stones;
     }

@@ -53,7 +53,8 @@ pub enum Command {
     Empty,
     Error,
     FinalScore(String),
-    TimeSettings
+    TimeSettings,
+    TimeLeft,
 }
 
 pub struct GTPInterpreter<'a> {
@@ -99,6 +100,7 @@ impl<'a> GTPInterpreter<'a> {
         known_commands.push(String::from_str("showboard"));
         known_commands.push(String::from_str("final_score"));
         known_commands.push(String::from_str("time_settings"));
+        known_commands.push(String::from_str("time_left"));
         known_commands
     }
 
@@ -199,13 +201,21 @@ impl<'a> GTPInterpreter<'a> {
             "time_settings" => {
                 match (command[1].parse::<i64>(), command[2].parse::<i64>(), command[3].parse::<i32>()) {
                     (Some(main), Some(byo), Some(stones)) => {
-                        self.timer.set_main_time(main * 1000);
-                        self.timer.set_byo_time(byo * 1000);
-                        self.timer.set_byo_stones(stones);
+                        self.timer.setup(main, byo, stones);
                         Command::TimeSettings
                     }
                     _ => Command::Error
                 }
+            },
+            "time_left" => {
+                match (command[2].parse::<i64>(), command[3].parse::<i32>()) {
+                    (Some(time), Some(stones)) => {
+                        self.timer.update(time, stones);
+                        Command::TimeLeft
+                    },
+                    _ => Command::Error
+                }
+
             },
             _             => return Command::Error
         }

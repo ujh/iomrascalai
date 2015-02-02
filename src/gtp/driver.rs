@@ -72,6 +72,7 @@ impl<'a> Driver<'a> {
                 Command::Quit               => {print!("= \n\n"); return;},
                 Command::FinalScore(s)      => {print!("= {}\n\n", s)},
                 Command::TimeSettings       => {print!("= \n\n")},
+                Command::TimeLeft           => {print!("= \n\n")},
                 _                           => {print!("? unknown command\n\n");}
             }
         }
