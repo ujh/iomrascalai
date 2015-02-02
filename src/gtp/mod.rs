@@ -22,11 +22,14 @@
 
 
 use board::Color;
+use board::IllegalMove;
 use board::Move;
 use engine::Engine;
 use game::Game;
 use ruleset::Ruleset;
 use timer::Timer;
+
+use std::old_io::stdio::stderr;
 
 pub mod driver;
 mod test;
@@ -34,9 +37,9 @@ mod test;
 #[derive(Debug)]
 pub enum Command {
     Play,
-    PlayError(Move),
+    PlayError(Move, IllegalMove),
     GenMove(String),
-    GenMoveError(Move),
+    GenMoveError(Move, IllegalMove),
     ProtocolVersion,
     Name,
     Version,
@@ -111,11 +114,11 @@ impl<'a> GTPInterpreter<'a> {
         self.ruleset
     }
 
-    pub fn main_time(&self) -> u64 {
+    pub fn main_time(&self) -> i64 {
         self.timer.main_time()
     }
 
-    pub fn byo_time(&self) -> u64 {
+    pub fn byo_time(&self) -> i64 {
         self.timer.byo_time()
     }
 
@@ -149,9 +152,7 @@ impl<'a> GTPInterpreter<'a> {
             },
             "clear_board"      => {
                 self.game = Game::new(self.boardsize(), self.komi(), self.ruleset());
-                self.timer.set_main_time(0);
-                self.timer.set_byo_time(30_000);
-                self.timer.set_byo_stones(1);
+                self.timer.reset();
                 Command::ClearBoard
             },
             "komi"             => return match command[1].parse::<f32>() {
@@ -164,15 +165,19 @@ impl<'a> GTPInterpreter<'a> {
             "genmove"          => {
                 let color = Color::from_gtp(command[1]);
                 self.timer.start();
-                let m  = self.engine.gen_move(color, &self.game, self.timer.budget(&self.game));
+                let budget = self.timer.budget(&self.game);
+                let mut stream = stderr();
+                stream.write_line(format!("Thinking for {}ms", budget).as_slice());
+                stream.write_line(format!("{}ms time left", self.timer.main_time_left()).as_slice());
+                let m  = self.engine.gen_move(color, &self.game, budget);
                 match self.game.clone().play(m) {
                     Ok(g) => {
                         self.game = g;
                         self.timer.stop();
                         Command::GenMove(m.to_gtp())
                     },
-                    Err(_) => {
-                        Command::GenMoveError(m)
+                    Err(e) => {
+                        Command::GenMoveError(m, e)
                     }
                 }
             },
@@ -183,8 +188,8 @@ impl<'a> GTPInterpreter<'a> {
                         self.game = g;
                         Command::Play
                     },
-                    Err(_) => {
-                        Command::PlayError(m)
+                    Err(e) => {
+                        Command::PlayError(m, e)
                     }
                 }
             },
@@ -192,7 +197,7 @@ impl<'a> GTPInterpreter<'a> {
             "quit"        => return Command::Quit,
             "final_score" => return Command::FinalScore(format!("{}", self.game.score())),
             "time_settings" => {
-                match (command[1].parse::<u64>(), command[2].parse::<u64>(), command[3].parse::<i32>()) {
+                match (command[1].parse::<i64>(), command[2].parse::<i64>(), command[3].parse::<i32>()) {
                     (Some(main), Some(byo), Some(stones)) => {
                         self.timer.set_main_time(main * 1000);
                         self.timer.set_byo_time(byo * 1000);

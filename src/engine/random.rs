@@ -36,7 +36,7 @@ impl RandomEngine {
 }
 
 impl Engine for RandomEngine {
-    fn gen_move(&self, _: Color, game: &Game, _: u64) -> Move {
+    fn gen_move(&self, _: Color, game: &Game, _: i64) -> Move {
         let moves = game.legal_moves();
         moves[random::<usize>() % moves.len()]
     }

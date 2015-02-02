@@ -31,5 +31,5 @@ mod random;
 
 pub trait Engine {
     // args: color of the move to generate, the game on which we play, and the nb of ms we have to generate the move
-    fn gen_move(&self, Color, &Game, u64) -> Move;
+    fn gen_move(&self, Color, &Game, i64) -> Move;
 }

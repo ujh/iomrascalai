@@ -82,7 +82,7 @@ impl McEngine {
 }
 
 impl Engine for McEngine {
-    fn gen_move(&self, color: Color, game: &Game, time_to_stop: u64) -> Move {
+    fn gen_move(&self, color: Color, game: &Game, time_to_stop: i64) -> Move {
         let moves = game.legal_moves();
         let start_time = PreciseTime::now();
         let mut stats = HashMap::new();
@@ -101,7 +101,7 @@ impl Engine for McEngine {
             } else {
                 prev_move_stats.lost();
             }
-            if counter % 100 == 0 && start_time.to(PreciseTime::now()).num_milliseconds() as u64 >= time_to_stop {
+            if counter % 100 == 0 && start_time.to(PreciseTime::now()).num_milliseconds() >= time_to_stop {
                 break;
             }
             counter += 1;
