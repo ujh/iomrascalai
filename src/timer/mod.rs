@@ -34,7 +34,7 @@ pub struct Timer {
     byo_time_left: i64,
     main_time: i64, // main time in ms
     main_time_left: i64,
-    start_time: PreciseTime,
+    start_time: Option<PreciseTime>,
 }
 
 impl Timer {
@@ -47,7 +47,7 @@ impl Timer {
             byo_time_left: 0,
             main_time: 300000, // 5min
             main_time_left: 300000,
-            start_time: PreciseTime::now(),
+            start_time: None,
         }
 
     }
@@ -56,14 +56,14 @@ impl Timer {
         self.main_time_left  = self.main_time;
         self.byo_time_left   = self.byo_time;
         self.byo_stones_left = self.byo_stones;
-        self.start();
+        self.start_time      = None;
     }
 
     pub fn setup(&mut self, main_in_s: i64, byo_in_s: i64, stones: i32) {
         self.set_main_time(main_in_s * 1000);
         self.set_byo_time(byo_in_s * 1000);
         self.set_byo_stones(stones);
-        self.start();
+        self.start_time = None;
     }
 
     pub fn update(&mut self, time_in_s: i64, stones: i32) {
@@ -78,7 +78,7 @@ impl Timer {
     }
 
     pub fn start(&mut self) {
-        self.start_time = PreciseTime::now()
+        self.start_time = Some(PreciseTime::now());
     }
 
     pub fn stop(&mut self) {
@@ -99,7 +99,7 @@ impl Timer {
     }
 
     fn time_spent(&self) -> i64 {
-        self.start_time.to(PreciseTime::now()).num_milliseconds()
+        self.start_time.unwrap().to(PreciseTime::now()).num_milliseconds()
     }
 
     pub fn main_time(&self) -> i64 {
