@@ -23,8 +23,7 @@ extern crate core;
 extern crate getopts;
 extern crate rand;
 extern crate regex;
-#[plugin]
-extern crate regex_macros;
+#[plugin] #[no_link] extern crate regex_macros;
 extern crate "rustc-serialize" as rustc_serialize;
 extern crate test;
 extern crate time;
@@ -37,10 +36,7 @@ use ruleset::KgsChinese;
 use ruleset::Ruleset;
 use version::version;
 
-use getopts::getopts;
-use getopts::optflag;
-use getopts::optopt;
-use getopts::usage;
+use getopts::Options;
 use std::ascii::OwnedAsciiExt;
 use std::os::args;
 
@@ -56,15 +52,13 @@ mod timer;
 mod version;
 
 fn main() {
+    let mut opts = Options::new();
+    opts.optopt("e", "engine", "select an engine (defaults to random)", "mc|random");
+    opts.optopt("r", "ruleset", "select the ruleset (defaults to chinese)", "cgos|chinese|tromp-taylor|minimal");
+    opts.optflag("h", "help", "print this help menu");
+    opts.optflag("v", "version", "print the version number");
 
-    let opts = [
-        optopt("e", "engine", "select an engine (defaults to random)", "mc|random"),
-        optopt("r", "ruleset", "select the ruleset (defaults to chinese)", "cgos|chinese|tromp-taylor|minimal"),
-        optflag("h", "help", "print this help menu"),
-        optflag("v", "version", "print the version number"),
-        ];
-
-    let matches = match getopts(args().tail(), &opts) {
+    let matches = match opts.parse(args().tail()) {
         Ok(m) => m,
         Err(f) => panic!(f.to_string())
     };
@@ -72,7 +66,7 @@ fn main() {
     if matches.opt_present("h") {
         let program = args()[0].clone();
         let brief = format!("Usage: {} [options]", program);
-        print!("{}", usage(brief.as_slice(), &opts));
+        print!("{}", opts.usage(brief.as_slice()));
         return;
     }
     if matches.opt_present("v") {
