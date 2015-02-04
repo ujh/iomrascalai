@@ -124,22 +124,22 @@ impl<'a> GTPInterpreter<'a> {
             "list_commands"    => return Command::ListCommands(self.list_commands()),
             "known_command"    => return Command::KnownCommand(self.known_commands.contains(&String::from_str(command[1].clone()))),
             "boardsize"        => return match command[1].parse::<u8>() {
-                Some(size) => {
+                Ok(size) => {
                     self.game = Game::new(size, self.komi(), self.ruleset());
                     Command::BoardSize
                 },
-                None       => Command::Error
+                Err(_) => Command::Error
             },
             "clear_board"      => {
                 self.game = Game::new(self.boardsize(), self.komi(), self.ruleset());
                 Command::ClearBoard
             },
             "komi"             => return match command[1].parse::<f32>() {
-                Some(komi) => {
+                Ok(komi) => {
                     self.game.set_komi(komi);
                     Command::Komi
                 }
-                None       => Command::Error
+                Err(_) => Command::Error
             },
             "genmove"          => {
                 let color = Color::from_gtp(command[1]);

@@ -82,7 +82,7 @@ impl Coord {
             col_letter as u8 - 'a' as u8 + 1
         };
 
-        let row = (gtp_vertex.as_slice().slice(1, gtp_vertex.len())).parse::<u8>().expect("you must enter a valid coord (1 < c < 256)");
+        let row = (gtp_vertex.as_slice().slice(1, gtp_vertex.len())).parse::<u8>().unwrap();
 
         Coord::new(col, row)
     }
