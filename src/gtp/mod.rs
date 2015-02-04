@@ -200,7 +200,7 @@ impl<'a> GTPInterpreter<'a> {
             "final_score" => return Command::FinalScore(format!("{}", self.game.score())),
             "time_settings" => {
                 match (command[1].parse::<i64>(), command[2].parse::<i64>(), command[3].parse::<i32>()) {
-                    (Some(main), Some(byo), Some(stones)) => {
+                    (Ok(main), Ok(byo), Ok(stones)) => {
                         self.timer.setup(main, byo, stones);
                         Command::TimeSettings
                     }
@@ -209,7 +209,7 @@ impl<'a> GTPInterpreter<'a> {
             },
             "time_left" => {
                 match (command[2].parse::<i64>(), command[3].parse::<i32>()) {
-                    (Some(time), Some(stones)) => {
+                    (Ok(time), Ok(stones)) => {
                         self.timer.update(time, stones);
                         Command::TimeLeft
                     },
