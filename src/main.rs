@@ -26,6 +26,7 @@ extern crate regex;
 #[plugin] #[no_link] extern crate regex_macros;
 extern crate "rustc-serialize" as rustc_serialize;
 extern crate test;
+extern crate time;
 
 use engine::Engine;
 use engine::McEngine;
@@ -47,6 +48,7 @@ mod playout;
 mod ruleset;
 mod score;
 mod sgf;
+mod timer;
 mod version;
 
 fn main() {

@@ -40,10 +40,17 @@ use std::rc::Rc;
 mod hash;
 mod test;
 
+pub trait Info {
+
+    fn vacant_point_count(&self) -> u16;
+
+}
+
+
 #[derive(Clone)]
 pub struct Game<'a> {
     board: Board<'a>,
-    move_number: u8,
+    move_number: u16,
     previous_boards_hashes: Vec<u64>,
     zobrist_base_table: Rc<ZobristHashTable>
 }
@@ -103,7 +110,7 @@ impl<'a> Game<'a> {
         self.board.ruleset()
     }
 
-    pub fn move_number(&self) -> u8 {
+    pub fn move_number(&self) -> u16 {
         self.move_number
     }
 
@@ -171,5 +178,12 @@ impl<'a> Display for Game<'a> {
         }
         s.push_str("\n");
         s.fmt(f)
+    }
+}
+
+impl<'a> Info for Game<'a> {
+
+    fn vacant_point_count(&self) -> u16 {
+        self.board.vacant_point_count()
     }
 }

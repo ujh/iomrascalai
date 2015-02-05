@@ -20,6 +20,7 @@
  *                                                                      *
  ************************************************************************/
 
+use board::Black;
 use board::Color;
 use board::Move;
 use board::Pass;
@@ -29,6 +30,9 @@ use playout::Playout;
 use super::Engine;
 
 use std::collections::HashMap;
+use std::rand::random;
+use std::time::duration::Duration;
+use time::PreciseTime;
 
 mod test;
 
@@ -75,28 +79,32 @@ impl McEngine {
     pub fn new() -> McEngine {
         McEngine
     }
-
 }
 
 impl Engine for McEngine {
-    fn gen_move(&self, color: Color, game: &Game) -> Move {
+    fn gen_move(&self, color: Color, game: &Game, time_to_stop: i64) -> Move {
         let moves = game.legal_moves();
+        let start_time = PreciseTime::now();
         let mut stats = HashMap::new();
         for m in moves.iter() {
             stats.insert(m, MoveStats::new());
         }
-        for m in moves.iter() {
-            for _ in range(0us, 1000) {
-                let g = game.play(*m).unwrap();
-                let playout = Playout::new(g.board());
-                let winner = playout.run();
-                let mut prev_move_stats = stats.get_mut(m).unwrap();
-                if winner == color {
-                    prev_move_stats.won();
-                } else {
-                    prev_move_stats.lost();
-                }
+        let mut counter = 0;
+        loop {
+            let m = moves[random::<usize>() % moves.len()];
+            let g = game.play(m).unwrap();
+            let playout = Playout::new(g.board());
+            let winner = playout.run();
+            let mut prev_move_stats = stats.get_mut(&m).unwrap();
+            if winner == color {
+                prev_move_stats.won();
+            } else {
+                prev_move_stats.lost();
             }
+            if counter % 100 == 0 && start_time.to(PreciseTime::now()).num_milliseconds() >= time_to_stop {
+                break;
+            }
+            counter += 1;
         }
         // resign if 0% wins
         if stats.values().all(|stats| stats.all_losses()) {
@@ -116,5 +124,4 @@ impl Engine for McEngine {
             m
         }
     }
-
 }

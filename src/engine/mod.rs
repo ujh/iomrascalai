@@ -1,6 +1,7 @@
 /************************************************************************
  *                                                                      *
  * Copyright 2014 Thomas Poinsot, Urban Hafner                          *
+ * Copyright 2015 Thomas Poinsot                                        *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -29,5 +30,6 @@ mod mc;
 mod random;
 
 pub trait Engine {
-    fn gen_move(&self, Color, &Game) -> Move;
+    // args: color of the move to generate, the game on which we play, and the nb of ms we have to generate the move
+    fn gen_move(&self, Color, &Game, i64) -> Move;
 }

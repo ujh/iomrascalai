@@ -1,6 +1,7 @@
 /************************************************************************
  *                                                                      *
  * Copyright 2014 Urban Hafner                                          *
+ * Copyright 2015 Thomas Poinsot                                        *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -22,6 +23,7 @@
 #![cfg(test)]
 
 use engine::RandomEngine;
+use game::Info;
 use ruleset::Minimal;
 use super::Command;
 use super::GTPInterpreter;
@@ -30,7 +32,7 @@ use super::GTPInterpreter;
 fn no_newline_at_end_of_list_commands() {
     let mut interpreter = GTPInterpreter::new(Minimal, Box::new(RandomEngine::new()));
     let commands    = interpreter.read("list_commands\n");
-    let expected    = "play\ngenmove\nprotocol_version\nname\nversion\nknown_command\nlist_commands\nquit\nboardsize\nclear_board\nkomi\nshowboard\nfinal_score";
+    let expected    = "play\ngenmove\nprotocol_version\nname\nversion\nknown_command\nlist_commands\nquit\nboardsize\nclear_board\nkomi\nshowboard\nfinal_score\ntime_settings\ntime_left";
     match commands {
         Command::ListCommands(cs) => assert_eq!(expected, cs.as_slice()),
         _                         => panic!("wrong match")
@@ -65,6 +67,15 @@ fn sets_the_komi() {
     let mut interpreter = GTPInterpreter::new(Minimal, Box::new(RandomEngine::new()));
     interpreter.read("komi 10\n");
     assert_eq!(10.0, interpreter.komi());
+}
+
+#[test]
+fn sets_the_time() {
+    let mut interpreter = GTPInterpreter::new(Minimal, Box::new(RandomEngine::new()));
+    interpreter.read("time_settings 30 20 10\n");
+    assert_eq!(30_000, interpreter.main_time());
+    assert_eq!(20_000, interpreter.byo_time());
+    assert_eq!(10, interpreter.byo_stones());
 }
 
 #[test]

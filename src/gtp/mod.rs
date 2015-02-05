@@ -1,7 +1,7 @@
 /************************************************************************
  *                                                                      *
  * Copyright 2014 Thomas Poinsot, Urban Hafner                          *
- * Copyright 2015 Urban Hafner                                          *
+ * Copyright 2015 Urban Hafner, Thomas Poinsot                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -22,10 +22,14 @@
 
 
 use board::Color;
+use board::IllegalMove;
 use board::Move;
 use engine::Engine;
 use game::Game;
 use ruleset::Ruleset;
+use timer::Timer;
+
+use std::old_io::stdio::stderr;
 
 pub mod driver;
 mod test;
@@ -33,9 +37,9 @@ mod test;
 #[derive(Debug)]
 pub enum Command {
     Play,
-    PlayError(Move),
+    PlayError(Move, IllegalMove),
     GenMove(String),
-    GenMoveError(Move),
+    GenMoveError(Move, IllegalMove),
     ProtocolVersion,
     Name,
     Version,
@@ -48,7 +52,9 @@ pub enum Command {
     ShowBoard(String),
     Empty,
     Error,
-    FinalScore(String)
+    FinalScore(String),
+    TimeSettings,
+    TimeLeft,
 }
 
 pub struct GTPInterpreter<'a> {
@@ -56,6 +62,7 @@ pub struct GTPInterpreter<'a> {
     game: Game<'a>,
     known_commands: Vec<String>,
     ruleset: Ruleset,
+    timer: Timer,
 }
 
 impl<'a> GTPInterpreter<'a> {
@@ -67,6 +74,7 @@ impl<'a> GTPInterpreter<'a> {
             game: Game::new(boardsize, komi, ruleset),
             known_commands: vec!(),
             ruleset: ruleset,
+            timer: Timer::new(),
         };
         interpreter.initialize();
         interpreter
@@ -91,6 +99,8 @@ impl<'a> GTPInterpreter<'a> {
         known_commands.push(String::from_str("komi"));
         known_commands.push(String::from_str("showboard"));
         known_commands.push(String::from_str("final_score"));
+        known_commands.push(String::from_str("time_settings"));
+        known_commands.push(String::from_str("time_left"));
         known_commands
     }
 
@@ -104,6 +114,18 @@ impl<'a> GTPInterpreter<'a> {
 
     pub fn ruleset(&self) -> Ruleset {
         self.ruleset
+    }
+
+    pub fn main_time(&self) -> i64 {
+        self.timer.main_time()
+    }
+
+    pub fn byo_time(&self) -> i64 {
+        self.timer.byo_time()
+    }
+
+    pub fn byo_stones(&self) -> i32 {
+        self.timer.byo_stones()
     }
 
     pub fn boardsize(&self) -> u8 {
@@ -132,6 +154,7 @@ impl<'a> GTPInterpreter<'a> {
             },
             "clear_board"      => {
                 self.game = Game::new(self.boardsize(), self.komi(), self.ruleset());
+                self.timer.reset();
                 Command::ClearBoard
             },
             "komi"             => return match command[1].parse::<f32>() {
@@ -143,14 +166,20 @@ impl<'a> GTPInterpreter<'a> {
             },
             "genmove"          => {
                 let color = Color::from_gtp(command[1]);
-                let m  = self.engine.gen_move(color, &self.game);
+                self.timer.start();
+                let budget = self.timer.budget(&self.game);
+                let mut stream = stderr();
+                stream.write_line(format!("Thinking for {}ms", budget).as_slice());
+                stream.write_line(format!("{}ms time left", self.timer.main_time_left()).as_slice());
+                let m  = self.engine.gen_move(color, &self.game, budget);
                 match self.game.clone().play(m) {
                     Ok(g) => {
                         self.game = g;
+                        self.timer.stop();
                         Command::GenMove(m.to_gtp())
                     },
-                    Err(_) => {
-                        Command::GenMoveError(m)
+                    Err(e) => {
+                        Command::GenMoveError(m, e)
                     }
                 }
             },
@@ -161,14 +190,33 @@ impl<'a> GTPInterpreter<'a> {
                         self.game = g;
                         Command::Play
                     },
-                    Err(_) => {
-                        Command::PlayError(m)
+                    Err(e) => {
+                        Command::PlayError(m, e)
                     }
                 }
             },
             "showboard"   => Command::ShowBoard(format!("\n{}", self.game)),
             "quit"        => return Command::Quit,
             "final_score" => return Command::FinalScore(format!("{}", self.game.score())),
+            "time_settings" => {
+                match (command[1].parse::<i64>(), command[2].parse::<i64>(), command[3].parse::<i32>()) {
+                    (Ok(main), Ok(byo), Ok(stones)) => {
+                        self.timer.setup(main, byo, stones);
+                        Command::TimeSettings
+                    }
+                    _ => Command::Error
+                }
+            },
+            "time_left" => {
+                match (command[2].parse::<i64>(), command[3].parse::<i32>()) {
+                    (Ok(time), Ok(stones)) => {
+                        self.timer.update(time, stones);
+                        Command::TimeLeft
+                    },
+                    _ => Command::Error
+                }
+
+            },
             _             => return Command::Error
         }
     }
@@ -197,4 +245,5 @@ impl<'a> GTPInterpreter<'a> {
         result.pop();
         result
     }
+
 }

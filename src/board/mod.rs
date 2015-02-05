@@ -530,6 +530,10 @@ impl<'a> Board<'a> {
         &self.chains
     }
 
+    pub fn vacant_point_count(&self) -> u16 {
+        self.vacant.len() as u16
+    }
+
     pub fn as_string(&self) -> String {
         let mut s = String::new();
                 // First we print the board

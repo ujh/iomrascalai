@@ -31,6 +31,7 @@ use board::White;
 use game::Game;
 use ruleset::KgsChinese;
 use ruleset::Minimal;
+use super::Info;
 
 mod ko;
 
