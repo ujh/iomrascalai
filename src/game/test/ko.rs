@@ -68,3 +68,14 @@ fn legal_moves_shouldnt_contain_super_ko_moves() {
     let super_ko = Play(White, 2, 9);
     assert!(!game.legal_moves().contains(&super_ko), "super ko move found");
 }
+
+#[test]
+fn not_a_super_ko() {
+    let parser   = Parser::from_path(Path::new("fixtures/sgf/not-superko.sgf"));
+    let game     = parser.game().unwrap();
+    let no_super_ko = game.play(Play(Black, 1, 1));
+    match no_super_ko {
+        Err(e) => panic!("No err expected, got {}", e),
+        Ok(_)  => {}
+    }
+}
