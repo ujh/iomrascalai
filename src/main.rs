@@ -19,11 +19,12 @@
  *                                                                      *
  ************************************************************************/
 #![feature(plugin)]
+#![plugin(regex_macros)]
 extern crate core;
 extern crate getopts;
 extern crate rand;
 extern crate regex;
-#[plugin] #[no_link] extern crate regex_macros;
+#[no_link] extern crate regex_macros;
 extern crate "rustc-serialize" as rustc_serialize;
 extern crate test;
 extern crate time;
