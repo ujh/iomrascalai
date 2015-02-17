@@ -21,7 +21,7 @@
 use board::Board;
 use board::Color;
 
-use std::rand::random;
+use rand::random;
 
 mod test;
 

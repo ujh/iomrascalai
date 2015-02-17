@@ -28,8 +28,8 @@ use game::Game;
 use playout::Playout;
 use super::Engine;
 
+use rand::random;
 use std::collections::HashMap;
-use std::rand::random;
 use time::PreciseTime;
 
 mod test;

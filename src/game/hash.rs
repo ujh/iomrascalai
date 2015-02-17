@@ -26,7 +26,7 @@ use board::Empty;
 use board::Move;
 use board::White;
 
-use std::rand::random;
+use rand::random;
 
 #[derive(Debug)]
 pub struct ZobristHashTable {

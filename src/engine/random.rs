@@ -25,7 +25,7 @@ use board::Move;
 use engine::Engine;
 use game::Game;
 
-use std::rand::random;
+use rand::random;
 
 pub struct RandomEngine;
 
