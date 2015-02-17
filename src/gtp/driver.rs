@@ -28,11 +28,9 @@ use version;
 
 use std::old_io::stdio::stdin;
 
-pub struct Driver<'a> {
-    engine: Box<Engine + 'a>
-}
+pub struct Driver;
 
-impl<'a> Driver<'a> {
+impl Driver {
     pub fn new(ruleset: Ruleset, engine: Box<Engine>) {
         let engine_name = "Iomrascálaí";
         let engine_version = version::version();
