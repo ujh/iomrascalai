@@ -20,7 +20,6 @@
  *                                                                      *
  ************************************************************************/
 
-use board::Black;
 use board::Color;
 use board::Move;
 use board::Pass;
@@ -31,7 +30,6 @@ use super::Engine;
 
 use std::collections::HashMap;
 use std::rand::random;
-use std::time::duration::Duration;
 use time::PreciseTime;
 
 mod test;
