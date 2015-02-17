@@ -18,7 +18,14 @@
  * along with Iomrascálaí.  If not, see <http://www.gnu.org/licenses/>. *
  *                                                                      *
  ************************************************************************/
+#![feature(collections)]
+#![feature(core)]
+#![feature(env)]
+#![feature(io)]
+#![feature(path)]
 #![feature(plugin)]
+#![feature(test)]
+#![feature(std_misc)]
 #![plugin(regex_macros)]
 extern crate core;
 extern crate getopts;
