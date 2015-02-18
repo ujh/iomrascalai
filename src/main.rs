@@ -18,7 +18,16 @@
  * along with Iomrascálaí.  If not, see <http://www.gnu.org/licenses/>. *
  *                                                                      *
  ************************************************************************/
+#![feature(collections)]
+#![feature(core)]
+#![feature(env)]
+#![feature(hash)]
+#![feature(io)]
+#![feature(path)]
 #![feature(plugin)]
+#![feature(test)]
+#![feature(std_misc)]
+#![feature(unicode)]
 #![plugin(regex_macros)]
 extern crate core;
 extern crate getopts;
@@ -39,7 +48,7 @@ use version::version;
 
 use getopts::Options;
 use std::ascii::OwnedAsciiExt;
-use std::os::args;
+use std::env::args;
 
 mod board;
 mod engine;
@@ -54,18 +63,19 @@ mod version;
 
 fn main() {
     let mut opts = Options::new();
+    let args : Vec<String> = args().collect();
     opts.optopt("e", "engine", "select an engine (defaults to random)", "mc|random");
     opts.optopt("r", "ruleset", "select the ruleset (defaults to chinese)", "cgos|chinese|tromp-taylor|minimal");
     opts.optflag("h", "help", "print this help menu");
     opts.optflag("v", "version", "print the version number");
 
-    let matches = match opts.parse(args().tail()) {
+    let matches = match opts.parse(args.tail()) {
         Ok(m) => m,
         Err(f) => panic!(f.to_string())
     };
 
     if matches.opt_present("h") {
-        let program = args()[0].clone();
+        let program = args[0].clone();
         let brief = format!("Usage: {} [options]", program);
         print!("{}", opts.usage(brief.as_slice()));
         return;

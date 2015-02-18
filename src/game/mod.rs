@@ -20,15 +20,12 @@
  *                                                                      *
  ************************************************************************/
 
-use board::Black;
 use board::Board;
 use board::Color;
 use board::Coord;
-use board::Empty;
 use board::IllegalMove;
 use board::Move;
 use board::Play;
-use board::White;
 use ruleset::Ruleset;
 use score::Score;
 use self::hash::ZobristHashTable;
