@@ -39,6 +39,7 @@ use test::Bencher;
 
 mod eye;
 mod ko;
+mod orthogonals;
 
 #[test]
 fn getting_a_valid_coord_returns_a_color() {
