@@ -59,7 +59,7 @@ pub enum Command {
 
 pub struct GTPInterpreter<'a> {
     engine: Box<Engine + 'a>,
-    game: Game<'a>,
+    game: Game,
     known_commands: Vec<String>,
     ruleset: Ruleset,
     timer: Timer,

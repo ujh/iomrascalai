@@ -91,7 +91,7 @@ impl Color {
 }
 
 #[derive(Debug)]
-pub struct Board<'a> {
+pub struct Board {
     adv_stones_removed:    Vec<Coord>,
     board:                 Vec<Point>,
     chains:                Vec<Chain>,
@@ -107,8 +107,8 @@ pub struct Board<'a> {
     vacant:                Vec<Coord>,
 }
 
-impl<'a> Clone for Board<'a> {
-    fn clone(&self) -> Board<'a> {
+impl Clone for Board {
+    fn clone(&self) -> Board {
         Board {
             adv_stones_removed:    self.adv_stones_removed.clone(),
             board:                 self.board.clone(),
@@ -127,8 +127,8 @@ impl<'a> Clone for Board<'a> {
     }
 }
 
-impl<'a> Board<'a> {
-    pub fn new(size: u8, komi: f32, ruleset: Ruleset) -> Board<'a> {
+impl Board {
+    pub fn new(size: u8, komi: f32, ruleset: Ruleset) -> Board {
         Board {
             adv_stones_removed:    Vec::new(),
             board:                 range(0, size as usize*size as usize).map(|_| Point::new()).collect(),

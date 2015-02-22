@@ -45,15 +45,15 @@ pub trait Info {
 
 
 #[derive(Clone)]
-pub struct Game<'a> {
-    board: Board<'a>,
+pub struct Game {
+    board: Board,
     move_number: u16,
     previous_boards_hashes: Vec<u64>,
     zobrist_base_table: Rc<ZobristHashTable>
 }
 
-impl<'a> Game<'a> {
-    pub fn new<'b>(size: u8, komi: f32, ruleset: Ruleset) -> Game<'b> {
+impl Game {
+    pub fn new(size: u8, komi: f32, ruleset: Ruleset) -> Game {
         let zobrist_base_table = Rc::new(ZobristHashTable::new(size));
         let new_board = Board::new(size, komi, ruleset);
 
@@ -65,7 +65,7 @@ impl<'a> Game<'a> {
         }
     }
 
-    pub fn play<'b>(&'b self, m: Move) -> Result<Game<'b>, IllegalMove> {
+    pub fn play(&self, m: Move) -> Result<Game, IllegalMove> {
         let mut new_board = self.board.clone();
 
         match new_board.play(m) {
@@ -162,7 +162,7 @@ impl<'a> Game<'a> {
     }
 }
 
-impl<'a> Display for Game<'a> {
+impl Display for Game {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut s = format!("komi: {}\n", self.komi());
 
@@ -178,7 +178,7 @@ impl<'a> Display for Game<'a> {
     }
 }
 
-impl<'a> Info for Game<'a> {
+impl Info for Game {
 
     fn vacant_point_count(&self) -> u16 {
         self.board.vacant_point_count()

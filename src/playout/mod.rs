@@ -25,11 +25,11 @@ use rand::random;
 
 mod test;
 
-pub struct Playout<'a> {
-    board: Board<'a>
+pub struct Playout {
+    board: Board
 }
 
-impl<'a> Playout<'a> {
+impl Playout {
     pub fn new(b: Board) -> Playout {
         Playout { board: b }
     }

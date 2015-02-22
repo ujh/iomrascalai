@@ -77,7 +77,7 @@ impl<'a> Property<'a> {
         }
     }
 
-    fn play<'b>(&'b self, game: Game<'b>) -> Result<Game<'b>, IllegalMove> {
+    fn play(&self, game: Game) -> Result<Game, IllegalMove> {
         if self.is_move() {
             if self.is_pass() {
                 game.play(Pass(self.color()))
