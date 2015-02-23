@@ -211,7 +211,17 @@ impl Board {
     }
 
     pub fn is_eye(&self, coord: &Coord, color: Color) -> bool {
-        true
+        let neighbours = self.neighbours(*coord);
+        if neighbours.iter().all(|c| self.color(c) == color) {
+            let orthogonals = self.orthogonals(*coord);
+            if orthogonals.len() < 4 {
+                orthogonals.iter().all(|c| self.color(c) != color.opposite())
+            } else {
+                orthogonals.iter().filter(|c| self.color(c) == color.opposite()).count() <= 1
+            }
+        } else {
+            false
+        }
     }
 
     fn is_same_player(&self, m: &Move) -> bool {
