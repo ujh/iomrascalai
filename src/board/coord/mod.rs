@@ -65,8 +65,15 @@ impl Coord {
     }
 
     pub fn orthogonals(&self, board_size: u8) -> Vec<Coord> {
-        // TODO: Implement!
-        Vec::new()
+        vec!(
+            Coord::new(self.col-1, self.row-1),
+            Coord::new(self.col+1, self.row-1),
+            Coord::new(self.col+1, self.row+1),
+            Coord::new(self.col-1, self.row+1)
+                ).iter()
+            .filter(|c| c.is_inside(board_size))
+            .cloned()
+            .collect()
     }
 
     pub fn to_index(&self, board_size: u8) -> usize {

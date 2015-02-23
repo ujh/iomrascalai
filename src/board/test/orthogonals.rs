@@ -93,7 +93,7 @@ fn n_has_2_orthogonal_neighbours() {
     let orthogonals = b.orthogonals(Coord::new(2, 3));
     assert_eq!(2, orthogonals.len());
     assert!(orthogonals.iter().find(|&c| *c == Coord::new(1, 2)).is_some());
-    assert!(orthogonals.iter().find(|&c| *c == Coord::new(3, 1)).is_some());
+    assert!(orthogonals.iter().find(|&c| *c == Coord::new(3, 2)).is_some());
 }
 
 #[test]
