@@ -1,7 +1,7 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2014 Thomas Poinsot, Urban Hafner                          *
- * Copyright 2015 Thomas Poinsot                                        *
+ * Copyright 2014 Urban Hafner                                          *
+ * Copyright 2015 Urban Hafner, Thomas Poinsot                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -20,18 +20,41 @@
  *                                                                      *
  ************************************************************************/
 
-pub use self::mc::McEngine;
-pub use self::move_stats::MoveStats;
-pub use self::random::RandomEngine;
-use board::Color;
-use board::Move;
-use game::Game;
+mod test;
 
-mod mc;
-mod move_stats;
-mod random;
+#[derive(Copy)]
+pub struct MoveStats {
+    wins: usize,
+    plays: usize
+}
 
-pub trait Engine {
-    // args: color of the move to generate, the game on which we play, and the nb of ms we have to generate the move
-    fn gen_move(&self, Color, &Game, i64) -> Move;
+impl MoveStats {
+    pub fn new() -> MoveStats {
+        MoveStats { wins: 0, plays: 0 }
+    }
+
+    pub fn won(&mut self) {
+        self.wins = self.wins + 1;
+        self.plays = self.plays + 1;
+    }
+
+    pub fn lost(&mut self) {
+        self.plays = self.plays + 1;
+    }
+
+    pub fn all_wins(&self) -> bool {
+        self.wins == self.plays
+    }
+
+    pub fn all_losses(&self) -> bool {
+        self.wins == 0
+    }
+
+    pub fn win_ratio(&self) -> f32 {
+        if self.plays == 0 {
+            0f32
+        } else {
+            (self.wins as f32) / (self.plays as f32)
+        }
+    }
 }

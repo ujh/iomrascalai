@@ -27,49 +27,11 @@ use board::Resign;
 use game::Game;
 use playout::Playout;
 use super::Engine;
+use super::MoveStats;
 
 use rand::random;
 use std::collections::HashMap;
 use time::PreciseTime;
-
-mod test;
-
-#[derive(Copy)]
-struct MoveStats {
-    wins: usize,
-    plays: usize
-}
-
-impl MoveStats {
-    pub fn new() -> MoveStats {
-        MoveStats { wins: 0, plays: 0 }
-    }
-
-    pub fn won(&mut self) {
-        self.wins = self.wins + 1;
-        self.plays = self.plays + 1;
-    }
-
-    pub fn lost(&mut self) {
-        self.plays = self.plays + 1;
-    }
-
-    pub fn all_wins(&self) -> bool {
-        self.wins == self.plays
-    }
-
-    pub fn all_losses(&self) -> bool {
-        self.wins == 0
-    }
-
-    pub fn win_ratio(&self) -> f32 {
-        if self.plays == 0 {
-            0f32
-        } else {
-            (self.wins as f32) / (self.plays as f32)
-        }
-    }
-}
 
 pub struct McEngine;
 
