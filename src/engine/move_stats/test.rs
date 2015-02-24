@@ -21,11 +21,7 @@
 
 #![cfg(test)]
 
-use board::Black;
-use engine::Engine;
-use game::Game;
-use ruleset::KgsChinese;
-use super::{McEngine, MoveStats};
+use super::MoveStats;
 
 use test::Bencher;
 

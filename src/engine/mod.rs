@@ -21,12 +21,14 @@
  ************************************************************************/
 
 pub use self::mc::McEngine;
+pub use self::move_stats::MoveStats;
 pub use self::random::RandomEngine;
 use board::Color;
 use board::Move;
 use game::Game;
 
 mod mc;
+mod move_stats;
 mod random;
 
 pub trait Engine {

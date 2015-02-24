@@ -1,6 +1,7 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2014-2015 Urban Hafner, Thomas Poinsot                     *
+ * Copyright 2014 Urban Hafner                                          *
+ * Copyright 2015 Urban Hafner, Thomas Poinsot                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -18,33 +19,42 @@
  * along with Iomrascálaí.  If not, see <http://www.gnu.org/licenses/>. *
  *                                                                      *
  ************************************************************************/
-use board::Board;
-use board::Color;
-
-use rand::random;
 
 mod test;
 
-pub struct Playout {
-    board: Board
+#[derive(Copy)]
+pub struct MoveStats {
+    wins: usize,
+    plays: usize
 }
 
-impl Playout {
-    pub fn new(b: Board) -> Playout {
-        Playout { board: b }
+impl MoveStats {
+    pub fn new() -> MoveStats {
+        MoveStats { wins: 0, plays: 0 }
     }
 
-    pub fn run(&self) -> Color {
-        let mut board = self.board.clone();
-        let max_moves = board.size() * board.size() * 3;
-        let mut move_count = 0;
-        while !board.is_game_over() && move_count < max_moves {
-            let moves = board.legal_moves_without_eyes();
-            let m = moves[random::<usize>() % moves.len()];
-            board.play(m);
-            move_count += 1;
+    pub fn won(&mut self) {
+        self.wins = self.wins + 1;
+        self.plays = self.plays + 1;
+    }
+
+    pub fn lost(&mut self) {
+        self.plays = self.plays + 1;
+    }
+
+    pub fn all_wins(&self) -> bool {
+        self.wins == self.plays
+    }
+
+    pub fn all_losses(&self) -> bool {
+        self.wins == 0
+    }
+
+    pub fn win_ratio(&self) -> f32 {
+        if self.plays == 0 {
+            0f32
+        } else {
+            (self.wins as f32) / (self.plays as f32)
         }
-        board.winner()
     }
-
 }

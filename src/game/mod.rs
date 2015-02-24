@@ -160,6 +160,14 @@ impl Game {
             .filter(|&m| self.play(m).is_ok())
             .collect()
     }
+
+    pub fn legal_moves_without_eyes(&self) -> Vec<Move> {
+        self.board
+            .legal_moves_without_eyes()
+            .into_iter()
+            .filter(|&m| self.play(m).is_ok())
+            .collect()
+    }
 }
 
 impl Display for Game {

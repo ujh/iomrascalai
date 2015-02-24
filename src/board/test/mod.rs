@@ -37,7 +37,9 @@ use ruleset::Minimal;
 
 use test::Bencher;
 
+mod eye;
 mod ko;
+mod orthogonals;
 
 #[test]
 fn getting_a_valid_coord_returns_a_color() {
@@ -139,6 +141,16 @@ fn legal_moves_should_return_nothing_after_a_resign() {
 
     assert_eq!(vec!(), b.legal_moves_without_superko_check());
 }
+
+#[test]
+fn legal_moves_without_eyes_should_return_nothing_after_a_resing() {
+    let mut b = Board::new(9, 6.5, Minimal);
+
+    b.play(Resign(Black));
+
+    assert_eq!(vec!(), b.legal_moves_without_eyes());
+}
+
 
 #[test]
 fn two_way_merging_works() {

@@ -64,7 +64,7 @@ mod version;
 fn main() {
     let mut opts = Options::new();
     let args : Vec<String> = args().collect();
-    opts.optopt("e", "engine", "select an engine (defaults to random)", "mc|random");
+    opts.optopt("e", "engine", "select an engine (defaults to mc)", "mc|random");
     opts.optopt("r", "ruleset", "select the ruleset (defaults to chinese)", "cgos|chinese|tromp-taylor|minimal");
     opts.optflag("h", "help", "print this help menu");
     opts.optflag("v", "version", "print the version number");
@@ -86,8 +86,8 @@ fn main() {
     }
     let engine_arg = matches.opt_str("e").map(|s| s.into_ascii_lowercase());
     let engine = match engine_arg {
-        Some(ref s) if s.as_slice() == "mc" => Box::new(McEngine::new()) as Box<Engine>,
-        _                                   => Box::new(RandomEngine::new()) as Box<Engine>
+        Some(ref s) if s.as_slice() == "random" => Box::new(RandomEngine::new()) as Box<Engine>,
+        _                                       => Box::new(McEngine::new()) as Box<Engine>
     };
     let rules_arg = matches.opt_str("r").map(|s| s.into_ascii_lowercase());
     let ruleset = match rules_arg {

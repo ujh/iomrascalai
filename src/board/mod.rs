@@ -100,6 +100,7 @@ pub struct Board {
     ko:                    Option<Coord>,
     komi:                  f32,
     neighbours:            Rc<Vec<Vec<Coord>>>,
+    orthogonals:           Rc<Vec<Vec<Coord>>>,
     previous_player:       Color,
     resigned_by:           Color,
     ruleset:               Ruleset,
@@ -118,6 +119,7 @@ impl Clone for Board {
             ko:                    self.ko,
             komi:                  self.komi,
             neighbours:            self.neighbours.clone(),
+            orthogonals:           self.orthogonals.clone(),
             previous_player:       self.previous_player,
             resigned_by:           self.resigned_by,
             ruleset:               self.ruleset.clone(),
@@ -138,6 +140,7 @@ impl Board {
             ko:                    None,
             komi:                  komi,
             neighbours:            Board::setup_neighbours(size),
+            orthogonals:           Board::setup_orthogonals(size),
             previous_player:       White,
             resigned_by:           Empty,
             ruleset:               ruleset,
@@ -154,8 +157,20 @@ impl Board {
         Rc::new(neighbours)
     }
 
+    fn setup_orthogonals(size: u8) -> Rc<Vec<Vec<Coord>>> {
+        let mut orthogonals = Vec::new();
+        for coord in Coord::for_board_size(size).iter() {
+            orthogonals.push(coord.orthogonals(size));
+        }
+        Rc::new(orthogonals)
+    }
+
     pub fn neighbours(&self, c: Coord) -> &Vec<Coord> {
         &self.neighbours[c.to_index(self.size)]
+    }
+
+    pub fn orthogonals(&self, c: Coord) -> &Vec<Coord> {
+        &self.orthogonals[c.to_index(self.size)]
     }
 
     pub fn points(&self) -> &Vec<Point> {
@@ -195,6 +210,20 @@ impl Board {
         self.previous_player.opposite()
     }
 
+    pub fn is_eye(&self, coord: &Coord, color: Color) -> bool {
+        let neighbours = self.neighbours(*coord);
+        if neighbours.iter().all(|c| self.color(c) == color) {
+            let orthogonals = self.orthogonals(*coord);
+            if orthogonals.len() < 4 {
+                orthogonals.iter().all(|c| self.color(c) != color.opposite())
+            } else {
+                orthogonals.iter().filter(|c| self.color(c) == color.opposite()).count() <= 1
+            }
+        } else {
+            false
+        }
+    }
+
     fn is_same_player(&self, m: &Move) -> bool {
         self.previous_player == *m.color()
     }
@@ -219,6 +248,13 @@ impl Board {
             moves.push(Pass(color.clone()));
             moves
         }
+    }
+
+    pub fn legal_moves_without_eyes(&self) -> Vec<Move> {
+        self.legal_moves_without_superko_check()
+            .into_iter()
+            .filter(|m| m.is_pass() || !self.is_eye(&m.coord(), *m.color()))
+            .collect()
     }
 
     pub fn is_legal(&self, m: Move) -> Result<(), IllegalMove> {
