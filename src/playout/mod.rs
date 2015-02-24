@@ -39,7 +39,7 @@ impl Playout {
         let max_moves = board.size() * board.size() * 3;
         let mut move_count = 0;
         while !board.is_game_over() && move_count < max_moves {
-            let moves = board.legal_moves_without_superko_check();
+            let moves = board.legal_moves_without_eyes();
             let m = moves[random::<usize>() % moves.len()];
             board.play(m);
             move_count += 1;

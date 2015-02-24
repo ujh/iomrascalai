@@ -23,6 +23,8 @@
 
 use board::Black;
 use board::Coord;
+use board::Pass;
+use board::White;
 use sgf::Parser;
 
 #[test]
@@ -103,4 +105,14 @@ fn two_enemies_is_not_an_eye() {
     let game   = parser.game().unwrap();
     let board  = game.board();
     assert_eq!(false, board.is_eye(&Coord::new(3,3), Black));
+}
+
+#[test]
+fn legal_moves_without_eyes_shouldnt_include_an_eye() {
+    let parser = Parser::from_path(Path::new("fixtures/sgf/eye/no-enemies.sgf"));
+    let game   = parser.game().unwrap();
+    let mut board  = game.board();
+    board.play(Pass(White));
+    let moves  = board.legal_moves_without_eyes();
+    assert!(!moves.iter().any(|m| !m.is_pass() && m.coord() == Coord::new(3, 3)));
 }

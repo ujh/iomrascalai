@@ -250,6 +250,13 @@ impl Board {
         }
     }
 
+    pub fn legal_moves_without_eyes(&self) -> Vec<Move> {
+        self.legal_moves_without_superko_check()
+            .into_iter()
+            .filter(|m| m.is_pass() || !self.is_eye(&m.coord(), *m.color()))
+            .collect()
+    }
+
     pub fn is_legal(&self, m: Move) -> Result<(), IllegalMove> {
         // Can't play if the game is already over
         if self.is_game_over() && !self.ruleset.game_over_play() {

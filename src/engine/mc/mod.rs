@@ -43,7 +43,7 @@ impl McEngine {
 
 impl Engine for McEngine {
     fn gen_move(&self, color: Color, game: &Game, time_to_stop: i64) -> Move {
-        let moves = game.legal_moves();
+        let moves = game.legal_moves_without_eyes();
         let start_time = PreciseTime::now();
         let mut stats = HashMap::new();
         for m in moves.iter() {
