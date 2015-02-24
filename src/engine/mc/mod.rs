@@ -52,7 +52,7 @@ impl Engine for McEngine {
         loop {
             let m = moves[random::<usize>() % moves.len()];
             let g = game.play(m).unwrap();
-            let playout = Playout::new(g.board());
+            let mut playout = Playout::new(g.board());
             let winner = playout.run();
             if winner == color {
                 stats.record_win(&m);
