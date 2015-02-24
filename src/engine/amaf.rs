@@ -1,7 +1,7 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2014 Thomas Poinsot, Urban Hafner                          *
- * Copyright 2015 Thomas Poinsot                                        *
+ * Copyright 2014 Urban Hafner                                          *
+ * Copyright 2015 Urban Hafner, Thomas Poinsot                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -20,20 +20,26 @@
  *                                                                      *
  ************************************************************************/
 
-pub use self::amaf::AmafEngine;
-pub use self::mc::McEngine;
-pub use self::move_stats::MoveStats;
-pub use self::random::RandomEngine;
 use board::Color;
 use board::Move;
+use board::Pass;
 use game::Game;
+use super::Engine;
 
-mod amaf;
-mod mc;
-mod move_stats;
-mod random;
+pub struct AmafEngine;
 
-pub trait Engine {
-    // args: color of the move to generate, the game on which we play, and the nb of ms we have to generate the move
-    fn gen_move(&self, Color, &Game, i64) -> Move;
+impl AmafEngine {
+
+    pub fn new() -> AmafEngine {
+        AmafEngine
+    }
+
+}
+
+impl Engine for AmafEngine {
+
+    fn gen_move(&self, color: Color, game: &Game, time_to_stop: i64) -> Move {
+        Pass(color)
+    }
+
 }
