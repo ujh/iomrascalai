@@ -18,8 +18,10 @@
  * along with Iomrascálaí.  If not, see <http://www.gnu.org/licenses/>. *
  *                                                                      *
  ************************************************************************/
+
 use board::Board;
 use board::Color;
+use board::Pass;
 
 use rand::random;
 
@@ -40,8 +42,13 @@ impl Playout {
         let mut move_count = 0;
         while !board.is_game_over() && move_count < max_moves {
             let moves = board.legal_moves_without_eyes();
-            let m = moves[random::<usize>() % moves.len()];
-            board.play(m);
+            if moves.is_empty() {
+                let color = board.next_player();
+                board.play(Pass(color));
+            } else {
+                let m = moves[random::<usize>() % moves.len()];
+                board.play(m);
+            }
             move_count += 1;
         }
         board.winner()

@@ -241,12 +241,11 @@ impl Board {
             vec!()
         } else {
             let color = self.next_player();
-            let mut moves : Vec<Move> = self.vacant
+            self.vacant
                 .iter()
                 .map(|coord| Play(color.clone(), coord.col, coord.row))
-                .filter(|m| self.is_legal(*m).is_ok()).collect();
-            moves.push(Pass(color.clone()));
-            moves
+                .filter(|m| self.is_legal(*m).is_ok())
+                .collect()
         }
     }
 
