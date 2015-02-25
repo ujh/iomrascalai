@@ -20,17 +20,73 @@
  *                                                                      *
  ************************************************************************/
 
+use board::Color;
+use board::Move;
+use board::Pass;
+
+use std::collections::HashMap;
+
 mod test;
 
+pub struct MoveStats<'a> {
+    color: Color,
+    stats: HashMap<&'a Move, MoveStat>,
+}
+
+impl<'a> MoveStats<'a> {
+
+    pub fn new(moves: &Vec<Move>, color: Color) -> MoveStats {
+        let mut stats = HashMap::new();
+        for m in moves.iter() {
+            stats.insert(m, MoveStat::new());
+        }
+        MoveStats {
+            color: color,
+            stats: stats,
+        }
+    }
+
+    pub fn record_win(&mut self, m: &Move) {
+        let mut stat = self.stats.get_mut(&m).unwrap();
+        stat.won();
+    }
+
+    pub fn record_loss(&mut self, m: &Move) {
+        let mut stat = self.stats.get_mut(&m).unwrap();
+        stat.lost();
+    }
+
+    pub fn all_losses(&self) -> bool {
+        self.stats.values().all(|stat| stat.all_losses())
+    }
+
+    pub fn all_wins(&self) -> bool {
+        self.stats.values().all(|stat| stat.all_wins())
+    }
+
+    pub fn best(&self) -> Move {
+        let mut m = Pass(self.color);
+        let mut move_stats = MoveStat::new();
+        for (m_new, ms) in self.stats.iter() {
+            if ms.win_ratio() > move_stats.win_ratio() {
+                m = **m_new;
+                move_stats = *ms;
+            }
+        }
+        m
+    }
+}
+
+
 #[derive(Copy)]
-pub struct MoveStats {
+struct MoveStat {
     wins: usize,
     plays: usize
 }
 
-impl MoveStats {
-    pub fn new() -> MoveStats {
-        MoveStats { wins: 0, plays: 0 }
+impl MoveStat {
+    pub fn new() -> MoveStat {
+        MoveStat { wins: 0, plays: 0 }
     }
 
     pub fn won(&mut self) {
