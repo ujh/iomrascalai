@@ -30,7 +30,6 @@ use super::Engine;
 use super::MoveStats;
 
 use rand::random;
-use std::collections::HashMap;
 use time::PreciseTime;
 
 pub struct McEngine;
@@ -44,22 +43,21 @@ impl McEngine {
 impl Engine for McEngine {
     fn gen_move(&self, color: Color, game: &Game, time_to_stop: i64) -> Move {
         let moves = game.legal_moves_without_eyes();
-        let start_time = PreciseTime::now();
-        let mut stats = HashMap::new();
-        for m in moves.iter() {
-            stats.insert(m, MoveStats::new());
+        if moves.is_empty() {
+            return Pass(color)
         }
+        let start_time = PreciseTime::now();
+        let mut stats = MoveStats::new(&moves, color);
         let mut counter = 0;
         loop {
             let m = moves[random::<usize>() % moves.len()];
             let g = game.play(m).unwrap();
             let playout = Playout::new(g.board());
             let winner = playout.run();
-            let mut prev_move_stats = stats.get_mut(&m).unwrap();
             if winner == color {
-                prev_move_stats.won();
+                stats.record_win(&m);
             } else {
-                prev_move_stats.lost();
+                stats.record_loss(&m);
             }
             if counter % 100 == 0 && start_time.to(PreciseTime::now()).num_milliseconds() >= time_to_stop {
                 break;
@@ -67,21 +65,13 @@ impl Engine for McEngine {
             counter += 1;
         }
         // resign if 0% wins
-        if stats.values().all(|stats| stats.all_losses()) {
+        if stats.all_losses() {
             Resign(color)
         // pass if 100% wins
-        } else if stats.values().all(|stats| stats.all_wins()) {
+        } else if stats.all_wins() {
             Pass(color)
         } else {
-            let mut m = Pass(color);
-            let mut move_stats = MoveStats::new();
-            for (m_new, ms) in stats.iter() {
-                if ms.win_ratio() > move_stats.win_ratio() {
-                    m = **m_new;
-                    move_stats = *ms;
-                }
-            }
-            m
+            stats.best()
         }
     }
 }

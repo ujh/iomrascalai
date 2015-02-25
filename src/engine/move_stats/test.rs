@@ -21,12 +21,79 @@
 
 #![cfg(test)]
 
-use super::MoveStats;
+pub use super::MoveStat;
+pub use super::MoveStats;
 
-use test::Bencher;
 
-#[test]
-fn newly_produced_move_stats_should_have_0pc_win_ratio() {
-  let ms = MoveStats::new();
-  assert_eq!(ms.win_ratio(), 0f32);
+mod move_stats {
+
+    use board::Black;
+    use board::Pass;
+    use board::Play;
+    use super::MoveStats;
+
+    #[test]
+    fn returns_pass_as_best_move_by_default() {
+        let moves = vec!();
+        let stats = MoveStats::new(&moves, Black);
+        assert_eq!(Pass(Black), stats.best());
+    }
+
+    #[test]
+    fn returns_the_best_move() {
+        let moves = vec![Play(Black, 1, 1), Play(Black, 2, 2)];
+        let mut stats = MoveStats::new(&moves, Black);
+        stats.record_win(&Play(Black, 1, 1));
+        stats.record_loss(&Play(Black, 1, 1));
+        stats.record_win(&Play(Black, 2, 2));
+        stats.record_win(&Play(Black, 2, 2));
+        assert_eq!(Play(Black, 2, 2), stats.best());
+    }
+
+    #[test]
+    fn all_wins_returns_true_when_no_losses_were_recorded() {
+        let moves = vec![Play(Black, 1, 1), Play(Black, 2, 2)];
+        let mut stats = MoveStats::new(&moves, Black);
+        stats.record_win(&Play(Black, 1, 1));
+        stats.record_win(&Play(Black, 2, 2));
+        assert!(stats.all_wins());
+    }
+
+    #[test]
+    fn all_wins_returns_false_when_a_loss_was_recorded() {
+        let moves = vec![Play(Black, 1, 1), Play(Black, 2, 2)];
+        let mut stats = MoveStats::new(&moves, Black);
+        stats.record_loss(&Play(Black, 1, 1));
+        assert!(!stats.all_wins());
+    }
+
+    #[test]
+    fn all_losses_returns_true_when_no_wins_were_recorded() {
+        let moves = vec![Play(Black, 1, 1), Play(Black, 2, 2)];
+        let mut stats = MoveStats::new(&moves, Black);
+        stats.record_loss(&Play(Black, 1, 1));
+        stats.record_loss(&Play(Black, 2, 2));
+        assert!(stats.all_losses());
+    }
+
+    #[test]
+    fn all_losses_returns_false_when_a_win_was_recorded() {
+        let moves = vec![Play(Black, 1, 1), Play(Black, 2, 2)];
+        let mut stats = MoveStats::new(&moves, Black);
+        stats.record_win(&Play(Black, 1, 1));
+        assert!(!stats.all_losses());
+    }
+
+}
+
+mod move_stat {
+
+    use super::MoveStat;
+
+    #[test]
+    fn newly_produced_move_stat_should_have_0pc_win_ratio() {
+        let ms = MoveStat::new();
+        assert_eq!(ms.win_ratio(), 0f32);
+    }
+
 }
