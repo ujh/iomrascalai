@@ -22,6 +22,7 @@
 
 use board::Color;
 use board::Move;
+use board::Pass;
 use engine::Engine;
 use game::Game;
 
@@ -36,8 +37,9 @@ impl RandomEngine {
 }
 
 impl Engine for RandomEngine {
-    fn gen_move(&self, _: Color, game: &Game, _: i64) -> Move {
-        let moves = game.legal_moves();
+    fn gen_move(&self, color: Color, game: &Game, _: i64) -> Move {
+        let mut moves = game.legal_moves();
+        moves.push(Pass(color));
         moves[random::<usize>() % moves.len()]
     }
 }

@@ -1,2 +1,3 @@
 target/
-benchmark*
+*.lock
+*.sgf
