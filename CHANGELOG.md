@@ -1,4 +1,4 @@
-## 0.1.2 [☰](https://github.com/ujh/iomrascalai/compare/0.1.1...master) (unreleased)
+## 0.1.2 [☰](https://github.com/ujh/iomrascalai/compare/0.1.1...0.1.2)
 
 ### Changes
 
