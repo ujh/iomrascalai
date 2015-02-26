@@ -24,8 +24,7 @@ To play 10 games against GnuGo, install GoGui and run the
 following command in the top level folder:
 
 ``` sh
-REFEREE="gnugo --mode gtp --chinese-rules --positional-super-ko --capture-all-dead"
-BLACK="gnugo --mode gtp --level 0 --chinese-rules --positional-superko --capture-all-dead"
+BLACK="gnugo --mode gtp --chinese-rules --positional-super-ko --capture-all-dead --score aftermath --play-out-aftermath"
 WHITE="./target/release/iomrascálaí -e mc"
 gogui-twogtp -auto -black "$BLACK" -white "$WHITE" -size 9 -alternate -time 5m -games 100 -sgffile gnugo-test
 ```
@@ -33,9 +32,9 @@ gogui-twogtp -auto -black "$BLACK" -white "$WHITE" -size 9 -alternate -time 5m -
 To run a game against GnuGo and view it in GoGui in real time use the following command (add `-auto` if a new game should automatically be started when a game is finished):
 
 ``` sh
-GNUGO="gnugo --mode gtp --level 0 --chinese-rules --positional-superko --capture-all-dead"
-IOMRASCALAI="./target/release/iomrascálaí -e mc"
-TWOGTP="gogui-twogtp -black \"$GNUGO\" -white \"$IOMRASCALAI\" -verbose -size 9"
+BLACK="gnugo --mode gtp --chinese-rules --positional-super-ko --capture-all-dead --score aftermath --play-out-aftermath"
+WHITE="./target/release/iomrascálaí -e mc"
+TWOGTP="gogui-twogtp -black \"$BLACK\" -white \"$WHITE\" -verbose -size 9"
 gogui -computer-both -program "$TWOGTP" -size 9
 ```
 

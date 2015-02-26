@@ -7,11 +7,13 @@ set -ex
 
 cargo clean
 cargo build --release
+rm -f gnugo-benchmark*
+rm -f previous-version-benchmark*
 
-REFEREE="gnugo --mode gtp --chinese-rules --positional-superko --capture-all-dead"
-GNUGO="gnugo --mode gtp --level 0 --chinese-rules --positional-superko --capture-all-dead"
+GNUGO="gnugo --mode gtp --level 0 --chinese-rules --positional-superko --capture-all-dead --score aftermath --play-out-aftermath"
 IOMRASCALAI="./target/release/iomrascálaí -e mc"
 PREVIOUS="iomrascálaí-$1 -e mc"
+REFEREE="$GNUGO"
 SIZE=9
 GAMES=100
 TIME="5m"
@@ -23,8 +25,9 @@ gogui-twogtp -auto -black "$GNUGO" -white "$IOMRASCALAI" \
              -time $TIME -threads $THREADS -referee "$REFEREE"
 gogui-twogtp -analyze gnugo-benchmark.dat
 
-# Play 100 games against the previous version
+# Play 100 games against the previous version. No referee needed as
+# both bots use the same scoring.
 gogui-twogtp -auto -black "$PREVIOUS" -white "$IOMRASCALAI" \
              -size $SIZE -alternate -games $GAMES -sgffile previous-version-benchmark \
-             -time $TIME -threads $THREADS -referee "$REFEREE"
+             -time $TIME -threads $THREADS
 gogui-twogtp -analyze previous-version-benchmark.dat
