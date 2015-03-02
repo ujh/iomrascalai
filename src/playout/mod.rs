@@ -20,6 +20,7 @@
  ************************************************************************/
 
 use board::Board;
+use board::Move;
 use board::Color;
 use board::Pass;
 
@@ -28,30 +29,39 @@ use rand::random;
 mod test;
 
 pub struct Playout {
-    board: Board
+    board: Board,
+    moves: Vec<Move>,
 }
 
 impl Playout {
     pub fn new(b: Board) -> Playout {
-        Playout { board: b }
+        Playout {
+            board: b,
+            moves: Vec::new(),
+        }
     }
 
-    pub fn run(&self) -> Color {
+    pub fn run(&mut self) -> Color {
         let mut board = self.board.clone();
         let max_moves = board.size() * board.size() * 3;
         let mut move_count = 0;
         while !board.is_game_over() && move_count < max_moves {
             let moves = board.legal_moves_without_eyes();
-            if moves.is_empty() {
+            let m = if moves.is_empty() {
                 let color = board.next_player();
-                board.play(Pass(color));
+                Pass(color)
             } else {
-                let m = moves[random::<usize>() % moves.len()];
-                board.play(m);
-            }
+                moves[random::<usize>() % moves.len()]
+            };
+            board.play(m);
+            self.moves.push(m);
             move_count += 1;
         }
         board.winner()
+    }
+
+    pub fn moves(&self) -> &Vec<Move> {
+        &self.moves
     }
 
 }

@@ -38,6 +38,7 @@ extern crate "rustc-serialize" as rustc_serialize;
 extern crate test;
 extern crate time;
 
+use engine::AmafEngine;
 use engine::Engine;
 use engine::McEngine;
 use engine::RandomEngine;
@@ -64,7 +65,7 @@ mod version;
 fn main() {
     let mut opts = Options::new();
     let args : Vec<String> = args().collect();
-    opts.optopt("e", "engine", "select an engine (defaults to mc)", "mc|random");
+    opts.optopt("e", "engine", "select an engine (defaults to amaf)", "amaf|mc|random");
     opts.optopt("r", "ruleset", "select the ruleset (defaults to chinese)", "cgos|chinese|tromp-taylor|minimal");
     opts.optflag("h", "help", "print this help menu");
     opts.optflag("v", "version", "print the version number");
@@ -85,9 +86,15 @@ fn main() {
         return;
     }
     let engine_arg = matches.opt_str("e").map(|s| s.into_ascii_lowercase());
-    let engine = match engine_arg {
-        Some(ref s) if s.as_slice() == "random" => Box::new(RandomEngine::new()) as Box<Engine>,
-        _                                       => Box::new(McEngine::new()) as Box<Engine>
+    let engine: Box<Engine> = match engine_arg {
+        Some(s) => {
+            match s.as_slice() {
+                "random" => Box::new(RandomEngine::new()),
+                "mc"     => Box::new(McEngine::new()),
+                _        => Box::new(AmafEngine::new()),
+            }
+        },
+        None => Box::new(McEngine::new())
     };
     let rules_arg = matches.opt_str("r").map(|s| s.into_ascii_lowercase());
     let ruleset = match rules_arg {

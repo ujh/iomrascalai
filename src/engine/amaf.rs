@@ -32,15 +32,18 @@ use super::MoveStats;
 use rand::random;
 use time::PreciseTime;
 
-pub struct McEngine;
+pub struct AmafEngine;
 
-impl McEngine {
-    pub fn new() -> McEngine {
-        McEngine
+impl AmafEngine {
+
+    pub fn new() -> AmafEngine {
+        AmafEngine
     }
+
 }
 
-impl Engine for McEngine {
+impl Engine for AmafEngine {
+
     fn gen_move(&self, color: Color, game: &Game, time_to_stop: i64) -> Move {
         let moves = game.legal_moves_without_eyes();
         if moves.is_empty() {
@@ -54,10 +57,12 @@ impl Engine for McEngine {
             let g = game.play(m).unwrap();
             let mut playout = Playout::new(g.board());
             let winner = playout.run();
-            if winner == color {
-                stats.record_win(&m);
-            } else {
-                stats.record_loss(&m);
+            for m2 in playout.moves().iter() {
+                if winner == color {
+                    stats.record_win(&m2);
+                } else {
+                    stats.record_loss(&m2);
+                }
             }
             if counter % 100 == 0 && start_time.to(PreciseTime::now()).num_milliseconds() >= time_to_stop {
                 break;
@@ -73,5 +78,7 @@ impl Engine for McEngine {
         } else {
             stats.best()
         }
+
     }
+
 }

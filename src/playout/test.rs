@@ -28,7 +28,7 @@ use test::Bencher;
 fn bench_9x9_playout_speed(b: &mut Bencher) {
     let game = Game::new(9, 6.5, KgsChinese);
     let board = game.board();
-    let playout_engine = Playout::new(board);
+    let mut playout_engine = Playout::new(board);
 
     b.iter(|| {playout_engine.run()})
 }
@@ -37,7 +37,7 @@ fn bench_9x9_playout_speed(b: &mut Bencher) {
 fn bench_13x13_playout_speed(b: &mut Bencher) {
     let game = Game::new(13, 6.5, KgsChinese);
     let board = game.board();
-    let playout_engine = Playout::new(board);
+    let mut playout_engine = Playout::new(board);
 
     b.iter(|| {playout_engine.run()})
 }
@@ -46,7 +46,7 @@ fn bench_13x13_playout_speed(b: &mut Bencher) {
 fn bench_19x19_playout_speed(b: &mut Bencher) {
     let game = Game::new(19, 6.5, KgsChinese);
     let board = game.board();
-    let playout_engine = Playout::new(board);
+    let mut playout_engine = Playout::new(board);
 
     b.iter(|| {playout_engine.run()})
 }
