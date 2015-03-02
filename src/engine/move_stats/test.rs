@@ -84,6 +84,20 @@ mod move_stats {
         assert!(!stats.all_losses());
     }
 
+    #[test]
+    fn record_win_does_nothing_for_untracked_moves() {
+        let moves = vec!();
+        let mut stats = MoveStats::new(&moves, Black);
+        stats.record_win(&Play(Black, 1, 1));
+    }
+
+    #[test]
+    fn record_loss_does_nothing_for_untracked_moves() {
+        let moves = vec!();
+        let mut stats = MoveStats::new(&moves, Black);
+        stats.record_loss(&Play(Black, 1, 1));
+    }
+
 }
 
 mod move_stat {

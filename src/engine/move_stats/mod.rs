@@ -47,13 +47,17 @@ impl<'a> MoveStats<'a> {
     }
 
     pub fn record_win(&mut self, m: &Move) {
-        let mut stat = self.stats.get_mut(&m).unwrap();
-        stat.won();
+        match self.stats.get_mut(&m) {
+            Some(stat) => stat.won(),
+            None       => {}
+        }
     }
 
     pub fn record_loss(&mut self, m: &Move) {
-        let mut stat = self.stats.get_mut(&m).unwrap();
-        stat.lost();
+        match self.stats.get_mut(&m) {
+            Some(stat) => stat.lost(),
+            None       => {}
+        }
     }
 
     pub fn all_losses(&self) -> bool {
