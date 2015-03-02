@@ -65,7 +65,7 @@ mod version;
 fn main() {
     let mut opts = Options::new();
     let args : Vec<String> = args().collect();
-    opts.optopt("e", "engine", "select an engine (defaults to mc)", "amaf|mc|random");
+    opts.optopt("e", "engine", "select an engine (defaults to amaf)", "amaf|mc|random");
     opts.optopt("r", "ruleset", "select the ruleset (defaults to chinese)", "cgos|chinese|tromp-taylor|minimal");
     opts.optflag("h", "help", "print this help menu");
     opts.optflag("v", "version", "print the version number");
@@ -90,8 +90,8 @@ fn main() {
         Some(s) => {
             match s.as_slice() {
                 "random" => Box::new(RandomEngine::new()),
-                "amaf"   => Box::new(AmafEngine::new()),
-                _        => Box::new(McEngine::new()),
+                "mc"     => Box::new(McEngine::new()),
+                _        => Box::new(AmafEngine::new()),
             }
         },
         None => Box::new(McEngine::new())

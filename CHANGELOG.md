@@ -1,3 +1,13 @@
+## 0.1.3 [☰](https://github.com/ujh/iomrascalai/compare/0.1.2...master)
+
+### Changes
+
+* A new engine implementing the AMAF (all moves as first) pattern.
+  Almost the same as standard Monte-Carlo, but recording wins and
+  losses for all moves of the simulated color.
+
+### Performance
+
 ## 0.1.2 [☰](https://github.com/ujh/iomrascalai/compare/0.1.1...0.1.2)
 
 ### Changes
