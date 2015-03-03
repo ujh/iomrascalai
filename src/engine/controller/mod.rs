@@ -26,6 +26,7 @@ use game::Game;
 use timer::Timer;
 
 use std::old_io::stdio::stderr;
+use std::sync::mpsc::channel;
 
 pub struct EngineController<'a> {
     engine: Box<Engine + 'a>,
@@ -40,11 +41,19 @@ impl<'a> EngineController<'a> {
     }
 
     pub fn run_and_return_move(&mut self, color: Color, game: &Game, timer: &mut Timer) -> Move {
+        let budget = self.budget(timer, game);
+        let (send_to_controller, receive_from_engine) = channel::<Move>();
+        self.engine.gen_move(color, game, budget, send_to_controller);
+        receive_from_engine.recv().unwrap()
+    }
+
+    fn budget(&self, timer: &mut Timer, game: &Game) -> i64 {
         timer.start();
         let budget = timer.budget(game);
         let mut stream = stderr();
         stream.write_line(format!("Thinking for {}ms", budget).as_slice());
         stream.write_line(format!("{}ms time left", timer.main_time_left()).as_slice());
-        self.engine.gen_move(color, game, budget)
+        budget
     }
+
 }
