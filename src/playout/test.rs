@@ -19,6 +19,8 @@
  *                                                                      *
  ************************************************************************/
 
+#![cfg(test)]
+
 use playout::Playout;
 use game::Game;
 use ruleset::KgsChinese;

@@ -518,8 +518,8 @@ impl Board {
     }
 
     fn create_new_chain(&mut self, m: &Move) -> usize {
-        let new_chain_id    = self.chains.len();
-        let mut new_chain   = Chain::new(
+        let new_chain_id = self.chains.len();
+        let new_chain    = Chain::new(
             new_chain_id, *m.color(), m.coord(), self.liberties(&m.coord()));
         self.chains.push(new_chain);
         self.board[m.coord().to_index(self.size)].chain_id = new_chain_id;
