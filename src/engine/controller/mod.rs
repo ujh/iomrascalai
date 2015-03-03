@@ -1,7 +1,6 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2014 Thomas Poinsot, Urban Hafner                          *
- * Copyright 2015 Thomas Poinsot                                        *
+ * Copyright 2015 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -20,22 +19,32 @@
  *                                                                      *
  ************************************************************************/
 
-pub use self::amaf::AmafEngine;
-pub use self::controller::EngineController;
-pub use self::mc::McEngine;
-pub use self::move_stats::MoveStats;
-pub use self::random::RandomEngine;
 use board::Color;
 use board::Move;
+use engine::Engine;
 use game::Game;
+use timer::Timer;
 
-mod amaf;
-mod controller;
-mod mc;
-mod move_stats;
-mod random;
+use std::old_io::stdio::stderr;
 
-pub trait Engine {
-    // args: color of the move to generate, the game on which we play, and the nb of ms we have to generate the move
-    fn gen_move(&self, Color, &Game, i64) -> Move;
+pub struct EngineController<'a> {
+    engine: Box<Engine + 'a>,
+}
+
+impl<'a> EngineController<'a> {
+
+    pub fn new<'b>(engine: Box<Engine + 'b>) -> EngineController<'b> {
+        EngineController {
+            engine: engine,
+        }
+    }
+
+    pub fn run_and_return_move(&mut self, color: Color, game: &Game, timer: &mut Timer) -> Move {
+        timer.start();
+        let budget = timer.budget(game);
+        let mut stream = stderr();
+        stream.write_line(format!("Thinking for {}ms", budget).as_slice());
+        stream.write_line(format!("{}ms time left", timer.main_time_left()).as_slice());
+        self.engine.gen_move(color, game, budget)
+    }
 }
