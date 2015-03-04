@@ -46,15 +46,24 @@ impl<'a> EngineController<'a> {
     pub fn run_and_return_move(&mut self, color: Color, game: &Game, timer: &mut Timer) -> Move {
         let budget = self.budget(timer, game);
         let (send_move_to_controller, receive_move_from_engine) = channel();
-        let (send_signal_to_engine, receive_signal_from_controller) = channel();
+        let (send_signal_to_engine, receive_signal_from_controller) = channel::<()>();
         // Saving the guard into a variable is necessary. Otherwise
         // the code blocks right here.
         let guard = thread::scoped(|| {
             self.engine.gen_move(color, game, send_move_to_controller, receive_signal_from_controller);
         });
-        sleep(Duration::milliseconds(budget));
-        send_signal_to_engine.send(());
-        receive_move_from_engine.recv().unwrap()
+        let (send_time_up_to_controller, receive_time_up) = channel();
+        thread::spawn(move || {
+            sleep(Duration::milliseconds(budget));
+            send_time_up_to_controller.send(());
+        });
+        select!(
+            r = receive_move_from_engine.recv() => { r.unwrap() },
+            _ = receive_time_up.recv() => {
+                send_signal_to_engine.send(());
+                receive_move_from_engine.recv().unwrap()
+            }
+        )
     }
 
     fn budget(&self, timer: &mut Timer, game: &Game) -> i64 {
