@@ -30,8 +30,8 @@ use super::Engine;
 use super::MoveStats;
 
 use rand::random;
+use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
-use time::PreciseTime;
 
 pub struct AmafEngine;
 
@@ -45,16 +45,14 @@ impl AmafEngine {
 
 impl Engine for AmafEngine {
 
-    fn gen_move(&self, color: Color, game: &Game, time_to_stop: i64, sender: Sender<Move>) {
+    fn gen_move(&self, color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
         let moves = game.legal_moves_without_eyes();
         if moves.is_empty() {
             log!("No moves to simulate!");
             sender.send(Pass(color));
             return;
         }
-        let start_time = PreciseTime::now();
         let mut stats = MoveStats::new(&moves, color);
-        let mut counter = 0;
         loop {
             let m = moves[random::<usize>() % moves.len()];
             let g = game.play(m).unwrap();
@@ -67,10 +65,9 @@ impl Engine for AmafEngine {
                     stats.record_loss(&m2);
                 }
             }
-            if counter % 100 == 0 && start_time.to(PreciseTime::now()).num_milliseconds() >= time_to_stop {
+            if receiver.try_recv().is_ok() {
                 break;
             }
-            counter += 1;
         }
         log!("{} simulations", counter);
         // resign if 0% wins

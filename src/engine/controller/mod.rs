@@ -26,8 +26,10 @@ use game::Game;
 use timer::Timer;
 
 use std::old_io::stdio::stderr;
+use std::old_io::timer::sleep;
 use std::sync::mpsc::channel;
 use std::thread;
+use std::time::duration::Duration;
 
 pub struct EngineController<'a> {
     engine: Box<Engine + 'a>,
@@ -43,11 +45,16 @@ impl<'a> EngineController<'a> {
 
     pub fn run_and_return_move(&mut self, color: Color, game: &Game, timer: &mut Timer) -> Move {
         let budget = self.budget(timer, game);
-        let (send_to_controller, receive_from_engine) = channel::<Move>();
-        thread::scoped(|| {
-            self.engine.gen_move(color, game, budget, send_to_controller);
+        let (send_move_to_controller, receive_move_from_engine) = channel();
+        let (send_signal_to_engine, receive_signal_from_controller) = channel();
+        // Saving the guard into a variable is necessary. Otherwise
+        // the code blocks right here.
+        let guard = thread::scoped(|| {
+            self.engine.gen_move(color, game, send_move_to_controller, receive_signal_from_controller);
         });
-        receive_from_engine.recv().unwrap()
+        sleep(Duration::milliseconds(budget));
+        send_signal_to_engine.send(());
+        receive_move_from_engine.recv().unwrap()
     }
 
     fn budget(&self, timer: &mut Timer, game: &Game) -> i64 {

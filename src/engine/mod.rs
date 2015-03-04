@@ -29,6 +29,7 @@ use board::Color;
 use board::Move;
 use game::Game;
 
+use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 
 mod amaf;
@@ -39,5 +40,5 @@ mod random;
 
 pub trait Engine: Sync {
     // args: color of the move to generate, the game on which we play, and the nb of ms we have to generate the move
-    fn gen_move(&self, Color, &Game, i64, sender: Sender<Move>);
+    fn gen_move(&self, Color, &Game, sender: Sender<Move>, receiver: Receiver<()>);
 }
