@@ -54,8 +54,8 @@ impl Coord {
 
         for i in range(-1i8,2) {
             for j in range(-1i8,2) {
-                let (col, row) = (self.col+i as u8, self.row+j as u8);
-                let potential_neighbour = Coord::new(col, row);
+                let (col, row) = (self.col as i8 + i, self.row as i8 + j);
+                let potential_neighbour = Coord::new(col as u8, row as u8);
                 if ((i == 0 && j !=0) || (i != 0 && j == 0)) && (potential_neighbour.is_inside(board_size)) {
                     neighbours.push(potential_neighbour);
                 }
