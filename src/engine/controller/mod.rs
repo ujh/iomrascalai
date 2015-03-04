@@ -31,6 +31,8 @@ use std::sync::mpsc::channel;
 use std::thread;
 use std::time::duration::Duration;
 
+mod test;
+
 pub struct EngineController<'a> {
     engine: Box<Engine + 'a>,
 }
