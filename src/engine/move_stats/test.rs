@@ -36,7 +36,8 @@ mod move_stats {
     fn returns_pass_as_best_move_by_default() {
         let moves = vec!();
         let stats = MoveStats::new(&moves, Black);
-        assert_eq!(Pass(Black), stats.best());
+        let (m, ms) = stats.best();
+        assert_eq!(Pass(Black), m);
     }
 
     #[test]
@@ -47,7 +48,10 @@ mod move_stats {
         stats.record_loss(&Play(Black, 1, 1));
         stats.record_win(&Play(Black, 2, 2));
         stats.record_win(&Play(Black, 2, 2));
-        assert_eq!(Play(Black, 2, 2), stats.best());
+        let (m, ms) = stats.best();
+        assert_eq!(Play(Black, 2, 2), m);
+        assert_eq!(ms.plays, 2);
+        assert_eq!(ms.wins, 2);
     }
 
     #[test]

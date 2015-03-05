@@ -51,6 +51,7 @@ as inspiration:
 * [Fuego](http://sourceforge.net/projects/fuego/)
 * [oakfoam](http://oakfoam.com/)
 * [GnuGo](https://www.gnu.org/software/gnugo/)
+* [Brown](http://www.lysator.liu.se/~gunnar/gtp/brown-1.0.tar.gz)
 
 License
 =======

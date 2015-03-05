@@ -5,6 +5,8 @@
 * A new engine implementing the AMAF (all moves as first) pattern.
   Almost the same as standard Monte-Carlo, but recording wins and
   losses for all moves of the simulated color.
+* Don't pass even when the win rate calculated through the simulations
+  is 100%. Doing this resulted in losses against a random player.
 
 ### Performance
 
