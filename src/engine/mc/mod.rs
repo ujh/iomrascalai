@@ -30,7 +30,8 @@ use super::Engine;
 use super::MoveStats;
 
 use rand::random;
-use time::PreciseTime;
+use std::sync::mpsc::Receiver;
+use std::sync::mpsc::Sender;
 
 pub struct McEngine;
 
@@ -41,13 +42,13 @@ impl McEngine {
 }
 
 impl Engine for McEngine {
-    fn gen_move(&self, color: Color, game: &Game, time_to_stop: i64) -> Move {
+    fn gen_move(&self, color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
         let moves = game.legal_moves_without_eyes();
         if moves.is_empty() {
             log!("No moves to simulate!");
-            return Pass(color)
+            sender.send(Pass(color));
+            return;
         }
-        let start_time = PreciseTime::now();
         let mut stats = MoveStats::new(&moves, color);
         let mut counter = 0;
         loop {
@@ -60,20 +61,20 @@ impl Engine for McEngine {
             } else {
                 stats.record_loss(&m);
             }
-            if counter % 100 == 0 && start_time.to(PreciseTime::now()).num_milliseconds() >= time_to_stop {
+            counter += 1;
+            if receiver.try_recv().is_ok() {
                 break;
             }
-            counter += 1;
         }
         log!("{} simulations", counter);
         // resign if 0% wins
         if stats.all_losses() {
             log!("All simulations were losses");
-            Resign(color)
+            sender.send(Resign(color));
         } else {
             let (m, s) = stats.best();
             log!("Returning the best move ({}% wins)", s.win_ratio()*100.0);
-            m
+            sender.send(m);
         }
     }
 }

@@ -1,0 +1,16 @@
+#!/bin/bash
+
+DIR=$( cd $(dirname "${BASH_SOURCE[0]}") && pwd )
+cd "$DIR/.."
+
+set -ex
+
+cargo build --release
+
+GNUGO="gnugo --mode gtp --level 0 --chinese-rules --positional-superko --capture-all-dead --score aftermath --play-out-aftermath"
+IOMRASCALAI="./target/release/iomrascálaí"
+SIZE=9
+TIME="5m"
+
+TWOGTP="gogui-twogtp -black \"$GNUGO\" -white \"$IOMRASCALAI\" -verbose -size $SIZE -time $TIME"
+gogui -computer-both -program "$TWOGTP" -size $SIZE

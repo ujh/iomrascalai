@@ -27,6 +27,8 @@ use engine::Engine;
 use game::Game;
 
 use rand::random;
+use std::sync::mpsc::Receiver;
+use std::sync::mpsc::Sender;
 
 pub struct RandomEngine;
 
@@ -37,9 +39,10 @@ impl RandomEngine {
 }
 
 impl Engine for RandomEngine {
-    fn gen_move(&self, color: Color, game: &Game, _: i64) -> Move {
+    fn gen_move(&self, color: Color, game: &Game, sender: Sender<Move>, _: Receiver<()>) {
         let mut moves = game.legal_moves();
         moves.push(Pass(color));
-        moves[random::<usize>() % moves.len()]
+        let m = moves[random::<usize>() % moves.len()];
+        sender.send(m);
     }
 }

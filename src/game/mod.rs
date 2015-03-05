@@ -32,7 +32,7 @@ use self::hash::ZobristHashTable;
 
 use std::fmt;
 use core::fmt::Display;
-use std::rc::Rc;
+use std::sync::Arc;
 
 mod hash;
 mod test;
@@ -49,12 +49,12 @@ pub struct Game {
     board: Board,
     move_number: u16,
     previous_boards_hashes: Vec<u64>,
-    zobrist_base_table: Rc<ZobristHashTable>
+    zobrist_base_table: Arc<ZobristHashTable>,
 }
 
 impl Game {
     pub fn new(size: u8, komi: f32, ruleset: Ruleset) -> Game {
-        let zobrist_base_table = Rc::new(ZobristHashTable::new(size));
+        let zobrist_base_table = Arc::new(ZobristHashTable::new(size));
         let new_board = Board::new(size, komi, ruleset);
 
         Game {

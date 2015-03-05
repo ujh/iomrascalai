@@ -35,7 +35,7 @@ use self::point::Point;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fmt;
-use std::rc::Rc;
+use std::sync::Arc;
 use std::vec::Vec;
 
 mod test;
@@ -99,8 +99,8 @@ pub struct Board {
     friend_stones_removed: Vec<Coord>,
     ko:                    Option<Coord>,
     komi:                  f32,
-    neighbours:            Rc<Vec<Vec<Coord>>>,
-    orthogonals:           Rc<Vec<Vec<Coord>>>,
+    neighbours:            Arc<Vec<Vec<Coord>>>,
+    orthogonals:           Arc<Vec<Vec<Coord>>>,
     previous_player:       Color,
     resigned_by:           Color,
     ruleset:               Ruleset,
@@ -149,20 +149,20 @@ impl Board {
         }
     }
 
-    fn setup_neighbours(size: u8) -> Rc<Vec<Vec<Coord>>> {
+    fn setup_neighbours(size: u8) -> Arc<Vec<Vec<Coord>>> {
         let mut neighbours = Vec::new();
         for coord in Coord::for_board_size(size).iter() {
             neighbours.push(coord.neighbours(size));
         }
-        Rc::new(neighbours)
+        Arc::new(neighbours)
     }
 
-    fn setup_orthogonals(size: u8) -> Rc<Vec<Vec<Coord>>> {
+    fn setup_orthogonals(size: u8) -> Arc<Vec<Vec<Coord>>> {
         let mut orthogonals = Vec::new();
         for coord in Coord::for_board_size(size).iter() {
             orthogonals.push(coord.orthogonals(size));
         }
-        Rc::new(orthogonals)
+        Arc::new(orthogonals)
     }
 
     pub fn neighbours(&self, c: Coord) -> &Vec<Coord> {
@@ -518,8 +518,8 @@ impl Board {
     }
 
     fn create_new_chain(&mut self, m: &Move) -> usize {
-        let new_chain_id    = self.chains.len();
-        let mut new_chain   = Chain::new(
+        let new_chain_id = self.chains.len();
+        let new_chain    = Chain::new(
             new_chain_id, *m.color(), m.coord(), self.liberties(&m.coord()));
         self.chains.push(new_chain);
         self.board[m.coord().to_index(self.size)].chain_id = new_chain_id;

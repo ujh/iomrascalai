@@ -25,6 +25,7 @@ use board::Color;
 use board::IllegalMove;
 use board::Move;
 use engine::Engine;
+use engine::EngineController;
 use game::Game;
 use ruleset::Ruleset;
 use timer::Timer;
@@ -56,7 +57,7 @@ pub enum Command {
 }
 
 pub struct GTPInterpreter<'a> {
-    engine: Box<Engine + 'a>,
+    controller: EngineController<'a>,
     game: Game,
     known_commands: Vec<String>,
     ruleset: Ruleset,
@@ -68,7 +69,7 @@ impl<'a> GTPInterpreter<'a> {
         let komi      = 6.5;
         let boardsize = 19;
         let mut interpreter = GTPInterpreter {
-            engine: engine,
+            controller: EngineController::new(engine),
             game: Game::new(boardsize, komi, ruleset),
             known_commands: vec!(),
             ruleset: ruleset,
@@ -164,11 +165,7 @@ impl<'a> GTPInterpreter<'a> {
             },
             "genmove"          => {
                 let color = Color::from_gtp(command[1]);
-                self.timer.start();
-                let budget = self.timer.budget(&self.game);
-                log!("Thinking for {}ms", budget);
-                log!("{}ms time left", self.timer.main_time_left());
-                let m  = self.engine.gen_move(color, &self.game, budget);
+                let m = self.controller.run_and_return_move(color, &self.game, &mut self.timer);
                 match self.game.clone().play(m) {
                     Ok(g) => {
                         self.game = g;

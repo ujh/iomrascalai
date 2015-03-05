@@ -20,13 +20,11 @@
  ************************************************************************/
 #![feature(collections)]
 #![feature(core)]
-#![feature(env)]
-#![feature(hash)]
-#![feature(io)]
-#![feature(path)]
+#![feature(old_io)]
+#![feature(old_path)]
 #![feature(plugin)]
-#![feature(test)]
 #![feature(std_misc)]
+#![feature(test)]
 #![feature(unicode)]
 #![plugin(regex_macros)]
 extern crate core;
