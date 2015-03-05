@@ -21,7 +21,84 @@
 
 #![cfg(test)]
 
+use board::Color;
+use board::Move;
+use board::Pass;
+use engine::Engine;
+use game::Game;
+use ruleset::Minimal;
+use super::EngineController;
+use timer::Timer;
+
+use std::sync::mpsc::Receiver;
+use std::sync::mpsc::Sender;
+use time::PreciseTime;
+
+pub struct EarlyReturnEngine;
+
+impl EarlyReturnEngine {
+
+    pub fn new() -> EarlyReturnEngine {
+        EarlyReturnEngine
+    }
+
+}
+
+impl Engine for EarlyReturnEngine {
+
+    fn gen_move(&self, c: Color, _: &Game, sender: Sender<Move>, _: Receiver<()>) {
+        sender.send(Pass(c));
+    }
+
+}
+
 #[test]
-fn test_the_engine_controller() {
-    assert!(false);
+fn the_engine_can_use_less_time_than_allocated() {
+    let game = Game::new(19, 6.5, Minimal);
+    let color = game.next_player();
+    let mut timer = Timer::new();
+    let budget = timer.budget(&game);
+    let engine = Box::new(EarlyReturnEngine::new());
+    let mut controller = EngineController::new(engine);
+    let start_time = PreciseTime::now();
+    let m = controller.run_and_return_move(color, &game, &mut timer);
+    let elapsed_time = start_time.to(PreciseTime::now()).num_milliseconds();
+    assert!(elapsed_time < budget);
+    assert_eq!(Pass(color), m);
+}
+
+pub struct WaitingEngine;
+
+impl WaitingEngine {
+
+    pub fn new() -> WaitingEngine {
+        WaitingEngine
+    }
+
+}
+
+impl Engine for WaitingEngine {
+
+    fn gen_move(&self, c: Color, _: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
+        select!(
+            _ = receiver.recv() => { sender.send(Pass(c)); }
+        )
+    }
+
+}
+
+#[test]
+fn the_controller_asks_the_engine_for_a_move_when_the_time_is_up() {
+    let game = Game::new(19, 6.5, Minimal);
+    let color = game.next_player();
+    let mut timer = Timer::new();
+    timer.setup(1, 0, 0);
+    let budget = timer.budget(&game);
+    let engine = Box::new(WaitingEngine::new());
+    let mut controller = EngineController::new(engine);
+    let start_time = PreciseTime::now();
+    let m = controller.run_and_return_move(color, &game, &mut timer);
+    let elapsed_time = start_time.to(PreciseTime::now()).num_milliseconds();
+    assert!(elapsed_time >= budget);
+    assert_eq!(Pass(color), m);
 }
