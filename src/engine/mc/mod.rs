@@ -50,6 +50,7 @@ impl Engine for McEngine {
             return;
         }
         let mut stats = MoveStats::new(&moves, color);
+        let mut counter = 0;
         loop {
             let m = moves[random::<usize>() % moves.len()];
             let g = game.play(m).unwrap();
@@ -60,6 +61,7 @@ impl Engine for McEngine {
             } else {
                 stats.record_loss(&m);
             }
+            counter += 1;
             if receiver.try_recv().is_ok() {
                 break;
             }

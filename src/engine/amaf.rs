@@ -53,6 +53,7 @@ impl Engine for AmafEngine {
             return;
         }
         let mut stats = MoveStats::new(&moves, color);
+        let mut counter = 0;
         loop {
             let m = moves[random::<usize>() % moves.len()];
             let g = game.play(m).unwrap();
@@ -65,6 +66,7 @@ impl Engine for AmafEngine {
                     stats.record_loss(&m2);
                 }
             }
+            counter += 1;
             if receiver.try_recv().is_ok() {
                 break;
             }
