@@ -68,7 +68,7 @@ impl<'a> MoveStats<'a> {
         self.stats.values().all(|stat| stat.all_wins())
     }
 
-    pub fn best(&self) -> Move {
+    pub fn best(&self) -> (Move, MoveStat) {
         let mut m = Pass(self.color);
         let mut move_stats = MoveStat::new();
         for (m_new, ms) in self.stats.iter() {
@@ -77,7 +77,7 @@ impl<'a> MoveStats<'a> {
                 move_stats = *ms;
             }
         }
-        m
+        (m, move_stats)
     }
 }
 

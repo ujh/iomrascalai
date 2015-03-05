@@ -51,6 +51,15 @@ use getopts::Options;
 use std::ascii::OwnedAsciiExt;
 use std::env::args;
 
+macro_rules! log(
+    ($($arg:tt)*) => (
+        match writeln!(&mut ::std::old_io::stdio::stderr(), $($arg)* ) {
+            Ok(_) => {},
+            Err(x) => panic!("Unable to write to stderr: {}", x),
+        }
+    )
+);
+
 mod board;
 mod engine;
 mod game;

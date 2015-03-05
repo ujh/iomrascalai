@@ -47,6 +47,7 @@ impl Engine for AmafEngine {
     fn gen_move(&self, color: Color, game: &Game, time_to_stop: i64) -> Move {
         let moves = game.legal_moves_without_eyes();
         if moves.is_empty() {
+            log!("No moves to simulate!");
             return Pass(color)
         }
         let start_time = PreciseTime::now();
@@ -69,14 +70,15 @@ impl Engine for AmafEngine {
             }
             counter += 1;
         }
+        log!("{} simulations", counter);
         // resign if 0% wins
         if stats.all_losses() {
+            log!("All simulations were losses");
             Resign(color)
-        // pass if 100% wins
-        } else if stats.all_wins() {
-            Pass(color)
         } else {
-            stats.best()
+            let (m, s) = stats.best();
+            log!("Returning the best move ({}% wins)", s.win_ratio()*100.0);
+            m
         }
 
     }

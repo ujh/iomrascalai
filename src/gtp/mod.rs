@@ -29,8 +29,6 @@ use game::Game;
 use ruleset::Ruleset;
 use timer::Timer;
 
-use std::old_io::stdio::stderr;
-
 pub mod driver;
 mod test;
 
@@ -168,9 +166,8 @@ impl<'a> GTPInterpreter<'a> {
                 let color = Color::from_gtp(command[1]);
                 self.timer.start();
                 let budget = self.timer.budget(&self.game);
-                let mut stream = stderr();
-                stream.write_line(format!("Thinking for {}ms", budget).as_slice());
-                stream.write_line(format!("{}ms time left", self.timer.main_time_left()).as_slice());
+                log!("Thinking for {}ms", budget);
+                log!("{}ms time left", self.timer.main_time_left());
                 let m  = self.engine.gen_move(color, &self.game, budget);
                 match self.game.clone().play(m) {
                     Ok(g) => {
