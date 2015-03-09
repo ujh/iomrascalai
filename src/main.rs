@@ -1,6 +1,7 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2014-2015 Urban Hafner, Thomas Poinsot                     *
+ * Copyright 2014 Urban Hafner, Thomas Poinsot                          *
+ * Copyright 2015 Urban Hafner, Thomas Poinsot, Igor Polyakov           *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -83,8 +84,7 @@ fn main() {
     };
 
     if matches.opt_present("h") {
-        let program = args[0].clone();
-        let brief = format!("Usage: {} [options]", program);
+        let brief = format!("Usage: {} [options]", args[0]);
         print!("{}", opts.usage(brief.as_slice()));
         return;
     }
