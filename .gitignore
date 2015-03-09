@@ -1,3 +1,4 @@
 target/
 gnugo-benchmark*
 previous-version-benchmark*
+.project
