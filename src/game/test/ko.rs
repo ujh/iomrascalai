@@ -79,3 +79,14 @@ fn not_a_super_ko() {
         Ok(_)  => {}
     }
 }
+
+#[test]
+fn not_a_super_ko2() {
+    let parser   = Parser::from_path(Path::new("fixtures/sgf/not-superko2.sgf"));
+    let game     = parser.game().unwrap();
+    let no_super_ko = game.play(Play(Black, 13, 12));
+    match no_super_ko {
+        Err(e) => panic!("No err expected, got {}", e),
+        Ok(_)  => {}
+    }
+}
