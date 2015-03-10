@@ -59,7 +59,7 @@ pub enum Command {
 pub struct GTPInterpreter<'a> {
     controller: EngineController<'a>,
     game: Game,
-    known_commands: [&'static str; 14],
+    known_commands: [&'static str; 15],
     ruleset: Ruleset,
     timer: Timer,
 }
@@ -76,6 +76,7 @@ impl<'a> GTPInterpreter<'a> {
                     "genmove",
                     "protocol_version",
                     "name",
+                    "version",
                     "known_command",
                     "list_commands",
                     "quit",
