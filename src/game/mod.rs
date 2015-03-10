@@ -28,13 +28,12 @@ use board::Move;
 use board::Play;
 use ruleset::Ruleset;
 use score::Score;
-use self::hash::ZobristHashTable;
+use self::zobrist_hash_table::ZobristHashTable;
 
 use std::fmt;
 use core::fmt::Display;
-use std::sync::Arc;
 
-mod hash;
+mod zobrist_hash_table;
 mod test;
 
 pub trait Info {
@@ -48,20 +47,17 @@ pub trait Info {
 pub struct Game {
     board: Board,
     move_number: u16,
-    previous_boards_hashes: Vec<u64>,
-    zobrist_base_table: Arc<ZobristHashTable>,
+    zobrist_hash_table: ZobristHashTable,
 }
 
 impl Game {
     pub fn new(size: u8, komi: f32, ruleset: Ruleset) -> Game {
-        let zobrist_base_table = Arc::new(ZobristHashTable::new(size));
         let new_board = Board::new(size, komi, ruleset);
 
         Game {
             board: new_board,
             move_number: 0,
-            previous_boards_hashes: vec!(zobrist_base_table.init_hash()),
-            zobrist_base_table: zobrist_base_table
+            zobrist_hash_table: ZobristHashTable::new(size),
         }
     }
 
@@ -73,12 +69,11 @@ impl Game {
                 let mut new_game_state = self.clone();
                 new_game_state.board = new_board;
                 new_game_state.move_number += 1;
-                if !m.is_pass() && !m.is_resign(){
-                    let hash = new_game_state.compute_hash(&m);
-                    if new_game_state.previous_boards_hashes.contains(&hash) {
-                        return Err(IllegalMove::SuperKo)
+                if !m.is_pass() && !m.is_resign() {
+                    match new_game_state.check_and_update_super_ko(&m) {
+                        Err(_) => return Err(IllegalMove::SuperKo),
+                        Ok(_) => {}
                     }
-                    new_game_state.previous_boards_hashes.push(hash);
                 }
                 Ok(new_game_state)
             },
@@ -86,15 +81,8 @@ impl Game {
         }
     }
 
-    fn compute_hash(&self, m: &Move) -> u64 {
-        let mut hash = self.zobrist_base_table.add_stone_to_hash(*self.previous_boards_hashes.last().unwrap(), m);
-        for &coord in self.board.adv_stones_removed().iter() {
-            hash = self.zobrist_base_table.remove_stone_from_hash(hash, &Play(m.color().opposite(), coord.col, coord.row));
-        }
-        for &coord in self.board.friend_stones_removed().iter() {
-            hash = self.zobrist_base_table.remove_stone_from_hash(hash, &Play(*m.color(), coord.col, coord.row));
-        }
-        hash
+    fn check_and_update_super_ko(&mut self, m: &Move) -> Result<(),()>{
+        self.zobrist_hash_table.check_and_update_super_ko(m, &self.board)
     }
 
     // Note: This method uses 1-1 as the origin point, not 0-0. 19-19 is a valid coordinate in a 19-sized board, while 0-0 is not.

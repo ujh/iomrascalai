@@ -1,3 +1,5 @@
+## 0.1.4 [☰](https://github.com/ujh/iomrascalai/compare/0.1.3...master)
+
 ## 0.1.3 [☰](https://github.com/ujh/iomrascalai/compare/0.1.2...0.1.3)
 
 ### Changes
