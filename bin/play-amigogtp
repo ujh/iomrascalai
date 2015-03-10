@@ -1,0 +1,16 @@
+#!/bin/bash
+
+DIR=$( cd $(dirname "${BASH_SOURCE[0]}") && pwd )
+cd "$DIR/.."
+
+set -ex
+
+cargo build --release
+
+AMIGO="amigogtp"
+IOMRASCALAI="./target/release/iomrascalai"
+SIZE=9
+TIME="5m"
+
+TWOGTP="gogui-twogtp -black \"$AMIGOGTP\" -white \"$IOMRASCALAI\" -verbose -size $SIZE -time $TIME"
+gogui -computer-both -program "$TWOGTP" -size $SIZE

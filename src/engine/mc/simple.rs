@@ -22,66 +22,37 @@
 
 use board::Color;
 use board::Move;
-use board::Pass;
-use board::Resign;
 use game::Game;
 use playout::Playout;
 use super::Engine;
+use super::McEngine;
 use super::MoveStats;
 
-use rand::random;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 
-pub struct AmafEngine;
+pub struct SimpleMcEngine;
 
-impl AmafEngine {
-
-    pub fn new() -> AmafEngine {
-        AmafEngine
+impl SimpleMcEngine {
+    pub fn new() -> SimpleMcEngine {
+        SimpleMcEngine
     }
-
 }
 
-impl Engine for AmafEngine {
-
+impl Engine for SimpleMcEngine {
     fn gen_move(&self, color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
-        let moves = game.legal_moves_without_eyes();
-        if moves.is_empty() {
-            log!("No moves to simulate!");
-            sender.send(Pass(color));
-            return;
-        }
-        let mut stats = MoveStats::new(&moves, color);
-        let mut counter = 0;
-        loop {
-            let m = moves[random::<usize>() % moves.len()];
-            let g = game.play(m).unwrap();
-            let mut playout = Playout::new(g.board());
-            let winner = playout.run();
-            for m2 in playout.moves().iter() {
-                if winner == color {
-                    stats.record_win(&m2);
-                } else {
-                    stats.record_loss(&m2);
-                }
-            }
-            counter += 1;
-            if receiver.try_recv().is_ok() {
-                break;
-            }
-        }
-        log!("{} simulations", counter);
-        // resign if 0% wins
-        if stats.all_losses() {
-            log!("All simulations were losses");
-            sender.send(Resign(color));
-        } else {
-            let (m, s) = stats.best();
-            log!("Returning the best move ({}% wins)", s.win_ratio()*100.0);
-            sender.send(m);
-        }
+        self.mc_gen_move(color, game, sender, receiver);
+    }
+}
 
+impl McEngine for SimpleMcEngine {
+
+    fn record_playout(&self, stats: &mut MoveStats, m: &Move, _: &Playout, won: bool) {
+        if won {
+            stats.record_win(&m);
+        } else {
+            stats.record_loss(&m);
+        }
     }
 
 }
