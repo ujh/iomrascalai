@@ -34,6 +34,7 @@ use board::White;
 use ruleset::AnySizeTrompTaylor;
 use ruleset::KgsChinese;
 use ruleset::Minimal;
+use sgf::Parser;
 
 use test::Bencher;
 
@@ -480,6 +481,17 @@ fn set_komi_updates_the_komi() {
 fn komi_returns_the_komi() {
     let b = Board::new(1, 6.5, Minimal);
     assert_eq!(b.komi(), 6.5);
+}
+
+#[test]
+fn adv_stones_removed_only_contains_each_coord_once() {
+    let parser = Parser::from_path(Path::new("fixtures/sgf/not-superko2.sgf"));
+    let game = parser.game().unwrap();
+    let board = game.board();
+    let mut removed_coords = board.adv_stones_removed().clone();
+    removed_coords.sort();
+    removed_coords.dedup();
+    assert_eq!(removed_coords.len(), board.adv_stones_removed().len());
 }
 
 #[bench]

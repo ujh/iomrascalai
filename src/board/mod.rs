@@ -476,13 +476,15 @@ impl Board {
     fn remove_captured_opponent_stones(&mut self, m: &Move) -> Vec<Coord> {
         let coord = m.coord();
         let color = m.color().opposite();
-        let coords_to_remove = self.neighbours(coord)
+        let mut coords_to_remove: Vec<Coord> = self.neighbours(coord)
             .iter()
             .filter(|&c| self.color(c) == color)
             .filter(|&c| self.get_chain(*c).unwrap().is_captured())
             .flat_map(|&c| self.get_chain(c).unwrap().coords().iter())
             .cloned()
             .collect();
+        coords_to_remove.sort();
+        coords_to_remove.dedup();
         let mut chains_to_remove: Vec<usize> = self.neighbours(coord)
             .iter()
             .filter(|&c| self.color(c) == color)
