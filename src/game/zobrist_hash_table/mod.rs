@@ -21,21 +21,25 @@
  ************************************************************************/
 
 use board::Black;
+use board::Board;
 use board::Coord;
 use board::Empty;
 use board::Move;
+use board::Play;
 use board::White;
 
 use rand::random;
 
-#[derive(Debug)]
+#[derive(Clone)]
 pub struct ZobristHashTable {
     black: Vec<u64>,
-    size:  u8,
+    hashes: Vec<u64>,
+    size: u8,
     white: Vec<u64>,
 }
 
 impl ZobristHashTable {
+
     pub fn new(size: u8) -> ZobristHashTable {
         let mut black = Vec::new();
         let mut white = Vec::new();
@@ -45,32 +49,43 @@ impl ZobristHashTable {
         }
         ZobristHashTable {
             black: black,
-            size:  size,
+            hashes: vec!(0),
+            size: size,
             white: white,
         }
     }
 
-    pub fn size(&self) -> u8 {
-        self.size
+    pub fn check_and_update_super_ko(&mut self, m: &Move, b: &Board) -> Result<(),()> {
+        let hash = self.compute_hash(m, b);
+        if self.hashes.contains(&hash) {
+            Err(())
+        } else {
+            self.hashes.push(hash);
+            Ok(())
+        }
     }
 
-    pub fn init_hash(&self) -> u64 {
-        0
+    fn compute_hash(&self, m: &Move, b: &Board) -> u64 {
+        let mut hash = self.hashes[self.hashes.len()-1];
+        hash = self.change_hash(hash, m);
+        for coord in b.adv_stones_removed() {
+            hash = self.change_hash(hash, &Play(m.color().opposite(), coord.col, coord.row));
+        }
+        for coord in b.friend_stones_removed() {
+            hash = self.change_hash(hash, &Play(*m.color(), coord.col, coord.row));
+        }
+        hash
     }
 
-    pub fn add_stone_to_hash(&self, hash: u64, m: &Move) -> u64 {
-        hash ^ self.get_hash_for(m)
+    fn change_hash(&self, hash: u64, m: &Move) -> u64 {
+        hash ^ self.hash_for(m)
     }
 
-    pub fn remove_stone_from_hash(&self, hash: u64, m: &Move) -> u64 {
-        self.add_stone_to_hash(hash, m)
-    }
-
-    fn get_hash_for(&self, m: &Move) -> u64 {
+    fn hash_for(&self, m: &Move) -> u64 {
         match *m.color() {
             Empty => 0,
-            Black => { self.black[m.coord().to_index(self.size)]},
-            White => { self.white[m.coord().to_index(self.size)]},
+            Black => self.black[m.coord().to_index(self.size)],
+            White => self.white[m.coord().to_index(self.size)]
         }
     }
 }
