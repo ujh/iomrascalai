@@ -37,9 +37,9 @@ extern crate "rustc-serialize" as rustc_serialize;
 extern crate test;
 extern crate time;
 
-use engine::AmafEngine;
+use engine::AmafMcEngine;
 use engine::Engine;
-use engine::McEngine;
+use engine::SimpleMcEngine;
 use engine::RandomEngine;
 use gtp::driver::Driver;
 use ruleset::KgsChinese;
@@ -97,11 +97,11 @@ fn main() {
         Some(s) => {
             match s.as_slice() {
                 "random" => Box::new(RandomEngine::new()),
-                "mc"     => Box::new(McEngine::new()),
-                _        => Box::new(AmafEngine::new()),
+                "mc"     => Box::new(SimpleMcEngine::new()),
+                _        => Box::new(AmafMcEngine::new()),
             }
         },
-        None => Box::new(McEngine::new())
+        None => Box::new(AmafMcEngine::new())
     };
     let rules_arg = matches.opt_str("r").map(|s| s.into_ascii_lowercase());
     let ruleset = match rules_arg {

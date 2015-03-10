@@ -1,5 +1,11 @@
 ## 0.1.4 [☰](https://github.com/ujh/iomrascalai/compare/0.1.3...master)
 
+* Make AMAF the default engine. This was supposed to be the default
+  for 0.1.3, but didn't happen so the win rates recorded for 0.1.3 are
+  useless!
+* Refactored the engine code, to but the shared code of the MC and the
+  AMAF into a trait.
+
 ## 0.1.3 [☰](https://github.com/ujh/iomrascalai/compare/0.1.2...0.1.3)
 
 ### Changes

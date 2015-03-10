@@ -1,7 +1,7 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2014 Thomas Poinsot, Urban Hafner                          *
- * Copyright 2015 Thomas Poinsot                                        *
+ * Copyright 2014 Urban Hafner                                          *
+ * Copyright 2015 Urban Hafner, Thomas Poinsot                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -20,25 +20,44 @@
  *                                                                      *
  ************************************************************************/
 
-pub use self::controller::EngineController;
-pub use self::mc::AmafMcEngine;
-pub use self::mc::SimpleMcEngine;
-pub use self::move_stats::MoveStats;
-pub use self::random::RandomEngine;
 use board::Color;
 use board::Move;
 use game::Game;
+use playout::Playout;
+use super::Engine;
+use super::McEngine;
+use super::MoveStats;
 
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 
-mod controller;
-mod mc;
-mod move_stats;
-mod random;
+pub struct AmafMcEngine;
 
-pub trait Engine: Sync {
+impl AmafMcEngine {
 
-    fn gen_move(&self, Color, &Game, sender: Sender<Move>, receiver: Receiver<()>);
+    pub fn new() -> AmafMcEngine {
+        AmafMcEngine
+    }
 
+}
+
+impl Engine for AmafMcEngine {
+
+    fn gen_move(&self, color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
+        self.mc_gen_move(color, game, sender, receiver);
+    }
+
+}
+
+impl McEngine for AmafMcEngine {
+
+    fn record_playout(&self, stats: &mut MoveStats, _: &Move, playout: &Playout, won: bool) {
+        for m2 in playout.moves().iter() {
+            if won {
+                stats.record_win(&m2);
+            } else {
+                stats.record_loss(&m2);
+            }
+        }
+    }
 }

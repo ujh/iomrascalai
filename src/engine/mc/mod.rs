@@ -20,29 +20,27 @@
  *                                                                      *
  ************************************************************************/
 
+pub use self::amaf::AmafMcEngine;
+pub use self::simple::SimpleMcEngine;
+pub use super::MoveStats;
+pub use super::Engine;
 use board::Color;
-use board::Move;
-use board::Pass;
-use board::Resign;
 use game::Game;
 use playout::Playout;
-use super::Engine;
-use super::MoveStats;
+use board::Resign;
+use board::Pass;
+use board::Move;
 
 use rand::random;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 
-pub struct McEngine;
+mod amaf;
+mod simple;
 
-impl McEngine {
-    pub fn new() -> McEngine {
-        McEngine
-    }
-}
+pub trait McEngine {
 
-impl Engine for McEngine {
-    fn gen_move(&self, color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
+    fn mc_gen_move(&self, color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
         let moves = game.legal_moves_without_eyes();
         if moves.is_empty() {
             log!("No moves to simulate!");
@@ -56,11 +54,7 @@ impl Engine for McEngine {
             let g = game.play(m).unwrap();
             let mut playout = Playout::new(g.board());
             let winner = playout.run();
-            if winner == color {
-                stats.record_win(&m);
-            } else {
-                stats.record_loss(&m);
-            }
+            self.record_playout(&mut stats, &m, &playout, winner == color);
             counter += 1;
             if receiver.try_recv().is_ok() {
                 break;
@@ -77,4 +71,7 @@ impl Engine for McEngine {
             sender.send(m);
         }
     }
+
+    fn record_playout(&self, &mut MoveStats, &Move, &Playout, bool);
+
 }
