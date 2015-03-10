@@ -1,2 +1,7 @@
 language: rust
 sudo: false
+
+notifications:
+  webhooks:
+    urls:
+      - https://webhooks.gitter.im/e/fc22c02441fe92b9dda0
