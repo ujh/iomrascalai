@@ -1,7 +1,7 @@
 /************************************************************************
  *                                                                      *
  * Copyright 2014 Thomas Poinsot, Urban Hafner                          *
- * Copyright 2015 Urban Hafner, Thomas Poinsot                          *
+ * Copyright 2015 Urban Hafner, Thomas Poinsot, Igor Polyakov           *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -59,7 +59,7 @@ pub enum Command {
 pub struct GTPInterpreter<'a> {
     controller: EngineController<'a>,
     game: Game,
-    known_commands: Vec<String>,
+    known_commands: [&'static str; 15],
     ruleset: Ruleset,
     timer: Timer,
 }
@@ -68,39 +68,29 @@ impl<'a> GTPInterpreter<'a> {
     pub fn new<'b>(ruleset: Ruleset, engine: Box<Engine + 'b>) -> GTPInterpreter<'b> {
         let komi      = 6.5;
         let boardsize = 19;
-        let mut interpreter = GTPInterpreter {
+        GTPInterpreter {
             controller: EngineController::new(engine),
             game: Game::new(boardsize, komi, ruleset),
-            known_commands: vec!(),
+            known_commands: [
+                    "play",
+                    "genmove",
+                    "protocol_version",
+                    "name",
+                    "version",
+                    "known_command",
+                    "list_commands",
+                    "quit",
+                    "boardsize",
+                    "clear_board",
+                    "komi",
+                    "showboard",
+                    "final_score",
+                    "time_settings",
+                    "time_left",
+            ],
             ruleset: ruleset,
             timer: Timer::new(),
-        };
-        interpreter.initialize();
-        interpreter
-    }
-
-    fn initialize(&mut self) {
-        self.known_commands = self.generate_known_commands();
-    }
-
-    fn generate_known_commands(&self) -> Vec<String> {
-        let mut known_commands = Vec::new();
-        known_commands.push(String::from_str("play"));
-        known_commands.push(String::from_str("genmove"));
-        known_commands.push(String::from_str("protocol_version"));
-        known_commands.push(String::from_str("name"));
-        known_commands.push(String::from_str("version"));
-        known_commands.push(String::from_str("known_command"));
-        known_commands.push(String::from_str("list_commands"));
-        known_commands.push(String::from_str("quit"));
-        known_commands.push(String::from_str("boardsize"));
-        known_commands.push(String::from_str("clear_board"));
-        known_commands.push(String::from_str("komi"));
-        known_commands.push(String::from_str("showboard"));
-        known_commands.push(String::from_str("final_score"));
-        known_commands.push(String::from_str("time_settings"));
-        known_commands.push(String::from_str("time_left"));
-        known_commands
+        }
     }
 
     pub fn game<'b>(&'b self) -> &'b Game {
@@ -143,7 +133,7 @@ impl<'a> GTPInterpreter<'a> {
             "version"          => return Command::Version,
             "protocol_version" => return Command::ProtocolVersion,
             "list_commands"    => return Command::ListCommands(self.list_commands()),
-            "known_command"    => return Command::KnownCommand(self.known_commands.contains(&String::from_str(command[1].clone()))),
+            "known_command"    => return Command::KnownCommand(self.known_commands.contains(&command[1])),
             "boardsize"        => return match command[1].parse::<u8>() {
                 Ok(size) => {
                     self.game = Game::new(size, self.komi(), self.ruleset());
