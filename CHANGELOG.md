@@ -6,6 +6,14 @@
 * Refactored the engine code, to but the shared code of the MC and the
   AMAF into a trait.
 
+## Performance
+
+After running 100 games on 9x9 with komi 6.5 and a time limit of 5
+minutes (sudden death) the win rates are as follows:
+
+* 10% ± 3% against Iomrascálaí 0.1.3
+* 2% ± 1.4% against GnuGo 3.8 (Level 0)
+
 ## 0.1.3 [☰](https://github.com/ujh/iomrascalai/compare/0.1.2...0.1.3)
 
 ### Changes
