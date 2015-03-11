@@ -63,8 +63,13 @@ pub trait McEngine {
         log!("{} simulations", counter);
         // resign if 0% wins
         if stats.all_losses() {
+            if game.winner() == color {
+            log!("All simulations were losses, however passing leads to a win");
+                sender.send(Pass(color));
+            } else {
             log!("All simulations were losses");
-            sender.send(Resign(color));
+                sender.send(Resign(color));
+            }
         } else {
             let (m, s) = stats.best();
             log!("Returning the best move ({}% wins)", s.win_ratio()*100.0);
