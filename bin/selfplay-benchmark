@@ -17,7 +17,7 @@ REFEREE="$GNUGO"
 SIZE=9
 GAMES=100
 TIME="5m"
-THREADS=2
+THREADS=4
 
 gogui-twogtp -auto -black "$IOMRASCALAI1" -white "$IOMRASCALAI2" \
              -size $SIZE -alternate -games $GAMES -sgffile selfplay-benchmark \
