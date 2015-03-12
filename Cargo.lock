@@ -7,7 +7,7 @@ dependencies = [
  "regex 0.1.19 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex_macros 0.1.12 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "time 0.1.19 (git+https://github.com/rust-lang/time)",
+ "time 0.1.19 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -63,7 +63,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "time"
 version = "0.1.19"
-source = "git+https://github.com/rust-lang/time#cb2f392ac5eea66de3c79a747c0dc455bf32f1f3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "gcc 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
