@@ -1,6 +1,23 @@
-## 0.1.5 [☰](https://github.com/ujh/iomrascalai/compare/0.1.4...master) (unreleased)
+## 0.1.5 [☰](https://github.com/ujh/iomrascalai/compare/0.1.4...0.1.5)
+
+### Changes
+
+* Fix bug in AMAF code that made it much weaker than it should be. The
+  first move of each playout wasn't taken into account during the move
+  selection.
+* Implemented the loadsgf GTP command
+
+### Performance
+
+After running 100 games on 9x9 with komi 6.5 and a time limit of 5
+minutes (sudden death) the win rates are as follows:
+
+* ...
+* ...
 
 ## 0.1.4 [☰](https://github.com/ujh/iomrascalai/compare/0.1.3...0.1.4)
+
+### Changes
 
 * Make AMAF the default engine. This was supposed to be the default
   for 0.1.3, but didn't happen so the win rates recorded for 0.1.3 are
@@ -8,7 +25,7 @@
 * Refactored the engine code, to but the shared code of the MC and the
   AMAF into a trait.
 
-## Performance
+### Performance
 
 After running 100 games on 9x9 with komi 6.5 and a time limit of 5
 minutes (sudden death) the win rates are as follows:
