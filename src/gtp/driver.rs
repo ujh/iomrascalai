@@ -54,24 +54,25 @@ impl Driver {
             let command = interpreter.read(reader.read_line().unwrap().as_slice());
 
             match command {
-                Command::Name               => print!("= {}\n\n", engine_name),
-                Command::Version            => print!("= {}\n\n", engine_version),
-                Command::ProtocolVersion    => print!("= {}\n\n", protocol_version),
-                Command::ListCommands(s)    => print!("= {}\n\n", s),
-                Command::KnownCommand(b)    => print!("= {}\n\n", b),
                 Command::BoardSize          => print!("= \n\n"),
                 Command::ClearBoard         => print!("= \n\n"),
-                Command::Komi               => print!("= \n\n"),
-                Command::Play               => print!("= \n\n"),
-                Command::PlayError(m, e)    => print!("? Illegal move: {:?} ({:?})\n\n", m, e),
+                Command::FinalScore(s)      => print!("= {}\n\n", s),
                 Command::GenMove(s)         => print!("= {}\n\n", s),
                 Command::GenMoveError(m, e) => print!("? Illegal move: {:?} ({:?})\n\n", m, e),
+                Command::KnownCommand(b)    => print!("= {}\n\n", b),
+                Command::Komi               => print!("= \n\n"),
+                Command::ListCommands(s)    => print!("= {}\n\n", s),
+                Command::LoadSgf            => print!("= \n\n"),
+                Command::Name               => print!("= {}\n\n", engine_name),
+                Command::Play               => print!("= \n\n"),
+                Command::PlayError(m, e)    => print!("? Illegal move: {:?} ({:?})\n\n", m, e),
+                Command::ProtocolVersion    => print!("= {}\n\n", protocol_version),
+                Command::Quit               => { print!("= \n\n"); return; },
                 Command::ShowBoard(s)       => print!("= {}\n\n", s),
-                Command::Quit               => {print!("= \n\n"); return;},
-                Command::FinalScore(s)      => {print!("= {}\n\n", s)},
-                Command::TimeSettings       => {print!("= \n\n")},
-                Command::TimeLeft           => {print!("= \n\n")},
-                _                           => {print!("? unknown command\n\n");}
+                Command::TimeLeft           => print!("= \n\n"),
+                Command::TimeSettings       => print!("= \n\n"),
+                Command::Version            => print!("= {}\n\n", engine_version),
+                _                           => print!("? unknown command\n\n"),
             }
         }
 

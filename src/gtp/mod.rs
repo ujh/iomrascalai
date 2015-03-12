@@ -28,6 +28,7 @@ use engine::Engine;
 use engine::EngineController;
 use game::Game;
 use ruleset::Ruleset;
+use sgf::parser::Parser;
 use timer::Timer;
 
 pub mod driver;
@@ -35,31 +36,32 @@ mod test;
 
 #[derive(Debug)]
 pub enum Command {
-    Play,
-    PlayError(Move, IllegalMove),
-    GenMove(String),
-    GenMoveError(Move, IllegalMove),
-    ProtocolVersion,
-    Name,
-    Version,
-    KnownCommand(bool),
-    ListCommands(String),
-    Quit,
     BoardSize,
     ClearBoard,
-    Komi,
-    ShowBoard(String),
     Empty,
     Error,
     FinalScore(String),
-    TimeSettings,
+    GenMove(String),
+    GenMoveError(Move, IllegalMove),
+    KnownCommand(bool),
+    Komi,
+    ListCommands(String),
+    LoadSgf,
+    Name,
+    Play,
+    PlayError(Move, IllegalMove),
+    ProtocolVersion,
+    Quit,
+    ShowBoard(String),
     TimeLeft,
+    TimeSettings,
+    Version,
 }
 
 pub struct GTPInterpreter<'a> {
     controller: EngineController<'a>,
     game: Game,
-    known_commands: [&'static str; 15],
+    known_commands: [&'static str; 16],
     ruleset: Ruleset,
     timer: Timer,
 }
@@ -72,22 +74,23 @@ impl<'a> GTPInterpreter<'a> {
             controller: EngineController::new(engine),
             game: Game::new(boardsize, komi, ruleset),
             known_commands: [
-                    "play",
-                    "genmove",
-                    "protocol_version",
-                    "name",
-                    "version",
-                    "known_command",
-                    "list_commands",
-                    "quit",
-                    "boardsize",
-                    "clear_board",
-                    "komi",
-                    "showboard",
-                    "final_score",
-                    "time_settings",
-                    "time_left",
-            ],
+                "boardsize",
+                "clear_board",
+                "final_score",
+                "genmove",
+                "known_command",
+                "komi",
+                "list_commands",
+                "loadsgf",
+                "name",
+                "play",
+                "protocol_version",
+                "quit",
+                "showboard",
+                "time_left",
+                "time_settings",
+                "version",
+                    ],
             ruleset: ruleset,
             timer: Timer::new(),
         }
@@ -200,6 +203,13 @@ impl<'a> GTPInterpreter<'a> {
                     _ => Command::Error
                 }
 
+            },
+            "loadsgf" => {
+                let filename = command[1];
+                let parser = Parser::from_path(Path::new(filename));
+                let game = parser.game().unwrap();
+                self.game = game;
+                Command::LoadSgf
             },
             _             => return Command::Error
         }

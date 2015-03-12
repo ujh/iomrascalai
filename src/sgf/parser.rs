@@ -19,8 +19,8 @@
  * along with Iomrascálaí.  If not, see <http://www.gnu.org/licenses/>. *
  *                                                                      *
  ************************************************************************/
-
-use std::old_io::fs::File;
+use std::io::prelude::*;
+use std::fs::File;
 
 use board::Black;
 use board::Color;
@@ -96,8 +96,10 @@ impl Parser {
     }
 
     pub fn from_path(path: Path) -> Parser {
-        let contents = File::open(&path).read_to_string();
-        Parser::new(contents.unwrap())
+        let mut f = File::open(&path).unwrap();
+        let mut contents = String::new();
+        f.read_to_string(&mut contents).unwrap();
+        Parser::new(contents)
     }
 
     pub fn game(&self) -> Result<Game, IllegalMove> {

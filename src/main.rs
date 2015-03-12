@@ -21,12 +21,12 @@
  ************************************************************************/
 #![feature(collections)]
 #![feature(core)]
+#![feature(io)]
 #![feature(old_io)]
 #![feature(old_path)]
 #![feature(plugin)]
 #![feature(std_misc)]
 #![feature(test)]
-#![feature(unicode)]
 #![plugin(regex_macros)]
 extern crate core;
 extern crate getopts;
