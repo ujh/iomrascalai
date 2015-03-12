@@ -20,8 +20,7 @@
  *                                                                      *
  ************************************************************************/
 
-use std::fs::File;
-use std::io::Read;
+use std::old_io::fs::File;
 
 use board::Black;
 use board::Color;
@@ -97,9 +96,8 @@ impl Parser {
     }
 
     pub fn from_path(path: Path) -> Parser {
-    	let mut buffer = String::new();
-        File::open(&path).unwrap().read_to_string(&mut buffer);
-        Parser::new(buffer)
+        let contents = File::open(&path).read_to_string();
+        Parser::new(contents.unwrap())
     }
 
     pub fn game(&self) -> Result<Game, IllegalMove> {
