@@ -7,27 +7,61 @@ set -ex
 
 cargo clean
 cargo build --release
-rm -f gnugo-benchmark*
-rm -f previous-version-benchmark*
+rm -f *benchmark*
 
 GNUGO="gnugo --mode gtp --level 0 --chinese-rules --positional-superko --capture-all-dead --score aftermath --play-out-aftermath"
+AMIGOGTP="amigogtp"
 IOMRASCALAI="./target/release/iomrascalai"
+IOMRASCALAIMC="$IOMRASCALAI -e mc"
+IOMRASCALAIAMAF="$IOMRASCALAI -e amaf"
 PREVIOUS="iomrascalai-$1"
+PREVIOUSMC="$PREVIOUS -e mc"
+PREVIOUSAMAF="$PREVIOUS -e amaf"
 REFEREE="$GNUGO"
 SIZE=9
 GAMES=100
 TIME="5m"
-THREADS=4
+THREADS=6
 
-# Play 100 games against Gnugo
-gogui-twogtp -auto -black "$GNUGO" -white "$IOMRASCALAI" \
-             -size $SIZE -alternate -games $GAMES -sgffile gnugo-benchmark \
+# Play 100 games between GnuGo and the current AMAF
+gogui-twogtp -auto -black "$GNUGO" -white "$IOMRASCALAIAMAF" \
+             -size $SIZE -alternate -games $GAMES -sgffile gnugo-amaf-benchmark \
              -time $TIME -threads $THREADS -referee "$REFEREE"
-gogui-twogtp -analyze gnugo-benchmark.dat
+gogui-twogtp -analyze gnugo-amaf-benchmark.dat
+
+# Play 100 games between GnuGo and the current MC
+gogui-twogtp -auto -black "$GNUGO" -white "$IOMRASCALAIMC" \
+             -size $SIZE -alternate -games $GAMES -sgffile gnugo-mc-benchmark \
+             -time $TIME -threads $THREADS -referee "$REFEREE"
+gogui-twogtp -analyze gnugo-mc-benchmark.dat
+
+# Play 100 games between AmiGoGtp and the current AMAF
+gogui-twogtp -auto -black "$AMIGOGTP" -white "$IOMRASCALAIAMAF" \
+             -size $SIZE -alternate -games $GAMES -sgffile amigogtp-amaf-benchmark \
+             -time $TIME -threads $THREADS -referee "$REFEREE"
+gogui-twogtp -analyze amigogtp-amaf-benchmark.dat
+
+# Play 100 games between AmiGoGtp and the current MC
+gogui-twogtp -auto -black "$AMIGOGTP" -white "$IOMRASCALAIMC" \
+             -size $SIZE -alternate -games $GAMES -sgffile amigogtp-mc-benchmark \
+             -time $TIME -threads $THREADS -referee "$REFEREE"
+gogui-twogtp -analyze amigogtp-mc-benchmark.dat
 
 # Play 100 games against the previous version. No referee needed as
 # both bots use the same scoring.
-gogui-twogtp -auto -black "$PREVIOUS" -white "$IOMRASCALAI" \
-             -size $SIZE -alternate -games $GAMES -sgffile previous-version-benchmark \
+# Previous MC against MC
+gogui-twogtp -auto -black "$PREVIOUSMC" -white "$IOMRASCALAIMC" \
+             -size $SIZE -alternate -games $GAMES -sgffile previous-mc-mc-benchmark \
              -time $TIME -threads $THREADS
-gogui-twogtp -analyze previous-version-benchmark.dat
+gogui-twogtp -analyze previous-mc-mc-benchmark.dat
+# Previous AMAF against AMAF
+gogui-twogtp -auto -black "$PREVIOUSAMAF" -white "$IOMRASCALAIAMAF" \
+             -size $SIZE -alternate -games $GAMES -sgffile previous-amaf-amaf-benchmark \
+             -time $TIME -threads $THREADS
+gogui-twogtp -analyze previous-amaf-amaf-benchmark.dat
+
+# Current AMAF against current MC
+gogui-twogtp -auto -black "$IOMRASCALAIMC" -white "$IOMRASCALAIAMAF" \
+             -size $SIZE -alternate -games $GAMES -sgffile mc-amaf-benchmark \
+             -time $TIME -threads $THREADS
+gogui-twogtp -analyze mc-amaf-benchmark.dat
