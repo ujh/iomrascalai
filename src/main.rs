@@ -28,6 +28,7 @@
 #![feature(std_misc)]
 #![feature(test)]
 #![plugin(regex_macros)]
+#![feature(io)]
 extern crate core;
 extern crate getopts;
 extern crate rand;
