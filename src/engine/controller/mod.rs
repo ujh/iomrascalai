@@ -71,9 +71,7 @@ impl<'a> EngineController<'a> {
     fn budget(&self, timer: &mut Timer, game: &Game) -> i64 {
         timer.start();
         let budget = timer.budget(game);
-        let mut stream = stderr();
-        stream.write_line(format!("Thinking for {}ms", budget).as_slice());
-        stream.write_line(format!("{}ms time left", timer.main_time_left()).as_slice());
+        log!("Thinking for {}ms ({}ms time left)", budget, timer.main_time_left());
         budget
     }
 
