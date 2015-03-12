@@ -28,6 +28,7 @@ use engine::Engine;
 use engine::EngineController;
 use game::Game;
 use ruleset::Ruleset;
+use sgf::parser::Parser;
 use timer::Timer;
 
 pub mod driver;
@@ -45,6 +46,7 @@ pub enum Command {
     KnownCommand(bool),
     Komi,
     ListCommands(String),
+    LoadSgf,
     Name,
     Play,
     PlayError(Move, IllegalMove),
@@ -59,7 +61,7 @@ pub enum Command {
 pub struct GTPInterpreter<'a> {
     controller: EngineController<'a>,
     game: Game,
-    known_commands: [&'static str; 15],
+    known_commands: [&'static str; 16],
     ruleset: Ruleset,
     timer: Timer,
 }
@@ -72,22 +74,23 @@ impl<'a> GTPInterpreter<'a> {
             controller: EngineController::new(engine),
             game: Game::new(boardsize, komi, ruleset),
             known_commands: [
-                    "boardsize",
-                    "clear_board",
-                    "final_score",
-                    "genmove",
-                    "known_command",
-                    "komi",
-                    "list_commands",
-                    "name",
-                    "play",
-                    "protocol_version",
-                    "quit",
-                    "showboard",
-                    "time_left",
-                    "time_settings",
-                    "version",
-            ],
+                "boardsize",
+                "clear_board",
+                "final_score",
+                "genmove",
+                "known_command",
+                "komi",
+                "list_commands",
+                "loadsgf",
+                "name",
+                "play",
+                "protocol_version",
+                "quit",
+                "showboard",
+                "time_left",
+                "time_settings",
+                "version",
+                    ],
             ruleset: ruleset,
             timer: Timer::new(),
         }
@@ -200,6 +203,13 @@ impl<'a> GTPInterpreter<'a> {
                     _ => Command::Error
                 }
 
+            },
+            "loadsgf" => {
+                let filename = command[1];
+                let parser = Parser::from_path(Path::new(filename));
+                let game = parser.game().unwrap();
+                self.game = game;
+                Command::LoadSgf
             },
             _             => return Command::Error
         }
