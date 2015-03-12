@@ -81,7 +81,7 @@ impl Color {
     }
 
     pub fn from_gtp(gtp_color: &str) -> Color {
-        let lower_gtp_color: String = gtp_color.chars().map(|c| c.to_lowercase()).collect();
+        let lower_gtp_color: String = gtp_color.chars().map(|c| c.to_lowercase().next().unwrap()).collect();
         match lower_gtp_color.as_slice() {
             "w" | "white" => White,
             "b" | "black" => Black,

@@ -86,7 +86,7 @@ impl Coord {
 
     // Note: there is no I column.
     pub fn from_gtp(gtp_vertex: &str) -> Coord {
-        let col_letter = gtp_vertex.as_slice().char_at(0).to_lowercase();
+        let col_letter = gtp_vertex.as_slice().char_at(0).to_lowercase().next().unwrap();
 
         let col = if col_letter > 'i' {
             col_letter as u8 - 'a' as u8

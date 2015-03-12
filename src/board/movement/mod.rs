@@ -37,7 +37,7 @@ pub enum Move {
 impl Move {
     pub fn from_gtp(gtp_color: &str, gtp_vertex: &str) -> Move {
         let color = Color::from_gtp(gtp_color);
-        let lower_gtp_vertex: String = gtp_vertex.chars().map(|c| c.to_lowercase()).collect();
+        let lower_gtp_vertex: String = gtp_vertex.chars().map(|c| c.to_lowercase().next().unwrap()).collect();
 
         match lower_gtp_vertex.as_slice() {
             "pass"   => { Pass(color) },
