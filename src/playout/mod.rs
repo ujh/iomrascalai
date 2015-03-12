@@ -29,22 +29,16 @@ use rand::random;
 mod test;
 
 pub struct Playout {
-    board: Board,
     moves: Vec<Move>,
+    winner: Color,
 }
 
 impl Playout {
-    pub fn new(b: Board) -> Playout {
-        Playout {
-            board: b,
-            moves: Vec::new(),
-        }
-    }
-
-    pub fn run(&mut self, initial_move: &Move) -> Color {
-        let mut board = self.board.clone();
+    pub fn new(b: &Board, initial_move: &Move) -> Playout {
+        let mut board = b.clone();
+        let mut played_moves = Vec::new();
         board.play(*initial_move);
-        self.moves.push(*initial_move);
+        played_moves.push(*initial_move);
         let max_moves = board.size() * board.size() * 3;
         let mut move_count = 0;
         while !board.is_game_over() && move_count < max_moves {
@@ -56,14 +50,20 @@ impl Playout {
                 moves[random::<usize>() % moves.len()]
             };
             board.play(m);
-            self.moves.push(m);
+            played_moves.push(m);
             move_count += 1;
         }
-        board.winner()
+        Playout {
+            moves: played_moves,
+            winner: board.winner(),
+        }
     }
 
     pub fn moves(&self) -> &Vec<Move> {
         &self.moves
     }
 
+    pub fn winner(&self) -> Color {
+        self.winner
+    }
 }
