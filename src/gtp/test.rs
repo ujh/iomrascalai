@@ -32,7 +32,7 @@ use super::GTPInterpreter;
 fn no_newline_at_end_of_list_commands() {
     let mut interpreter = GTPInterpreter::new(Minimal, Box::new(RandomEngine::new()));
     let commands    = interpreter.read("list_commands\n");
-    let expected    = "play\ngenmove\nprotocol_version\nname\nversion\nknown_command\nlist_commands\nquit\nboardsize\nclear_board\nkomi\nshowboard\nfinal_score\ntime_settings\ntime_left";
+    let expected    = "boardsize\nclear_board\nfinal_score\ngenmove\nknown_command\nkomi\nlist_commands\nname\nplay\nprotocol_version\nquit\nshowboard\ntime_left\ntime_settings\nversion";
     match commands {
         Command::ListCommands(cs) => assert_eq!(expected, cs.as_slice()),
         _                         => panic!("wrong match")
