@@ -21,34 +21,43 @@
 
 #![cfg(test)]
 
-use playout::Playout;
+use board::Black;
+use board::Play;
 use game::Game;
+use playout::Playout;
 use ruleset::KgsChinese;
+
 use test::Bencher;
+
+#[test]
+fn should_add_the_passed_moves_as_the_first_move() {
+    let game = Game::new(9, 6.5, KgsChinese);
+    let board = game.board();
+    let playout = Playout::run(&board, &Play(Black, 1, 1));
+    assert_eq!(Play(Black, 1, 1), playout.moves()[0]);
+}
+
 
 #[bench]
 fn bench_9x9_playout_speed(b: &mut Bencher) {
     let game = Game::new(9, 6.5, KgsChinese);
     let board = game.board();
-    let mut playout_engine = Playout::new(board);
 
-    b.iter(|| {playout_engine.run()})
+    b.iter(|| Playout::run(&board, &Play(Black, 1, 1)))
 }
 
 #[bench]
 fn bench_13x13_playout_speed(b: &mut Bencher) {
     let game = Game::new(13, 6.5, KgsChinese);
     let board = game.board();
-    let mut playout_engine = Playout::new(board);
 
-    b.iter(|| {playout_engine.run()})
+    b.iter(|| Playout::run(&board, &Play(Black, 1, 1)))
 }
 
 #[bench]
 fn bench_19x19_playout_speed(b: &mut Bencher) {
     let game = Game::new(19, 6.5, KgsChinese);
     let board = game.board();
-    let mut playout_engine = Playout::new(board);
 
-    b.iter(|| {playout_engine.run()})
+    b.iter(|| Playout::run(&board, &Play(Black, 1, 1)))
 }

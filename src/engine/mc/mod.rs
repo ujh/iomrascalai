@@ -51,10 +51,9 @@ pub trait McEngine {
         let mut counter = 0;
         loop {
             let m = moves[random::<usize>() % moves.len()];
-            let g = game.play(m).unwrap();
-            let mut playout = Playout::new(g.board());
-            let winner = playout.run();
-            self.record_playout(&mut stats, &m, &playout, winner == color);
+            let playout = Playout::run(&game.board(), &m);
+            let winner = playout.winner();
+            self.record_playout(&mut stats, &playout, winner == color);
             counter += 1;
             if receiver.try_recv().is_ok() {
                 break;
@@ -72,6 +71,6 @@ pub trait McEngine {
         }
     }
 
-    fn record_playout(&self, &mut MoveStats, &Move, &Playout, bool);
+    fn record_playout(&self, &mut MoveStats, &Playout, bool);
 
 }

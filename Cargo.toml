@@ -15,7 +15,8 @@ rand            = "*"
 regex           = "*"
 regex_macros    = "*"
 rustc-serialize = "*"
-#time            = "*"
+# Temporarily use the github time crate, due to a Windowns bug in the released version
+# time            = "*"
 
 [dependencies.time]
 

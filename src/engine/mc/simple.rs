@@ -47,7 +47,8 @@ impl Engine for SimpleMcEngine {
 
 impl McEngine for SimpleMcEngine {
 
-    fn record_playout(&self, stats: &mut MoveStats, m: &Move, _: &Playout, won: bool) {
+    fn record_playout(&self, stats: &mut MoveStats, playout: &Playout, won: bool) {
+        let m = playout.moves()[0];
         if won {
             stats.record_win(&m);
         } else {

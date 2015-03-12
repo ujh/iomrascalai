@@ -50,7 +50,7 @@ fn getting_a_valid_coord_returns_a_color() {
 }
 
 #[test]
-#[should_fail]
+#[should_panic]
 fn getting_invalid_coordinates_fails() {
     let b = Board::new(19, 6.5, AnySizeTrompTaylor);
 
@@ -66,7 +66,7 @@ fn _19_19_is_a_valid_coordinate(){
 }
 
 #[test]
-#[should_fail]
+#[should_panic]
 fn _0_0_is_not_a_valid_coordinate(){
     let b = Board::new(19, 6.5, AnySizeTrompTaylor);
 
