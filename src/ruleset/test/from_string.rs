@@ -48,7 +48,7 @@ fn parses_minimal() {
 }
 
 #[test]
-#[should_fail]
+#[should_panic]
 fn fails_with_unknown() {
     Ruleset::from_string(String::from_str("unknown"));
 }

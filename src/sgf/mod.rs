@@ -18,7 +18,6 @@
  * along with Iomrascálaí.  If not, see <http://www.gnu.org/licenses/>. *
  *                                                                      *
  ************************************************************************/
-
 pub use self::parser::Parser;
 
 pub mod parser;

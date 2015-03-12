@@ -25,7 +25,6 @@ use board::Color;
 use board::Coord;
 use board::IllegalMove;
 use board::Move;
-use board::Play;
 use ruleset::Ruleset;
 use score::Score;
 use self::zobrist_hash_table::ZobristHashTable;
