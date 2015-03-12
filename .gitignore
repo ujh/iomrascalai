@@ -1,5 +1,3 @@
 target/
-gnugo-benchmark*
-previous-version-benchmark*
-selfplay-benchmark*
+*-benchmark*
 .project
