@@ -51,12 +51,12 @@ impl Engine for AmafMcEngine {
 
 impl McEngine for AmafMcEngine {
 
-    fn record_playout(&self, stats: &mut MoveStats, _: &Move, playout: &Playout, won: bool) {
-        for m2 in playout.moves().iter() {
+    fn record_playout(&self, stats: &mut MoveStats, playout: &Playout, won: bool) {
+        for m in playout.moves().iter() {
             if won {
-                stats.record_win(&m2);
+                stats.record_win(&m);
             } else {
-                stats.record_loss(&m2);
+                stats.record_loss(&m);
             }
         }
     }

@@ -41,8 +41,10 @@ impl Playout {
         }
     }
 
-    pub fn run(&mut self) -> Color {
+    pub fn run(&mut self, initial_move: &Move) -> Color {
         let mut board = self.board.clone();
+        board.play(*initial_move);
+        self.moves.push(*initial_move);
         let max_moves = board.size() * board.size() * 3;
         let mut move_count = 0;
         while !board.is_game_over() && move_count < max_moves {

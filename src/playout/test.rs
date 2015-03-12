@@ -21,9 +21,12 @@
 
 #![cfg(test)]
 
-use playout::Playout;
+use board::Black;
+use board::Play;
 use game::Game;
+use playout::Playout;
 use ruleset::KgsChinese;
+
 use test::Bencher;
 
 #[bench]
@@ -32,7 +35,7 @@ fn bench_9x9_playout_speed(b: &mut Bencher) {
     let board = game.board();
     let mut playout_engine = Playout::new(board);
 
-    b.iter(|| {playout_engine.run()})
+    b.iter(|| {playout_engine.run(&Play(Black, 1, 1))})
 }
 
 #[bench]
@@ -41,7 +44,7 @@ fn bench_13x13_playout_speed(b: &mut Bencher) {
     let board = game.board();
     let mut playout_engine = Playout::new(board);
 
-    b.iter(|| {playout_engine.run()})
+    b.iter(|| {playout_engine.run(&Play(Black, 1, 1))})
 }
 
 #[bench]
@@ -50,5 +53,5 @@ fn bench_19x19_playout_speed(b: &mut Bencher) {
     let board = game.board();
     let mut playout_engine = Playout::new(board);
 
-    b.iter(|| {playout_engine.run()})
+    b.iter(|| {playout_engine.run(&Play(Black, 1, 1))})
 }
