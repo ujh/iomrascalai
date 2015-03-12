@@ -15,4 +15,8 @@ rand            = "*"
 regex           = "*"
 regex_macros    = "*"
 rustc-serialize = "*"
-time            = "*"
+#time            = "*"
+
+[dependencies.time]
+
+git = "https://github.com/rust-lang/time"
