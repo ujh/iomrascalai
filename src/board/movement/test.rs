@@ -58,7 +58,7 @@ fn extract_color_from_resign() {
 }
 
 #[test]
-#[should_fail]
+#[should_panic]
 fn fail_when_trying_to_get_coord_of_resign() {
     let m = Resign(White);
     m.coord(); // This should blow up
