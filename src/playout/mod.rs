@@ -34,7 +34,7 @@ pub struct Playout {
 }
 
 impl Playout {
-    pub fn new(b: &Board, initial_move: &Move) -> Playout {
+    pub fn run(b: &Board, initial_move: &Move) -> Playout {
         let mut board = b.clone();
         let mut played_moves = Vec::new();
         board.play(*initial_move);

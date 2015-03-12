@@ -51,7 +51,7 @@ pub trait McEngine {
         let mut counter = 0;
         loop {
             let m = moves[random::<usize>() % moves.len()];
-            let playout = Playout::new(&game.board(), &m);
+            let playout = Playout::run(&game.board(), &m);
             let winner = playout.winner();
             self.record_playout(&mut stats, &playout, winner == color);
             counter += 1;
