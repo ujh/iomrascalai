@@ -4,8 +4,8 @@
 
 * Fix bug in AMAF code that made it much weaker than it should be. The
   first move of each playout wasn't taken into account during the move
-  selection.
-* Implemented the loadsgf GTP command
+  selection ([#102](https://github.com/ujh/iomrascalai/pull/102))
+* Implemented the loadsgf GTP command ([#104](https://github.com/ujh/iomrascalai/pull/104))
 
 ### Performance
 
