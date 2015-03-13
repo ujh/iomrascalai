@@ -32,8 +32,12 @@ use board::Pass;
 use board::Move;
 
 use rand::random;
+use std::os::num_cpus;
+use std::sync::Arc;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
+use std::sync::mpsc::channel;
+use std::thread;
 
 mod amaf;
 mod simple;
@@ -41,7 +45,8 @@ mod simple;
 pub trait McEngine {
 
     fn mc_gen_move(&self, color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
-        let moves = game.legal_moves_without_eyes();
+        let moves = Arc::new(game.legal_moves_without_eyes());
+        let threads = num_cpus();
         if moves.is_empty() {
             log!("No moves to simulate!");
             sender.send(Pass(color));
@@ -49,25 +54,52 @@ pub trait McEngine {
         }
         let mut stats = MoveStats::new(&moves, color);
         let mut counter = 0;
-        loop {
-            let m = moves[random::<usize>() % moves.len()];
-            let playout = Playout::run(&game.board(), &m);
-            let winner = playout.winner();
-            self.record_playout(&mut stats, &playout, winner == color);
-            counter += 1;
-            if receiver.try_recv().is_ok() {
-                break;
-            }
+        let (send_result, receive_result) = channel::<Playout>();
+        let mut guards = Vec::new();
+        let mut halt_senders = Vec::new();
+        for i in range(0, threads) {
+            let moves = moves.clone();
+            let (send_halt, receive_halt) = channel::<()>();
+            halt_senders.push(send_halt);
+            let send_result = send_result.clone();
+            let guard = thread::scoped(move || {
+                loop {
+                    if receive_halt.try_recv().is_ok() {
+                        break;
+                    } else {
+                        let m = moves[random::<usize>() % moves.len()];
+                        let playout = Playout::run(&game.board(), &m);
+                        send_result.send(playout);
+                    }
+                }
+            });
+            guards.push(guard);
         }
-        log!("{} simulations", counter);
-        // resign if 0% wins
-        if stats.all_losses() {
-            log!("All simulations were losses");
-            sender.send(Resign(color));
-        } else {
-            let (m, s) = stats.best();
-            log!("Returning the best move ({}% wins)", s.win_ratio()*100.0);
-            sender.send(m);
+        loop {
+            select!(
+                result = receive_result.recv() => {
+                    let playout = result.unwrap();
+                    let winner = playout.winner();
+                    self.record_playout(&mut stats, &playout, winner == color);
+                    counter += 1;
+                },
+                _ = receiver.recv() => {
+                    log!("{} simulations", counter);
+                    // resign if 0% wins
+                    if stats.all_losses() {
+                        log!("All simulations were losses");
+                        sender.send(Resign(color));
+                    } else {
+                        let (m, s) = stats.best();
+                        log!("Returning the best move ({}% wins)", s.win_ratio()*100.0);
+                        sender.send(m);
+                    }
+                    for halt_sender in halt_senders.iter() {
+                        halt_sender.send(());
+                    }
+                    break;
+                }
+                )
         }
     }
 
