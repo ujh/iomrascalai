@@ -12,8 +12,13 @@
 After running 100 games on 9x9 with komi 6.5 and a time limit of 5
 minutes (sudden death) the win rates are as follows:
 
-* ...
-* ...
+* 3% ± 1.7% of the MC engine against GnuGo 3.8 (level 0)
+* 3% ± 1.7% of the AMAF engine against GnuGo 3.8 (level 0)
+* 92% ± 2.7% of the MC engine against AmiGoGtp 1.8
+* 92% ± 2.7% of the AMAF engine against AmiGoGtp 1.8
+* 41% ± 4.9% of the MC engine against the MC engine of 0.1.4
+* 52% ± 5% of the AMAF engine against the AMAF engine of 0.1.4
+* 70% ± 4.6% of the current AMAF engine against the current MC engine
 
 ## 0.1.4 [☰](https://github.com/ujh/iomrascalai/compare/0.1.3...0.1.4)
 
