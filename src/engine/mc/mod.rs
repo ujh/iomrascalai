@@ -63,7 +63,7 @@ pub trait McEngine {
             let (send_halt, receive_halt) = channel::<()>();
             halt_senders.push(send_halt);
             let send_result = send_result.clone();
-            let guard = self.spin_up(receive_halt, moves, game.board(), send_result);
+            let guard = spin_up(receive_halt, moves, game.board(), send_result);
             guards.push(guard);
         }
         loop {
@@ -76,42 +76,42 @@ pub trait McEngine {
                 },
                 _ = receiver.recv() => {
                     log!("{} simulations", counter);
-                    self.finish(color, stats, sender, halt_senders);
+                    finish(color, stats, sender, halt_senders);
                     break;
                 }
                 )
         }
     }
 
-    fn spin_up(&self, recv_halt: Receiver<()>, moves: Arc<Vec<Move>>, board: Board, send_result: Sender<Playout>) -> thread::JoinGuard<()> {
-        thread::scoped(move || {
-            loop {
-                if recv_halt.try_recv().is_ok() {
-                    break;
-                } else {
-                    let m = moves[random::<usize>() % moves.len()];
-                    let playout = Playout::run(&board, &m);
-                    send_result.send(playout);
-                }
-            }
-        })
-    }
-
-    fn finish(&self, color: Color, stats: MoveStats, sender: Sender<Move>, halt_senders: Vec<Sender<()>>) {
-        // resign if 0% wins
-        if stats.all_losses() {
-            log!("All simulations were losses");
-            sender.send(Resign(color));
-        } else {
-            let (m, s) = stats.best();
-            log!("Returning the best move ({}% wins)", s.win_ratio()*100.0);
-            sender.send(m);
-        }
-        for halt_sender in halt_senders.iter() {
-            halt_sender.send(());
-        }
-    }
-
     fn record_playout(&self, &mut MoveStats, &Playout, bool);
 
+}
+
+fn finish(color: Color, stats: MoveStats, sender: Sender<Move>, halt_senders: Vec<Sender<()>>) {
+    // resign if 0% wins
+    if stats.all_losses() {
+        log!("All simulations were losses");
+        sender.send(Resign(color));
+    } else {
+        let (m, s) = stats.best();
+        log!("Returning the best move ({}% wins)", s.win_ratio()*100.0);
+        sender.send(m);
+    }
+    for halt_sender in halt_senders.iter() {
+        halt_sender.send(());
+    }
+}
+
+fn spin_up<'a>(recv_halt: Receiver<()>, moves: Arc<Vec<Move>>, board: Board, send_result: Sender<Playout>) -> thread::JoinGuard<'a, ()> {
+    thread::scoped(move || {
+        loop {
+            if recv_halt.try_recv().is_ok() {
+                break;
+            } else {
+                let m = moves[random::<usize>() % moves.len()];
+                let playout = Playout::run(&board, &m);
+                send_result.send(playout);
+            }
+        }
+    })
 }
