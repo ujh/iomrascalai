@@ -33,6 +33,7 @@ use game::Game;
 use playout::Playout;
 
 use rand::random;
+use std::marker::MarkerTrait;
 use std::os::num_cpus;
 use std::sync::Arc;
 use std::sync::mpsc::Receiver;
@@ -43,48 +44,48 @@ use std::thread;
 mod amaf;
 mod simple;
 
-pub trait McEngine {
+pub trait McEngine: MarkerTrait {
 
-    fn mc_gen_move(&self, color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
-        let moves = Arc::new(game.legal_moves_without_eyes());
-        let threads = num_cpus();
-        if moves.is_empty() {
-            log!("No moves to simulate!");
-            sender.send(Pass(color));
-            return;
-        }
-        let mut stats = MoveStats::new(&moves, color);
-        let mut counter = 0;
-        let (send_result, receive_result) = channel::<Playout>();
-        let mut guards = Vec::new();
-        let mut halt_senders = Vec::new();
-        for i in range(0, threads) {
-            let moves = moves.clone();
-            let (send_halt, receive_halt) = channel::<()>();
-            halt_senders.push(send_halt);
-            let send_result = send_result.clone();
-            let guard = spin_up(receive_halt, moves, game.board(), send_result);
-            guards.push(guard);
-        }
-        loop {
-            select!(
-                result = receive_result.recv() => {
-                    let playout = result.unwrap();
-                    let winner = playout.winner();
-                    self.record_playout(&mut stats, &playout, winner == color);
-                    counter += 1;
-                },
-                _ = receiver.recv() => {
-                    log!("{} simulations", counter);
-                    finish(color, stats, sender, halt_senders);
-                    break;
-                }
-                )
-        }
+    fn record_playout(&mut MoveStats, &Playout, bool);
+
+}
+
+fn gen_move<T: McEngine>(color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
+    let moves = Arc::new(game.legal_moves_without_eyes());
+    let threads = num_cpus();
+    if moves.is_empty() {
+        log!("No moves to simulate!");
+        sender.send(Pass(color));
+        return;
     }
-
-    fn record_playout(&self, &mut MoveStats, &Playout, bool);
-
+    let mut stats = MoveStats::new(&moves, color);
+    let mut counter = 0;
+    let (send_result, receive_result) = channel::<Playout>();
+    let mut guards = Vec::new();
+    let mut halt_senders = Vec::new();
+    for i in range(0, threads) {
+        let moves = moves.clone();
+        let (send_halt, receive_halt) = channel::<()>();
+        halt_senders.push(send_halt);
+        let send_result = send_result.clone();
+        let guard = spin_up(receive_halt, moves, game.board(), send_result);
+        guards.push(guard);
+    }
+    loop {
+        select!(
+            result = receive_result.recv() => {
+                let playout = result.unwrap();
+                let winner = playout.winner();
+                T::record_playout(&mut stats, &playout, winner == color);
+                counter += 1;
+            },
+            _ = receiver.recv() => {
+                log!("{} simulations", counter);
+                finish(color, stats, sender, halt_senders);
+                break;
+            }
+            )
+    }
 }
 
 fn finish(color: Color, stats: MoveStats, sender: Sender<Move>, halt_senders: Vec<Sender<()>>) {

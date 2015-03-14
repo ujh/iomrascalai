@@ -44,14 +44,14 @@ impl AmafMcEngine {
 impl Engine for AmafMcEngine {
 
     fn gen_move(&self, color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
-        self.mc_gen_move(color, game, sender, receiver);
+        super::gen_move::<AmafMcEngine>(color, game, sender, receiver);
     }
 
 }
 
 impl McEngine for AmafMcEngine {
 
-    fn record_playout(&self, stats: &mut MoveStats, playout: &Playout, won: bool) {
+    fn record_playout(stats: &mut MoveStats, playout: &Playout, won: bool) {
         for m in playout.moves().iter() {
             if won {
                 stats.record_win(&m);
@@ -60,4 +60,5 @@ impl McEngine for AmafMcEngine {
             }
         }
     }
+
 }

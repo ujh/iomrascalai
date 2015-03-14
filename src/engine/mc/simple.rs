@@ -37,17 +37,18 @@ impl SimpleMcEngine {
     pub fn new() -> SimpleMcEngine {
         SimpleMcEngine
     }
+
 }
 
 impl Engine for SimpleMcEngine {
     fn gen_move(&self, color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
-        self.mc_gen_move(color, game, sender, receiver);
+        super::gen_move::<SimpleMcEngine>(color, game, sender, receiver);
     }
 }
 
 impl McEngine for SimpleMcEngine {
 
-    fn record_playout(&self, stats: &mut MoveStats, playout: &Playout, won: bool) {
+    fn record_playout(stats: &mut MoveStats, playout: &Playout, won: bool) {
         let m = playout.moves()[0];
         if won {
             stats.record_win(&m);
