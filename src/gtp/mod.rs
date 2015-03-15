@@ -36,7 +36,7 @@ pub mod driver;
 mod test;
 
 strenum! {
-    knownCommands => 
+    KnownCommands => 
         boardsize,
         clear_board,
         final_score,
@@ -133,17 +133,17 @@ impl<'a> GTPInterpreter<'a> {
 
         let command: Vec<&str> = preprocessed.as_slice().split(' ').collect();
 
-        match <knownCommands>::enumify(command[0]) {
-            Some(knownCommands::name)             => Command::Name,
-            Some(knownCommands::version)          => Command::Version,
-            Some(knownCommands::protocol_version) => Command::ProtocolVersion,
-            Some(knownCommands::list_commands)    => Command::ListCommands(<knownCommands>::stringify()),
-            Some(knownCommands::known_command)    =>
+        match <KnownCommands>::enumify(command[0]) {
+            Some(KnownCommands::name)             => Command::Name,
+            Some(KnownCommands::version)          => Command::Version,
+            Some(KnownCommands::protocol_version) => Command::ProtocolVersion,
+            Some(KnownCommands::list_commands)    => Command::ListCommands(<KnownCommands>::stringify()),
+            Some(KnownCommands::known_command)    =>
                 match command.get(1) {
-                	Some(comm) => Command::KnownCommand(<knownCommands>::enumify(&comm).is_some()),
+                	Some(comm) => Command::KnownCommand(<KnownCommands>::enumify(&comm).is_some()),
                 	None => Command::KnownCommand(false)
             	},
-            Some(knownCommands::boardsize)        =>
+            Some(KnownCommands::boardsize)        =>
                 match command.get(1) {
                 	Some(comm) => match comm.parse::<u8>() {
                         Ok(size) => {
@@ -154,12 +154,12 @@ impl<'a> GTPInterpreter<'a> {
                     },
                 	None => Command::Error
             	},
-            Some(knownCommands::clear_board)      => {
+            Some(KnownCommands::clear_board)      => {
                 self.game = Game::new(self.boardsize(), self.komi(), self.ruleset());
                 self.timer.reset();
                 Command::ClearBoard
             },
-            Some(knownCommands::komi)             =>
+            Some(KnownCommands::komi)             =>
                 match command.get(1) {
                     Some(comm) =>
                         match comm.parse::<f32>() {
@@ -171,7 +171,7 @@ impl<'a> GTPInterpreter<'a> {
                         },
                     None => Command::Error
                 },
-            Some(knownCommands::genmove)          =>
+            Some(KnownCommands::genmove)          =>
             	match command.get(1) {
             		Some(comm) => {
             			let color = Color::from_gtp(comm);
@@ -189,7 +189,7 @@ impl<'a> GTPInterpreter<'a> {
                     },
                     None => Command::Error
         		},
-            Some(knownCommands::play)             => 
+            Some(KnownCommands::play)             => 
             match command.get(2) {
             	Some(second) => {
                     let m = Move::from_gtp(command[1], second); //command[1] should be there
@@ -205,10 +205,10 @@ impl<'a> GTPInterpreter<'a> {
                 },
             	None => Command::Error
         	},
-            Some(knownCommands::showboard)   => Command::ShowBoard(format!("\n{}", self.game)),
-            Some(knownCommands::quit)        => Command::Quit,
-            Some(knownCommands::final_score) => Command::FinalScore(format!("{}", self.game.score())),
-            Some(knownCommands::time_settings) => match command.get(3) {
+            Some(KnownCommands::showboard)   => Command::ShowBoard(format!("\n{}", self.game)),
+            Some(KnownCommands::quit)        => Command::Quit,
+            Some(KnownCommands::final_score) => Command::FinalScore(format!("{}", self.game.score())),
+            Some(KnownCommands::time_settings) => match command.get(3) {
             	Some(third) => {
             		//command[1] and command[2] should be there
                     match (command[1].parse::<i64>(), command[2].parse::<i64>(), third.parse::<i32>()) {
@@ -221,7 +221,7 @@ impl<'a> GTPInterpreter<'a> {
                 },
             	None => Command::Error
         	},
-            Some(knownCommands::time_left) => match command.get(3) {
+            Some(KnownCommands::time_left) => match command.get(3) {
             	Some(third) => {
             		//command[2] should be there
             		//TODO: seems wrong, missing a color
@@ -235,7 +235,7 @@ impl<'a> GTPInterpreter<'a> {
                 },
             	None => Command::Error
         	},
-            Some(knownCommands::loadsgf) => match command.get(1) {
+            Some(KnownCommands::loadsgf) => match command.get(1) {
             	Some(comm) => {
                     let filename = comm;
                     
