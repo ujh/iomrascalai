@@ -94,6 +94,19 @@ impl Parser {
     pub fn new(sgf: String) -> Parser {
         Parser {sgf: sgf}
     }
+    
+    pub fn attempt_from_path(path: Path) -> Result<Parser, ::std::io::Error> {
+    	match File::open(&path) {
+    		Ok(mut file) => {
+		        let mut contents = String::new();
+                match file.read_to_string(&mut contents) {
+                	Ok(result) => Ok(Parser::new(contents)),
+                	Err(e) => Err(e)
+            	}
+			},
+    		Err(e) => Err(e)
+		}
+	}
 
     pub fn from_path(path: Path) -> Parser {
         let mut f = File::open(&path).unwrap();
