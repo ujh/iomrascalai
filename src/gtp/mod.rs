@@ -133,12 +133,12 @@ impl<'a> GTPInterpreter<'a> {
         let command: Vec<&str> = preprocessed.as_slice().split(' ').collect();
 
         match <knownCommands>::enumify(command[0]) {
-            Some(knownCommands::name)             => return Command::Name,
-            Some(knownCommands::version)          => return Command::Version,
-            Some(knownCommands::protocol_version) => return Command::ProtocolVersion,
-            Some(knownCommands::list_commands)    => return Command::ListCommands(self.list_commands()),
-            Some(knownCommands::known_command)    => return Command::KnownCommand(<knownCommands>::enumify(&command[1]).is_some()),
-            Some(knownCommands::boardsize)        => return match command[1].parse::<u8>() {
+            Some(knownCommands::name)             => Command::Name,
+            Some(knownCommands::version)          => Command::Version,
+            Some(knownCommands::protocol_version) => Command::ProtocolVersion,
+            Some(knownCommands::list_commands)    => Command::ListCommands(<knownCommands>::stringify()),
+            Some(knownCommands::known_command)    => Command::KnownCommand(<knownCommands>::enumify(&command[1]).is_some()),
+            Some(knownCommands::boardsize)        => match command[1].parse::<u8>() {
                 Ok(size) => {
                     self.game = Game::new(size, self.komi(), self.ruleset());
                     Command::BoardSize
@@ -150,7 +150,7 @@ impl<'a> GTPInterpreter<'a> {
                 self.timer.reset();
                 Command::ClearBoard
             },
-            Some(knownCommands::komi)             => return match command[1].parse::<f32>() {
+            Some(knownCommands::komi)             => match command[1].parse::<f32>() {
                 Ok(komi) => {
                     self.game.set_komi(komi);
                     Command::Komi
@@ -184,8 +184,8 @@ impl<'a> GTPInterpreter<'a> {
                 }
             },
             Some(knownCommands::showboard)   => Command::ShowBoard(format!("\n{}", self.game)),
-            Some(knownCommands::quit)        => return Command::Quit,
-            Some(knownCommands::final_score) => return Command::FinalScore(format!("{}", self.game.score())),
+            Some(knownCommands::quit)        => Command::Quit,
+            Some(knownCommands::final_score) => Command::FinalScore(format!("{}", self.game.score())),
             Some(knownCommands::time_settings) => {
                 match (command[1].parse::<i64>(), command[2].parse::<i64>(), command[3].parse::<i32>()) {
                     (Ok(main), Ok(byo), Ok(stones)) => {
@@ -212,7 +212,7 @@ impl<'a> GTPInterpreter<'a> {
                 self.game = game;
                 Command::LoadSgf
             },
-            None             => return Command::Error
+            None             => Command::Error
         }
     }
 
@@ -228,9 +228,5 @@ impl<'a> GTPInterpreter<'a> {
         let without_comment = comment.replace(without_ctrls.as_slice(), "");
         // We remove the whitespaces before/after the string
         without_comment.as_slice().trim().to_string()
-    }
-
-    fn list_commands(&self) -> String {
-    	<knownCommands>::stringify()
     }
 }
