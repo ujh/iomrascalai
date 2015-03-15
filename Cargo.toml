@@ -17,6 +17,7 @@ regex_macros    = "*"
 rustc-serialize = "*"
 # Temporarily use the github time crate, due to a Windowns bug in the released version
 # time            = "*"
+strenum         = "*"
 
 [dependencies.time]
 
