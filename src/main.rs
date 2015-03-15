@@ -36,6 +36,7 @@ extern crate regex;
 extern crate "rustc-serialize" as rustc_serialize;
 extern crate test;
 extern crate time;
+ #[macro_use(strenum)] extern crate strenum;
 
 use engine::AmafMcEngine;
 use engine::Engine;

@@ -1,7 +1,7 @@
 /************************************************************************
  *                                                                      *
  * Copyright 2014 Urban Hafner, Thomas Poinsot                          *
- * Copyright 2015 Thomas Poinsot                                        *
+ * Copyright 2015 Thomas Poinsot, Igor Polyakov                         *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -40,16 +40,6 @@ impl Driver {
         let mut reader = stdin();
 
         loop {
-            // let result = interpreter.read(reader.read_line().unwrap().as_slice());
-
-            // match result {
-            //     Ok(s) => print!("= {}\n\n", s),
-            //     Err(s) => print!("? {}\n\n", s),
-            //     Quit   => {
-            //         print!("= \n\n");
-            //         return;
-            //     }
-            // }
 
             let command = interpreter.read(reader.read_line().unwrap().as_slice());
 
