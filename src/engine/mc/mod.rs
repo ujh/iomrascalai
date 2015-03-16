@@ -72,17 +72,21 @@ fn gen_move<T: McEngine>(color: Color, game: &Game, sender: Sender<Move>, receiv
             },
             _ = receiver.recv() => {
                 log!("{} simulations", counter);
-                finish(color, stats, sender, halt_senders);
+                finish(color, game, stats, sender, halt_senders);
                 break;
             }
             )
     }
 }
 
-fn finish(color: Color, stats: MoveStats, sender: Sender<Move>, halt_senders: Vec<Sender<()>>) {
+fn finish(color: Color, game: &Game, stats: MoveStats, sender: Sender<Move>, halt_senders: Vec<Sender<()>>) {
     if stats.all_losses() {
         log!("All simulations were losses");
-        sender.send(Resign(color));
+        if game.winner() == color {
+            sender.send(Pass(color));
+        } else {
+            sender.send(Resign(color));
+        }
     } else {
         let (m, s) = stats.best();
         log!("Returning the best move ({}% wins)", s.win_ratio()*100.0);
