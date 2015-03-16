@@ -61,16 +61,7 @@ fn gen_move<T: McEngine>(color: Color, game: &Game, sender: Sender<Move>, receiv
     let mut stats = MoveStats::new(&moves, color);
     let mut counter = 0;
     let (send_result, receive_result) = channel::<Playout>();
-    let mut guards = Vec::new();
-    let mut halt_senders = Vec::new();
-    for i in range(0, threads) {
-        let moves = moves.clone();
-        let (send_halt, receive_halt) = channel::<()>();
-        halt_senders.push(send_halt);
-        let send_result = send_result.clone();
-        let guard = spin_up(receive_halt, moves, game.board(), send_result);
-        guards.push(guard);
-    }
+    let (guards, halt_senders) = spin_up(threads, moves.clone(), game, send_result);
     loop {
         select!(
             result = receive_result.recv() => {
@@ -89,7 +80,6 @@ fn gen_move<T: McEngine>(color: Color, game: &Game, sender: Sender<Move>, receiv
 }
 
 fn finish(color: Color, stats: MoveStats, sender: Sender<Move>, halt_senders: Vec<Sender<()>>) {
-    // resign if 0% wins
     if stats.all_losses() {
         log!("All simulations were losses");
         sender.send(Resign(color));
@@ -103,7 +93,21 @@ fn finish(color: Color, stats: MoveStats, sender: Sender<Move>, halt_senders: Ve
     }
 }
 
-fn spin_up<'a>(recv_halt: Receiver<()>, moves: Arc<Vec<Move>>, board: Board, send_result: Sender<Playout>) -> thread::JoinGuard<'a, ()> {
+fn spin_up(threads: usize, moves: Arc<Vec<Move>>, game: &Game, send_result: Sender<Playout>) -> (Vec<thread::JoinGuard<()>>, Vec<Sender<()>>) {
+    let mut guards = Vec::new();
+    let mut halt_senders = Vec::new();
+    for i in range(0, threads) {
+        let moves = moves.clone();
+        let (send_halt, receive_halt) = channel::<()>();
+        halt_senders.push(send_halt);
+        let send_result = send_result.clone();
+        let guard = spin_up_worker(receive_halt, moves, game.board(), send_result);
+        guards.push(guard);
+    }
+    (guards, halt_senders)
+}
+
+fn spin_up_worker<'a>(recv_halt: Receiver<()>, moves: Arc<Vec<Move>>, board: Board, send_result: Sender<Playout>) -> thread::JoinGuard<'a, ()> {
     thread::scoped(move || {
         loop {
             if recv_halt.try_recv().is_ok() {
