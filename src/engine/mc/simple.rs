@@ -31,18 +31,20 @@ use super::MoveStats;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 
-pub struct SimpleMcEngine;
+pub struct SimpleMcEngine {
+    threads: usize
+}
 
 impl SimpleMcEngine {
-    pub fn new() -> SimpleMcEngine {
-        SimpleMcEngine
+    pub fn new(threads: usize) -> SimpleMcEngine {
+        SimpleMcEngine { threads: threads }
     }
 
 }
 
 impl Engine for SimpleMcEngine {
     fn gen_move(&self, color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
-        super::gen_move::<SimpleMcEngine>(color, game, sender, receiver);
+        super::gen_move::<SimpleMcEngine>(self.threads, color, game, sender, receiver);
     }
 }
 

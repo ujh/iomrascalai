@@ -50,6 +50,7 @@ use version::version;
 use getopts::Options;
 use std::ascii::OwnedAsciiExt;
 use std::env::args;
+use std::os::num_cpus;
 
 macro_rules! log(
     ($($arg:tt)*) => (
@@ -76,6 +77,7 @@ pub fn main() {
     let args : Vec<String> = args().collect();
     opts.optopt("e", "engine", "select an engine (defaults to amaf)", "amaf|mc|random");
     opts.optopt("r", "ruleset", "select the ruleset (defaults to chinese)", "cgos|chinese|tromp-taylor|minimal");
+    opts.optopt("t", "threads", format!("number of threads to use (defaults to {})", num_cpus()).as_slice(), "NUM");
     opts.optflag("h", "help", "print this help menu");
     opts.optflag("v", "version", "print the version number");
 
@@ -93,16 +95,25 @@ pub fn main() {
         println!("Iomrascálaí {}", version::version());
         return;
     }
+    let threads = match matches.opt_str("t") {
+        Some(s) => {
+            match s.parse::<usize>() {
+                Ok(n)  => n,
+                Err(_) => num_cpus()
+            }
+        },
+        None    => num_cpus()
+    };
     let engine_arg = matches.opt_str("e").map(|s| s.into_ascii_lowercase());
     let engine: Box<Engine> = match engine_arg {
         Some(s) => {
             match s.as_slice() {
                 "random" => Box::new(RandomEngine::new()),
-                "mc"     => Box::new(SimpleMcEngine::new()),
-                _        => Box::new(AmafMcEngine::new()),
+                "mc"     => Box::new(SimpleMcEngine::new(threads)),
+                _        => Box::new(AmafMcEngine::new(threads)),
             }
         },
-        None => Box::new(AmafMcEngine::new())
+        None => Box::new(AmafMcEngine::new(threads))
     };
     let rules_arg = matches.opt_str("r").map(|s| s.into_ascii_lowercase());
     let ruleset = match rules_arg {

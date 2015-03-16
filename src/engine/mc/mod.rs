@@ -34,7 +34,6 @@ use playout::Playout;
 
 use rand::random;
 use std::marker::MarkerTrait;
-use std::os::num_cpus;
 use std::sync::Arc;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
@@ -50,9 +49,8 @@ pub trait McEngine: MarkerTrait {
 
 }
 
-fn gen_move<T: McEngine>(color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
+fn gen_move<T: McEngine>(threads: usize, color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
     let moves = game.legal_moves_without_eyes();
-    let threads = num_cpus();
     if moves.is_empty() {
         log!("No moves to simulate!");
         sender.send(Pass(color));

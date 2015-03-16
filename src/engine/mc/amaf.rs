@@ -31,12 +31,14 @@ use super::MoveStats;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 
-pub struct AmafMcEngine;
+pub struct AmafMcEngine {
+    threads: usize
+}
 
 impl AmafMcEngine {
 
-    pub fn new() -> AmafMcEngine {
-        AmafMcEngine
+    pub fn new(threads: usize) -> AmafMcEngine {
+        AmafMcEngine { threads: threads }
     }
 
 }
@@ -44,7 +46,7 @@ impl AmafMcEngine {
 impl Engine for AmafMcEngine {
 
     fn gen_move(&self, color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
-        super::gen_move::<AmafMcEngine>(color, game, sender, receiver);
+        super::gen_move::<AmafMcEngine>(self.threads, color, game, sender, receiver);
     }
 
 }
