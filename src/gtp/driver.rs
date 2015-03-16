@@ -62,7 +62,9 @@ impl Driver {
                 Command::TimeLeft           => print!("= \n\n"),
                 Command::TimeSettings       => print!("= \n\n"),
                 Command::Version            => print!("= {}\n\n", engine_version),
-                _                           => print!("? unknown command\n\n"),
+                Command::ErrorMessage(e)    => print!("? {}\n\n", e),
+                Command::Error              => print!("? unknown command\n\n"),
+                Command::Empty              => print!("? empty command\n\n"),
             }
         }
 
