@@ -34,7 +34,6 @@ use playout::Playout;
 
 use rand::random;
 use std::marker::MarkerTrait;
-use std::sync::Arc;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 use std::sync::mpsc::channel;
@@ -97,7 +96,7 @@ fn finish(color: Color, game: &Game, stats: MoveStats, sender: Sender<Move>, hal
 fn spin_up<'a, T: McEngine>(color: Color, threads: usize, moves: &'a Vec<Move>, game: &Game, send_result: Sender<(MoveStats<'a>, usize)>) -> (Vec<thread::JoinGuard<'a, ()>>, Vec<Sender<()>>) {
     let mut guards = Vec::new();
     let mut halt_senders = Vec::new();
-    for i in range(0, threads) {
+    for _ in range(0, threads) {
         let (send_halt, receive_halt) = channel::<()>();
         halt_senders.push(send_halt);
         let send_result = send_result.clone();
