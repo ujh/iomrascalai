@@ -50,7 +50,6 @@ use version::version;
 use getopts::Options;
 use std::ascii::OwnedAsciiExt;
 use std::env::args;
-use std::os::num_cpus;
 
 macro_rules! log(
     ($($arg:tt)*) => (
@@ -77,7 +76,7 @@ pub fn main() {
     let args : Vec<String> = args().collect();
     opts.optopt("e", "engine", "select an engine (defaults to amaf)", "amaf|mc|random");
     opts.optopt("r", "ruleset", "select the ruleset (defaults to chinese)", "cgos|chinese|tromp-taylor|minimal");
-    opts.optopt("t", "threads", format!("number of threads to use (defaults to {})", num_cpus()).as_slice(), "NUM");
+    opts.optopt("t", "threads", "number of threads to use (defaults to 1)", "NUM");
     opts.optflag("h", "help", "print this help menu");
     opts.optflag("v", "version", "print the version number");
 
@@ -99,10 +98,10 @@ pub fn main() {
         Some(s) => {
             match s.parse::<usize>() {
                 Ok(n)  => n,
-                Err(_) => num_cpus()
+                Err(_) => 1
             }
         },
-        None    => num_cpus()
+        None => 1
     };
     let engine_arg = matches.opt_str("e").map(|s| s.into_ascii_lowercase());
     let engine: Box<Engine> = match engine_arg {
