@@ -7,7 +7,7 @@ set -ex
 
 cargo build --release
 
-AMIGO="amigogtp"
+AMIGOGTP="amigogtp"
 IOMRASCALAI="./target/release/iomrascalai -e $1"
 SIZE=9
 TIME="5m"

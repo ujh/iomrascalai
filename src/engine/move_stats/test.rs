@@ -103,6 +103,32 @@ mod move_stats {
         stats.record_loss(&Play(Black, 1, 1));
     }
 
+    #[test]
+    fn merge_merges_stats_existing_in_both() {
+        let m = Play(Black, 1, 1);
+        let moves = vec!(m);
+        let mut stats = MoveStats::new(&moves, Black);
+        stats.record_win(&m);
+        let mut other = MoveStats::new(&moves, Black);
+        other.record_loss(&m);
+        stats.merge(&other);
+        let ms = stats.stats.get(&m).unwrap();
+        assert_eq!(ms.wins, 1);
+        assert_eq!(ms.plays, 2);
+    }
+
+    #[test]
+    fn merge_ignores_stats_that_only_exist_in_other() {
+        let m = Play(Black, 1, 1);
+        let moves = vec!();
+        let mut stats = MoveStats::new(&moves, Black);
+        let moves2 = vec!(m);
+        let mut other = MoveStats::new(&moves2, Black);
+        other.record_loss(&m);
+        stats.merge(&other);
+        assert!(!stats.stats.get(&m).is_some());
+    }
+
 }
 
 mod move_stat {
@@ -115,4 +141,16 @@ mod move_stat {
         assert_eq!(ms.win_ratio(), 0f32);
     }
 
+    #[test]
+    fn merge_adds_the_plays_and_wins_of_other() {
+        let mut ms = MoveStat::new();
+        let mut other = MoveStat::new();
+        ms.wins = 1;
+        ms.plays = 1;
+        other.wins = 1;
+        other.plays = 2;
+        ms.merge(&other);
+        assert_eq!(2, ms.wins);
+        assert_eq!(3, ms.plays);
+    }
 }

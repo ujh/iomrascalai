@@ -79,6 +79,16 @@ impl<'a> MoveStats<'a> {
         }
         (m, move_stats)
     }
+
+    pub fn merge(&mut self, ms: &MoveStats) {
+        for (m, ms) in ms.stats.iter() {
+            match self.stats.get_mut(m) {
+                Some(s) => { s.merge(ms); },
+                None    => {}
+            }
+        }
+    }
+
 }
 
 
@@ -116,5 +126,10 @@ impl MoveStat {
         } else {
             (self.wins as f32) / (self.plays as f32)
         }
+    }
+
+    pub fn merge(&mut self, ms: &MoveStat) {
+        self.wins += ms.wins;
+        self.plays += ms.plays;
     }
 }
