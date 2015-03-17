@@ -1,6 +1,6 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2015 Urban Hafner                                          *
+ * Copyright 2015 Urban Hafner, Igor Polyakov                           *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -25,7 +25,6 @@ use engine::Engine;
 use game::Game;
 use timer::Timer;
 
-use std::old_io::stdio::stderr;
 use std::old_io::timer::sleep;
 use std::sync::mpsc::channel;
 use std::thread;

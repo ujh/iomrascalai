@@ -1,6 +1,6 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2015 Urban Hafner                                          *
+ * Copyright 2015 Urban Hafner, Igor Polyakov                           *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -20,6 +20,7 @@
  ************************************************************************/
 
 #![cfg(test)]
+#![allow(unused_must_use)]
 
 use board::Color;
 use board::Move;

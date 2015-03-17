@@ -1,6 +1,6 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2015 Urban Hafner, Thomas Poinsot                          *
+ * Copyright 2015 Urban Hafner, Thomas Poinsot, Igor Polyakov           *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -186,6 +186,7 @@ impl Timer {
         self.byo_stones_left = stones;
     }
 
+    #[allow(non_snake_case)]
     fn C(&self) -> f32 {
         0.5
     }

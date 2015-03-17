@@ -1,6 +1,7 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2014-2015 Urban Hafner, Thomas Poinsot                     *
+ * Copyright 2014 Urban Hafner, Thomas Poinsot                          *
+ * Copyright 2015 Urban Hafner, Igor Polyakov                           *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -20,10 +21,10 @@
  ************************************************************************/
 
 #![cfg(test)]
+#![allow(unused_must_use)]
 
 use board::Black;
 use board::Board;
-use board::Chain;
 use board::Coord;
 use board::Empty;
 use board::IllegalMove;

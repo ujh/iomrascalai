@@ -1,7 +1,7 @@
 /************************************************************************
  *                                                                      *
  * Copyright 2014 Thomas Poinsot, Urban Hafner                          *
- * Copyright 2015 Urban Hafner                                          *
+ * Copyright 2015 Urban Hafner, Igor Polyakov                           *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -31,7 +31,6 @@ use board::White;
 use game::Game;
 use ruleset::KgsChinese;
 use ruleset::Minimal;
-use super::Info;
 
 mod ko;
 
@@ -66,7 +65,7 @@ fn catch_suicide_moves_in_chinese() {
 
     match play {
         Err(e) => assert_eq!(e, IllegalMove::SuicidePlay),
-        Ok(v)  => panic!("Expected Err!")
+        Ok(_)  => panic!("Expected Err!")
     }
 }
 

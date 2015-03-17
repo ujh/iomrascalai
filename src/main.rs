@@ -71,7 +71,7 @@ mod sgf;
 mod timer;
 mod version;
 
-fn main() {
+pub fn main() {
     let mut opts = Options::new();
     let args : Vec<String> = args().collect();
     opts.optopt("e", "engine", "select an engine (defaults to amaf)", "amaf|mc|random");
