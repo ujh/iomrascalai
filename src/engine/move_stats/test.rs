@@ -1,6 +1,7 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2014-2015 Urban Hafner, Thomas Poinsot                     *
+ * Copyright 2014 Urban Hafner, Thomas Poinsot                          *
+ * Copyright 2015 Urban Hafner, Igor Polyakov                           *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -36,7 +37,7 @@ mod move_stats {
     fn returns_pass_as_best_move_by_default() {
         let moves = vec!();
         let stats = MoveStats::new(&moves, Black);
-        let (m, ms) = stats.best();
+        let (m, _) = stats.best();
         assert_eq!(Pass(Black), m);
     }
 

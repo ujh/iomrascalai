@@ -100,7 +100,7 @@ impl Parser {
     		Ok(mut file) => {
 		        let mut contents = String::new();
                 match file.read_to_string(&mut contents) {
-                	Ok(result) => Ok(Parser::new(contents)),
+                	Ok(_) => Ok(Parser::new(contents)),
                 	Err(e) => Err(e)
             	}
 			},

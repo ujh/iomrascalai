@@ -1,6 +1,7 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2014-2015 Urban Hafner                                     *
+ * Copyright 2014 Urban Hafner                                          *
+ * Copyright 2015 Urban Hafner, Igor Polyakov                           *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -18,7 +19,9 @@
  * along with Iomrascálaí.  If not, see <http://www.gnu.org/licenses/>. *
  *                                                                      *
  ************************************************************************/
+
 #![cfg(test)]
+#![allow(unused_must_use)]
 
 use board::Black;
 use board::Board;

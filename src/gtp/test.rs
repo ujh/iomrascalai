@@ -23,7 +23,6 @@
 #![cfg(test)]
 
 use engine::RandomEngine;
-use game::Info;
 use ruleset::Minimal;
 use super::Command;
 use super::GTPInterpreter;
@@ -31,55 +30,55 @@ use super::GTPInterpreter;
 #[test]
 fn loadsgf_wrong_file() {
     let mut interpreter = GTPInterpreter::new(Minimal, Box::new(RandomEngine::new()));
-    let error = interpreter.read("loadsgf wrongfileactually\n");
+    interpreter.read("loadsgf wrongfileactually\n");
 }
 
 #[test]
 fn loadsgf_one_argument() {
     let mut interpreter = GTPInterpreter::new(Minimal, Box::new(RandomEngine::new()));
-    let error = interpreter.read("loadsgf\n");
+    interpreter.read("loadsgf\n");
 }
 
 #[test]
 fn time_left_one_argument() {
     let mut interpreter = GTPInterpreter::new(Minimal, Box::new(RandomEngine::new()));
-    let error = interpreter.read("time_left\n");
+    interpreter.read("time_left\n");
 }
 
 #[test]
 fn time_settings_one_argument() {
     let mut interpreter = GTPInterpreter::new(Minimal, Box::new(RandomEngine::new()));
-    let error = interpreter.read("time_settings\n");
+    interpreter.read("time_settings\n");
 }
 
 #[test]
 fn play_one_argument() {
     let mut interpreter = GTPInterpreter::new(Minimal, Box::new(RandomEngine::new()));
-    let error = interpreter.read("play\n");
+    interpreter.read("play\n");
 }
 
 #[test]
 fn genmove_one_argument() {
     let mut interpreter = GTPInterpreter::new(Minimal, Box::new(RandomEngine::new()));
-    let error = interpreter.read("genmove\n");
+    interpreter.read("genmove\n");
 }
 
 #[test]
 fn komi_one_argument() {
     let mut interpreter = GTPInterpreter::new(Minimal, Box::new(RandomEngine::new()));
-    let error = interpreter.read("komi\n");
+    interpreter.read("komi\n");
 }
 
 #[test]
 fn boardsize_one_argument() {
     let mut interpreter = GTPInterpreter::new(Minimal, Box::new(RandomEngine::new()));
-    let error = interpreter.read("boardsize\n");
+    interpreter.read("boardsize\n");
 }
 
 #[test]
 fn known_command_one_argument() {
     let mut interpreter = GTPInterpreter::new(Minimal, Box::new(RandomEngine::new()));
-    let error = interpreter.read("known_command\n");
+    interpreter.read("known_command\n");
 }
 
 #[test]

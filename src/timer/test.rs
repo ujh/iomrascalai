@@ -1,6 +1,6 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2015 Urban Hafner                                          *
+ * Copyright 2015 Urban Hafner, Igor Polyakov                           *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -22,7 +22,6 @@
 #![cfg(test)]
 
 use game::Info;
-use super::Clock;
 use super::Timer;
 
 use std::old_io::timer::sleep;
