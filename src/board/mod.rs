@@ -96,11 +96,11 @@ pub struct Board {
     board:                 Vec<Point>,
     chains:                Vec<Chain>,
     consecutive_passes:    u8,
+    diagonals:             Arc<Vec<Vec<Coord>>>,
     friend_stones_removed: Vec<Coord>,
     ko:                    Option<Coord>,
     komi:                  f32,
     neighbours:            Arc<Vec<Vec<Coord>>>,
-    orthogonals:           Arc<Vec<Vec<Coord>>>,
     previous_player:       Color,
     resigned_by:           Color,
     ruleset:               Ruleset,
@@ -115,11 +115,11 @@ impl Clone for Board {
             board:                 self.board.clone(),
             chains:                self.chains.clone(),
             consecutive_passes:    self.consecutive_passes,
+            diagonals:             self.diagonals.clone(),
             friend_stones_removed: self.friend_stones_removed.clone(),
             ko:                    self.ko,
             komi:                  self.komi,
             neighbours:            self.neighbours.clone(),
-            orthogonals:           self.orthogonals.clone(),
             previous_player:       self.previous_player,
             resigned_by:           self.resigned_by,
             ruleset:               self.ruleset.clone(),
@@ -136,11 +136,11 @@ impl Board {
             board:                 range(0, size as usize*size as usize).map(|_| Point::new()).collect(),
             chains:                Vec::new(),
             consecutive_passes:    0,
+            diagonals:             Board::setup_diagonals(size),
             friend_stones_removed: Vec::new(),
             ko:                    None,
             komi:                  komi,
             neighbours:            Board::setup_neighbours(size),
-            orthogonals:           Board::setup_orthogonals(size),
             previous_player:       White,
             resigned_by:           Empty,
             ruleset:               ruleset,
@@ -157,20 +157,20 @@ impl Board {
         Arc::new(neighbours)
     }
 
-    fn setup_orthogonals(size: u8) -> Arc<Vec<Vec<Coord>>> {
-        let mut orthogonals = Vec::new();
+    fn setup_diagonals(size: u8) -> Arc<Vec<Vec<Coord>>> {
+        let mut diagonals = Vec::new();
         for coord in Coord::for_board_size(size).iter() {
-            orthogonals.push(coord.orthogonals(size));
+            diagonals.push(coord.diagonals(size));
         }
-        Arc::new(orthogonals)
+        Arc::new(diagonals)
     }
 
     pub fn neighbours(&self, c: Coord) -> &Vec<Coord> {
         &self.neighbours[c.to_index(self.size)]
     }
 
-    pub fn orthogonals(&self, c: Coord) -> &Vec<Coord> {
-        &self.orthogonals[c.to_index(self.size)]
+    pub fn diagonals(&self, c: Coord) -> &Vec<Coord> {
+        &self.diagonals[c.to_index(self.size)]
     }
 
     pub fn points(&self) -> &Vec<Point> {
@@ -213,11 +213,11 @@ impl Board {
     pub fn is_eye(&self, coord: &Coord, color: Color) -> bool {
         let neighbours = self.neighbours(*coord);
         if neighbours.iter().all(|c| self.color(c) == color) {
-            let orthogonals = self.orthogonals(*coord);
-            if orthogonals.len() < 4 {
-                orthogonals.iter().all(|c| self.color(c) != color.opposite())
+            let diagonals = self.diagonals(*coord);
+            if diagonals.len() < 4 {
+                diagonals.iter().all(|c| self.color(c) != color.opposite())
             } else {
-                orthogonals.iter().filter(|c| self.color(c) == color.opposite()).count() <= 1
+                diagonals.iter().filter(|c| self.color(c) == color.opposite()).count() <= 1
             }
         } else {
             false

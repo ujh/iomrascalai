@@ -64,7 +64,7 @@ impl Coord {
         neighbours
     }
 
-    pub fn orthogonals(&self, board_size: u8) -> Vec<Coord> {
+    pub fn diagonals(&self, board_size: u8) -> Vec<Coord> {
         vec!(
             Coord::new(self.col-1, self.row-1),
             Coord::new(self.col+1, self.row-1),
