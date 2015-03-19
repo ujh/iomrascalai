@@ -93,7 +93,7 @@ impl<'a> MoveStats<'a> {
 
 
 #[derive(Copy)]
-struct MoveStat {
+pub struct MoveStat {
     wins: usize,
     plays: usize
 }
