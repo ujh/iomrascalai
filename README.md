@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.org/ujh/iomrascalai.svg?branch=master)](https://travis-ci.org/ujh/iomrascalai)
 [![Gitter chat](https://badges.gitter.im/ujh/iomrascalai.png)](https://gitter.im/ujh/iomrascalai)
+[![Coverage Status](https://coveralls.io/repos/ujh/iomrascalai/badge.svg?branch=master)](https://coveralls.io/r/ujh/iomrascalai?branch=master)
 
 Iomrascálaí
 ===========
