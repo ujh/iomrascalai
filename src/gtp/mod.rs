@@ -128,72 +128,72 @@ impl<'a> GTPInterpreter<'a> {
 
     pub fn read(&mut self, input: &str) -> Command {
         let preprocessed = self.preprocess(input);
-
-        if preprocessed.len() == 0 {return Command::Empty};
+        if preprocessed.len() == 0 { return Command::Empty };
 
         let command: Vec<&str> = preprocessed.as_slice().split(' ').collect();
+        
+        //command[0] is never empty because a split always has at least one part
+        let command_name = match <KnownCommands>::enumify(command[0]) {
+        	Some(comm)     => comm,
+        	None           => return Command::Error
+    	};
 
-        match <KnownCommands>::enumify(command[0]) {
-            Some(KnownCommands::name)             => Command::Name,
-            Some(KnownCommands::version)          => Command::Version,
-            Some(KnownCommands::protocol_version) => Command::ProtocolVersion,
-            Some(KnownCommands::list_commands)    => Command::ListCommands(<KnownCommands>::stringify()),
-            Some(KnownCommands::known_command)    =>
-                match command.get(1) {
-                	Some(comm) => Command::KnownCommand(<KnownCommands>::enumify(&comm).is_some()),
-                	None => Command::KnownCommand(false)
-            	},
-            Some(KnownCommands::boardsize)        =>
-                match command.get(1) {
-                	Some(comm) => match comm.parse::<u8>() {
-                        Ok(size) => {
-                            self.game = Game::new(size, self.komi(), self.ruleset());
-                            Command::BoardSize
-                        },
-                        Err(_) => Command::Error
+        match command_name {
+            KnownCommands::name             => Command::Name,
+            KnownCommands::version          => Command::Version,
+            KnownCommands::protocol_version => Command::ProtocolVersion,
+            KnownCommands::list_commands    => Command::ListCommands(<KnownCommands>::stringify()),
+            KnownCommands::known_command    => match command.get(1) {
+            	Some(comm) => Command::KnownCommand(<KnownCommands>::enumify(&comm).is_some()),
+            	None => Command::KnownCommand(false)
+        	},
+            KnownCommands::boardsize        => match command.get(1) {
+            	Some(comm) => match comm.parse::<u8>() {
+                    Ok(size) => {
+                        self.game = Game::new(size, self.komi(), self.ruleset());
+                        Command::BoardSize
                     },
-                	None => Command::Error
-            	},
-            Some(KnownCommands::clear_board)      => {
+                    Err(_) => Command::Error
+                },
+            	None => Command::Error
+        	},
+            KnownCommands::clear_board      => {
                 self.game = Game::new(self.boardsize(), self.komi(), self.ruleset());
                 self.timer.reset();
                 Command::ClearBoard
             },
-            Some(KnownCommands::komi)             =>
-                match command.get(1) {
-                    Some(comm) =>
-                        match comm.parse::<f32>() {
-                            Ok(komi) => {
-                                self.game.set_komi(komi);
-                                Command::Komi
-                            },
-                            Err(_) => Command::Error
+            KnownCommands::komi             => match command.get(1) {
+                Some(comm) =>
+                    match comm.parse::<f32>() {
+                        Ok(komi) => {
+                            self.game.set_komi(komi);
+                            Command::Komi
                         },
-                    None => Command::Error
-                },
-            Some(KnownCommands::genmove)          =>
-            	match command.get(1) {
-            		Some(comm) => {
-            			let color = Color::from_gtp(comm);
-                        let m = self.controller.run_and_return_move(color, &self.game, &mut self.timer);
-                        match self.game.clone().play(m) {
-                            Ok(g) => {
-                                self.game = g;
-                                self.timer.stop();
-                                Command::GenMove(m.to_gtp())
-                            },
-                            Err(e) => {
-                                Command::GenMoveError(m, e)
-                            }
-                        }
+                        Err(_) => Command::Error
                     },
-                    None => Command::Error
-        		},
-            Some(KnownCommands::play)             => 
-            match command.get(2) {
+                None => Command::Error
+            },
+            KnownCommands::genmove          => match command.get(1) {
+        		Some(comm) => {
+        			let color = Color::from_gtp(comm);
+                    let m = self.controller.run_and_return_move(color, &self.game, &mut self.timer);
+                    match self.game.play(m) {
+                        Ok(g) => {
+                            self.game = g;
+                            self.timer.stop();
+                            Command::GenMove(m.to_gtp())
+                        },
+                        Err(e) => {
+                            Command::GenMoveError(m, e)
+                        }
+                    }
+                },
+                None => Command::Error
+    		},
+            KnownCommands::play             => match command.get(2) {
             	Some(second) => {
                     let m = Move::from_gtp(command[1], second); //command[1] should be there
-                    match self.game.clone().play(m) {
+                    match self.game.play(m) {
                         Ok(g) => {
                             self.game = g;
                             Command::Play
@@ -205,10 +205,10 @@ impl<'a> GTPInterpreter<'a> {
                 },
             	None => Command::Error
         	},
-            Some(KnownCommands::showboard)   => Command::ShowBoard(format!("\n{}", self.game)),
-            Some(KnownCommands::quit)        => Command::Quit,
-            Some(KnownCommands::final_score) => Command::FinalScore(format!("{}", self.game.score())),
-            Some(KnownCommands::time_settings) => match command.get(3) {
+            KnownCommands::showboard        => Command::ShowBoard(format!("\n{}", self.game)),
+            KnownCommands::quit             => Command::Quit,
+            KnownCommands::final_score      => Command::FinalScore(format!("{}", self.game.score())),
+            KnownCommands::time_settings    => match command.get(3) {
             	Some(third) => {
             		//command[1] and command[2] should be there
                     match (command[1].parse::<i64>(), command[2].parse::<i64>(), third.parse::<i32>()) {
@@ -221,7 +221,7 @@ impl<'a> GTPInterpreter<'a> {
                 },
             	None => Command::Error
         	},
-            Some(KnownCommands::time_left) => match command.get(3) {
+            KnownCommands::time_left        => match command.get(3) {
             	Some(third) => {
             		//command[2] should be there
             		//TODO: seems wrong, missing a color
@@ -235,7 +235,7 @@ impl<'a> GTPInterpreter<'a> {
                 },
             	None => Command::Error
         	},
-            Some(KnownCommands::loadsgf) => match command.get(1) {
+            KnownCommands::loadsgf          => match command.get(1) {
             	Some(comm) => {
                     let filename = comm;
                     
@@ -254,8 +254,7 @@ impl<'a> GTPInterpreter<'a> {
                 	}
                 },
             	None => Command::Error
-        	},
-            None             => Command::Error
+        	}
         }
     }
 

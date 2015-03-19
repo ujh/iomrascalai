@@ -28,6 +28,16 @@ use super::Command;
 use super::GTPInterpreter;
 
 #[test]
+fn empty_string() {
+    let mut interpreter = GTPInterpreter::new(Minimal, Box::new(RandomEngine::new()));
+    let command = interpreter.read("");
+    match command {
+    	Command::Empty => (),
+    	_ => panic!("Expected Command::Empty")
+	}
+}
+
+#[test]
 fn loadsgf_wrong_file() {
     let mut interpreter = GTPInterpreter::new(Minimal, Box::new(RandomEngine::new()));
     interpreter.read("loadsgf wrongfileactually\n");
