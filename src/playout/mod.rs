@@ -39,7 +39,7 @@ impl Playout {
         let mut played_moves = Vec::new();
         board.play(*initial_move);
         played_moves.push(*initial_move);
-        let max_moves = board.size() * board.size() * 3;
+        let max_moves = Playout::max_moves(board.size());
         let mut move_count = 0;
         while !board.is_game_over() && move_count < max_moves {
             let moves = board.legal_moves_without_eyes();
@@ -57,6 +57,10 @@ impl Playout {
             moves: played_moves,
             winner: board.winner(),
         }
+    }
+
+    pub fn max_moves(size: u8) -> usize {
+        size as usize * size as usize * 3
     }
 
     pub fn moves(&self) -> &Vec<Move> {
