@@ -22,14 +22,14 @@
 
 #![cfg(test)]
 
+use config::Config;
 use engine::RandomEngine;
-use ruleset::Minimal;
 use super::Command;
 use super::GTPInterpreter;
 
 #[test]
 fn empty_string() {
-    let mut interpreter = GTPInterpreter::new(Minimal, Box::new(RandomEngine::new()));
+    let mut interpreter = GTPInterpreter::new(Config::default(), Box::new(RandomEngine::new()));
     let command = interpreter.read("");
     match command {
     	Command::Empty => (),
@@ -39,61 +39,61 @@ fn empty_string() {
 
 #[test]
 fn loadsgf_wrong_file() {
-    let mut interpreter = GTPInterpreter::new(Minimal, Box::new(RandomEngine::new()));
+    let mut interpreter = GTPInterpreter::new(Config::default(), Box::new(RandomEngine::new()));
     interpreter.read("loadsgf wrongfileactually\n");
 }
 
 #[test]
 fn loadsgf_one_argument() {
-    let mut interpreter = GTPInterpreter::new(Minimal, Box::new(RandomEngine::new()));
+    let mut interpreter = GTPInterpreter::new(Config::default(), Box::new(RandomEngine::new()));
     interpreter.read("loadsgf\n");
 }
 
 #[test]
 fn time_left_one_argument() {
-    let mut interpreter = GTPInterpreter::new(Minimal, Box::new(RandomEngine::new()));
+    let mut interpreter = GTPInterpreter::new(Config::default(), Box::new(RandomEngine::new()));
     interpreter.read("time_left\n");
 }
 
 #[test]
 fn time_settings_one_argument() {
-    let mut interpreter = GTPInterpreter::new(Minimal, Box::new(RandomEngine::new()));
+    let mut interpreter = GTPInterpreter::new(Config::default(), Box::new(RandomEngine::new()));
     interpreter.read("time_settings\n");
 }
 
 #[test]
 fn play_one_argument() {
-    let mut interpreter = GTPInterpreter::new(Minimal, Box::new(RandomEngine::new()));
+    let mut interpreter = GTPInterpreter::new(Config::default(), Box::new(RandomEngine::new()));
     interpreter.read("play\n");
 }
 
 #[test]
 fn genmove_one_argument() {
-    let mut interpreter = GTPInterpreter::new(Minimal, Box::new(RandomEngine::new()));
+    let mut interpreter = GTPInterpreter::new(Config::default(), Box::new(RandomEngine::new()));
     interpreter.read("genmove\n");
 }
 
 #[test]
 fn komi_one_argument() {
-    let mut interpreter = GTPInterpreter::new(Minimal, Box::new(RandomEngine::new()));
+    let mut interpreter = GTPInterpreter::new(Config::default(), Box::new(RandomEngine::new()));
     interpreter.read("komi\n");
 }
 
 #[test]
 fn boardsize_one_argument() {
-    let mut interpreter = GTPInterpreter::new(Minimal, Box::new(RandomEngine::new()));
+    let mut interpreter = GTPInterpreter::new(Config::default(), Box::new(RandomEngine::new()));
     interpreter.read("boardsize\n");
 }
 
 #[test]
 fn known_command_one_argument() {
-    let mut interpreter = GTPInterpreter::new(Minimal, Box::new(RandomEngine::new()));
+    let mut interpreter = GTPInterpreter::new(Config::default(), Box::new(RandomEngine::new()));
     interpreter.read("known_command\n");
 }
 
 #[test]
 fn no_newline_at_end_of_list_commands() {
-    let mut interpreter = GTPInterpreter::new(Minimal, Box::new(RandomEngine::new()));
+    let mut interpreter = GTPInterpreter::new(Config::default(), Box::new(RandomEngine::new()));
     let commands    = interpreter.read("list_commands\n");
     let expected    = "boardsize\nclear_board\nfinal_score\ngenmove\nknown_command\nkomi\nlist_commands\nloadsgf\nname\nplay\nprotocol_version\nquit\nshowboard\ntime_left\ntime_settings\nversion";
     match commands {
@@ -104,7 +104,7 @@ fn no_newline_at_end_of_list_commands() {
 
 #[test]
 fn boardsize_sets_the_correct_size() {
-    let mut interpreter = GTPInterpreter::new(Minimal, Box::new(RandomEngine::new()));
+    let mut interpreter = GTPInterpreter::new(Config::default(), Box::new(RandomEngine::new()));
     assert_eq!(19, interpreter.game.size());
     interpreter.read("boardsize 9\n");
     assert_eq!(9, interpreter.game.size());
@@ -112,7 +112,7 @@ fn boardsize_sets_the_correct_size() {
 
 #[test]
 fn boardsize_resets_the_board() {
-    let mut interpreter = GTPInterpreter::new(Minimal, Box::new(RandomEngine::new()));
+    let mut interpreter = GTPInterpreter::new(Config::default(), Box::new(RandomEngine::new()));
     interpreter.read("play b a1\n");
     interpreter.read("boardsize 9\n");
     assert_eq!(0, interpreter.game.move_number());
@@ -120,21 +120,21 @@ fn boardsize_resets_the_board() {
 
 #[test]
 fn play_plays_a_move() {
-    let mut interpreter = GTPInterpreter::new(Minimal, Box::new(RandomEngine::new()));
+    let mut interpreter = GTPInterpreter::new(Config::default(), Box::new(RandomEngine::new()));
     interpreter.read("play b a1\n");
     assert_eq!(1, interpreter.game.move_number());
 }
 
 #[test]
 fn sets_the_komi() {
-    let mut interpreter = GTPInterpreter::new(Minimal, Box::new(RandomEngine::new()));
+    let mut interpreter = GTPInterpreter::new(Config::default(), Box::new(RandomEngine::new()));
     interpreter.read("komi 10\n");
     assert_eq!(10.0, interpreter.komi());
 }
 
 #[test]
 fn sets_the_time() {
-    let mut interpreter = GTPInterpreter::new(Minimal, Box::new(RandomEngine::new()));
+    let mut interpreter = GTPInterpreter::new(Config::default(), Box::new(RandomEngine::new()));
     interpreter.read("time_settings 30 20 10\n");
     assert_eq!(30_000, interpreter.main_time());
     assert_eq!(20_000, interpreter.byo_time());
@@ -143,7 +143,7 @@ fn sets_the_time() {
 
 #[test]
 fn clear_board_resets_the_board() {
-    let mut interpreter = GTPInterpreter::new(Minimal, Box::new(RandomEngine::new()));
+    let mut interpreter = GTPInterpreter::new(Config::default(), Box::new(RandomEngine::new()));
     interpreter.read("play b a1\n");
     interpreter.read("clear_board\n");
     assert_eq!(0, interpreter.game.move_number());
@@ -151,7 +151,7 @@ fn clear_board_resets_the_board() {
 
 #[test]
 fn final_score_no_move() {
-    let mut interpreter = GTPInterpreter::new(Minimal, Box::new(RandomEngine::new()));
+    let mut interpreter = GTPInterpreter::new(Config::default(), Box::new(RandomEngine::new()));
     match interpreter.read("final_score\n") {
         Command::FinalScore(score) => assert_eq!("W+6.5", score.as_slice()),
         _                          => panic!("FinalScore expected!")
@@ -160,7 +160,7 @@ fn final_score_no_move() {
 
 #[test]
 fn final_score_one_move() {
-    let mut interpreter = GTPInterpreter::new(Minimal, Box::new(RandomEngine::new()));
+    let mut interpreter = GTPInterpreter::new(Config::default(), Box::new(RandomEngine::new()));
     interpreter.read("boardsize 4\n");
     interpreter.read("play b c2\n");
     match interpreter.read("final_score\n") {

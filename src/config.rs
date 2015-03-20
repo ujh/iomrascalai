@@ -19,6 +19,7 @@
  *                                                                      *
  ************************************************************************/
 
+use ruleset::Minimal;
 use ruleset::Ruleset;
 
 #[derive(Copy)]
@@ -26,4 +27,16 @@ pub struct Config {
     pub log: bool,
     pub ruleset: Ruleset,
     pub threads: usize,
+}
+
+impl Config {
+
+    pub fn default() -> Config {
+        Config {
+            log: false,
+            ruleset: Minimal,
+            threads: 1,
+        }
+    }
+
 }
