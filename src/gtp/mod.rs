@@ -24,6 +24,7 @@
 use board::Color;
 use board::IllegalMove;
 use board::Move;
+use config::Config;
 use engine::Engine;
 use engine::EngineController;
 use game::Game;
@@ -36,7 +37,7 @@ pub mod driver;
 mod test;
 
 strenum! {
-    KnownCommands => 
+    KnownCommands =>
         boardsize,
         clear_board,
         final_score,
@@ -80,20 +81,20 @@ pub enum Command {
 }
 
 pub struct GTPInterpreter<'a> {
+    config: Config,
     controller: EngineController<'a>,
     game: Game,
-    ruleset: Ruleset,
     timer: Timer,
 }
 
 impl<'a> GTPInterpreter<'a> {
-    pub fn new<'b>(ruleset: Ruleset, engine: Box<Engine + 'b>) -> GTPInterpreter<'b> {
+    pub fn new<'b>(config: Config, engine: Box<Engine + 'b>) -> GTPInterpreter<'b> {
         let komi      = 6.5;
         let boardsize = 19;
         GTPInterpreter {
-            controller: EngineController::new(engine),
-            game: Game::new(boardsize, komi, ruleset),
-            ruleset: ruleset,
+            config: config,
+            controller: EngineController::new(config, engine),
+            game: Game::new(boardsize, komi, config.ruleset),
             timer: Timer::new(),
         }
     }
@@ -107,7 +108,7 @@ impl<'a> GTPInterpreter<'a> {
     }
 
     pub fn ruleset(&self) -> Ruleset {
-        self.ruleset
+        self.config.ruleset
     }
 
     pub fn main_time(&self) -> i64 {
@@ -131,7 +132,7 @@ impl<'a> GTPInterpreter<'a> {
         if preprocessed.len() == 0 { return Command::Empty };
 
         let command: Vec<&str> = preprocessed.as_slice().split(' ').collect();
-        
+
         //command[0] is never empty because a split always has at least one part
         let command_name = match <KnownCommands>::enumify(command[0]) {
         	Some(comm)     => comm,
@@ -238,7 +239,7 @@ impl<'a> GTPInterpreter<'a> {
             KnownCommands::loadsgf          => match command.get(1) {
             	Some(comm) => {
                     let filename = comm;
-                    
+
                     match Parser::attempt_from_path(Path::new(filename)) {
                     	Ok(parser) => {
                     		let game = parser.game();

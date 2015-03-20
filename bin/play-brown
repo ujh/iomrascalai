@@ -8,7 +8,7 @@ set -ex
 cargo build --release
 
 BROWN="brown"
-IOMRASCALAI="./target/release/iomrascalai -e $1"
+IOMRASCALAI="./target/release/iomrascalai -e $1 -l"
 SIZE=9
 TIME="5m"
 

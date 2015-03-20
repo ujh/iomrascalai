@@ -22,6 +22,7 @@
 
 use board::Color;
 use board::Move;
+use config::Config;
 use game::Game;
 use playout::Playout;
 use super::Engine;
@@ -32,13 +33,13 @@ use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 
 pub struct AmafMcEngine {
-    threads: usize
+    config: Config
 }
 
 impl AmafMcEngine {
 
-    pub fn new(threads: usize) -> AmafMcEngine {
-        AmafMcEngine { threads: threads }
+    pub fn new(config: Config) -> AmafMcEngine {
+        AmafMcEngine { config: config }
     }
 
 }
@@ -46,7 +47,7 @@ impl AmafMcEngine {
 impl Engine for AmafMcEngine {
 
     fn gen_move(&self, color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
-        super::gen_move::<AmafMcEngine>(self.threads, color, game, sender, receiver);
+        super::gen_move::<AmafMcEngine>(self.config, color, game, sender, receiver);
     }
 
 }

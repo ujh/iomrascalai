@@ -1,7 +1,6 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2014 Urban Hafner                                          *
- * Copyright 2015 Urban Hafner, Thomas Poinsot                          *
+ * Copyright 2015 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -20,44 +19,23 @@
  *                                                                      *
  ************************************************************************/
 
-use board::Color;
-use board::Move;
-use config::Config;
-use game::Game;
-use playout::Playout;
-use super::Engine;
-use super::McEngine;
-use super::MoveStats;
+use ruleset::Minimal;
+use ruleset::Ruleset;
 
-use std::sync::mpsc::Receiver;
-use std::sync::mpsc::Sender;
-
-pub struct SimpleMcEngine {
-    config: Config
+#[derive(Copy)]
+pub struct Config {
+    pub log: bool,
+    pub ruleset: Ruleset,
+    pub threads: usize,
 }
 
-impl SimpleMcEngine {
+impl Config {
 
-    pub fn new(config: Config) -> SimpleMcEngine {
-        SimpleMcEngine { config: config }
-    }
-
-}
-
-impl Engine for SimpleMcEngine {
-    fn gen_move(&self, color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
-        super::gen_move::<SimpleMcEngine>(self.config, color, game, sender, receiver);
-    }
-}
-
-impl McEngine for SimpleMcEngine {
-
-    fn record_playout(stats: &mut MoveStats, playout: &Playout, won: bool) {
-        let m = playout.moves()[0];
-        if won {
-            stats.record_win(&m);
-        } else {
-            stats.record_loss(&m);
+    pub fn default() -> Config {
+        Config {
+            log: false,
+            ruleset: Minimal,
+            threads: 1,
         }
     }
 
