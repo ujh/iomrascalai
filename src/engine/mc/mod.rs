@@ -29,6 +29,7 @@ use board::Color;
 use board::Move;
 use board::Pass;
 use board::Resign;
+use config::Config;
 use game::Game;
 use playout::Playout;
 
@@ -48,17 +49,19 @@ pub trait McEngine: MarkerTrait {
 
 }
 
-fn gen_move<T: McEngine>(threads: usize, color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
+fn gen_move<T: McEngine>(config: Config, color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
     let moves = game.legal_moves_without_eyes();
     if moves.is_empty() {
-        log!("No moves to simulate!");
+        if config.log {
+            log!("No moves to simulate!");
+        }
         sender.send(Pass(color));
         return;
     }
     let mut stats = MoveStats::new(&moves, color);
     let mut counter = 0;
     let (send_result, receive_result) = channel::<(MoveStats, usize)>();
-    let (guards, halt_senders) = spin_up::<T>(color, threads, &moves, game, send_result);
+    let (guards, halt_senders) = spin_up::<T>(color, config.threads, &moves, game, send_result);
     loop {
         select!(
             result = receive_result.recv() => {
@@ -67,29 +70,32 @@ fn gen_move<T: McEngine>(threads: usize, color: Color, game: &Game, sender: Send
                 counter += count;
             },
             _ = receiver.recv() => {
-                log!("{} simulations", counter);
-                finish(color, game, stats, sender, halt_senders);
+                let msg = finish(color, game, stats, sender, halt_senders);
+                if config.log {
+                    log!("{} simulations", counter);
+                    log!("{}", msg);
+                }
                 break;
             }
             )
     }
 }
 
-fn finish(color: Color, game: &Game, stats: MoveStats, sender: Sender<Move>, halt_senders: Vec<Sender<()>>) {
+fn finish(color: Color, game: &Game, stats: MoveStats, sender: Sender<Move>, halt_senders: Vec<Sender<()>>) -> String {
+    for halt_sender in halt_senders.iter() {
+        halt_sender.send(());
+    }
     if stats.all_losses() {
-        log!("All simulations were losses");
         if game.winner() == color {
             sender.send(Pass(color));
         } else {
             sender.send(Resign(color));
         }
+        String::from_str("All simulations were losses")
     } else {
         let (m, s) = stats.best();
-        log!("Returning the best move ({}% wins)", s.win_ratio()*100.0);
         sender.send(m);
-    }
-    for halt_sender in halt_senders.iter() {
-        halt_sender.send(());
+        format!("Returning the best move ({}% wins)", s.win_ratio()*100.0)
     }
 }
 

@@ -21,6 +21,7 @@
 
 use board::Color;
 use board::Move;
+use config::Config;
 use engine::Engine;
 use game::Game;
 use timer::Timer;
@@ -33,13 +34,15 @@ use std::time::duration::Duration;
 mod test;
 
 pub struct EngineController<'a> {
+    config: Config,
     engine: Box<Engine + 'a>,
 }
 
 impl<'a> EngineController<'a> {
 
-    pub fn new<'b>(engine: Box<Engine + 'b>) -> EngineController<'b> {
+    pub fn new<'b>(config: Config, engine: Box<Engine + 'b>) -> EngineController<'b> {
         EngineController {
+            config: config,
             engine: engine,
         }
     }
@@ -70,7 +73,9 @@ impl<'a> EngineController<'a> {
     fn budget(&self, timer: &mut Timer, game: &Game) -> i64 {
         timer.start();
         let budget = timer.budget(game);
-        log!("Thinking for {}ms ({}ms time left)", budget, timer.main_time_left());
+        if self.config.log {
+            log!("Thinking for {}ms ({}ms time left)", budget, timer.main_time_left());
+        }
         budget
     }
 
