@@ -1,19 +1,10 @@
-## 0.1.6 [☰](https://github.com/ujh/iomrascalai/compare/0.1.5...master)
-
-### Changes
+## 0.1.6 [☰](https://github.com/ujh/iomrascalai/compare/0.1.5...0.1.6)
 
 * The engines can now utilize multiple threads (use the -t command
   line switch)
 * Debug output to stderr is now only generated when running with -l
 * The code coverage is now measured and reported through a badge in
   the README
-
-### Performance
-
-After running 100 games on 9x9 with komi 6.5 and a time limit of 5
-minutes (sudden death) using 8 threads the win rates are as follows:
-
-* X% ± Y% of the AMAF engine against GnuGo 3.8 (level 0)
 
 ## 0.1.5 [☰](https://github.com/ujh/iomrascalai/compare/0.1.4...0.1.5)
 
