@@ -11,8 +11,8 @@ rm -f gnugo-benchmark*
 rm -f previous-version-benchmark*
 
 GNUGO="gnugo --mode gtp --level 0 --chinese-rules --positional-superko --capture-all-dead --score aftermath --play-out-aftermath"
-IOMRASCALAI1="./target/release/iomrascalai -e mc"
-IOMRASCALAI2="./target/release/iomrascalai -e amaf"
+IOMRASCALAI1="./target/release/iomrascalai -e mc -t 8"
+IOMRASCALAI2="./target/release/iomrascalai -e amaf -t 8"
 REFEREE="$GNUGO"
 SIZE=9
 GAMES=100
