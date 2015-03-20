@@ -1,5 +1,6 @@
 [package]
 
+description = "An AI for the game of Go"
 name = "iomrascalai"
 version = "0.1.6"
 authors = ["Urban Hafner <contact@urbanhafner.com>",
@@ -7,6 +8,8 @@ authors = ["Urban Hafner <contact@urbanhafner.com>",
         "Igor Polyakov <iopguy+iomrasclai@gmail.com>"]
 homepage = "https://github.com/ujh/iomrascalai"
 repository = "https://github.com/ujh/iomrascalai"
+license = "GPL-3.0+"
+license-file = "LICENSE"
 
 [dependencies]
 
