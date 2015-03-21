@@ -37,6 +37,12 @@ fn should_add_the_passed_moves_as_the_first_move() {
     assert_eq!(Play(Black, 1, 1), playout.moves()[0]);
 }
 
+#[test]
+fn max_moves() {
+    let game = Game::new(19, 6.5, KgsChinese);
+    let board = game.board();
+    assert_eq!(1083, Playout::max_moves(19));
+}
 
 #[bench]
 fn bench_9x9_playout_speed(b: &mut Bencher) {

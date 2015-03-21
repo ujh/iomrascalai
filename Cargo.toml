@@ -9,7 +9,6 @@ authors = ["Urban Hafner <contact@urbanhafner.com>",
 homepage = "https://github.com/ujh/iomrascalai"
 repository = "https://github.com/ujh/iomrascalai"
 license = "GPL-3.0+"
-license-file = "LICENSE"
 
 [dependencies]
 
