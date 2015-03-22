@@ -22,7 +22,7 @@
 
 #![cfg(test)]
 #![allow(unused_must_use)]
-
+use std::path::Path;
 use board::Black;
 use board::Board;
 use board::Coord;
@@ -82,8 +82,8 @@ fn play_adds_a_stone_to_the_correct_position() {
 
     assert!(b.color(&Coord::new(14, 14)) == Black);
 
-    for i in range(1u8, 20) {
-        for j in range(1u8 , 20) {
+    for i in 1u8..20 {
+        for j in 1u8..20 {
             assert!(b.color(&Coord::new(i, j)) == Empty || (i == 14 && j == 14));
         }
     }

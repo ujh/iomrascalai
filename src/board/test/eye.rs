@@ -20,7 +20,7 @@
  ************************************************************************/
 
 #![cfg(test)]
-
+use std::path::Path;
 use board::Black;
 use board::Coord;
 use board::Pass;

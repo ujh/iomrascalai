@@ -20,7 +20,7 @@
  *                                                                      *
  ************************************************************************/
 #![allow(non_camel_case_types)]
-
+use std::path::Path;
 use board::Color;
 use board::IllegalMove;
 use board::Move;

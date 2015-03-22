@@ -37,8 +37,8 @@ impl Coord {
 
     pub fn for_board_size(size: u8) -> Vec<Coord> {
         let mut coords = Vec::new();
-        for i in range(0, size) {
-            for j in range(0, size) {
+        for i in 0..size {
+            for j in 0..size {
                 coords.push(Coord::new(j+1, i+1));
             }
         }
@@ -52,8 +52,8 @@ impl Coord {
     pub fn neighbours(&self, board_size: u8) -> Vec<Coord> {
         let mut neighbours = Vec::new();
 
-        for i in range(-1i8,2) {
-            for j in range(-1i8,2) {
+        for i in -1i8..2 {
+            for j in -1i8..2 {
                 let (col, row) = (self.col as i8 + i, self.row as i8 + j);
                 let potential_neighbour = Coord::new(col as u8, row as u8);
                 if ((i == 0 && j !=0) || (i != 0 && j == 0)) && (potential_neighbour.is_inside(board_size)) {

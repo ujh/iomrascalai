@@ -165,7 +165,7 @@ impl Display for Game {
 
         // Then we print the col numbers under the board
         s.push_str(format!("{:3}", "").as_slice());
-        for col in range(1, self.board.size()+1) {
+        for col in 1..self.board.size()+1 {
             s.push_str(format!("{:<2}", col).as_slice());
         }
         s.push_str("\n");

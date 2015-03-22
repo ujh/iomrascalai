@@ -25,6 +25,7 @@ use config::Config;
 use engine::Engine;
 use game::Game;
 use timer::Timer;
+use std::old_io::Writer;
 
 use std::old_io::timer::sleep;
 use std::sync::mpsc::channel;
