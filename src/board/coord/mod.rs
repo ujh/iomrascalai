@@ -76,10 +76,12 @@ impl Coord {
             .collect()
     }
 
+    #[inline(always)]
     pub fn to_index(&self, board_size: u8) -> usize {
         (self.col as usize-1 + (self.row as usize-1)*board_size as usize)
     }
 
+    #[inline(always)]
     pub fn is_inside(&self, board_size: u8) -> bool {
         1 <= self.col && self.col <= board_size && 1 <= self.row && self.row <= board_size
     }
