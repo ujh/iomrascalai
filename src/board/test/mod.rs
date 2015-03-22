@@ -494,11 +494,3 @@ fn adv_stones_removed_only_contains_each_coord_once() {
     removed_coords.dedup();
     assert_eq!(removed_coords.len(), board.adv_stones_removed().len());
 }
-
-#[bench]
-fn bench_play_method(b: &mut Bencher) {
-    b.iter(|| {
-        let mut board = Board::new(19, 6.5, AnySizeTrompTaylor);
-        board.play(Play(Black, 14, 14)).unwrap();
-    });
-}
