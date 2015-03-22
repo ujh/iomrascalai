@@ -21,7 +21,7 @@
  ************************************************************************/
 
 #![cfg(test)]
-
+use std::path::Path;
 use board::Black;
 use board::IllegalMove;
 use board::Play;

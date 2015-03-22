@@ -21,7 +21,7 @@
  ************************************************************************/
 use std::io::prelude::*;
 use std::fs::File;
-
+use std::path::Path;
 use board::Black;
 use board::Color;
 use board::Empty;
@@ -95,7 +95,7 @@ impl Parser {
         Parser {sgf: sgf}
     }
     
-    pub fn attempt_from_path(path: Path) -> Result<Parser, ::std::io::Error> {
+    pub fn attempt_from_path(path: &Path) -> Result<Parser, ::std::io::Error> {
     	match File::open(&path) {
     		Ok(mut file) => {
 		        let mut contents = String::new();
@@ -108,7 +108,7 @@ impl Parser {
 		}
 	}
 
-    pub fn from_path(path: Path) -> Parser {
+    pub fn from_path(path: &Path) -> Parser {
         let mut f = File::open(&path).unwrap();
         let mut contents = String::new();
         f.read_to_string(&mut contents).unwrap();

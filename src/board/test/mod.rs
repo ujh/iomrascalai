@@ -22,7 +22,7 @@
 
 #![cfg(test)]
 #![allow(unused_must_use)]
-
+use std::path::Path;
 use board::Black;
 use board::Board;
 use board::Coord;
@@ -82,8 +82,8 @@ fn play_adds_a_stone_to_the_correct_position() {
 
     assert!(b.color(&Coord::new(14, 14)) == Black);
 
-    for i in range(1u8, 20) {
-        for j in range(1u8 , 20) {
+    for i in 1u8..20 {
+        for j in 1u8..20 {
             assert!(b.color(&Coord::new(i, j)) == Empty || (i == 14 && j == 14));
         }
     }
@@ -493,12 +493,4 @@ fn adv_stones_removed_only_contains_each_coord_once() {
     removed_coords.sort();
     removed_coords.dedup();
     assert_eq!(removed_coords.len(), board.adv_stones_removed().len());
-}
-
-#[bench]
-fn bench_play_method(b: &mut Bencher) {
-    b.iter(|| {
-        let mut board = Board::new(19, 6.5, AnySizeTrompTaylor);
-        board.play(Play(Black, 14, 14)).unwrap();
-    });
 }

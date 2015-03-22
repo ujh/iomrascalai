@@ -133,7 +133,7 @@ impl Board {
     pub fn new(size: u8, komi: f32, ruleset: Ruleset) -> Board {
         Board {
             adv_stones_removed:    Vec::new(),
-            board:                 range(0, size as usize*size as usize).map(|_| Point::new()).collect(),
+            board:                 (0..size as usize*size as usize).map(|_| Point::new()).collect(),
             chains:                Vec::new(),
             consecutive_passes:    0,
             diagonals:             Board::setup_diagonals(size),
@@ -455,7 +455,7 @@ impl Board {
     }
 
     fn update_board_ids_after_id(&mut self, id: usize) {
-        for i in range(id, self.chains.len()) {
+        for i in id..self.chains.len() {
             for &coord in self.chains[i].coords().iter() {
                 self.board[coord.to_index(self.size)].chain_id = i;
             }
@@ -463,7 +463,7 @@ impl Board {
     }
 
     fn update_chains_ids_after_id(&mut self, removed_chain_id: usize) {
-        for i in range(removed_chain_id, self.chains.len()) {
+        for i in removed_chain_id..self.chains.len() {
             self.chains[i].set_id(i);
         }
     }
@@ -574,13 +574,13 @@ impl Board {
     pub fn as_string(&self) -> String {
         let mut s = String::new();
                 // First we print the board
-        for row in range(1u8, self.size()+1).rev() {
+        for row in (1u8..self.size()+1).rev() {
 
             // Prints the row number
             s.push_str(format!("{:2} ", row).as_slice());
 
             // Prints the actual row
-            for col in range(1u8, self.size()+1) {
+            for col in (1u8..self.size()+1) {
                 let current_coords = Coord::new(col, row);
 
                 match self.color(&current_coords) {

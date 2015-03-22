@@ -32,6 +32,7 @@ use board::Resign;
 use config::Config;
 use game::Game;
 use playout::Playout;
+use std::old_io::Writer;
 
 use rand::random;
 use std::marker::MarkerTrait;
@@ -102,7 +103,7 @@ fn finish(color: Color, game: &Game, stats: MoveStats, sender: Sender<Move>, hal
 fn spin_up<'a, T: McEngine>(color: Color, threads: usize, moves: &'a Vec<Move>, game: &Game, send_result: Sender<(MoveStats<'a>, usize)>) -> (Vec<thread::JoinGuard<'a, ()>>, Vec<Sender<()>>) {
     let mut guards = Vec::new();
     let mut halt_senders = Vec::new();
-    for _ in range(0, threads) {
+    for _ in 0..threads {
         let (send_halt, receive_halt) = channel::<()>();
         halt_senders.push(send_halt);
         let send_result = send_result.clone();
@@ -117,7 +118,7 @@ fn spin_up_worker<'a, T: McEngine>(color: Color, recv_halt: Receiver<()>, moves:
         let runs = 100;
         let mut stats = MoveStats::new(moves, color);
         loop {
-            for _ in range(0, runs) {
+            for _ in 0..runs {
                 let m = moves[random::<usize>() % moves.len()];
                 let playout = Playout::run(&board, &m);
                 let winner = playout.winner();
