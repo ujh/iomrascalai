@@ -500,7 +500,7 @@ impl Board {
         }
         coords_to_remove
     }
-    //#[inline(always)]
+    #[inline(always)]
     fn remove_suicide_chain(&mut self, m: &Move) -> Vec<Coord> {
         let coords_to_remove = self.get_chain(m.coord()).unwrap().coords().clone();
         let chain_id = self.chain_id(&m.coord());
