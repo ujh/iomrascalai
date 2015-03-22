@@ -96,11 +96,11 @@ pub struct Board {
     board:                 Vec<Point>,
     chains:                Vec<Chain>,
     consecutive_passes:    u8,
-    diagonals:             Arc<Vec<Vec<Coord>>>,
+    diagonals:             Vec<Vec<Coord>>,
     friend_stones_removed: Vec<Coord>,
     ko:                    Option<Coord>,
     komi:                  f32,
-    neighbours:            Arc<Vec<Vec<Coord>>>,
+    neighbours:            Vec<Vec<Coord>>,
     previous_player:       Color,
     resigned_by:           Color,
     ruleset:               Ruleset,
@@ -149,20 +149,20 @@ impl Board {
         }
     }
 
-    fn setup_neighbours(size: u8) -> Arc<Vec<Vec<Coord>>> {
+    fn setup_neighbours(size: u8) -> Vec<Vec<Coord>> {
         let mut neighbours = Vec::new();
         for coord in Coord::for_board_size(size).iter() {
             neighbours.push(coord.neighbours(size));
         }
-        Arc::new(neighbours)
+        neighbours
     }
 
-    fn setup_diagonals(size: u8) -> Arc<Vec<Vec<Coord>>> {
+    fn setup_diagonals(size: u8) -> Vec<Vec<Coord>> {
         let mut diagonals = Vec::new();
         for coord in Coord::for_board_size(size).iter() {
             diagonals.push(coord.diagonals(size));
         }
-        Arc::new(diagonals)
+        diagonals
     }
 
     pub fn neighbours(&self, c: Coord) -> &Vec<Coord> {
