@@ -1,7 +1,7 @@
 /************************************************************************
  *                                                                      *
  * Copyright 2014 Urban Hafner, Thomas Poinsot                          *
- * Copyright 2015 Urban Hafner                                          *
+ * Copyright 2015 Urban Hafner, Igor Polyakov                           *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -35,7 +35,6 @@ use self::point::Point;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fmt;
-use std::sync::Arc;
 use std::vec::Vec;
 
 mod test;
