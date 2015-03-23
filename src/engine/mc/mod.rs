@@ -34,7 +34,7 @@ use game::Game;
 use playout::Playout;
 use std::old_io::Writer;
 
-use rand::random;
+use rand::{Rng, weak_rng};
 use std::marker::MarkerTrait;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
@@ -119,8 +119,9 @@ fn spin_up_worker<'a, T: McEngine>(color: Color, recv_halt: Receiver<()>, moves:
         let mut stats = MoveStats::new(moves, color);
         loop {
             for _ in 0..runs {
-                let m = moves[random::<usize>() % moves.len()];
-                let playout = Playout::run(&board, &m);
+            	let mut rng = weak_rng();
+                let m = moves[rng.gen::<usize>() % moves.len()];
+                let playout = Playout::run(&board, &m, &mut rng);
                 let winner = playout.winner();
                 T::record_playout(&mut stats, &playout, winner == color);
             }
