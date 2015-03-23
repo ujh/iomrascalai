@@ -26,12 +26,13 @@ use super::Command;
 use super::GTPInterpreter;
 use version;
 
+use std::sync::Arc;
 use std::old_io::stdio::stdin;
 
 pub struct Driver;
 
 impl Driver {
-    pub fn new(config: Config, engine: Box<Engine>) {
+    pub fn new(config: Arc<Config>, engine: Box<Engine>) {
         let engine_name = "Iomrascalai";
         let engine_version = version::version();
         let protocol_version = "2";

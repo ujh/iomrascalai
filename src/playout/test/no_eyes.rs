@@ -1,6 +1,6 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2015 Thomas Poinsot, Igor Polyakov                         *
+ * Copyright 2015 Thomas Poinsot, Igor Polyakov, Urban Hafner           *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -24,6 +24,7 @@
 use board::Black;
 use board::Play;
 use game::Game;
+use playout::NoEyesPlayout;
 use playout::Playout;
 use rand::{Rng, weak_rng};
 use ruleset::KgsChinese;
@@ -34,7 +35,7 @@ fn should_add_the_passed_moves_as_the_first_move() {
     let game = Game::new(9, 6.5, KgsChinese);
     let board = game.board();
     let mut rng = weak_rng();
-    let playout = Playout::new();
+    let playout = NoEyesPlayout::new();
     let result = playout.run(&board, &Play(Black, 1, 1), &mut rng);
     assert_eq!(Play(Black, 1, 1), result.moves()[0]);
 }
@@ -43,7 +44,7 @@ fn should_add_the_passed_moves_as_the_first_move() {
 fn max_moves() {
     let game = Game::new(19, 6.5, KgsChinese);
     let board = game.board();
-    let playout = Playout::new();
+    let playout = NoEyesPlayout::new();
     assert_eq!(1083, playout.max_moves(19));
 }
 
@@ -52,7 +53,7 @@ fn bench_9x9_playout_speed(b: &mut Bencher) {
     let game = Game::new(9, 6.5, KgsChinese);
     let board = game.board();
     let mut rng = weak_rng();
-    let playout = Playout::new();
+    let playout = NoEyesPlayout::new();
     b.iter(|| playout.run(&board, &Play(Black, 1, 1), &mut rng))
 }
 
@@ -61,7 +62,7 @@ fn bench_13x13_playout_speed(b: &mut Bencher) {
     let game = Game::new(13, 6.5, KgsChinese);
     let board = game.board();
     let mut rng = weak_rng();
-    let playout = Playout::new();
+    let playout = NoEyesPlayout::new();
     b.iter(|| playout.run(&board, &Play(Black, 1, 1), &mut rng))
 }
 
@@ -70,6 +71,6 @@ fn bench_19x19_playout_speed(b: &mut Bencher) {
     let game = Game::new(19, 6.5, KgsChinese);
     let board = game.board();
     let mut rng = weak_rng();
-    let playout = Playout::new();
+    let playout = NoEyesPlayout::new();
     b.iter(|| playout.run(&board, &Play(Black, 1, 1), &mut rng))
 }

@@ -1,6 +1,6 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2015 Urban Hafner                                          *
+ * Copyright 2015 Thomas Poinsot, Urban Hafner                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -19,29 +19,7 @@
  *                                                                      *
  ************************************************************************/
 
-use playout::Playout;
-use playout::SimplePlayout;
-use ruleset::Minimal;
-use ruleset::Ruleset;
+#![cfg(test)]
 
-use std::sync::Arc;
-
-pub struct Config {
-    pub log: bool,
-    pub playout: Box<Playout>,
-    pub ruleset: Ruleset,
-    pub threads: usize,
-}
-
-impl Config {
-
-    pub fn default() -> Config {
-        Config {
-            log: false,
-            playout: Box::new(SimplePlayout::new()),
-            ruleset: Minimal,
-            threads: 1,
-        }
-    }
-
-}
+mod no_eyes;
+mod simple;

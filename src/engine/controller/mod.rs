@@ -28,6 +28,7 @@ use timer::Timer;
 use std::old_io::Writer;
 
 use std::old_io::timer::sleep;
+use std::sync::Arc;
 use std::sync::mpsc::channel;
 use std::thread;
 use std::time::duration::Duration;
@@ -35,13 +36,13 @@ use std::time::duration::Duration;
 mod test;
 
 pub struct EngineController<'a> {
-    config: Config,
+    config: Arc<Config>,
     engine: Box<Engine + 'a>,
 }
 
 impl<'a> EngineController<'a> {
 
-    pub fn new<'b>(config: Config, engine: Box<Engine + 'b>) -> EngineController<'b> {
+    pub fn new<'b>(config: Arc<Config>, engine: Box<Engine + 'b>) -> EngineController<'b> {
         EngineController {
             config: config,
             engine: engine,

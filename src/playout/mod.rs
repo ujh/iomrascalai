@@ -19,6 +19,8 @@
  *                                                                      *
  ************************************************************************/
 
+pub use self::no_eyes::NoEyesPlayout;
+pub use self::simple::SimplePlayout;
 use board::Board;
 use board::Move;
 use board::Color;
@@ -26,17 +28,13 @@ use board::Pass;
 
 use rand::{Rng, XorShiftRng};
 
+mod no_eyes;
+mod simple;
 mod test;
 
-pub struct Playout;
+pub trait Playout: Sync + Send {
 
-impl Playout {
-
-    pub fn new() -> Playout {
-        Playout
-    }
-
-    pub fn run(&self, b: &Board, initial_move: &Move, rng: &mut XorShiftRng) -> PlayoutResult {
+    fn run(&self, b: &Board, initial_move: &Move, rng: &mut XorShiftRng) -> PlayoutResult {
         let mut board = b.clone();
         let mut played_moves = Vec::new();
         board.play(*initial_move);
@@ -45,14 +43,14 @@ impl Playout {
         let mut move_count = 0;
         while !board.is_game_over() && move_count < max_moves {
             let m = board.playout_move(rng);
-
-
             board.play(m);
             played_moves.push(m);
             move_count += 1;
         }
         PlayoutResult::new(played_moves, board.winner())
     }
+
+    fn moves(&self, b: &Board) -> Vec<Move>;
 
     fn max_moves(&self, size: u8) -> usize {
         size as usize * size as usize * 3

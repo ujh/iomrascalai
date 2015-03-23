@@ -41,9 +41,12 @@ extern crate time;
 use config::Config;
 use engine::AmafMcEngine;
 use engine::Engine;
-use engine::SimpleMcEngine;
 use engine::RandomEngine;
+use engine::SimpleMcEngine;
 use gtp::driver::Driver;
+use playout::NoEyesPlayout;
+use playout::Playout;
+use playout::SimplePlayout;
 use ruleset::KgsChinese;
 use ruleset::Ruleset;
 use version::version;
@@ -51,6 +54,7 @@ use version::version;
 use getopts::Options;
 use std::ascii::OwnedAsciiExt;
 use std::env::args;
+use std::sync::Arc;
 
 macro_rules! log(
     ($($arg:tt)*) => (
@@ -79,6 +83,7 @@ pub fn main() {
     opts.optopt("e", "engine", "select an engine (defaults to amaf)", "amaf|mc|random");
     opts.optopt("r", "ruleset", "select the ruleset (defaults to chinese)", "cgos|chinese|tromp-taylor|minimal");
     opts.optopt("t", "threads", "number of threads to use (defaults to 1)", "NUM");
+    opts.optopt("p", "playout", "type of playout to use (defaults to no-eyes)", "no-eyes|simple");
     opts.optflag("h", "help", "print this help menu");
     opts.optflag("v", "version", "print the version number");
     opts.optflag("l", "log", "log to stderr (defaults to false)");
@@ -107,26 +112,36 @@ pub fn main() {
         },
         None => 1
     };
+    let playout: Box<Playout> = match matches.opt_str("p") {
+        Some(s) => {
+            match s.as_slice() {
+                "simple" => Box::new(SimplePlayout::new()),
+                _ => Box::new(NoEyesPlayout::new()),
+            }
+        }
+        None => Box::new(NoEyesPlayout::new())
+    };
     let rules_arg = matches.opt_str("r").map(|s| s.into_ascii_lowercase());
     let ruleset = match rules_arg {
         Some(r) => Ruleset::from_string(r),
         None    => KgsChinese
     };
-    let config = Config {
+    let config = Arc::new(Config {
         log: log,
+        playout: playout,
         ruleset: ruleset,
         threads: threads,
-    };
+    });
     let engine_arg = matches.opt_str("e").map(|s| s.into_ascii_lowercase());
     let engine: Box<Engine> = match engine_arg {
         Some(s) => {
             match s.as_slice() {
                 "random" => Box::new(RandomEngine::new()),
-                "mc"     => Box::new(SimpleMcEngine::new(config)),
-                _        => Box::new(AmafMcEngine::new(config)),
+                "mc"     => Box::new(SimpleMcEngine::new(config.clone())),
+                _        => Box::new(AmafMcEngine::new(config.clone())),
             }
         },
-        None => Box::new(AmafMcEngine::new(config))
+        None => Box::new(AmafMcEngine::new(config.clone()))
     };
-    Driver::new(config, engine);
+    Driver::new(config.clone(), engine);
 }

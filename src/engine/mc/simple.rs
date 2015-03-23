@@ -29,16 +29,17 @@ use super::Engine;
 use super::McEngine;
 use super::MoveStats;
 
+use std::sync::Arc;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 
 pub struct SimpleMcEngine {
-    config: Config
+    config: Arc<Config>
 }
 
 impl SimpleMcEngine {
 
-    pub fn new(config: Config) -> SimpleMcEngine {
+    pub fn new(config: Arc<Config>) -> SimpleMcEngine {
         SimpleMcEngine { config: config }
     }
 
@@ -46,7 +47,7 @@ impl SimpleMcEngine {
 
 impl Engine for SimpleMcEngine {
     fn gen_move(&self, color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
-        super::gen_move::<SimpleMcEngine>(self.config, color, game, sender, receiver);
+        super::gen_move::<SimpleMcEngine>(self.config.clone(), color, game, sender, receiver);
     }
 }
 

@@ -19,29 +19,24 @@
  *                                                                      *
  ************************************************************************/
 
-use playout::Playout;
-use playout::SimplePlayout;
-use ruleset::Minimal;
-use ruleset::Ruleset;
+use board::Board;
+use board::Move;
+use super::Playout;
 
-use std::sync::Arc;
+pub struct SimplePlayout;
 
-pub struct Config {
-    pub log: bool,
-    pub playout: Box<Playout>,
-    pub ruleset: Ruleset,
-    pub threads: usize,
+impl SimplePlayout {
+
+    pub fn new() -> SimplePlayout {
+        SimplePlayout
+    }
+
 }
 
-impl Config {
+impl Playout for SimplePlayout {
 
-    pub fn default() -> Config {
-        Config {
-            log: false,
-            playout: Box::new(SimplePlayout::new()),
-            ruleset: Minimal,
-            threads: 1,
-        }
+    fn moves(&self, b: &Board) -> Vec<Move> {
+        b.legal_moves_without_superko_check()
     }
 
 }
