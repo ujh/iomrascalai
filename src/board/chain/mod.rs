@@ -54,6 +54,7 @@ impl Chain {
         &self.coords
     }
 
+    #[inline(always)]
     pub fn liberties(&self) -> &HashSet<Coord> {
         &self.libs
     }
