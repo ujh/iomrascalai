@@ -243,7 +243,7 @@ impl Board {
             let color = self.next_player();
             self.vacant
                 .iter()
-                .map(|coord| Play(color.clone(), coord.col, coord.row))
+                .map(|coord| Play(color, coord.col, coord.row))
                 .filter(|m| self.is_legal(*m).is_ok())
                 .collect()
         }
@@ -284,9 +284,9 @@ impl Board {
         }
         // Can't play on a Ko point
         if self.ko.is_some() && m.coord() == self.ko.unwrap() {
-            if self.neighbours(m.coord())
+            if self.neighbours(m.coord()) //neighbours of the coordinate of the ko point
                 .iter()
-                .filter(|&c| self.color(c) == m.color().opposite())
+                .filter(|&c| self.color(c) == m.color().opposite()) //filter coordinates of opposite stones
                 .map(|&c| self.get_chain(c).unwrap())
                 .any(|chain| chain.liberties().len() == 1 && chain.coords().len() == 1) {
                     return Err(IllegalMove::Ko);
