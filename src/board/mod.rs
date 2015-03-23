@@ -209,7 +209,7 @@ impl Board {
     pub fn next_player(&self) -> Color {
         self.previous_player.opposite()
     }
-    #[inline(always)]
+    #[inline(always)] //turn off for profiling
     pub fn is_eye(&self, coord: &Coord, color: Color) -> bool {
         let neighbours = self.neighbours(*coord);
         if neighbours.iter().all(|c| self.color(c) == color) {
@@ -235,7 +235,7 @@ impl Board {
     pub fn friend_stones_removed(&self) -> &Vec<Coord> {
         &self.friend_stones_removed
     }
-    #[inline(always)]
+    #[inline(always)] //turn off for profiling
     pub fn legal_moves_without_superko_check(&self) -> Vec<Move> {
         if self.is_game_over() {
             vec!()
@@ -248,14 +248,14 @@ impl Board {
                 .collect()
         }
     }
-    #[inline(always)]
+    #[inline(always)] //turn off for profiling
     pub fn legal_moves_without_eyes(&self) -> Vec<Move> {
         self.legal_moves_without_superko_check()
             .into_iter()
             .filter(|m| m.is_pass() || !self.is_eye(&m.coord(), *m.color()))
             .collect()
     }
-    #[inline(always)]
+    #[inline(always)] //turn off for profiling
     pub fn is_legal(&self, m: Move) -> Result<(), IllegalMove> {
         // Can't play if the game is already over
         if self.is_game_over() && !self.ruleset.game_over_play() {
@@ -314,7 +314,7 @@ impl Board {
         }
         Ok(())
     }
-    #[inline(always)]
+    #[inline(always)] //turn off for profiling
     // Note: Same as get(), the board is indexed starting at 1-1
     pub fn play(&mut self, m: Move) -> Result<(), IllegalMove> {
         match self.is_legal(m) {
@@ -355,14 +355,14 @@ impl Board {
         self.update_vacant(&m);
         Ok(())
     }
-    #[inline(always)]
+    #[inline(always)] //turn off for profiling
     fn update_vacant(&mut self, m: &Move) {
         let pos = self.vacant.iter().position(|&c| c == m.coord()).unwrap();
         self.vacant.swap_remove(pos);
         self.vacant.push_all(self.adv_stones_removed.as_slice());
         self.vacant.push_all(self.friend_stones_removed.as_slice());
     }
-    #[inline(always)]
+    #[inline(always)] //turn off for profiling
     fn add_removed_adv_stones_as_libs(&mut self, m: &Move) {
         let color = *m.color();
         let mut libs: HashMap<Coord, Vec<usize>> = HashMap::new();
@@ -380,7 +380,7 @@ impl Board {
             }
         }
     }
-    #[inline(always)]
+    #[inline(always)] //turn off for profiling
     fn add_removed_friendly_stones_as_libs(&mut self, m: &Move) {
         let color = m.color().opposite();
         let mut libs: HashMap<Coord, Vec<usize>> = HashMap::new();
@@ -398,7 +398,7 @@ impl Board {
             }
         }
     }
-    #[inline(always)]
+    #[inline(always)] //turn off for profiling
     fn update_libs_of_adjacent_opposing_chains(&mut self, m: &Move) {
         let coord = m.coord();
         let color = m.color().opposite();
@@ -411,7 +411,7 @@ impl Board {
             self.chains[id].remove_liberty(coord);
         }
     }
-    #[inline(always)]
+    #[inline(always)] //turn off for profiling
     fn find_neighbouring_friendly_chains_ids(&self, m: &Move) -> Vec<usize> {
         let mut friend_neigh_chains_id: Vec<usize> = self.neighbours(m.coord())
             .iter()
@@ -427,7 +427,7 @@ impl Board {
         friend_neigh_chains_id.dedup();
         friend_neigh_chains_id
     }
-    #[inline(always)]
+    #[inline(always)] //turn off for profiling
     fn merge_or_create_chain(&mut self, m: &Move) {
         let mut chain_ids = self.find_neighbouring_friendly_chains_ids(m);
         let new_chain_id = self.create_new_chain(m);
@@ -453,7 +453,7 @@ impl Board {
         // Removes the played stone from the liberty
         self.chains[final_chain_id].remove_liberty(m.coord());
     }
-    #[inline(always)]
+    #[inline(always)] //turn off for profiling
     fn update_board_ids_after_id(&mut self, id: usize) {
         for i in id..self.chains.len() {
             for &coord in self.chains[i].coords().iter() {
@@ -461,18 +461,18 @@ impl Board {
             }
         }
     }
-    #[inline(always)]
+    #[inline(always)] //turn off for profiling
     fn update_chains_ids_after_id(&mut self, removed_chain_id: usize) {
         for i in removed_chain_id..self.chains.len() {
             self.chains[i].set_id(i);
         }
     }
-    #[inline(always)]
+    #[inline(always)] //turn off for profiling
     fn update_all_after_id(&mut self, id: usize) {
         self.update_board_ids_after_id(id);
         self.update_chains_ids_after_id(id);
     }
-    #[inline(always)]
+    #[inline(always)] //turn off for profiling
     fn remove_captured_opponent_stones(&mut self, m: &Move) -> Vec<Coord> {
         let coord = m.coord();
         let color = m.color().opposite();
@@ -500,14 +500,14 @@ impl Board {
         }
         coords_to_remove
     }
-    #[inline(always)]
+    #[inline(always)] //turn off for profiling
     fn remove_suicide_chain(&mut self, m: &Move) -> Vec<Coord> {
         let coords_to_remove = self.get_chain(m.coord()).unwrap().coords().clone();
         let chain_id = self.chain_id(&m.coord());
         self.remove_chain(chain_id);
         coords_to_remove
     }
-    #[inline(always)]
+    #[inline(always)] //turn off for profiling
     fn remove_chain(&mut self, id: usize) {
         let coords_to_remove = self.chains[id].coords().clone();
 
@@ -518,7 +518,7 @@ impl Board {
         self.chains.remove(id);
         self.update_all_after_id(id);
     }
-    #[inline(always)]
+    #[inline(always)] //turn off for profiling
     fn create_new_chain(&mut self, m: &Move) -> usize {
         let new_chain_id = self.chains.len();
         let new_chain    = Chain::new(
@@ -528,7 +528,7 @@ impl Board {
         self.board[m.coord().to_index(self.size)].color = *m.color();
         new_chain_id
     }
-    #[inline(always)]
+    #[inline(always)] //turn off for profiling
     fn liberties(&self, c: &Coord) -> HashSet<Coord> {
         self.neighbours(*c).iter().filter(|&c| self.color(c) == Empty).cloned().collect()
     }
