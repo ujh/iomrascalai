@@ -28,35 +28,47 @@ use rand::{Rng, XorShiftRng};
 
 mod test;
 
-pub struct Playout {
-    moves: Vec<Move>,
-    winner: Color,
-}
+pub struct Playout;
 
 impl Playout {
-    pub fn run(b: &Board, initial_move: &Move, rng: &mut XorShiftRng) -> Playout {
+
+    pub fn new() -> Playout {
+        Playout
+    }
+
+    pub fn run(&self, b: &Board, initial_move: &Move, rng: &mut XorShiftRng) -> PlayoutResult {
         let mut board = b.clone();
         let mut played_moves = Vec::new();
         board.play(*initial_move);
         played_moves.push(*initial_move);
-        let max_moves = Playout::max_moves(board.size());
+        let max_moves = self.max_moves(board.size());
         let mut move_count = 0;
         while !board.is_game_over() && move_count < max_moves {
             let m = board.playout_move(rng);
-            
-            
+
+
             board.play(m);
             played_moves.push(m);
             move_count += 1;
         }
-        Playout {
-            moves: played_moves,
-            winner: board.winner(),
-        }
+        PlayoutResult::new(played_moves, board.winner())
     }
 
-    pub fn max_moves(size: u8) -> usize {
+    fn max_moves(&self, size: u8) -> usize {
         size as usize * size as usize * 3
+    }
+
+}
+
+pub struct PlayoutResult {
+    moves: Vec<Move>,
+    winner: Color,
+}
+
+impl PlayoutResult {
+
+    pub fn new(moves: Vec<Move>, winner: Color) -> PlayoutResult {
+        PlayoutResult { moves: moves, winner: winner }
     }
 
     pub fn moves(&self) -> &Vec<Move> {
@@ -66,4 +78,5 @@ impl Playout {
     pub fn winner(&self) -> Color {
         self.winner
     }
+
 }

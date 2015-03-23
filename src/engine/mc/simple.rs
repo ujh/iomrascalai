@@ -24,7 +24,7 @@ use board::Color;
 use board::Move;
 use config::Config;
 use game::Game;
-use playout::Playout;
+use playout::PlayoutResult;
 use super::Engine;
 use super::McEngine;
 use super::MoveStats;
@@ -52,7 +52,7 @@ impl Engine for SimpleMcEngine {
 
 impl McEngine for SimpleMcEngine {
 
-    fn record_playout(stats: &mut MoveStats, playout: &Playout, won: bool) {
+    fn record_playout(stats: &mut MoveStats, playout: &PlayoutResult, won: bool) {
         let m = playout.moves()[0];
         if won {
             stats.record_win(&m);

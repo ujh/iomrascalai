@@ -24,7 +24,7 @@ use board::Color;
 use board::Move;
 use config::Config;
 use game::Game;
-use playout::Playout;
+use playout::PlayoutResult;
 use super::Engine;
 use super::McEngine;
 use super::MoveStats;
@@ -54,7 +54,7 @@ impl Engine for AmafMcEngine {
 
 impl McEngine for AmafMcEngine {
 
-    fn record_playout(stats: &mut MoveStats, playout: &Playout, won: bool) {
+    fn record_playout(stats: &mut MoveStats, playout: &PlayoutResult, won: bool) {
         for m in playout.moves().iter() {
             if won {
                 stats.record_win(&m);
