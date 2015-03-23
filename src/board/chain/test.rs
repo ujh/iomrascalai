@@ -6,7 +6,7 @@ use board::Coord;
 
 #[test]
 fn show_returns_a_legible_string_for_the_chain() {
-    let mut c = Chain::new(1, Black, Coord::new(7,7), vec!(Coord::new(1,1)));
+    let mut c = Chain::new(1, Black, Coord::new(7,7), HashSet::new().insert(Coord::new(1,1)));
 
     c.add_coord(Coord::new(7,8));
     c.add_coord(Coord::new(7,9));

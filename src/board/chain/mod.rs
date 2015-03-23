@@ -36,12 +36,12 @@ pub struct Chain {
 }
 
 impl Chain {
-    pub fn new(id: usize, color: Color, c: Coord, libs: Vec<Coord>) -> Chain {
+    pub fn new(id: usize, color: Color, c: Coord, libs: HashSet<Coord>) -> Chain {
         Chain {
             color:  color,
             coords: vec!(c),
             id:     id,
-            libs:   libs.into_iter().collect(),
+            libs:   libs,
         }
     }
 

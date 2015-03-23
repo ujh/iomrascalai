@@ -529,7 +529,7 @@ impl Board {
         new_chain_id
     }
     #[inline(always)]
-    fn liberties(&self, c: &Coord) -> Vec<Coord> {
+    fn liberties(&self, c: &Coord) -> HashSet<Coord> {
         self.neighbours(*c).iter().filter(|&c| self.color(c) == Empty).cloned().collect()
     }
     #[inline(always)]
