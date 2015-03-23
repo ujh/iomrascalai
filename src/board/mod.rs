@@ -122,7 +122,7 @@ impl Clone for Board {
             neighbours:            self.neighbours.clone(),
             previous_player:       self.previous_player,
             resigned_by:           self.resigned_by,
-            ruleset:               self.ruleset.clone(),
+            ruleset:               self.ruleset,
             size:                  self.size,
             vacant:                self.vacant.clone(),
         }
