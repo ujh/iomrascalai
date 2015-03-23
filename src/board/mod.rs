@@ -32,6 +32,7 @@ use ruleset::Ruleset;
 use score::Score;
 use self::point::Point;
 
+use std::sync::Arc;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fmt;
@@ -91,63 +92,18 @@ impl Color {
 }
 
 #[derive(Debug)]
-pub struct Board {
-    adv_stones_removed:    Vec<Coord>,
-    board:                 Vec<Point>,
-    chains:                Vec<Chain>,
-    consecutive_passes:    u8,
-    diagonals:             Vec<Vec<Coord>>,
-    friend_stones_removed: Vec<Coord>,
-    ko:                    Option<Coord>,
-    komi:                  f32,
-    neighbours:            Vec<Vec<Coord>>,
-    previous_player:       Color,
-    resigned_by:           Color,
-    ruleset:               Ruleset,
-    size:                  u8,
-    vacant:                Vec<Coord>,
+struct Cache {
+	diagonals: Vec<Vec<Coord>>,
+	neighbours: Vec<Vec<Coord>>,
 }
 
-impl Clone for Board {
-    fn clone(&self) -> Board {
-        Board {
-            adv_stones_removed:    self.adv_stones_removed.clone(),
-            board:                 self.board.clone(),
-            chains:                self.chains.clone(),
-            consecutive_passes:    self.consecutive_passes,
-            diagonals:             self.diagonals.clone(),
-            friend_stones_removed: self.friend_stones_removed.clone(),
-            ko:                    self.ko,
-            komi:                  self.komi,
-            neighbours:            self.neighbours.clone(),
-            previous_player:       self.previous_player,
-            resigned_by:           self.resigned_by,
-            ruleset:               self.ruleset,
-            size:                  self.size,
-            vacant:                self.vacant.clone(),
+impl Cache {
+        pub fn new(size: u8) -> Cache {
+            Cache {
+                diagonals:             Cache::setup_diagonals(size),
+                neighbours:            Cache::setup_neighbours(size),
+            }
         }
-    }
-}
-
-impl Board {
-    pub fn new(size: u8, komi: f32, ruleset: Ruleset) -> Board {
-        Board {
-            adv_stones_removed:    Vec::new(),
-            board:                 (0..size as usize*size as usize).map(|_| Point::new()).collect(),
-            chains:                Vec::new(),
-            consecutive_passes:    0,
-            diagonals:             Board::setup_diagonals(size),
-            friend_stones_removed: Vec::new(),
-            ko:                    None,
-            komi:                  komi,
-            neighbours:            Board::setup_neighbours(size),
-            previous_player:       White,
-            resigned_by:           Empty,
-            ruleset:               ruleset,
-            size:                  size,
-            vacant:                Coord::for_board_size(size),
-        }
-    }
 
     fn setup_neighbours(size: u8) -> Vec<Vec<Coord>> {
         let mut neighbours = Vec::new();
@@ -164,13 +120,71 @@ impl Board {
         }
         diagonals
     }
+}
+
+#[derive(Debug)]
+pub struct Board {
+    adv_stones_removed:    Vec<Coord>,
+    board:                 Vec<Point>,
+    chains:                Vec<Chain>,
+    consecutive_passes:    u8,
+    cache:                 Arc<Cache>,
+    friend_stones_removed: Vec<Coord>,
+    ko:                    Option<Coord>,
+    komi:                  f32,
+    previous_player:       Color,
+    resigned_by:           Color,
+    ruleset:               Ruleset,
+    size:                  u8,
+    vacant:                Vec<Coord>,
+}
+
+impl Clone for Board {
+    fn clone(&self) -> Board {
+        Board {
+            adv_stones_removed:    self.adv_stones_removed.clone(),
+            board:                 self.board.clone(),
+            chains:                self.chains.clone(),
+            cache:                 self.cache.clone(),
+            consecutive_passes:    self.consecutive_passes,
+            friend_stones_removed: self.friend_stones_removed.clone(),
+            ko:                    self.ko,
+            komi:                  self.komi,
+            previous_player:       self.previous_player,
+            resigned_by:           self.resigned_by,
+            ruleset:               self.ruleset,
+            size:                  self.size,
+            vacant:                self.vacant.clone(),
+        }
+    }
+}
+
+impl Board {
+    pub fn new(size: u8, komi: f32, ruleset: Ruleset) -> Board {
+        Board {
+            adv_stones_removed:    Vec::new(),
+            board:                 (0..size as usize*size as usize).map(|_| Point::new()).collect(),
+            chains:                Vec::new(),
+            consecutive_passes:    0,
+            cache:                 Arc::new(Cache::new(size)),
+            friend_stones_removed: Vec::new(),
+            ko:                    None,
+            komi:                  komi,
+            previous_player:       White,
+            resigned_by:           Empty,
+            ruleset:               ruleset,
+            size:                  size,
+            vacant:                Coord::for_board_size(size),
+        }
+    }
+
     #[inline(always)]
     pub fn neighbours(&self, c: Coord) -> &Vec<Coord> {
-        &self.neighbours[c.to_index(self.size)]
+        &self.cache.neighbours[c.to_index(self.size)]
     }
     #[inline(always)]
     pub fn diagonals(&self, c: Coord) -> &Vec<Coord> {
-        &self.diagonals[c.to_index(self.size)]
+        &self.cache.diagonals[c.to_index(self.size)]
     }
 
     pub fn points(&self) -> &Vec<Point> {
