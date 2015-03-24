@@ -39,7 +39,7 @@ use std::fmt;
 use std::vec::Vec;
 
 mod test;
-
+use rand::{Rng, XorShiftRng};
 mod chain;
 mod coord;
 mod movement;
@@ -262,6 +262,32 @@ impl Board {
                 .collect()
         }
     }
+    
+    pub fn playout_move(&self, rng: &mut XorShiftRng) -> Move {
+            let color = self.next_player();
+            let vacant = self.vacant();
+            let mut iter = vacant
+                .iter()
+                .map(|coord| Play(color, coord.col, coord.row))
+                .filter(|m| !self.is_eye(&m.coord(), *m.color()) && self.playout_legal_move(*m) )
+                .peekable();
+            //let count = iter.count();
+            
+            if iter.is_empty() {
+                let color = self.next_player();
+                Pass(color)
+            } else {
+                //while loop testing all vacant spots
+
+                loop {
+                    let random_vacant = vacant[rng.gen::<usize>() % vacant.len()];
+                    let random_play = Play(color, random_vacant.col, random_vacant.row);
+                    if !self.is_eye(&random_vacant, color) && self.playout_legal_move(random_play) {
+                    	return random_play;
+                	} 
+                }
+            }
+	}
     
     pub fn playout_moves(&self) -> Vec<Move> {
         	let color = self.next_player();
