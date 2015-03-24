@@ -1,7 +1,6 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2014 Urban Hafner                                          *
- * Copyright 2015 Urban Hafner, Thomas Poinsot                          *
+ * Copyright 2015 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -20,52 +19,32 @@
  *                                                                      *
  ************************************************************************/
 
-use board::Color;
-use board::Move;
+#![cfg(test)]
+
 use config::Config;
-use game::Game;
-use playout::PlayoutResult;
-use super::Engine;
-use super::McEngine;
-use super::MoveStats;
 
 use std::sync::Arc;
-use std::sync::mpsc::Receiver;
-use std::sync::mpsc::Sender;
 
-pub struct SimpleMcEngine {
-    config: Arc<Config>
+#[test]
+fn factory_returns_amaf_by_default() {
+    let engine = super::factory(None, Arc::new(Config::default()));
+    assert_eq!("amaf", engine.engine_type());
 }
 
-impl SimpleMcEngine {
-
-    pub fn new(config: Arc<Config>) -> SimpleMcEngine {
-        SimpleMcEngine { config: config }
-    }
-
+#[test]
+fn factory_returns_random_engine_when_give_random() {
+    let engine = super::factory(Some(String::from_str("random")), Arc::new(Config::default()));
+    assert_eq!("random", engine.engine_type());
 }
 
-impl Engine for SimpleMcEngine {
-
-    fn gen_move(&self, color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
-        super::gen_move::<SimpleMcEngine>(self.config.clone(), color, game, sender, receiver);
-    }
-
-    fn engine_type(&self) -> &'static str {
-        "simple-mc"
-    }
-
+#[test]
+fn factory_returns_simple_mc_when_given_mc() {
+    let engine = super::factory(Some(String::from_str("mc")), Arc::new(Config::default()));
+    assert_eq!("simple-mc", engine.engine_type());
 }
 
-impl McEngine for SimpleMcEngine {
-
-    fn record_playout(stats: &mut MoveStats, playout: &PlayoutResult, won: bool) {
-        let m = playout.moves()[0];
-        if won {
-            stats.record_win(&m);
-        } else {
-            stats.record_loss(&m);
-        }
-    }
-
+#[test]
+fn factory_rutuyrns_amaf_for_any_other_string() {
+    let engine = super::factory(Some(String::from_str("foo")), Arc::new(Config::default()));
+    assert_eq!("amaf", engine.engine_type());
 }

@@ -123,16 +123,6 @@ pub fn main() {
         ruleset: ruleset,
         threads: threads,
     });
-    let engine_arg = matches.opt_str("e").map(|s| s.into_ascii_lowercase());
-    let engine: Box<Engine> = match engine_arg {
-        Some(s) => {
-            match s.as_slice() {
-                "random" => Box::new(RandomEngine::new()),
-                "mc"     => Box::new(SimpleMcEngine::new(config.clone())),
-                _        => Box::new(AmafMcEngine::new(config.clone())),
-            }
-        },
-        None => Box::new(AmafMcEngine::new(config.clone()))
-    };
+    let engine = engine::factory(matches.opt_str("e"), config.clone());
     Driver::new(config.clone(), engine);
 }

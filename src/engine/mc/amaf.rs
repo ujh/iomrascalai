@@ -51,6 +51,10 @@ impl Engine for AmafMcEngine {
         super::gen_move::<AmafMcEngine>(self.config.clone(), color, game, sender, receiver);
     }
 
+    fn engine_type(&self) -> &'static str {
+        "amaf"
+    }
+
 }
 
 impl McEngine for AmafMcEngine {
