@@ -23,6 +23,7 @@ use board::Board;
 use board::Move;
 use super::Playout;
 
+#[derive(Debug)]
 pub struct NoEyesPlayout;
 
 impl NoEyesPlayout {
@@ -37,6 +38,10 @@ impl Playout for NoEyesPlayout {
 
     fn moves(&self, b: &Board) -> Vec<Move> {
         b.legal_moves_without_eyes()
+    }
+
+    fn playout_type(&self) -> String {
+        format!("{:?}", self)
     }
 
 }

@@ -112,15 +112,6 @@ pub fn main() {
         },
         None => 1
     };
-    let playout: Box<Playout> = match matches.opt_str("p") {
-        Some(s) => {
-            match s.as_slice() {
-                "simple" => Box::new(SimplePlayout::new()),
-                _ => Box::new(NoEyesPlayout::new()),
-            }
-        }
-        None => Box::new(NoEyesPlayout::new())
-    };
     let rules_arg = matches.opt_str("r").map(|s| s.into_ascii_lowercase());
     let ruleset = match rules_arg {
         Some(r) => Ruleset::from_string(r),
@@ -128,7 +119,7 @@ pub fn main() {
     };
     let config = Arc::new(Config {
         log: log,
-        playout: playout,
+        playout: playout::factory(matches.opt_str("p")),
         ruleset: ruleset,
         threads: threads,
     });

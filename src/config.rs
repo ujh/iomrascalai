@@ -24,8 +24,6 @@ use playout::SimplePlayout;
 use ruleset::Minimal;
 use ruleset::Ruleset;
 
-use std::sync::Arc;
-
 pub struct Config {
     pub log: bool,
     pub playout: Box<Playout>,

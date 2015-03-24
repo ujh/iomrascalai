@@ -21,5 +21,25 @@
 
 #![cfg(test)]
 
+use super::NoEyesPlayout;
+
 mod no_eyes;
 mod simple;
+
+#[test]
+fn factory_returns_no_eyes_by_default() {
+    let playout = super::factory(None);
+    assert_eq!("NoEyesPlayout", playout.playout_type());
+}
+
+#[test]
+fn factory_returns_simple_when_given_simple() {
+    let playout = super::factory(Some(String::from_str("simple")));
+    assert_eq!("SimplePlayout", playout.playout_type());
+}
+
+#[test]
+fn factroy_returns_no_eyes_when_given_any_string() {
+    let playout = super::factory(Some(String::from_str("foo")));
+    assert_eq!("NoEyesPlayout", playout.playout_type());
+}

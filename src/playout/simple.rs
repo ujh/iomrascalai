@@ -23,6 +23,7 @@ use board::Board;
 use board::Move;
 use super::Playout;
 
+#[derive(Debug)]
 pub struct SimplePlayout;
 
 impl SimplePlayout {
@@ -39,4 +40,7 @@ impl Playout for SimplePlayout {
         b.legal_moves_without_superko_check()
     }
 
+    fn playout_type(&self) -> String {
+        format!("{:?}", self)
+    }
 }

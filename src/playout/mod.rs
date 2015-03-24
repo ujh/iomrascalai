@@ -32,6 +32,19 @@ mod no_eyes;
 mod simple;
 mod test;
 
+pub fn factory(opt: Option<String>) -> Box<Playout> {
+    match opt {
+        Some(s) => {
+            match s.as_slice() {
+                "simple" => Box::new(SimplePlayout::new()),
+                _ => Box::new(NoEyesPlayout::new()),
+            }
+        },
+        None => Box::new(NoEyesPlayout::new())
+    }
+}
+
+
 pub trait Playout: Sync + Send {
 
     fn run(&self, b: &Board, initial_move: &Move, rng: &mut XorShiftRng) -> PlayoutResult {
@@ -55,6 +68,8 @@ pub trait Playout: Sync + Send {
     fn max_moves(&self, size: u8) -> usize {
         size as usize * size as usize * 3
     }
+
+    fn playout_type(&self) -> String;
 
 }
 
