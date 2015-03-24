@@ -42,13 +42,6 @@ impl Playout {
         let max_moves = Playout::max_moves(board.size());
         let mut move_count = 0;
         while !board.is_game_over() && move_count < max_moves {
-            /*let moves = board.playout_moves();
-            let m = if moves.is_empty() {
-                let color = board.next_player();
-                Pass(color)
-            } else {
-                moves[rng.gen::<usize>() % moves.len()]
-            };*/
             let m = board.playout_move(rng);
             
             
