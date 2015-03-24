@@ -263,19 +263,48 @@ impl Board {
         }
     }
     
-    //
     pub fn playout_moves(&self) -> Vec<Move> {
-        if self.is_game_over() {
-            vec!()
-        } else {
         	let color = self.next_player();
             self.vacant
                 .iter()
                 .map(|coord| Play(color, coord.col, coord.row))
-        	    .filter(|m| self.is_legal(*m).is_ok())
-        	    .filter(|m| m.is_pass() || !self.is_eye(&m.coord(), *m.color()))
+        	    .filter(|m| !self.is_eye(&m.coord(), *m.color()) && self.playout_legal_move(*m) )
                 .collect()
+	}
+    
+    fn playout_legal_move(&self, m: Move) -> bool {
+    	        // Can't play on a Ko point
+        if self.ko.is_some() && m.coord() == self.ko.unwrap() {
+            if self.neighbours(m.coord()) //neighbours of the coordinate of the ko point
+                .iter()
+                .filter(|&c| self.color(c) == m.color().opposite()) //accept coordinates of opposite stones
+                .map(|&c| self.get_chain(c).unwrap()) //get the chain of those opposite stones
+                .any(|chain| chain.liberties().len() == 1 && chain.coords().len() == 1) { //if any of them has one liberty and one stone
+                    return false;
+                }
         }
+        // Can't play suicide move
+        if !self.ruleset.suicide_allowed() {
+            // All neighbours must be occupied
+            if self.neighbours(m.coord()).iter().all(|c| self.color(c) != Empty) {
+                // A move is a suicide move if all of the opposing,
+                // neighbouring chain has more than one liberty and all of
+                // our own chains have only one liberty.
+                let enemy_chains_with_other_libs = self.neighbours(m.coord())
+                    .iter()
+                    .filter(|&c| self.color(c) == m.color().opposite())
+                    .all(|&c| self.get_chain(c).unwrap().liberties().len() > 1);
+                let own_chains_without_other_libs = self.neighbours(m.coord())
+                    .iter()
+                    .filter(|&c| self.color(c) == *m.color())
+                    .all(|&c| self.get_chain(c).unwrap().liberties().len() <= 1);
+                if enemy_chains_with_other_libs && own_chains_without_other_libs {
+                    return false;
+                }
+            }
+        }
+        
+        true
 	}
     
     //#[inline(never)] //turn off for profiling
@@ -316,9 +345,9 @@ impl Board {
         if self.ko.is_some() && m.coord() == self.ko.unwrap() {
             if self.neighbours(m.coord()) //neighbours of the coordinate of the ko point
                 .iter()
-                .filter(|&c| self.color(c) == m.color().opposite()) //filter coordinates of opposite stones
-                .map(|&c| self.get_chain(c).unwrap())
-                .any(|chain| chain.liberties().len() == 1 && chain.coords().len() == 1) {
+                .filter(|&c| self.color(c) == m.color().opposite()) //accept coordinates of opposite stones
+                .map(|&c| self.get_chain(c).unwrap()) //get the chain of those opposite stones
+                .any(|chain| chain.liberties().len() == 1 && chain.coords().len() == 1) { //if any of them has one liberty and one stone
                     return Err(IllegalMove::Ko);
                 }
         }

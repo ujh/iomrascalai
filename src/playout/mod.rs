@@ -24,8 +24,7 @@ use board::Move;
 use board::Color;
 use board::Pass;
 
-//use rand::random;
-use rand::{Rng, weak_rng, XorShiftRng};
+use rand::{Rng, XorShiftRng};
 
 mod test;
 
@@ -36,8 +35,6 @@ pub struct Playout {
 
 impl Playout {
     pub fn run(b: &Board, initial_move: &Move, rng: &mut XorShiftRng) -> Playout {
-    	//let mut rng = thread_rng();
-    	
         let mut board = b.clone();
         let mut played_moves = Vec::new();
         board.play(*initial_move);
