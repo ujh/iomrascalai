@@ -59,15 +59,21 @@ impl Game {
             zobrist_hash_table: ZobristHashTable::new(size),
         }
     }
+    
+    pub fn with_new_state(board: Board, move_number: u16, zobrist_hash_table: ZobristHashTable ) -> Game {
+        Game {
+            board:                  board,
+            move_number:            move_number,
+            zobrist_hash_table:     zobrist_hash_table
+       }
+    }
 
     pub fn play(&self, m: Move) -> Result<Game, IllegalMove> {
         let mut new_board = self.board.clone();
 
         match new_board.play(m) {
             Ok(_) => {
-                let mut new_game_state = self.clone();
-                new_game_state.board = new_board;
-                new_game_state.move_number += 1;
+                let mut new_game_state = Game::with_new_state(new_board, self.move_number + 1, self.zobrist_hash_table.clone());
                 if !m.is_pass() && !m.is_resign() {
                     match new_game_state.check_and_update_super_ko(&m) {
                         Err(_) => return Err(IllegalMove::SuperKo),

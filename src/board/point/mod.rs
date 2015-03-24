@@ -29,7 +29,6 @@ pub struct Point {
 }
 
 impl Point {
-
     pub fn new() -> Point {
         Point { chain_id: 0, color: Empty }
     }

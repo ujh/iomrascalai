@@ -1,7 +1,7 @@
 /************************************************************************
  *                                                                      *
  * Copyright 2014 Thomas Poinsot                                        *
- * Copyright 2015 Urban Hafner                                          *
+ * Copyright 2015 Urban Hafner, Igor Polyakov                           *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -36,12 +36,12 @@ pub struct Chain {
 }
 
 impl Chain {
-    pub fn new(id: usize, color: Color, c: Coord, libs: Vec<Coord>) -> Chain {
+    pub fn new(id: usize, color: Color, c: Coord, libs: HashSet<Coord>) -> Chain {
         Chain {
             color:  color,
             coords: vec!(c),
             id:     id,
-            libs:   libs.into_iter().collect(),
+            libs:   libs,
         }
     }
 
@@ -49,10 +49,12 @@ impl Chain {
         self.color
     }
 
+    #[inline(always)]
     pub fn coords<'a>(&'a self) -> &'a Vec<Coord> {
         &self.coords
     }
 
+    #[inline(always)]
     pub fn liberties(&self) -> &HashSet<Coord> {
         &self.libs
     }
@@ -65,18 +67,22 @@ impl Chain {
         self.id = id;
     }
 
+    #[inline(always)]
     pub fn add_liberty(&mut self, coord: Coord) {
         self.libs.insert(coord);
     }
 
+    #[inline(always)]
     pub fn remove_liberty(&mut self, coord: Coord) {
         self.libs.remove(&coord);
     }
 
+    #[inline(always)]
     pub fn add_coord(&mut self, coord: Coord) {
         self.coords.push(coord);
     }
 
+    #[inline(always)]
     pub fn is_captured(&self) -> bool {
         self.libs.len() == 0
     }

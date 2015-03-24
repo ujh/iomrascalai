@@ -1,7 +1,7 @@
 /************************************************************************
  *                                                                      *
  * Copyright 2014 Urban Hafner, Thomas Poinsot                          *
- * Copyright 2015 Urban Hafner                                          *
+ * Copyright 2015 Urban Hafner, Igor Polyakov                           *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -28,18 +28,18 @@ pub use self::movement::Move;
 pub use self::movement::Pass;
 pub use self::movement::Play;
 pub use self::movement::Resign;
+use rand::{Rng, XorShiftRng};
 use ruleset::Ruleset;
 use score::Score;
 use self::point::Point;
 
+use std::sync::Arc;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fmt;
-use std::sync::Arc;
 use std::vec::Vec;
 
 mod test;
-
 mod chain;
 mod coord;
 mod movement;
@@ -72,6 +72,7 @@ pub enum Color {
 }
 
 impl Color {
+	#[inline(always)]
     pub fn opposite(&self) -> Color {
         match *self {
             White => Black,
@@ -91,16 +92,46 @@ impl Color {
 }
 
 #[derive(Debug)]
+struct Cache {
+	diagonals: Vec<Vec<Coord>>,
+	neighbours: Vec<Vec<Coord>>,
+}
+
+impl Cache {
+    pub fn new(size: u8) -> Cache {
+        Cache {
+            diagonals:             Cache::setup_diagonals(size),
+            neighbours:            Cache::setup_neighbours(size),
+        }
+    }
+
+    fn setup_neighbours(size: u8) -> Vec<Vec<Coord>> {
+        let mut neighbours = Vec::new();
+        for coord in Coord::for_board_size(size).iter() {
+            neighbours.push(coord.neighbours(size));
+        }
+        neighbours
+    }
+
+    fn setup_diagonals(size: u8) -> Vec<Vec<Coord>> {
+        let mut diagonals = Vec::new();
+        for coord in Coord::for_board_size(size).iter() {
+            diagonals.push(coord.diagonals(size));
+        }
+        diagonals
+    }
+}
+
+#[derive(Debug)]
 pub struct Board {
     adv_stones_removed:    Vec<Coord>,
     board:                 Vec<Point>,
     chains:                Vec<Chain>,
     consecutive_passes:    u8,
-    diagonals:             Arc<Vec<Vec<Coord>>>,
+    cache:                 Arc<Cache>,
     friend_stones_removed: Vec<Coord>,
     ko:                    Option<Coord>,
     komi:                  f32,
-    neighbours:            Arc<Vec<Vec<Coord>>>,
     previous_player:       Color,
     resigned_by:           Color,
     ruleset:               Ruleset,
@@ -114,15 +145,14 @@ impl Clone for Board {
             adv_stones_removed:    self.adv_stones_removed.clone(),
             board:                 self.board.clone(),
             chains:                self.chains.clone(),
+            cache:                 self.cache.clone(),
             consecutive_passes:    self.consecutive_passes,
-            diagonals:             self.diagonals.clone(),
             friend_stones_removed: self.friend_stones_removed.clone(),
             ko:                    self.ko,
             komi:                  self.komi,
-            neighbours:            self.neighbours.clone(),
             previous_player:       self.previous_player,
             resigned_by:           self.resigned_by,
-            ruleset:               self.ruleset.clone(),
+            ruleset:               self.ruleset,
             size:                  self.size,
             vacant:                self.vacant.clone(),
         }
@@ -136,11 +166,10 @@ impl Board {
             board:                 (0..size as usize*size as usize).map(|_| Point::new()).collect(),
             chains:                Vec::new(),
             consecutive_passes:    0,
-            diagonals:             Board::setup_diagonals(size),
+            cache:                 Arc::new(Cache::new(size)),
             friend_stones_removed: Vec::new(),
             ko:                    None,
             komi:                  komi,
-            neighbours:            Board::setup_neighbours(size),
             previous_player:       White,
             resigned_by:           Empty,
             ruleset:               ruleset,
@@ -149,28 +178,13 @@ impl Board {
         }
     }
 
-    fn setup_neighbours(size: u8) -> Arc<Vec<Vec<Coord>>> {
-        let mut neighbours = Vec::new();
-        for coord in Coord::for_board_size(size).iter() {
-            neighbours.push(coord.neighbours(size));
-        }
-        Arc::new(neighbours)
-    }
-
-    fn setup_diagonals(size: u8) -> Arc<Vec<Vec<Coord>>> {
-        let mut diagonals = Vec::new();
-        for coord in Coord::for_board_size(size).iter() {
-            diagonals.push(coord.diagonals(size));
-        }
-        Arc::new(diagonals)
-    }
-
+    #[inline(always)]
     pub fn neighbours(&self, c: Coord) -> &Vec<Coord> {
-        &self.neighbours[c.to_index(self.size)]
+        &self.cache.neighbours[c.to_index(self.size)]
     }
-
+    #[inline(always)]
     pub fn diagonals(&self, c: Coord) -> &Vec<Coord> {
-        &self.diagonals[c.to_index(self.size)]
+        &self.cache.diagonals[c.to_index(self.size)]
     }
 
     pub fn points(&self) -> &Vec<Point> {
@@ -180,15 +194,15 @@ impl Board {
     pub fn vacant(&self) -> &Vec<Coord> {
         &self.vacant
     }
-
+    #[inline(always)]
     pub fn color(&self, c: &Coord) -> Color {
         self.board[c.to_index(self.size)].color
     }
-
+    #[inline(always)]
     pub fn chain_id(&self, c: &Coord) -> usize {
         self.board[c.to_index(self.size)].chain_id
     }
-
+    #[inline(always)]
     pub fn get_chain<'b>(&'b self, c: Coord) -> Option<&'b Chain> {
         let ref point = self.board[c.to_index(self.size)];
         if point.color != Empty {
@@ -209,7 +223,7 @@ impl Board {
     pub fn next_player(&self) -> Color {
         self.previous_player.opposite()
     }
-
+    //#[inline(never)] //turn off for profiling
     pub fn is_eye(&self, coord: &Coord, color: Color) -> bool {
         let neighbours = self.neighbours(*coord);
         if neighbours.iter().all(|c| self.color(c) == color) {
@@ -223,7 +237,7 @@ impl Board {
             false
         }
     }
-
+    #[inline(always)]
     fn is_same_player(&self, m: &Move) -> bool {
         self.previous_player == *m.color()
     }
@@ -235,7 +249,7 @@ impl Board {
     pub fn friend_stones_removed(&self) -> &Vec<Coord> {
         &self.friend_stones_removed
     }
-
+    //#[inline(never)] //turn off for profiling
     pub fn legal_moves_without_superko_check(&self) -> Vec<Move> {
         if self.is_game_over() {
             vec!()
@@ -243,19 +257,76 @@ impl Board {
             let color = self.next_player();
             self.vacant
                 .iter()
-                .map(|coord| Play(color.clone(), coord.col, coord.row))
+                .map(|coord| Play(color, coord.col, coord.row))
                 .filter(|m| self.is_legal(*m).is_ok())
                 .collect()
         }
     }
-
+    
+    pub fn playout_move(&self, rng: &mut XorShiftRng) -> Move {
+            let color = self.next_player();
+            let vacant = self.vacant();
+            if vacant
+                .iter()
+                .map(|coord| Play(color, coord.col, coord.row))
+                .any(|m| !self.is_eye(&m.coord(), *m.color()) && self.playout_legal_move(m) ) {
+                    //while loop testing all vacant spots
+                    loop {
+                        let random_vacant = vacant[rng.gen::<usize>() % vacant.len()];
+                        let random_play = Play(color, random_vacant.col, random_vacant.row);
+                        if !self.is_eye(&random_vacant, color) && self.playout_legal_move(random_play) {
+                            return random_play;
+                        } 
+                    }
+                } else {
+                    let color = self.next_player();
+                    Pass(color)
+                }
+	}
+    
+    fn playout_legal_move(&self, m: Move) -> bool {
+    	        // Can't play on a Ko point
+        if self.ko.is_some() && m.coord() == self.ko.unwrap() {
+            if self.neighbours(m.coord()) //neighbours of the coordinate of the ko point
+                .iter()
+                .filter(|&c| self.color(c) == m.color().opposite()) //accept coordinates of opposite stones
+                .map(|&c| self.get_chain(c).unwrap()) //get the chain of those opposite stones
+                .any(|chain| chain.liberties().len() == 1 && chain.coords().len() == 1) { //if any of them has one liberty and one stone
+                    return false;
+                }
+        }
+        // Can't play suicide move
+        if !self.ruleset.suicide_allowed() {
+            // All neighbours must be occupied
+            if self.neighbours(m.coord()).iter().all(|c| self.color(c) != Empty) {
+                // A move is a suicide move if all of the opposing,
+                // neighbouring chain has more than one liberty and all of
+                // our own chains have only one liberty.
+                let enemy_chains_with_other_libs = self.neighbours(m.coord())
+                    .iter()
+                    .filter(|&c| self.color(c) == m.color().opposite())
+                    .all(|&c| self.get_chain(c).unwrap().liberties().len() > 1);
+                let own_chains_without_other_libs = self.neighbours(m.coord())
+                    .iter()
+                    .filter(|&c| self.color(c) == *m.color())
+                    .all(|&c| self.get_chain(c).unwrap().liberties().len() <= 1);
+                if enemy_chains_with_other_libs && own_chains_without_other_libs {
+                    return false;
+                }
+            }
+        }
+        
+        true
+	}
+    
+    //#[inline(never)] //turn off for profiling
     pub fn legal_moves_without_eyes(&self) -> Vec<Move> {
         self.legal_moves_without_superko_check()
             .into_iter()
             .filter(|m| m.is_pass() || !self.is_eye(&m.coord(), *m.color()))
             .collect()
     }
-
+    //#[inline(never)] //turn off for profiling
     pub fn is_legal(&self, m: Move) -> Result<(), IllegalMove> {
         // Can't play if the game is already over
         if self.is_game_over() && !self.ruleset.game_over_play() {
@@ -284,11 +355,11 @@ impl Board {
         }
         // Can't play on a Ko point
         if self.ko.is_some() && m.coord() == self.ko.unwrap() {
-            if self.neighbours(m.coord())
+            if self.neighbours(m.coord()) //neighbours of the coordinate of the ko point
                 .iter()
-                .filter(|&c| self.color(c) == m.color().opposite())
-                .map(|&c| self.get_chain(c).unwrap())
-                .any(|chain| chain.liberties().len() == 1 && chain.coords().len() == 1) {
+                .filter(|&c| self.color(c) == m.color().opposite()) //accept coordinates of opposite stones
+                .map(|&c| self.get_chain(c).unwrap()) //get the chain of those opposite stones
+                .any(|chain| chain.liberties().len() == 1 && chain.coords().len() == 1) { //if any of them has one liberty and one stone
                     return Err(IllegalMove::Ko);
                 }
         }
@@ -314,7 +385,7 @@ impl Board {
         }
         Ok(())
     }
-
+    //#[inline(never)] //turn off for profiling
     // Note: Same as get(), the board is indexed starting at 1-1
     pub fn play(&mut self, m: Move) -> Result<(), IllegalMove> {
         match self.is_legal(m) {
@@ -355,14 +426,14 @@ impl Board {
         self.update_vacant(&m);
         Ok(())
     }
-
+    //#[inline(never)] //turn off for profiling
     fn update_vacant(&mut self, m: &Move) {
         let pos = self.vacant.iter().position(|&c| c == m.coord()).unwrap();
         self.vacant.swap_remove(pos);
         self.vacant.push_all(self.adv_stones_removed.as_slice());
         self.vacant.push_all(self.friend_stones_removed.as_slice());
     }
-
+    //#[inline(never)] //turn off for profiling
     fn add_removed_adv_stones_as_libs(&mut self, m: &Move) {
         let color = *m.color();
         let mut libs: HashMap<Coord, Vec<usize>> = HashMap::new();
@@ -380,7 +451,7 @@ impl Board {
             }
         }
     }
-
+    //#[inline(never)] //turn off for profiling
     fn add_removed_friendly_stones_as_libs(&mut self, m: &Move) {
         let color = m.color().opposite();
         let mut libs: HashMap<Coord, Vec<usize>> = HashMap::new();
@@ -398,7 +469,7 @@ impl Board {
             }
         }
     }
-
+    //#[inline(never)] //turn off for profiling
     fn update_libs_of_adjacent_opposing_chains(&mut self, m: &Move) {
         let coord = m.coord();
         let color = m.color().opposite();
@@ -411,7 +482,7 @@ impl Board {
             self.chains[id].remove_liberty(coord);
         }
     }
-
+    //#[inline(never)] //turn off for profiling
     fn find_neighbouring_friendly_chains_ids(&self, m: &Move) -> Vec<usize> {
         let mut friend_neigh_chains_id: Vec<usize> = self.neighbours(m.coord())
             .iter()
@@ -427,7 +498,7 @@ impl Board {
         friend_neigh_chains_id.dedup();
         friend_neigh_chains_id
     }
-
+    //#[inline(never)] //turn off for profiling
     fn merge_or_create_chain(&mut self, m: &Move) {
         let mut chain_ids = self.find_neighbouring_friendly_chains_ids(m);
         let new_chain_id = self.create_new_chain(m);
@@ -453,7 +524,7 @@ impl Board {
         // Removes the played stone from the liberty
         self.chains[final_chain_id].remove_liberty(m.coord());
     }
-
+    //#[inline(never)] //turn off for profiling
     fn update_board_ids_after_id(&mut self, id: usize) {
         for i in id..self.chains.len() {
             for &coord in self.chains[i].coords().iter() {
@@ -461,18 +532,18 @@ impl Board {
             }
         }
     }
-
+    //#[inline(never)] //turn off for profiling
     fn update_chains_ids_after_id(&mut self, removed_chain_id: usize) {
         for i in removed_chain_id..self.chains.len() {
             self.chains[i].set_id(i);
         }
     }
-
+    //#[inline(never)] //turn off for profiling
     fn update_all_after_id(&mut self, id: usize) {
         self.update_board_ids_after_id(id);
         self.update_chains_ids_after_id(id);
     }
-
+    //#[inline(never)] //turn off for profiling
     fn remove_captured_opponent_stones(&mut self, m: &Move) -> Vec<Coord> {
         let coord = m.coord();
         let color = m.color().opposite();
@@ -500,14 +571,14 @@ impl Board {
         }
         coords_to_remove
     }
-
+    //#[inline(never)] //turn off for profiling
     fn remove_suicide_chain(&mut self, m: &Move) -> Vec<Coord> {
         let coords_to_remove = self.get_chain(m.coord()).unwrap().coords().clone();
         let chain_id = self.chain_id(&m.coord());
         self.remove_chain(chain_id);
         coords_to_remove
     }
-
+    //#[inline(never)] //turn off for profiling
     fn remove_chain(&mut self, id: usize) {
         let coords_to_remove = self.chains[id].coords().clone();
 
@@ -518,7 +589,7 @@ impl Board {
         self.chains.remove(id);
         self.update_all_after_id(id);
     }
-
+    //#[inline(never)] //turn off for profiling
     fn create_new_chain(&mut self, m: &Move) -> usize {
         let new_chain_id = self.chains.len();
         let new_chain    = Chain::new(
@@ -528,11 +599,11 @@ impl Board {
         self.board[m.coord().to_index(self.size)].color = *m.color();
         new_chain_id
     }
-
-    fn liberties(&self, c: &Coord) -> Vec<Coord> {
+    //#[inline(never)] //turn off for profiling
+    fn liberties(&self, c: &Coord) -> HashSet<Coord> {
         self.neighbours(*c).iter().filter(|&c| self.color(c) == Empty).cloned().collect()
     }
-
+    #[inline(always)]
     fn remove_stone(&mut self, c: Coord) {
         // Resetting the chain_id is not strictly necessary, but will
         // make debugging easier.
@@ -551,6 +622,7 @@ impl Board {
         }
     }
 
+    #[inline(always)]
     pub fn is_game_over(&self) -> bool {
         self.consecutive_passes == 2 || self.resigned_by != Empty
     }

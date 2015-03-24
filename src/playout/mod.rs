@@ -1,7 +1,7 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2014-2015 Urban Hafner, Thomas Poinsot                     *
- *                                                                      *
+ * Copyright 2014 Urban Hafner, Thomas Poinsot                          *
+ * Copyright 2015 Urban Hafner, Thomas Poinsot, Igor Polyakov           *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
  * Iomrascálaí is free software: you can redistribute it and/or modify  *
@@ -24,7 +24,7 @@ use board::Move;
 use board::Color;
 use board::Pass;
 
-use rand::random;
+use rand::{Rng, XorShiftRng};
 
 mod test;
 
@@ -34,7 +34,7 @@ pub struct Playout {
 }
 
 impl Playout {
-    pub fn run(b: &Board, initial_move: &Move) -> Playout {
+    pub fn run(b: &Board, initial_move: &Move, rng: &mut XorShiftRng) -> Playout {
         let mut board = b.clone();
         let mut played_moves = Vec::new();
         board.play(*initial_move);
@@ -42,13 +42,9 @@ impl Playout {
         let max_moves = Playout::max_moves(board.size());
         let mut move_count = 0;
         while !board.is_game_over() && move_count < max_moves {
-            let moves = board.legal_moves_without_eyes();
-            let m = if moves.is_empty() {
-                let color = board.next_player();
-                Pass(color)
-            } else {
-                moves[random::<usize>() % moves.len()]
-            };
+            let m = board.playout_move(rng);
+            
+            
             board.play(m);
             played_moves.push(m);
             move_count += 1;
