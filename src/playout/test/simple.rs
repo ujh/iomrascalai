@@ -22,51 +22,50 @@
 #![cfg(test)]
 
 use board::Black;
+use board::Board;
 use board::Play;
-use game::Game;
 use playout::Playout;
 use playout::SimplePlayout;
 use ruleset::KgsChinese;
 
+use rand::weak_rng;
 use test::Bencher;
 
 #[test]
 fn should_add_the_passed_moves_as_the_first_move() {
-    let game = Game::new(9, 6.5, KgsChinese);
-    let board = game.board();
+    let board = Board::new(9, 6.5, KgsChinese);
+    let mut rng = weak_rng();
     let playout = SimplePlayout::new();
-    let result = playout.run(&board, &Play(Black, 1, 1));
+    let result = playout.run(&board, &Play(Black, 1, 1), &mut rng);
     assert_eq!(Play(Black, 1, 1), result.moves()[0]);
 }
 
 #[test]
 fn max_moves() {
-    let game = Game::new(19, 6.5, KgsChinese);
-    let board = game.board();
     let playout = SimplePlayout::new();
     assert_eq!(1083, playout.max_moves(19));
 }
 
 #[bench]
 fn bench_9x9_playout_speed(b: &mut Bencher) {
-    let game = Game::new(9, 6.5, KgsChinese);
-    let board = game.board();
+    let board = Board::new(9, 6.5, KgsChinese);
+    let mut rng = weak_rng();
     let playout = SimplePlayout::new();
-    b.iter(|| playout.run(&board, &Play(Black, 1, 1)))
+    b.iter(|| playout.run(&board, &Play(Black, 1, 1), &mut rng));
 }
 
 #[bench]
 fn bench_13x13_playout_speed(b: &mut Bencher) {
-    let game = Game::new(13, 6.5, KgsChinese);
-    let board = game.board();
+    let board = Board::new(13, 6.5, KgsChinese);
+    let mut rng = weak_rng();
     let playout = SimplePlayout::new();
-    b.iter(|| playout.run(&board, &Play(Black, 1, 1)))
+    b.iter(|| playout.run(&board, &Play(Black, 1, 1), &mut rng));
 }
 
 #[bench]
 fn bench_19x19_playout_speed(b: &mut Bencher) {
-    let game = Game::new(19, 6.5, KgsChinese);
-    let board = game.board();
+    let board = Board::new(19, 6.5, KgsChinese);
+    let mut rng = weak_rng();
     let playout = SimplePlayout::new();
-    b.iter(|| playout.run(&board, &Play(Black, 1, 1)))
+    b.iter(|| playout.run(&board, &Play(Black, 1, 1), &mut rng));
 }

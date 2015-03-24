@@ -19,6 +19,7 @@
  * along with Iomrascálaí.  If not, see <http://www.gnu.org/licenses/>. *
  *                                                                      *
  ************************************************************************/
+
 pub use self::Color::Black;
 pub use self::Color::Empty;
 pub use self::Color::White;
@@ -28,22 +29,22 @@ pub use self::movement::Move;
 pub use self::movement::Pass;
 pub use self::movement::Play;
 pub use self::movement::Resign;
-use rand::{Rng, XorShiftRng};
 use ruleset::Ruleset;
 use score::Score;
 use self::point::Point;
 
-use std::sync::Arc;
+use rand::Rng;
+use rand::XorShiftRng;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fmt;
-use std::vec::Vec;
+use std::sync::Arc;
 
-mod test;
 mod chain;
 mod coord;
 mod movement;
 mod point;
+mod test;
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum IllegalMove {
@@ -262,7 +263,7 @@ impl Board {
                 .collect()
         }
     }
-    
+
     pub fn playout_move(&self, rng: &mut XorShiftRng) -> Move {
             let color = self.next_player();
             let vacant = self.vacant();
@@ -276,14 +277,14 @@ impl Board {
                         let random_play = Play(color, random_vacant.col, random_vacant.row);
                         if !self.is_eye(&random_vacant, color) && self.playout_legal_move(random_play) {
                             return random_play;
-                        } 
+                        }
                     }
                 } else {
                     let color = self.next_player();
                     Pass(color)
                 }
 	}
-    
+
     fn playout_legal_move(&self, m: Move) -> bool {
     	        // Can't play on a Ko point
         if self.ko.is_some() && m.coord() == self.ko.unwrap() {
@@ -315,10 +316,10 @@ impl Board {
                 }
             }
         }
-        
+
         true
 	}
-    
+
     //#[inline(never)] //turn off for profiling
     pub fn legal_moves_without_eyes(&self) -> Vec<Move> {
         self.legal_moves_without_superko_check()

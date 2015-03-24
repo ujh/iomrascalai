@@ -33,10 +33,11 @@ use config::Config;
 use game::Game;
 use playout::Playout;
 use playout::PlayoutResult;
-use std::old_io::Writer;
 
-use rand::{Rng, weak_rng};
+use rand::Rng;
+use rand::weak_rng;
 use std::marker::MarkerTrait;
+use std::old_io::Writer;
 use std::sync::Arc;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
@@ -124,7 +125,6 @@ fn spin_up_worker<'a, T: McEngine>(color: Color, recv_halt: Receiver<()>, moves:
         loop {
             for _ in 0..runs {
                 let m = moves[rng.gen::<usize>() % moves.len()];
-                let playout_result = playout.run(&board, &m, &mut rng);
                 let playout_result = config.playout.run(&board, &m, &mut rng);
                 let winner = playout_result.winner();
                 T::record_playout(&mut stats, &playout_result, winner == color);
