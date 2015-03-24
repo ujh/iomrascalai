@@ -21,8 +21,6 @@
 
 #![cfg(test)]
 
-use super::NoEyesPlayout;
-
 mod no_eyes;
 mod simple;
 

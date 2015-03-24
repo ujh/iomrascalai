@@ -22,7 +22,6 @@
 
 #![cfg(test)]
 #![allow(unused_must_use)]
-use std::path::Path;
 use board::Black;
 use board::Board;
 use board::Coord;
@@ -36,8 +35,9 @@ use ruleset::AnySizeTrompTaylor;
 use ruleset::KgsChinese;
 use ruleset::Minimal;
 use sgf::Parser;
-use rand::{Rng, weak_rng};
-use test::Bencher;
+
+use rand::weak_rng;
+use std::path::Path;
 
 mod diagonals;
 mod eye;
@@ -498,11 +498,11 @@ fn adv_stones_removed_only_contains_each_coord_once() {
 #[test]
 fn random_playout_moves_should_be_legal() {
     let parser = Parser::from_path(Path::new("fixtures/sgf/recapture-but-not-ko.sgf"));
-    let game   = parser.game().unwrap();
-    let mut board  = game.board();
+    let game = parser.game().unwrap();
+    let board = game.board();
     let mut rng = weak_rng();
-    for i in 0..10 {
+    for _ in 0..10 {
     	let m = board.playout_move(&mut rng);
     	assert!(board.is_legal(m).is_ok());
-	}
+    }
 }

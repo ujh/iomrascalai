@@ -24,9 +24,8 @@ pub use self::simple::SimplePlayout;
 use board::Board;
 use board::Move;
 use board::Color;
-use board::Pass;
 
-use rand::{Rng, XorShiftRng};
+use rand::XorShiftRng;
 
 mod no_eyes;
 mod simple;

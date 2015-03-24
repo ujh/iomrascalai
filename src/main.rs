@@ -21,9 +21,7 @@
  ************************************************************************/
 #![feature(collections)]
 #![feature(core)]
-#![feature(io)]
 #![feature(old_io)]
-#![feature(old_path)]
 #![feature(plugin)]
 #![feature(std_misc)]
 #![feature(test)]
@@ -39,14 +37,7 @@ extern crate time;
 #[macro_use(strenum)] extern crate strenum;
 
 use config::Config;
-use engine::AmafMcEngine;
-use engine::Engine;
-use engine::RandomEngine;
-use engine::SimpleMcEngine;
 use gtp::driver::Driver;
-use playout::NoEyesPlayout;
-use playout::Playout;
-use playout::SimplePlayout;
 use ruleset::KgsChinese;
 use ruleset::Ruleset;
 use version::version;
