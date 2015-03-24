@@ -1,6 +1,6 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2015 Thomas Poinsot                                        *
+ * Copyright 2015 Thomas Poinsot, Igor Polyakov                         *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -25,9 +25,8 @@ use board::Black;
 use board::Play;
 use game::Game;
 use playout::Playout;
-use ruleset::KgsChinese;
-
 use rand::{Rng, weak_rng};
+use ruleset::KgsChinese;
 use test::Bencher;
 
 #[test]

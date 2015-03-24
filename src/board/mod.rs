@@ -28,6 +28,7 @@ pub use self::movement::Move;
 pub use self::movement::Pass;
 pub use self::movement::Play;
 pub use self::movement::Resign;
+use rand::{Rng, XorShiftRng};
 use ruleset::Ruleset;
 use score::Score;
 use self::point::Point;
@@ -39,7 +40,6 @@ use std::fmt;
 use std::vec::Vec;
 
 mod test;
-use rand::{Rng, XorShiftRng};
 mod chain;
 mod coord;
 mod movement;
@@ -279,7 +279,6 @@ impl Board {
                         } 
                     }
                 } else {
-            
                     let color = self.next_player();
                     Pass(color)
                 }
