@@ -116,3 +116,14 @@ fn legal_moves_without_eyes_shouldnt_include_an_eye() {
     let moves  = board.legal_moves_without_eyes();
     assert!(!moves.iter().any(|m| !m.is_pass() && m.coord() == Coord::new(3, 3)));
 }
+
+#[test]
+fn legal_moves_without_eyes_should_return_the_same_as_playout() {
+    let parser = Parser::from_path(Path::new("fixtures/sgf/eye/no-enemies.sgf"));
+    let game   = parser.game().unwrap();
+    let mut board  = game.board();
+    board.play(Pass(White));
+    let moves  = board.legal_moves_without_eyes();
+    let playout_moves = board.playout_moves();
+    assert_eq!(moves, playout_moves);
+}

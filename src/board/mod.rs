@@ -98,12 +98,12 @@ struct Cache {
 }
 
 impl Cache {
-        pub fn new(size: u8) -> Cache {
-            Cache {
-                diagonals:             Cache::setup_diagonals(size),
-                neighbours:            Cache::setup_neighbours(size),
-            }
+    pub fn new(size: u8) -> Cache {
+        Cache {
+            diagonals:             Cache::setup_diagonals(size),
+            neighbours:            Cache::setup_neighbours(size),
         }
+    }
 
     fn setup_neighbours(size: u8) -> Vec<Vec<Coord>> {
         let mut neighbours = Vec::new();
@@ -262,6 +262,22 @@ impl Board {
                 .collect()
         }
     }
+    
+    //
+    pub fn playout_moves(&self) -> Vec<Move> {
+        if self.is_game_over() {
+            vec!()
+        } else {
+        	let color = self.next_player();
+            self.vacant
+                .iter()
+                .map(|coord| Play(color, coord.col, coord.row))
+        	    .filter(|m| self.is_legal(*m).is_ok())
+        	    .filter(|m| m.is_pass() || !self.is_eye(&m.coord(), *m.color()))
+                .collect()
+        }
+	}
+    
     //#[inline(never)] //turn off for profiling
     pub fn legal_moves_without_eyes(&self) -> Vec<Move> {
         self.legal_moves_without_superko_check()
