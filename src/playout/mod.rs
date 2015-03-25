@@ -77,18 +77,20 @@ pub trait Playout: Sync + Send {
     fn select_move(&self, board: &Board) -> Move {
         let color = board.next_player();
         let vacant = board.vacant();
-        let playable_move_exists =  vacant
+        let playable_move =  vacant
             .iter()
             .map(|c| Play(color, c.col, c.row))
-            .any(|m| board.is_legal(m).is_ok() && self.is_playable(board, &m));
-        if playable_move_exists {
+            .position(|m| board.is_legal(m).is_ok() && self.is_playable(board, &m));
+        if playable_move.is_some() {
             loop {
                 let add = if self.include_pass() {
                     1
                 } else {
                     0
                 };
-                let r = random::<usize>() % (vacant.len() + add);
+                
+                let first = playable_move.unwrap();
+                let r = first + random::<usize>() % (vacant.len() + add - first);
                 if r == vacant.len() {
                     return Pass(color);
                 } else {
