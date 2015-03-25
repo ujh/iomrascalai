@@ -29,7 +29,8 @@ use board::Move;
 use board::Pass;
 use board::Play;
 
-use rand::random;
+//use rand::random;
+use rand::{Rng, XorShiftRng};
 
 mod no_eyes;
 mod simple;
@@ -51,7 +52,7 @@ pub fn factory(opt: Option<String>) -> Box<Playout> {
 
 pub trait Playout: Sync + Send {
 
-    fn run(&self, b: &Board, initial_move: &Move) -> PlayoutResult {
+    fn run(&self, b: &Board, initial_move: &Move, rng: &mut XorShiftRng) -> PlayoutResult {
         let mut board = b.clone();
         let mut played_moves = Vec::new();
         board.play(*initial_move);
@@ -59,7 +60,7 @@ pub trait Playout: Sync + Send {
         let max_moves = self.max_moves(board.size());
         let mut move_count = 0;
         while !board.is_game_over() && move_count < max_moves {
-            let m = self.select_move(&board);
+            let m = self.select_move(&board, rng);
             board.play(m);
             played_moves.push(m);
             move_count += 1;
@@ -74,7 +75,7 @@ pub trait Playout: Sync + Send {
         size as usize * size as usize * 3
     }
 
-    fn select_move(&self, board: &Board) -> Move {
+    fn select_move(&self, board: &Board, rng: &mut XorShiftRng) -> Move {
         let color = board.next_player();
         let vacant = board.vacant();
         let playable_move =  vacant
@@ -90,7 +91,7 @@ pub trait Playout: Sync + Send {
                 };
                 
                 let first = playable_move.unwrap();
-                let r = first + random::<usize>() % (vacant.len() + add - first);
+                let r = first + rng.gen::<usize>() % (vacant.len() + add - first);
                 if r == vacant.len() {
                     return Pass(color);
                 } else {
