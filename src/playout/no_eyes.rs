@@ -36,8 +36,39 @@ impl NoEyesPlayout {
 
 impl Playout for NoEyesPlayout {
 
-    fn moves(&self, b: &Board) -> Vec<Move> {
-        b.legal_moves_without_eyes()
+    fn is_playable(&self, board: &Board, m: &Move) -> bool {
+        !board.is_eye(&m.coord(), *m.color())
+    }
+
+    fn include_pass(&self) -> bool {
+        false
+    }
+
+    fn playout_type(&self) -> String {
+        format!("{:?}", self)
+    }
+
+}
+
+#[derive(Debug)]
+pub struct NoEyesWithPassPlayout;
+
+impl NoEyesWithPassPlayout {
+
+    pub fn new() -> NoEyesWithPassPlayout {
+        NoEyesWithPassPlayout
+    }
+
+}
+
+impl Playout for NoEyesWithPassPlayout {
+
+    fn is_playable(&self, board: &Board, m: &Move) -> bool {
+        !board.is_eye(&m.coord(), *m.color())
+    }
+
+    fn include_pass(&self) -> bool {
+        true
     }
 
     fn playout_type(&self) -> String {

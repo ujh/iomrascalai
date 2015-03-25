@@ -20,12 +20,16 @@
  ************************************************************************/
 
 pub use self::no_eyes::NoEyesPlayout;
+pub use self::no_eyes::NoEyesWithPassPlayout;
 pub use self::simple::SimplePlayout;
+pub use self::simple::SimpleWithPassPlayout;
 use board::Board;
-use board::Move;
 use board::Color;
+use board::Move;
+use board::Pass;
+use board::Play;
 
-use rand::XorShiftRng;
+use rand::random;
 
 mod no_eyes;
 mod simple;
@@ -35,7 +39,9 @@ pub fn factory(opt: Option<String>) -> Box<Playout> {
     match opt {
         Some(s) => {
             match s.as_slice() {
+                "no-eyes-with-pass" => Box::new(NoEyesWithPassPlayout::new()),
                 "simple" => Box::new(SimplePlayout::new()),
+                "simple-with-pass" => Box::new(SimpleWithPassPlayout::new()),
                 _ => Box::new(NoEyesPlayout::new()),
             }
         },
@@ -43,10 +49,9 @@ pub fn factory(opt: Option<String>) -> Box<Playout> {
     }
 }
 
-
 pub trait Playout: Sync + Send {
 
-    fn run(&self, b: &Board, initial_move: &Move, rng: &mut XorShiftRng) -> PlayoutResult {
+    fn run(&self, b: &Board, initial_move: &Move) -> PlayoutResult {
         let mut board = b.clone();
         let mut played_moves = Vec::new();
         board.play(*initial_move);
@@ -54,7 +59,7 @@ pub trait Playout: Sync + Send {
         let max_moves = self.max_moves(board.size());
         let mut move_count = 0;
         while !board.is_game_over() && move_count < max_moves {
-            let m = board.playout_move(rng);
+            let m = self.select_move(&board);
             board.play(m);
             played_moves.push(m);
             move_count += 1;
@@ -62,16 +67,48 @@ pub trait Playout: Sync + Send {
         PlayoutResult::new(played_moves, board.winner())
     }
 
-    fn moves(&self, b: &Board) -> Vec<Move>;
+    fn is_playable(&self, board: &Board, m: &Move) -> bool;
+    fn include_pass(&self) -> bool;
 
     fn max_moves(&self, size: u8) -> usize {
         size as usize * size as usize * 3
+    }
+
+    fn select_move(&self, board: &Board) -> Move {
+        let color = board.next_player();
+        let vacant = board.vacant();
+        let playable_move_exists =  vacant
+            .iter()
+            .map(|c| Play(color, c.col, c.row))
+            .any(|m| board.is_legal(m).is_ok() && self.is_playable(board, &m));
+        if playable_move_exists {
+            loop {
+                let add = if self.include_pass() {
+                    1
+                } else {
+                    0
+                };
+                let r = random::<usize>() % (vacant.len() + add);
+                if r == vacant.len() {
+                    return Pass(color);
+                } else {
+                    let c = vacant[r];
+                    let m = Play(color, c.col, c.row);
+                    if board.is_legal(m).is_ok() && self.is_playable(board, &m) {
+                        return m;
+                    }
+                }
+            }
+        } else {
+            Pass(color)
+        }
     }
 
     fn playout_type(&self) -> String;
 
 }
 
+#[derive(Debug)]
 pub struct PlayoutResult {
     moves: Vec<Move>,
     winner: Color,

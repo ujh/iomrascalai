@@ -36,8 +36,38 @@ impl SimplePlayout {
 
 impl Playout for SimplePlayout {
 
-    fn moves(&self, b: &Board) -> Vec<Move> {
-        b.legal_moves_without_superko_check()
+    fn is_playable(&self, _: &Board, _: &Move) -> bool {
+        true
+    }
+
+    fn include_pass(&self) -> bool {
+        false
+    }
+
+    fn playout_type(&self) -> String {
+        format!("{:?}", self)
+    }
+}
+
+#[derive(Debug)]
+pub struct SimpleWithPassPlayout;
+
+impl SimpleWithPassPlayout {
+
+    pub fn new() -> SimpleWithPassPlayout {
+        SimpleWithPassPlayout
+    }
+
+}
+
+impl Playout for SimpleWithPassPlayout {
+
+    fn is_playable(&self, _: &Board, _: &Move) -> bool {
+        true
+    }
+
+    fn include_pass(&self) -> bool {
+        true
     }
 
     fn playout_type(&self) -> String {

@@ -26,17 +26,16 @@ use board::Board;
 use board::Play;
 use playout::Playout;
 use playout::SimplePlayout;
+use playout::SimpleWithPassPlayout;
 use ruleset::KgsChinese;
 
-use rand::weak_rng;
 use test::Bencher;
 
 #[test]
 fn should_add_the_passed_moves_as_the_first_move() {
     let board = Board::new(9, 6.5, KgsChinese);
-    let mut rng = weak_rng();
     let playout = SimplePlayout::new();
-    let result = playout.run(&board, &Play(Black, 1, 1), &mut rng);
+    let result = playout.run(&board, &Play(Black, 1, 1));
     assert_eq!(Play(Black, 1, 1), result.moves()[0]);
 }
 
@@ -47,25 +46,43 @@ fn max_moves() {
 }
 
 #[bench]
-fn bench_9x9_playout_speed(b: &mut Bencher) {
+fn simple_09x09(b: &mut Bencher) {
     let board = Board::new(9, 6.5, KgsChinese);
-    let mut rng = weak_rng();
     let playout = SimplePlayout::new();
-    b.iter(|| playout.run(&board, &Play(Black, 1, 1), &mut rng));
+    b.iter(|| playout.run(&board, &Play(Black, 1, 1)));
 }
 
 #[bench]
-fn bench_13x13_playout_speed(b: &mut Bencher) {
+fn simple_13x13(b: &mut Bencher) {
     let board = Board::new(13, 6.5, KgsChinese);
-    let mut rng = weak_rng();
     let playout = SimplePlayout::new();
-    b.iter(|| playout.run(&board, &Play(Black, 1, 1), &mut rng));
+    b.iter(|| playout.run(&board, &Play(Black, 1, 1)));
 }
 
 #[bench]
-fn bench_19x19_playout_speed(b: &mut Bencher) {
+fn simple_19x19(b: &mut Bencher) {
     let board = Board::new(19, 6.5, KgsChinese);
-    let mut rng = weak_rng();
     let playout = SimplePlayout::new();
-    b.iter(|| playout.run(&board, &Play(Black, 1, 1), &mut rng));
+    b.iter(|| playout.run(&board, &Play(Black, 1, 1)));
+}
+
+#[bench]
+fn with_pass_09x09(b: &mut Bencher) {
+    let board = Board::new(9, 6.5, KgsChinese);
+    let playout = SimpleWithPassPlayout::new();
+    b.iter(|| playout.run(&board, &Play(Black, 1, 1)));
+}
+
+#[bench]
+fn with_pass_13x13(b: &mut Bencher) {
+    let board = Board::new(13, 6.5, KgsChinese);
+    let playout = SimpleWithPassPlayout::new();
+    b.iter(|| playout.run(&board, &Play(Black, 1, 1)));
+}
+
+#[bench]
+fn with_pass_19x19(b: &mut Bencher) {
+    let board = Board::new(19, 6.5, KgsChinese);
+    let playout = SimpleWithPassPlayout::new();
+    b.iter(|| playout.run(&board, &Play(Black, 1, 1)));
 }

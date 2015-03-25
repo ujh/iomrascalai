@@ -31,13 +31,25 @@ fn factory_returns_no_eyes_by_default() {
 }
 
 #[test]
-fn factory_returns_simple_when_given_simple() {
+fn factory_returns_simple() {
     let playout = super::factory(Some(String::from_str("simple")));
     assert_eq!("SimplePlayout", playout.playout_type());
+}
+
+#[test]
+fn factory_returns_simple_with_pass() {
+    let playout = super::factory(Some(String::from_str("simple-with-pass")));
+    assert_eq!("SimpleWithPassPlayout", playout.playout_type());
 }
 
 #[test]
 fn factroy_returns_no_eyes_when_given_any_string() {
     let playout = super::factory(Some(String::from_str("foo")));
     assert_eq!("NoEyesPlayout", playout.playout_type());
+}
+
+#[test]
+fn factory_returns_no_eyes_with_pass() {
+    let playout = super::factory(Some(String::from_str("no-eyes-with-pass")));
+    assert_eq!("NoEyesWithPassPlayout", playout.playout_type());
 }

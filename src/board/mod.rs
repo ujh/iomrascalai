@@ -264,27 +264,6 @@ impl Board {
         }
     }
 
-    pub fn playout_move(&self, rng: &mut XorShiftRng) -> Move {
-            let color = self.next_player();
-            let vacant = self.vacant();
-            if vacant
-                .iter()
-                .map(|coord| Play(color, coord.col, coord.row))
-                .any(|m| !self.is_eye(&m.coord(), *m.color()) && self.is_legal(m).is_ok() ) {
-                    //while loop testing all vacant spots
-                    loop {
-                        let random_vacant = vacant[rng.gen::<usize>() % vacant.len()];
-                        let random_play = Play(color, random_vacant.col, random_vacant.row);
-                        if !self.is_eye(&random_vacant, color) && self.is_legal(random_play).is_ok() {
-                            return random_play;
-                        }
-                    }
-                } else {
-                    let color = self.next_player();
-                    Pass(color)
-                }
-	}
-
     //#[inline(never)] //turn off for profiling
     pub fn legal_moves_without_eyes(&self) -> Vec<Move> {
         self.legal_moves_without_superko_check()
