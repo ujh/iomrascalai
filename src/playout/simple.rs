@@ -19,27 +19,58 @@
  *                                                                      *
  ************************************************************************/
 
-use playout::Playout;
-use playout::SimplePlayout;
-use ruleset::Minimal;
-use ruleset::Ruleset;
+use board::Board;
+use board::Move;
+use super::Playout;
 
-pub struct Config {
-    pub log: bool,
-    pub playout: Box<Playout>,
-    pub ruleset: Ruleset,
-    pub threads: usize,
-}
+#[derive(Debug)]
+pub struct SimplePlayout;
 
-impl Config {
+impl SimplePlayout {
 
-    pub fn default() -> Config {
-        Config {
-            log: false,
-            playout: Box::new(SimplePlayout::new()),
-            ruleset: Minimal,
-            threads: 1,
-        }
+    pub fn new() -> SimplePlayout {
+        SimplePlayout
     }
 
+}
+
+impl Playout for SimplePlayout {
+
+    fn is_playable(&self, _: &Board, _: &Move) -> bool {
+        true
+    }
+
+    fn include_pass(&self) -> bool {
+        false
+    }
+
+    fn playout_type(&self) -> String {
+        format!("{:?}", self)
+    }
+}
+
+#[derive(Debug)]
+pub struct SimpleWithPassPlayout;
+
+impl SimpleWithPassPlayout {
+
+    pub fn new() -> SimpleWithPassPlayout {
+        SimpleWithPassPlayout
+    }
+
+}
+
+impl Playout for SimpleWithPassPlayout {
+
+    fn is_playable(&self, _: &Board, _: &Move) -> bool {
+        true
+    }
+
+    fn include_pass(&self) -> bool {
+        true
+    }
+
+    fn playout_type(&self) -> String {
+        format!("{:?}", self)
+    }
 }

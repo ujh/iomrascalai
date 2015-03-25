@@ -1,6 +1,6 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2015 Thomas Poinsot, Igor Polyakov                         *
+ * Copyright 2015 Thomas Poinsot, Urban Hafner                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -21,54 +21,35 @@
 
 #![cfg(test)]
 
-use board::Black;
-use board::Play;
-use game::Game;
-use playout::Playout;
-use rand::{Rng, weak_rng};
-use ruleset::KgsChinese;
-use test::Bencher;
+mod no_eyes;
+mod simple;
 
 #[test]
-fn should_add_the_passed_moves_as_the_first_move() {
-    let game = Game::new(9, 6.5, KgsChinese);
-    let board = game.board();
-    let mut rng = weak_rng();
-    
-    let playout = Playout::run(&board, &Play(Black, 1, 1), &mut rng);
-    assert_eq!(Play(Black, 1, 1), playout.moves()[0]);
+fn factory_returns_no_eyes_by_default() {
+    let playout = super::factory(None);
+    assert_eq!("NoEyesPlayout", playout.playout_type());
 }
 
 #[test]
-fn max_moves() {
-    let game = Game::new(19, 6.5, KgsChinese);
-    let board = game.board();
-    assert_eq!(1083, Playout::max_moves(19));
+fn factory_returns_simple() {
+    let playout = super::factory(Some(String::from_str("simple")));
+    assert_eq!("SimplePlayout", playout.playout_type());
 }
 
-#[bench]
-fn bench_9x9_playout_speed(b: &mut Bencher) {
-    let game = Game::new(9, 6.5, KgsChinese);
-    let board = game.board();
-    let mut rng = weak_rng();
-
-    b.iter(|| Playout::run(&board, &Play(Black, 1, 1), &mut rng))
+#[test]
+fn factory_returns_simple_with_pass() {
+    let playout = super::factory(Some(String::from_str("simple-with-pass")));
+    assert_eq!("SimpleWithPassPlayout", playout.playout_type());
 }
 
-#[bench]
-fn bench_13x13_playout_speed(b: &mut Bencher) {
-    let game = Game::new(13, 6.5, KgsChinese);
-    let board = game.board();
-    let mut rng = weak_rng();
-
-    b.iter(|| Playout::run(&board, &Play(Black, 1, 1), &mut rng))
+#[test]
+fn factroy_returns_no_eyes_when_given_any_string() {
+    let playout = super::factory(Some(String::from_str("foo")));
+    assert_eq!("NoEyesPlayout", playout.playout_type());
 }
 
-#[bench]
-fn bench_19x19_playout_speed(b: &mut Bencher) {
-    let game = Game::new(19, 6.5, KgsChinese);
-    let board = game.board();
-    let mut rng = weak_rng();
-
-    b.iter(|| Playout::run(&board, &Play(Black, 1, 1), &mut rng))
+#[test]
+fn factory_returns_no_eyes_with_pass() {
+    let playout = super::factory(Some(String::from_str("no-eyes-with-pass")));
+    assert_eq!("NoEyesWithPassPlayout", playout.playout_type());
 }

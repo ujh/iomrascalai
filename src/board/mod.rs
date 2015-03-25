@@ -19,6 +19,7 @@
  * along with Iomrascálaí.  If not, see <http://www.gnu.org/licenses/>. *
  *                                                                      *
  ************************************************************************/
+
 pub use self::Color::Black;
 pub use self::Color::Empty;
 pub use self::Color::White;
@@ -28,22 +29,22 @@ pub use self::movement::Move;
 pub use self::movement::Pass;
 pub use self::movement::Play;
 pub use self::movement::Resign;
-use rand::{Rng, XorShiftRng};
 use ruleset::Ruleset;
 use score::Score;
 use self::point::Point;
 
-use std::sync::Arc;
+use rand::Rng;
+use rand::XorShiftRng;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fmt;
-use std::vec::Vec;
+use std::sync::Arc;
 
-mod test;
 mod chain;
 mod coord;
 mod movement;
 mod point;
+mod test;
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum IllegalMove {
@@ -262,63 +263,7 @@ impl Board {
                 .collect()
         }
     }
-    
-    pub fn playout_move(&self, rng: &mut XorShiftRng) -> Move {
-            let color = self.next_player();
-            let vacant = self.vacant();
-            if vacant
-                .iter()
-                .map(|coord| Play(color, coord.col, coord.row))
-                .any(|m| !self.is_eye(&m.coord(), *m.color()) && self.playout_legal_move(m) ) {
-                    //while loop testing all vacant spots
-                    loop {
-                        let random_vacant = vacant[rng.gen::<usize>() % vacant.len()];
-                        let random_play = Play(color, random_vacant.col, random_vacant.row);
-                        if !self.is_eye(&random_vacant, color) && self.playout_legal_move(random_play) {
-                            return random_play;
-                        } 
-                    }
-                } else {
-                    let color = self.next_player();
-                    Pass(color)
-                }
-	}
-    
-    fn playout_legal_move(&self, m: Move) -> bool {
-    	        // Can't play on a Ko point
-        if self.ko.is_some() && m.coord() == self.ko.unwrap() {
-            if self.neighbours(m.coord()) //neighbours of the coordinate of the ko point
-                .iter()
-                .filter(|&c| self.color(c) == m.color().opposite()) //accept coordinates of opposite stones
-                .map(|&c| self.get_chain(c).unwrap()) //get the chain of those opposite stones
-                .any(|chain| chain.liberties().len() == 1 && chain.coords().len() == 1) { //if any of them has one liberty and one stone
-                    return false;
-                }
-        }
-        // Can't play suicide move
-        if !self.ruleset.suicide_allowed() {
-            // All neighbours must be occupied
-            if self.neighbours(m.coord()).iter().all(|c| self.color(c) != Empty) {
-                // A move is a suicide move if all of the opposing,
-                // neighbouring chain has more than one liberty and all of
-                // our own chains have only one liberty.
-                let enemy_chains_with_other_libs = self.neighbours(m.coord())
-                    .iter()
-                    .filter(|&c| self.color(c) == m.color().opposite())
-                    .all(|&c| self.get_chain(c).unwrap().liberties().len() > 1);
-                let own_chains_without_other_libs = self.neighbours(m.coord())
-                    .iter()
-                    .filter(|&c| self.color(c) == *m.color())
-                    .all(|&c| self.get_chain(c).unwrap().liberties().len() <= 1);
-                if enemy_chains_with_other_libs && own_chains_without_other_libs {
-                    return false;
-                }
-            }
-        }
-        
-        true
-	}
-    
+
     //#[inline(never)] //turn off for profiling
     pub fn legal_moves_without_eyes(&self) -> Vec<Move> {
         self.legal_moves_without_superko_check()

@@ -19,27 +19,32 @@
  *                                                                      *
  ************************************************************************/
 
-use playout::Playout;
-use playout::SimplePlayout;
-use ruleset::Minimal;
-use ruleset::Ruleset;
+#![cfg(test)]
 
-pub struct Config {
-    pub log: bool,
-    pub playout: Box<Playout>,
-    pub ruleset: Ruleset,
-    pub threads: usize,
+use config::Config;
+
+use std::sync::Arc;
+
+#[test]
+fn factory_returns_amaf_by_default() {
+    let engine = super::factory(None, Arc::new(Config::default()));
+    assert_eq!("amaf", engine.engine_type());
 }
 
-impl Config {
+#[test]
+fn factory_returns_random_engine_when_give_random() {
+    let engine = super::factory(Some(String::from_str("random")), Arc::new(Config::default()));
+    assert_eq!("random", engine.engine_type());
+}
 
-    pub fn default() -> Config {
-        Config {
-            log: false,
-            playout: Box::new(SimplePlayout::new()),
-            ruleset: Minimal,
-            threads: 1,
-        }
-    }
+#[test]
+fn factory_returns_simple_mc_when_given_mc() {
+    let engine = super::factory(Some(String::from_str("mc")), Arc::new(Config::default()));
+    assert_eq!("simple-mc", engine.engine_type());
+}
 
+#[test]
+fn factory_rutuyrns_amaf_for_any_other_string() {
+    let engine = super::factory(Some(String::from_str("foo")), Arc::new(Config::default()));
+    assert_eq!("amaf", engine.engine_type());
 }

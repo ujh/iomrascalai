@@ -24,21 +24,22 @@ use board::Color;
 use board::Move;
 use config::Config;
 use game::Game;
-use playout::Playout;
+use playout::PlayoutResult;
 use super::Engine;
 use super::McEngine;
 use super::MoveStats;
 
+use std::sync::Arc;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 
 pub struct AmafMcEngine {
-    config: Config
+    config: Arc<Config>
 }
 
 impl AmafMcEngine {
 
-    pub fn new(config: Config) -> AmafMcEngine {
+    pub fn new(config: Arc<Config>) -> AmafMcEngine {
         AmafMcEngine { config: config }
     }
 
@@ -47,14 +48,18 @@ impl AmafMcEngine {
 impl Engine for AmafMcEngine {
 
     fn gen_move(&self, color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
-        super::gen_move::<AmafMcEngine>(self.config, color, game, sender, receiver);
+        super::gen_move::<AmafMcEngine>(self.config.clone(), color, game, sender, receiver);
+    }
+
+    fn engine_type(&self) -> &'static str {
+        "amaf"
     }
 
 }
 
 impl McEngine for AmafMcEngine {
 
-    fn record_playout(stats: &mut MoveStats, playout: &Playout, won: bool) {
+    fn record_playout(stats: &mut MoveStats, playout: &PlayoutResult, won: bool) {
         for m in playout.moves().iter() {
             if won {
                 stats.record_win(&m);

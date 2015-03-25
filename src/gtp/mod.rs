@@ -33,6 +33,8 @@ use sgf::parser::Parser;
 use timer::Timer;
 use strenum::Strenum;
 
+use std::sync::Arc;
+
 pub mod driver;
 mod test;
 
@@ -81,19 +83,19 @@ pub enum Command {
 }
 
 pub struct GTPInterpreter<'a> {
-    config: Config,
+    config: Arc<Config>,
     controller: EngineController<'a>,
     game: Game,
     timer: Timer,
 }
 
 impl<'a> GTPInterpreter<'a> {
-    pub fn new<'b>(config: Config, engine: Box<Engine + 'b>) -> GTPInterpreter<'b> {
+    pub fn new<'b>(config: Arc<Config>, engine: Box<Engine + 'b>) -> GTPInterpreter<'b> {
         let komi      = 6.5;
         let boardsize = 19;
         GTPInterpreter {
-            config: config,
-            controller: EngineController::new(config, engine),
+            config: config.clone(),
+            controller: EngineController::new(config.clone(), engine),
             game: Game::new(boardsize, komi, config.ruleset),
             timer: Timer::new(),
         }

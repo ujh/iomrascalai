@@ -21,9 +21,7 @@
  ************************************************************************/
 #![feature(collections)]
 #![feature(core)]
-#![feature(io)]
 #![feature(old_io)]
-#![feature(old_path)]
 #![feature(plugin)]
 #![feature(std_misc)]
 #![feature(test)]
@@ -39,10 +37,6 @@ extern crate time;
 #[macro_use(strenum)] extern crate strenum;
 
 use config::Config;
-use engine::AmafMcEngine;
-use engine::Engine;
-use engine::SimpleMcEngine;
-use engine::RandomEngine;
 use gtp::driver::Driver;
 use ruleset::KgsChinese;
 use ruleset::Ruleset;
@@ -51,6 +45,7 @@ use version::version;
 use getopts::Options;
 use std::ascii::OwnedAsciiExt;
 use std::env::args;
+use std::sync::Arc;
 
 macro_rules! log(
     ($($arg:tt)*) => (
@@ -79,6 +74,7 @@ pub fn main() {
     opts.optopt("e", "engine", "select an engine (defaults to amaf)", "amaf|mc|random");
     opts.optopt("r", "ruleset", "select the ruleset (defaults to chinese)", "cgos|chinese|tromp-taylor|minimal");
     opts.optopt("t", "threads", "number of threads to use (defaults to 1)", "NUM");
+    opts.optopt("p", "playout", "type of playout to use (defaults to no-eyes)", "no-eyes|no-eyes-with-pass|simple|simple-with-pass");
     opts.optflag("h", "help", "print this help menu");
     opts.optflag("v", "version", "print the version number");
     opts.optflag("l", "log", "log to stderr (defaults to false)");
@@ -112,21 +108,12 @@ pub fn main() {
         Some(r) => Ruleset::from_string(r),
         None    => KgsChinese
     };
-    let config = Config {
+    let config = Arc::new(Config {
         log: log,
+        playout: playout::factory(matches.opt_str("p")),
         ruleset: ruleset,
         threads: threads,
-    };
-    let engine_arg = matches.opt_str("e").map(|s| s.into_ascii_lowercase());
-    let engine: Box<Engine> = match engine_arg {
-        Some(s) => {
-            match s.as_slice() {
-                "random" => Box::new(RandomEngine::new()),
-                "mc"     => Box::new(SimpleMcEngine::new(config)),
-                _        => Box::new(AmafMcEngine::new(config)),
-            }
-        },
-        None => Box::new(AmafMcEngine::new(config))
-    };
-    Driver::new(config, engine);
+    });
+    let engine = engine::factory(matches.opt_str("e"), config.clone());
+    Driver::new(config.clone(), engine);
 }

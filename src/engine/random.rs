@@ -39,10 +39,16 @@ impl RandomEngine {
 }
 
 impl Engine for RandomEngine {
+
     fn gen_move(&self, color: Color, game: &Game, sender: Sender<Move>, _: Receiver<()>) {
         let mut moves = game.legal_moves();
         moves.push(Pass(color));
         let m = moves[random::<usize>() % moves.len()];
         sender.send(m);
     }
+
+    fn engine_type(&self) -> &'static str {
+        "random"
+    }
+
 }

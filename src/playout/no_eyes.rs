@@ -19,27 +19,60 @@
  *                                                                      *
  ************************************************************************/
 
-use playout::Playout;
-use playout::SimplePlayout;
-use ruleset::Minimal;
-use ruleset::Ruleset;
+use board::Board;
+use board::Move;
+use super::Playout;
 
-pub struct Config {
-    pub log: bool,
-    pub playout: Box<Playout>,
-    pub ruleset: Ruleset,
-    pub threads: usize,
+#[derive(Debug)]
+pub struct NoEyesPlayout;
+
+impl NoEyesPlayout {
+
+    pub fn new() -> NoEyesPlayout {
+        NoEyesPlayout
+    }
+
 }
 
-impl Config {
+impl Playout for NoEyesPlayout {
 
-    pub fn default() -> Config {
-        Config {
-            log: false,
-            playout: Box::new(SimplePlayout::new()),
-            ruleset: Minimal,
-            threads: 1,
-        }
+    fn is_playable(&self, board: &Board, m: &Move) -> bool {
+        !board.is_eye(&m.coord(), *m.color())
+    }
+
+    fn include_pass(&self) -> bool {
+        false
+    }
+
+    fn playout_type(&self) -> String {
+        format!("{:?}", self)
+    }
+
+}
+
+#[derive(Debug)]
+pub struct NoEyesWithPassPlayout;
+
+impl NoEyesWithPassPlayout {
+
+    pub fn new() -> NoEyesWithPassPlayout {
+        NoEyesWithPassPlayout
+    }
+
+}
+
+impl Playout for NoEyesWithPassPlayout {
+
+    fn is_playable(&self, board: &Board, m: &Move) -> bool {
+        !board.is_eye(&m.coord(), *m.color())
+    }
+
+    fn include_pass(&self) -> bool {
+        true
+    }
+
+    fn playout_type(&self) -> String {
+        format!("{:?}", self)
     }
 
 }

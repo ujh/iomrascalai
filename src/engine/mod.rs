@@ -1,7 +1,6 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2014 Thomas Poinsot, Urban Hafner                          *
- * Copyright 2015 Thomas Poinsot                                        *
+ * Copyright 2014-2015 Thomas Poinsot, Urban Hafner                     *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -27,8 +26,11 @@ pub use self::move_stats::MoveStats;
 pub use self::random::RandomEngine;
 use board::Color;
 use board::Move;
+use config::Config;
 use game::Game;
 
+use std::ascii::OwnedAsciiExt;
+use std::sync::Arc;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 
@@ -36,9 +38,27 @@ mod controller;
 mod mc;
 mod move_stats;
 mod random;
+mod test;
+
+pub fn factory(opt: Option<String>, config: Arc<Config>) -> Box<Engine> {
+    let engine_arg = opt.map(|s| s.into_ascii_lowercase());
+    match engine_arg {
+        Some(s) => {
+            match s.as_slice() {
+                "random" => Box::new(RandomEngine::new()),
+                "mc"     => Box::new(SimpleMcEngine::new(config.clone())),
+                _        => Box::new(AmafMcEngine::new(config.clone())),
+            }
+        },
+        None => Box::new(AmafMcEngine::new(config.clone()))
+    }
+}
 
 pub trait Engine: Sync {
 
     fn gen_move(&self, Color, &Game, sender: Sender<Move>, receiver: Receiver<()>);
+    fn engine_type(&self) -> &'static str {
+        ""
+    }
 
 }
