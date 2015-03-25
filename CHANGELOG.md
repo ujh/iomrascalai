@@ -1,3 +1,9 @@
+## 0.1.7 [☰](https://github.com/ujh/iomrascalai/compare/0.1.6...master) (unreleased)
+
+* Improvements of the playout speeds
+* The playout type can now be selected from the command line (use the
+  -p command line option)
+
 ## 0.1.6 [☰](https://github.com/ujh/iomrascalai/compare/0.1.5...0.1.6)
 
 * The engines can now utilize multiple threads (use the -t command
