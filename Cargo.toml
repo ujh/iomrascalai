@@ -19,3 +19,10 @@ regex_macros    = "*"
 rustc-serialize = "*"
 strenum         = "*"
 time            = "*"
+
+[profile.release]
+opt-level = 3
+debug = false
+rpath = false
+lto = true
+debug-assertions = false
