@@ -18,3 +18,9 @@ regex           = "*"
 regex_macros    = "*"
 strenum         = "*"
 time            = "*"
+
+[profile.release]
+opt-level = 3
+debug = false
+rpath = false
+lto = true
