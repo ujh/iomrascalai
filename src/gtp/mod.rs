@@ -133,7 +133,7 @@ impl<'a> GTPInterpreter<'a> {
         let preprocessed = self.preprocess(input);
         if preprocessed.len() == 0 { return Command::Empty };
 
-        let command: Vec<&str> = preprocessed.as_slice().split(' ').collect();
+        let command: Vec<&str> = preprocessed.split(' ').collect();
 
         //command[0] is never empty because a split always has at least one part
         let command_name = match <KnownCommands>::enumify(command[0]) {
@@ -267,11 +267,11 @@ impl<'a> GTPInterpreter<'a> {
         let without_tabs = horizontal_tab.replace_all(input, " ");
         // Remove all control characters
         let cntrls = regex!(r"[:cntrl:]");
-        let without_ctrls = cntrls.replace_all(without_tabs.as_slice(), "");
+        let without_ctrls = cntrls.replace_all(without_tabs.as_ref(), "");
         // Then we remove anything after a #
         let comment = regex!(r"#.*");
-        let without_comment = comment.replace(without_ctrls.as_slice(), "");
+        let without_comment = comment.replace(without_ctrls.as_ref(), "");
         // We remove the whitespaces before/after the string
-        without_comment.as_slice().trim().to_string()
+        without_comment.trim().to_string()
     }
 }

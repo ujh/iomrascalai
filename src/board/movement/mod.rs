@@ -39,7 +39,7 @@ impl Move {
         let color = Color::from_gtp(gtp_color);
         let lower_gtp_vertex: String = gtp_vertex.chars().map(|c| c.to_lowercase().next().unwrap()).collect();
 
-        match lower_gtp_vertex.as_slice() {
+        match lower_gtp_vertex.as_ref() {
             "pass"   => { Pass(color) },
             "resign" => { Resign(color) },
             _        => {

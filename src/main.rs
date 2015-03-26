@@ -20,6 +20,7 @@
  *                                                                      *
  ************************************************************************/
 #![feature(collections)]
+#![feature(convert)]
 #![feature(core)]
 #![feature(old_io)]
 #![feature(plugin)]
@@ -31,7 +32,6 @@ extern crate getopts;
 extern crate rand;
 extern crate regex;
 #[no_link] extern crate regex_macros;
-extern crate "rustc-serialize" as rustc_serialize;
 extern crate test;
 extern crate time;
 #[macro_use(strenum)] extern crate strenum;
@@ -86,7 +86,7 @@ pub fn main() {
 
     if matches.opt_present("h") {
         let brief = format!("Usage: {} [options]", args[0]);
-        print!("{}", opts.usage(brief.as_slice()));
+        print!("{}", opts.usage(brief.as_ref()));
         return;
     }
     if matches.opt_present("v") {

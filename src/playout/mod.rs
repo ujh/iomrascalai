@@ -38,7 +38,7 @@ mod test;
 pub fn factory(opt: Option<String>) -> Box<Playout> {
     match opt {
         Some(s) => {
-            match s.as_slice() {
+            match s.as_ref() {
                 "no-eyes-with-pass" => Box::new(NoEyesWithPassPlayout::new()),
                 "simple" => Box::new(SimplePlayout::new()),
                 "simple-with-pass" => Box::new(SimpleWithPassPlayout::new()),

@@ -42,7 +42,7 @@ impl Driver {
 
         loop {
 
-            let command = interpreter.read(reader.read_line().unwrap().as_slice());
+            let command = interpreter.read(reader.read_line().unwrap().as_ref());
 
             match command {
                 Command::BoardSize          => print!("= \n\n"),

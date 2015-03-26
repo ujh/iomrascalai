@@ -84,7 +84,7 @@ impl Color {
 
     pub fn from_gtp(gtp_color: &str) -> Color {
         let lower_gtp_color: String = gtp_color.chars().map(|c| c.to_lowercase().next().unwrap()).collect();
-        match lower_gtp_color.as_slice() {
+        match lower_gtp_color.as_ref() {
             "w" | "white" => White,
             "b" | "black" => Black,
             err           => panic!("Can't read the GTP color: {}", err)
@@ -375,8 +375,8 @@ impl Board {
     fn update_vacant(&mut self, m: &Move) {
         let pos = self.vacant.iter().position(|&c| c == m.coord()).unwrap();
         self.vacant.swap_remove(pos);
-        self.vacant.push_all(self.adv_stones_removed.as_slice());
-        self.vacant.push_all(self.friend_stones_removed.as_slice());
+        self.vacant.push_all(self.adv_stones_removed.as_ref());
+        self.vacant.push_all(self.friend_stones_removed.as_ref());
     }
     //#[inline(never)] //turn off for profiling
     fn add_removed_adv_stones_as_libs(&mut self, m: &Move) {
@@ -594,7 +594,7 @@ impl Board {
         for row in (1u8..self.size()+1).rev() {
 
             // Prints the row number
-            s.push_str(format!("{:2} ", row).as_slice());
+            s.push_str(format!("{:2} ", row).as_ref());
 
             // Prints the actual row
             for col in (1u8..self.size()+1) {

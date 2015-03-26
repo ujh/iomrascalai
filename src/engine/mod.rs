@@ -44,7 +44,7 @@ pub fn factory(opt: Option<String>, config: Arc<Config>) -> Box<Engine> {
     let engine_arg = opt.map(|s| s.into_ascii_lowercase());
     match engine_arg {
         Some(s) => {
-            match s.as_slice() {
+            match s.as_ref() {
                 "random" => Box::new(RandomEngine::new()),
                 "mc"     => Box::new(SimpleMcEngine::new(config.clone())),
                 _        => Box::new(AmafMcEngine::new(config.clone())),

@@ -94,7 +94,7 @@ impl Parser {
     pub fn new(sgf: String) -> Parser {
         Parser {sgf: sgf}
     }
-    
+
     pub fn attempt_from_path(path: &Path) -> Result<Parser, ::std::io::Error> {
     	match File::open(&path) {
     		Ok(mut file) => {
@@ -145,7 +145,7 @@ impl Parser {
         let mut tokens = Vec::new();
         let mut prev_name = "";
         let re = regex!(r"([:upper:]{1,2})?\[([^]]*)\]");
-        for caps in re.captures_iter(self.sgf.as_slice()) {
+        for caps in re.captures_iter(self.sgf.as_ref()) {
             match caps.at(1) {
                 Some(name) => {
                     tokens.push(Property {name: name, val: caps.at(2).unwrap()});

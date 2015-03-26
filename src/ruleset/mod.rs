@@ -38,7 +38,7 @@ pub enum Ruleset {
 impl Ruleset {
 
     pub fn from_string(s: String) -> Ruleset {
-        match s.as_slice() {
+        match s.as_ref() {
             "tromp-taylor" => AnySizeTrompTaylor,
             "cgos"         => CGOS,
             "chinese"      => KgsChinese,

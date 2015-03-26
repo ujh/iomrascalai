@@ -59,7 +59,7 @@ impl Game {
             zobrist_hash_table: ZobristHashTable::new(size),
         }
     }
-    
+
     pub fn with_new_state(board: Board, move_number: u16, zobrist_hash_table: ZobristHashTable ) -> Game {
         Game {
             board:                  board,
@@ -167,12 +167,12 @@ impl Display for Game {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut s = format!("komi: {}\n", self.komi());
 
-        s.push_str(self.board.as_string().as_slice());
+        s.push_str(self.board.as_string().as_ref());
 
         // Then we print the col numbers under the board
-        s.push_str(format!("{:3}", "").as_slice());
+        s.push_str(format!("{:3}", "").as_ref());
         for col in 1..self.board.size()+1 {
-            s.push_str(format!("{:<2}", col).as_slice());
+            s.push_str(format!("{:<2}", col).as_ref());
         }
         s.push_str("\n");
         s.fmt(f)
