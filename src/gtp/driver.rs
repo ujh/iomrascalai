@@ -33,7 +33,7 @@ pub struct Driver;
 
 impl Driver {
     pub fn new(config: Arc<Config>, engine: Box<Engine>) {
-        let engine_name = "Iomrascalai";
+        let engine_name = format!("Iomrascalai ({})", engine.engine_type());
         let engine_version = version::version();
         let protocol_version = "2";
 
