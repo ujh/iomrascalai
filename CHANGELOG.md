@@ -1,4 +1,4 @@
-## 0.1.7 [☰](https://github.com/ujh/iomrascalai/compare/0.1.6...master) (unreleased)
+## 0.1.7 [☰](https://github.com/ujh/iomrascalai/compare/0.1.6...0.1.7)
 
 * Improvements of the playout speeds
 * The playout type can now be selected from the command line (use the
