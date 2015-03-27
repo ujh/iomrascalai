@@ -20,14 +20,15 @@
  ************************************************************************/
 
 pub use self::controller::EngineController;
-pub use self::mc::AmafMcEngine;
-pub use self::mc::SimpleMcEngine;
 pub use self::move_stats::MoveStats;
-pub use self::random::RandomEngine;
 use board::Color;
 use board::Move;
 use config::Config;
 use game::Game;
+use self::mc::AmafMcEngine;
+use self::mc::SimpleMcEngine;
+use self::random::RandomEngine;
+use self::uct::UctEngine;
 
 use std::ascii::OwnedAsciiExt;
 use std::sync::Arc;
@@ -48,6 +49,7 @@ pub fn factory(opt: Option<String>, config: Arc<Config>) -> Box<Engine> {
             match s.as_ref() {
                 "random" => Box::new(RandomEngine::new()),
                 "mc"     => Box::new(SimpleMcEngine::new(config.clone())),
+                "uct"    => Box::new(UctEngine::new(config.clone())),
                 _        => Box::new(AmafMcEngine::new(config.clone())),
             }
         },

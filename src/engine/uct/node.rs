@@ -25,13 +25,16 @@ use board::Pass;
 use game::Game;
 
 use core::ops::IndexMut;
+use std::f32;
 use std::num::Float;
+use std::usize;
 
 pub struct Node {
     children: Vec<Node>,
     game: Game,
     m: Option<Move>,
     plays: usize,
+    terminal: bool,
     wins: usize,
 }
 
@@ -43,6 +46,7 @@ impl Node {
             game: game,
             m: Some(m),
             plays: 0,
+            terminal: false,
             wins: 0,
         }
     }
@@ -53,6 +57,7 @@ impl Node {
             game: game.clone(),
             m: None,
             plays: 0,
+            terminal: false,
             wins: 0,
         };
         root.expand();
@@ -60,12 +65,28 @@ impl Node {
     }
 
     pub fn expand(&mut self) {
-        let pass = Pass(self.game.next_player());
-        let new_game = self.game.play(pass).unwrap();
-        self.children = vec!(Node::new(new_game, pass));
-        for &m in self.game.legal_moves_without_eyes().iter() {
-            let new_game = self.game.play(m).unwrap();
-            self.children.push(Node::new(new_game, m));
+        self.terminal = self.game.is_over();
+        if !self.terminal {
+            let pass = Pass(self.game.next_player());
+            let new_game = self.game.play(pass).unwrap();
+            self.children = vec!(Node::new(new_game, pass));
+            for &m in self.game.legal_moves_without_eyes().iter() {
+                let new_game = self.game.play(m).unwrap();
+                self.children.push(Node::new(new_game, m));
+            }
+        }
+    }
+
+    pub fn is_terminal(&self) -> bool {
+        self.terminal
+    }
+
+    pub fn mark_as_terminal(&mut self, is_win: bool) {
+        self.plays = usize::MAX;
+        if is_win {
+            self.wins = usize::MAX;
+        } else {
+            self.wins = 0;
         }
     }
 
@@ -136,7 +157,11 @@ impl Node {
     }
 
     fn uct_value(&self, parent_plays: usize) -> f32 {
-        self.win_ratio() + self.c() * self.confidence(parent_plays)
+        if self.plays == 0 {
+            f32::MAX
+        } else {
+            self.win_ratio() + self.c() * self.confidence(parent_plays)
+        }
     }
 
     fn confidence(&self, parent_plays: usize) -> f32 {
