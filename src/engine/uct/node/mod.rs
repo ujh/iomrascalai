@@ -33,6 +33,8 @@ use std::num::Float;
 use std::sync::Arc;
 use std::usize;
 
+mod test;
+
 pub struct Node {
     children: Vec<Node>,
     game: Game,

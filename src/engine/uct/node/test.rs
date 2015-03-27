@@ -19,27 +19,23 @@
  *                                                                      *
  ************************************************************************/
 
-use playout::NoEyesPlayout;
-use playout::Playout;
-use ruleset::Minimal;
-use ruleset::Ruleset;
+#![cfg(test)]
 
-pub struct Config {
-    pub log: bool,
-    pub playout: Box<Playout>,
-    pub ruleset: Ruleset,
-    pub threads: usize,
-}
+use board::Black;
+use config::Config;
+use game::Game;
+use ruleset::KgsChinese;
+use super::Node;
 
-impl Config {
+use rand::weak_rng;
+use std::sync::Arc;
+use test::Bencher;
 
-    pub fn default() -> Config {
-        Config {
-            log: false,
-            playout: Box::new(NoEyesPlayout::new()),
-            ruleset: Minimal,
-            threads: 1,
-        }
-    }
-
+#[bench]
+fn uct_playout_19x19(b: &mut Bencher) {
+    let game = Game::new(19, 6.5, KgsChinese);
+    let mut rng = weak_rng();
+    let mut root = Node::root(&game);
+    let config = Arc::new(Config::default());
+    b.iter(|| root.run_playout(Black, config.clone(), &mut rng));
 }
