@@ -20,15 +20,15 @@
  ************************************************************************/
 
 pub use self::controller::EngineController;
+pub use self::mc::AmafMcEngine;
+pub use self::mc::SimpleMcEngine;
 pub use self::move_stats::MoveStats;
+pub use self::random::RandomEngine;
+pub use self::uct::UctEngine;
 use board::Color;
 use board::Move;
 use config::Config;
 use game::Game;
-use self::mc::AmafMcEngine;
-use self::mc::SimpleMcEngine;
-use self::random::RandomEngine;
-use self::uct::UctEngine;
 
 use std::ascii::OwnedAsciiExt;
 use std::sync::Arc;
