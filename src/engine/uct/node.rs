@@ -69,10 +69,22 @@ impl Node {
         }
     }
 
-    // Returns the index of the child to visit next according to the
-    // UCT formula
-    pub fn next_child_to_try_index(&self) -> usize {
-        0
+    pub fn find_leaf_and_mark(&mut self, mut path: Vec<usize>) -> (Vec<usize>, &mut Node) {
+        self.record_play();
+        if self.is_leaf() {
+            (path, self)
+        } else {
+            let index = self.next_uct_child_index();
+            path.push(index);
+            self.children[index].find_leaf_and_mark(path)
+        }
+    }
+
+    pub fn record_win_on_path(&mut self, path: &[usize]) {
+        self.record_win();
+        if path.len() > 0 {
+            self.children[path[0]].record_win_on_path(&path[1..]);
+        }
     }
 
     pub fn is_leaf(&self) -> bool {
@@ -87,10 +99,6 @@ impl Node {
             }
         }
         best
-    }
-
-    pub fn child(&mut self, index: usize) -> &mut Node {
-        self.children.index_mut(index)
     }
 
     pub fn record_win(&mut self) {

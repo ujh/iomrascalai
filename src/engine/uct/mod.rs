@@ -59,30 +59,14 @@ impl Engine for UctEngine {
                 log!("Returning the best move({}% wins)", best_node.win_ratio()*100.0);
                 sender.send(best_node.m().unwrap());
             } else {
-                // Setup
-                let mut node = &mut root;
-                let mut path = vec!();
-                // Find leaf and record play. The play is recorded
-                // here instead of during the backup to discourage
-                // exploration of the same path by other threads
-                // (search for virtual loss in the literature).
-                while !node.is_leaf() {
-                    node.record_play();
-                    let i = node.next_uct_child_index();
-                    path.push(i);
-                    node = node.child(i);
-                }
-                // Found a child. Expand the children.
-                node.expand();
-                // Run simulation
-                let playout_result = self.config.playout.run(&node.board(), None, &mut rng);
-                // Record win
-                if playout_result.winner() == color {
-                    node = &mut root;
-                    for &i in path.iter() {
-                        node.record_win();
-                        node = node.child(i);
-                    }
+                let (path, is_win) = {
+                    let (path, leaf) = root.find_leaf_and_mark(vec!());
+                    leaf.expand();
+                    let playout_result = self.config.playout.run(&leaf.board(), None, &mut rng);
+                    (path, playout_result.winner() == color)
+                };
+                if is_win {
+                    root.record_win_on_path(&path);
                 }
                 counter += 1;
             }
