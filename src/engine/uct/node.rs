@@ -20,13 +20,17 @@
  ************************************************************************/
 
 use board::Board;
+use board::Color;
 use board::Move;
 use board::Pass;
+use config::Config;
 use game::Game;
 
-use core::ops::IndexMut;
+use rand::XorShiftRng;
+use rand::weak_rng;
 use std::f32;
 use std::num::Float;
+use std::sync::Arc;
 use std::usize;
 
 pub struct Node {
@@ -62,6 +66,24 @@ impl Node {
         };
         root.expand();
         root
+    }
+
+    pub fn run_playout(&mut self, color: Color, config: Arc<Config>, rng: &mut XorShiftRng) {
+        let (path, is_win) = {
+            let (path, leaf) = self.find_leaf_and_mark(vec!());
+            leaf.expand();
+            if leaf.is_terminal() {
+                let is_win = leaf.game.winner() == color;
+                leaf.mark_as_terminal(is_win);
+                (path, is_win)
+            } else {
+                let playout_result = config.playout.run(&leaf.board(), None, rng);
+                (path, playout_result.winner() == color)
+            }
+        };
+        if is_win {
+            self.record_win_on_path(&path);
+        }
     }
 
     pub fn expand(&mut self) {

@@ -60,21 +60,7 @@ impl Engine for UctEngine {
                 sender.send(best_node.m().unwrap());
                 break;
             } else {
-                let (path, is_win) = {
-                    let (path, leaf) = root.find_leaf_and_mark(vec!());
-                    leaf.expand();
-                    if leaf.is_terminal() {
-                        let is_win = game.winner() == color;
-                        leaf.mark_as_terminal(is_win);
-                        (path, is_win)
-                    } else {
-                        let playout_result = self.config.playout.run(&leaf.board(), None, &mut rng);
-                        (path, playout_result.winner() == color)
-                    }
-                };
-                if is_win {
-                    root.record_win_on_path(&path);
-                }
+                root.run_playout(color, self.config.clone(), &mut rng);
                 counter += 1;
             }
         }
