@@ -39,6 +39,7 @@ mod mc;
 mod move_stats;
 mod random;
 mod test;
+mod uct;
 
 pub fn factory(opt: Option<String>, config: Arc<Config>) -> Box<Engine> {
     let engine_arg = opt.map(|s| s.into_ascii_lowercase());
