@@ -189,8 +189,7 @@ impl Node {
     }
 
     fn confidence(&self, parent_plays: usize) -> f32 {
-        // Is it log10 or loge?
-        ((parent_plays as f32).log10()/(self.plays as f32)).sqrt()
+        ((parent_plays as f32).ln()/(self.plays as f32)).sqrt()
     }
 
     fn c(&self) -> f32 {
