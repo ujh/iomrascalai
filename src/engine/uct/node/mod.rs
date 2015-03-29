@@ -188,7 +188,7 @@ impl Node {
         0.44 // sqrt(1/5)
     }
 
-    fn win_ratio(&self) -> f32 {
+    pub fn win_ratio(&self) -> f32 {
         if self.plays == 0 {
             0f32
         } else {
