@@ -154,14 +154,6 @@ impl Node {
         self.plays += 1;
     }
 
-    pub fn win_ratio(&self) -> f32 {
-        if self.plays == 0 {
-            0f32
-        } else {
-            (self.wins as f32) / (self.plays as f32)
-        }
-    }
-
     pub fn board(&self) -> Board {
         self.game.board()
     }
@@ -172,7 +164,7 @@ impl Node {
 
     pub fn next_uct_child_index(&self) -> usize {
         let mut index = 0;
-        for i in 0..self.children.len() {
+        for i in 1..self.children.len() {
             if self.children[i].uct_value(self.plays) > self.children[index].uct_value(self.plays) {
                 index = i;
             }
@@ -195,4 +187,13 @@ impl Node {
     fn c(&self) -> f32 {
         0.44 // sqrt(1/5)
     }
+
+    fn win_ratio(&self) -> f32 {
+        if self.plays == 0 {
+            0f32
+        } else {
+            (self.wins as f32) / (self.plays as f32)
+        }
+    }
+
 }
