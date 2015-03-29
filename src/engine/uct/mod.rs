@@ -49,7 +49,7 @@ impl UctEngine {
 impl Engine for UctEngine {
 
     fn gen_move(&self, color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
-        let mut root = Node::root(game);
+        let mut root = Node::root(&game.board());
         let mut counter = 0;
         let mut rng = weak_rng();
         loop {

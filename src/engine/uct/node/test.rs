@@ -35,7 +35,7 @@ use test::Bencher;
 fn uct_playout_19x19(b: &mut Bencher) {
     let game = Game::new(19, 6.5, KgsChinese);
     let mut rng = weak_rng();
-    let mut root = Node::root(&game);
+    let mut root = Node::root(&game.board());
     let config = Arc::new(Config::default());
     b.iter(|| root.run_playout(Black, config.clone(), &mut rng));
 }

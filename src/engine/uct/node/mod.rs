@@ -37,7 +37,7 @@ mod test;
 
 pub struct Node {
     children: Vec<Node>,
-    game: Game,
+    board: Board,
     m: Option<Move>,
     plays: usize,
     terminal: bool,
@@ -46,10 +46,10 @@ pub struct Node {
 
 impl Node {
 
-    pub fn new(game: Game, m: Move) -> Node {
+    pub fn new(board: Board, m: Move) -> Node {
         Node {
             children: vec!(),
-            game: game,
+            board: board,
             m: Some(m),
             plays: 0,
             terminal: false,
@@ -57,10 +57,10 @@ impl Node {
         }
     }
 
-    pub fn root(game: &Game) -> Node {
+    pub fn root(board: &Board) -> Node {
         let mut root = Node {
             children: vec!(),
-            game: game.clone(),
+            board: board.clone(),
             m: None,
             plays: 0,
             terminal: false,
@@ -75,11 +75,11 @@ impl Node {
             let (path, leaf) = self.find_leaf_and_mark(vec!());
             leaf.expand();
             if leaf.is_terminal() {
-                let is_win = leaf.game.winner() == color;
+                let is_win = leaf.board.winner() == color;
                 leaf.mark_as_terminal(is_win);
                 (path, is_win)
             } else {
-                let playout_result = config.playout.run(&leaf.board(), None, rng);
+                let playout_result = config.playout.run(&leaf.board, None, rng);
                 (path, playout_result.winner() == color)
             }
         };
@@ -89,16 +89,23 @@ impl Node {
     }
 
     pub fn expand(&mut self) {
-        self.terminal = self.game.is_over();
+        self.terminal = self.board.is_game_over();
         if !self.terminal {
-            let pass = Pass(self.game.next_player());
-            let new_game = self.game.play(pass).unwrap();
-            self.children = vec!(Node::new(new_game, pass));
-            for &m in self.game.legal_moves_without_eyes().iter() {
-                let new_game = self.game.play(m).unwrap();
+            self.children = vec!();
+            for &m in self.board.legal_moves_without_eyes().iter() {
+                let mut new_game = self.board.clone();
+                new_game.play(m).unwrap();
                 self.children.push(Node::new(new_game, m));
             }
         }
+
+        if self.children.len() == 0 {
+            let mut new_game = self.board.clone();
+            let pass = Pass(self.board.next_player());
+            //new_game.play(pass).unwrap();
+            self.children.push(Node::new(new_game, pass));
+        }
+        
     }
 
     pub fn is_terminal(&self) -> bool {
@@ -160,10 +167,6 @@ impl Node {
         } else {
             (self.wins as f32) / (self.plays as f32)
         }
-    }
-
-    pub fn board(&self) -> Board {
-        self.game.board()
     }
 
     pub fn m(&self) -> Option<Move> {
