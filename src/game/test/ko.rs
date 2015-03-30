@@ -21,7 +21,6 @@
  ************************************************************************/
 
 #![cfg(test)]
-use std::path::Path;
 use board::Black;
 use board::IllegalMove;
 use board::Play;
@@ -29,6 +28,8 @@ use board::White;
 use game::Game;
 use ruleset::AnySizeTrompTaylor;
 use sgf::Parser;
+
+use std::path::Path;
 
 #[test]
 fn replaying_directly_on_a_ko_point_should_be_illegal() {

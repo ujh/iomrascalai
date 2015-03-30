@@ -23,13 +23,16 @@
 
 use board::Black;
 use board::Pass;
+use board::Play;
 use board::White;
 use config::Config;
 use game::Game;
 use ruleset::KgsChinese;
+use sgf::Parser;
 use super::Node;
 
 use rand::weak_rng;
+use std::path::Path;
 use std::sync::Arc;
 use test::Bencher;
 
@@ -93,6 +96,15 @@ fn the_root_needs_to_be_initialized_with_1_plays_for_correct_uct_calculations() 
     assert_eq!(1, root.plays);
  }
 
+#[test]
+fn no_super_ko_violations_in_the_children_of_the_root() {
+    let parser = Parser::from_path(Path::new("fixtures/sgf/positional-superko.sgf"));
+    let game = parser.game().unwrap();
+    let mut root = Node::root(&game, White);
+    // Play(White, 2, 9) is a super ko violation
+    assert!(root.children.iter().all(|n| n.m() != Play(White, 2, 9)));
+}
+
 
 // 2. Make sure that terminal nodes are "played", i.e. either a win or
 //    a loss is reported and the wins are recorded in the tree.
@@ -100,12 +112,6 @@ fn the_root_needs_to_be_initialized_with_1_plays_for_correct_uct_calculations() 
 //    (check the uct value of a terminal node)
 // 4. Maybe use the root node's plays and wins to keep track of the
 //    number of playouts and the average win rate.
-// 5. The game probably doesn't need to be stored in the nodes.
-//    Keeping a list of moves and passing those to the playout is
-//    probably more efficient. BUT using the current code this means
-//    that we don't check for super ko violations in the tree!
-// 6. Add a test to make sure that the children of the root node don't
-//    violate the super ko rule.
 // 7. Test the resigning support
 // 8. Make sure everything works fine in the game tree when there are
 //    no moves to simulate anymore.
