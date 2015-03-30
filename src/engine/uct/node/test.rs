@@ -37,16 +37,7 @@ use test::Bencher;
 fn root_expands_the_children() {
     let game = Game::new(2, 0.5, KgsChinese);
     let root = Node::root(&game, Black);
-    assert_eq!(5, root.children.len());
-}
-
-#[test]
-fn expand_adds_the_pass_move_as_a_child() {
-    let game = Game::new(2, 0.5, KgsChinese);
-    let color = game.next_player();
-    let mut node = Node::new(Pass(Black));
-    node.expand(&game.board(), color);
-    assert!(node.children.iter().any(|n| n.m == Pass(color)));
+    assert_eq!(4, root.children.len());
 }
 
 #[test]
@@ -65,10 +56,10 @@ fn run_playout_explores_all_unvisited_children_first() {
     let mut root = Node::root(&game, Black);
     let config = Arc::new(Config::default());
     let mut rng = weak_rng();
-    for _ in 0..5 {
+    for _ in 0..4 {
         root.run_playout(&game, Black, config.clone(), &mut rng);
     }
-    assert_eq!(5, root.children.len());
+    assert_eq!(4, root.children.len());
     assert!(root.children.iter().all(|n| n.plays == 1));
 }
 
@@ -78,14 +69,11 @@ fn run_playout_expands_the_leaves() {
     let mut root = Node::root(&game, Black);
     let config = Arc::new(Config::default());
     let mut rng = weak_rng();
-    for _ in 0..5 {
+    for _ in 0..4 {
         root.run_playout(&game, Black, config.clone(), &mut rng);
     }
-    assert_eq!(5, root.children.len());
-    // The pass move
-    assert_eq!(5, root.children[0].children.len());
-    // The other moves
-    assert!(root.children[1..].iter().all(|n| n.children.len() == 4));
+    assert_eq!(4, root.children.len());
+    assert!(root.children.iter().all(|n| n.children.len() == 3));
 }
 
 // 1. The root node has to be set up correctly so that the children
@@ -102,7 +90,11 @@ fn run_playout_expands_the_leaves() {
 //    that we don't check for super ko violations in the tree!
 // 6. Add a test to make sure that the children of the root node don't
 //    violate the super ko rule.
-// 7. Implement resigning support
+// 7. Test the resigning support
+// 8. Make sure everything works fine in the game tree when there are
+//    no moves to simulate anymore.
+// 9. Implement multi threading
+
 
 #[bench]
 fn uct_playout_19x19(b: &mut Bencher) {

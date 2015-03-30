@@ -21,6 +21,8 @@
 
 use board::Color;
 use board::Move;
+use board::Pass;
+use board::Resign;
 use config::Config;
 use engine::Engine;
 use game::Game;
@@ -52,12 +54,32 @@ impl Engine for UctEngine {
         let mut root = Node::root(game, color);
         let mut counter = 0;
         let mut rng = weak_rng();
+        if root.has_no_children() {
+            if self.config.log {
+                log!("No moves to simulate!");
+            }
+            sender.send(Pass(color));
+            return;
+        }
         loop {
             if receiver.try_recv().is_ok() {
-                let best_node = root.best();
-                log!("{} simulations", counter);
-                log!("Returning the best move({}% wins)", best_node.win_ratio()*100.0);
-                sender.send(best_node.m());
+                if root.all_losses() {
+                    if game.winner() == color {
+                        sender.send(Pass(color));
+                    } else {
+                        sender.send(Resign(color));
+                    }
+                    if self.config.log {
+                        log!("All simulations were losses");
+                    }
+                } else {
+                    let best_node = root.best();
+                    if self.config.log {
+                        log!("{} simulations", counter);
+                        log!("Returning the best move({}% wins)", best_node.win_ratio()*100.0);
+                    }
+                    sender.send(best_node.m());
+                }
                 break;
             } else {
                 root.run_playout(game, color, self.config.clone(), &mut rng);

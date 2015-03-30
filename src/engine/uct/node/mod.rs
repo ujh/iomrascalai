@@ -97,8 +97,7 @@ impl Node {
         self.terminal = game.is_over();
         self.won = game.winner() == color;
         if !self.terminal {
-            let pass = Pass(game.next_player());
-            self.children = vec!(Node::new(pass));
+            self.children = vec!();
             for &m in game.legal_moves_without_eyes().iter() {
                 self.children.push(Node::new(m));
             }
@@ -109,12 +108,15 @@ impl Node {
         self.terminal = board.is_game_over();
         self.won = board.winner() == color;
         if !self.terminal {
-            let pass = Pass(board.next_player());
-            self.children = vec!(Node::new(pass));
+            self.children = vec!();
             for &m in board.legal_moves_without_eyes().iter() {
                 self.children.push(Node::new(m));
             }
         }
+    }
+
+    pub fn has_no_children(&self) -> bool {
+        self.children.len() == 0
     }
 
     pub fn is_terminal(&self) -> bool {
@@ -161,6 +163,12 @@ impl Node {
             }
         }
         best
+    }
+
+    pub fn all_losses(&self) -> bool {
+        self.children
+            .iter()
+            .all(|n| n.wins == 0)
     }
 
     pub fn record_win(&mut self) {
