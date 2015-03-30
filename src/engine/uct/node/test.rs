@@ -84,7 +84,6 @@ fn run_playout_sets_play_on_the_root() {
     let mut rng = weak_rng();
     root.run_playout(&game, Black, config.clone(), &mut rng);
     assert_eq!(2, root.plays);
-    assert!(false);
 }
 
 #[test]
