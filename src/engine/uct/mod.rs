@@ -52,7 +52,6 @@ impl Engine for UctEngine {
 
     fn gen_move(&self, color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
         let mut root = Node::root(game, color);
-        let mut counter = 0;
         let mut rng = weak_rng();
         if root.has_no_children() {
             if self.config.log {
@@ -75,7 +74,7 @@ impl Engine for UctEngine {
                 } else {
                     let best_node = root.best();
                     if self.config.log {
-                        log!("{} simulations", counter);
+                        log!("{} simulations ({}% wins on average)", root.plays()-1, root.win_ratio()*100.0);
                         log!("Returning the best move({}% wins)", best_node.win_ratio()*100.0);
                     }
                     sender.send(best_node.m());
@@ -83,7 +82,6 @@ impl Engine for UctEngine {
                 break;
             } else {
                 root.run_playout(game, color, self.config.clone(), &mut rng);
-                counter += 1;
             }
         }
     }

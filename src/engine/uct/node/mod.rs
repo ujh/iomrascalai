@@ -167,6 +167,10 @@ impl Node {
         self.m
     }
 
+    pub fn plays(&self) -> usize {
+        self.plays
+    }
+
     pub fn next_uct_child_index(&self) -> usize {
         let mut index = 0;
         for i in 1..self.children.len() {
