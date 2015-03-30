@@ -60,25 +60,29 @@ impl Node {
         root
     }
 
-    pub fn run_playout(&mut self, game: &Game, color: Color, config: Arc<Config>, rng: &mut XorShiftRng) {
-        let (path, is_win) = {
-            let (path, moves, leaf) = self.find_leaf_and_mark(vec!(), vec!());
-            let mut board = game.board();
-            for &m in moves.iter() {
-                board.play(m);
-            }
-            let expanded = leaf.expand(&board, color);
-            if !expanded {
-                let is_win = board.winner() == color;
-                leaf.mark_as_terminal(is_win);
-                (path, is_win)
-            } else {
-                let playout_result = config.playout.run(&board, None, rng);
-                (path, playout_result.winner() == color)
-            }
-        };
-        if is_win {
-            self.record_win_on_path(&path);
+    pub fn find_leaf_and_expand(&mut self, game: &Game, color: Color) -> (Vec<usize>, Vec<Move>, bool) {
+        let (path, moves, leaf) = self.find_leaf_and_mark(vec!(), vec!());
+        let mut board = game.board();
+        for &m in moves.iter() {
+            board.play(m);
+        }
+        let expanded = leaf.expand(&board, color);
+        if !expanded {
+            let is_win = board.winner() == color;
+            leaf.mark_as_terminal(is_win);
+        }
+        (path, moves, expanded)
+    }
+
+    pub fn find_leaf_and_mark(&mut self, mut path: Vec<usize>, mut moves: Vec<Move>) -> (Vec<usize>, Vec<Move>, &mut Node) {
+        self.record_play();
+        if self.is_leaf() {
+            (path, moves, self)
+        } else {
+            let index = self.next_uct_child_index();
+            path.push(index);
+            moves.push(self.children[index].m());
+            self.children[index].find_leaf_and_mark(path, moves)
         }
     }
 
@@ -120,22 +124,12 @@ impl Node {
         }
     }
 
-    pub fn find_leaf_and_mark(&mut self, mut path: Vec<usize>, mut moves: Vec<Move>) -> (Vec<usize>, Vec<Move>, &mut Node) {
-        self.record_play();
-        if self.is_leaf() {
-            (path, moves, self)
-        } else {
-            let index = self.next_uct_child_index();
-            path.push(index);
-            moves.push(self.children[index].m());
-            self.children[index].find_leaf_and_mark(path, moves)
-        }
-    }
-
-    pub fn record_win_on_path(&mut self, path: &[usize]) {
-        self.record_win();
-        if path.len() > 0 {
-            self.children[path[0]].record_win_on_path(&path[1..]);
+    pub fn record_on_path(&mut self, path: &[usize], is_win: bool) {
+        if is_win {
+            self.record_win();
+            if path.len() > 0 {
+                self.children[path[0]].record_on_path(&path[1..], is_win);
+            }
         }
     }
 

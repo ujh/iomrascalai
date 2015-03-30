@@ -19,6 +19,7 @@
  *                                                                      *
  ************************************************************************/
 
+use board::Board;
 use board::Color;
 use board::Move;
 use board::Pass;
@@ -33,6 +34,8 @@ use std::old_io::Writer;
 use std::sync::Arc;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
+use std::sync::mpsc::channel;
+use std::thread;
 
 mod node;
 
@@ -60,13 +63,21 @@ impl Engine for UctEngine {
             sender.send(Pass(color));
             return;
         }
+        let (send_result_to_main, receive_result_from_threads) = channel::<((Vec<usize>, bool), Sender<(Vec<usize>, Vec<Move>, bool)>)>();
+        let (guards, halt_senders) = spin_up(self.config.clone(), game, color, send_result_to_main);
         loop {
-            if receiver.try_recv().is_ok() {
-                finish(root, game, color, sender, self.config.clone());
-                break;
-            } else {
-                root.run_playout(game, color, self.config.clone(), &mut rng);
-            }
+            select!(
+                _ = receiver.recv() => {
+                    finish(root, game, color, sender, self.config.clone(), halt_senders);
+                    break;
+                },
+                res = receive_result_from_threads.recv() => {
+                    let ((path, is_win), send_to_thread) = res.unwrap();
+                    root.record_on_path(&path, is_win);
+                    let data = root.find_leaf_and_expand(game, color);
+                    send_to_thread.send(data);
+                }
+                )
         }
     }
 
@@ -75,7 +86,51 @@ impl Engine for UctEngine {
     }
 }
 
-fn finish(root: Node, game: &Game, color: Color, sender: Sender<Move>, config: Arc<Config>) {
+fn spin_up<'a>(config: Arc<Config>, game: &Game, color: Color, send_to_main: Sender<((Vec<usize>, bool), Sender<(Vec<usize>, Vec<Move>, bool)>)>) -> (Vec<thread::JoinGuard<'a, ()>>, Vec<Sender<()>>) {
+    let mut guards = Vec::new();
+    let mut halt_senders = Vec::new();
+    for _ in 0..config.threads {
+        let (send_halt, receive_halt) = channel::<()>();
+        halt_senders.push(send_halt);
+        let send_to_main = send_to_main.clone();
+        let config = config.clone();
+        let guard = spin_up_worker(config, game.board(), color, send_to_main, receive_halt);
+        guards.push(guard);
+    }
+    (guards, halt_senders)
+}
+
+fn spin_up_worker<'a>(config: Arc<Config>, board: Board, color: Color, send_to_main: Sender<((Vec<usize>, bool),Sender<(Vec<usize>, Vec<Move>, bool)>)>, receive_halt: Receiver<()>) -> thread::JoinGuard<'a, ()> {
+    thread::scoped(move || {
+        let mut rng = weak_rng();
+        let (send_to_self, receive_from_main) = channel::<(Vec<usize>, Vec<Move>, bool)>();
+        // Send this empty message to get everything started
+        send_to_main.send(((vec!(), false), send_to_self.clone()));
+        loop {
+            select!(
+                _ = receive_halt.recv() => { break; },
+                task = receive_from_main.recv() => {
+                    let (path, moves, expanded) = task.unwrap();
+                    // TODO: We do a clone here and then one when we
+                    // call run(). One is enough!
+                    let mut b = board.clone();
+                    for &m in moves.iter() {
+                        b.play(m);
+                    }
+                    let playout_result = config.playout.run(&b, None, &mut rng);
+                    let won = playout_result.winner() == color;
+                    let send_to_self = send_to_self.clone();
+                    send_to_main.send(((path, won), send_to_self));
+                }
+                )
+        }
+    })
+}
+
+fn finish(root: Node, game: &Game, color: Color, sender: Sender<Move>, config: Arc<Config>, halt_senders: Vec<Sender<()>>) {
+    for halt_sender in halt_senders.iter() {
+        halt_sender.send(());
+    }
     if root.all_losses() {
         if game.winner() == color {
             sender.send(Pass(color));
