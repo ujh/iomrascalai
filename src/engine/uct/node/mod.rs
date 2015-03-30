@@ -55,7 +55,7 @@ impl Node {
 
     pub fn root(game: &Game, color: Color) -> Node {
         let mut root = Node::new(Pass(Empty));
-        root.expand(&game.board(), color);
+        root.expand_root(&game, color);
         root
     }
 
@@ -80,6 +80,15 @@ impl Node {
             self.record_win_on_path(&path);
         }
     }
+    
+    fn expand_root(&mut self, game: &Game, color: Color) {
+        if !game.is_over() {
+            self.children = game.legal_moves_without_eyes()
+                .iter()
+                .map(|&m| Node::new(m))
+                .collect();
+        }
+ }
 
     pub fn expand(&mut self, board: &Board, color: Color) -> bool {
         let expanded = !board.is_game_over();
