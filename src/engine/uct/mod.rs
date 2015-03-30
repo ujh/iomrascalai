@@ -62,23 +62,7 @@ impl Engine for UctEngine {
         }
         loop {
             if receiver.try_recv().is_ok() {
-                if root.all_losses() {
-                    if game.winner() == color {
-                        sender.send(Pass(color));
-                    } else {
-                        sender.send(Resign(color));
-                    }
-                    if self.config.log {
-                        log!("All simulations were losses");
-                    }
-                } else {
-                    let best_node = root.best();
-                    if self.config.log {
-                        log!("{} simulations ({}% wins on average)", root.plays()-1, root.win_ratio()*100.0);
-                        log!("Returning the best move({}% wins)", best_node.win_ratio()*100.0);
-                    }
-                    sender.send(best_node.m());
-                }
+                finish(root, game, color, sender, self.config.clone());
                 break;
             } else {
                 root.run_playout(game, color, self.config.clone(), &mut rng);
@@ -88,5 +72,25 @@ impl Engine for UctEngine {
 
     fn engine_type(&self) -> &'static str {
         "uct"
+    }
+}
+
+fn finish(root: Node, game: &Game, color: Color, sender: Sender<Move>, config: Arc<Config>) {
+    if root.all_losses() {
+        if game.winner() == color {
+            sender.send(Pass(color));
+        } else {
+            sender.send(Resign(color));
+        }
+        if config.log {
+            log!("All simulations were losses");
+        }
+    } else {
+        let best_node = root.best();
+        if config.log {
+            log!("{} simulations ({}% wins on average)", root.plays()-1, root.win_ratio()*100.0);
+            log!("Returning the best move({}% wins)", best_node.win_ratio()*100.0);
+        }
+        sender.send(best_node.m());
     }
 }
