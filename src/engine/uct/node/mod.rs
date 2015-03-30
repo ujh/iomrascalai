@@ -21,6 +21,7 @@
 
 use board::Board;
 use board::Color;
+use board::Empty;
 use board::Move;
 use board::Pass;
 use config::Config;
@@ -37,49 +38,53 @@ mod test;
 
 pub struct Node {
     children: Vec<Node>,
-    game: Game,
-    m: Option<Move>,
+    m: Move,
     plays: usize,
     terminal: bool,
     wins: usize,
+    won: bool,
 }
 
 impl Node {
 
-    pub fn new(game: Game, m: Move) -> Node {
+    pub fn new(m: Move) -> Node {
         Node {
             children: vec!(),
-            game: game,
-            m: Some(m),
+            m: m,
             plays: 0,
             terminal: false,
             wins: 0,
+            won: false,
         }
     }
 
-    pub fn root(game: &Game) -> Node {
+    pub fn root(game: &Game, color: Color) -> Node {
         let mut root = Node {
             children: vec!(),
-            game: game.clone(),
-            m: None,
+            m: Pass(Empty),
             plays: 0,
             terminal: false,
             wins: 0,
+            won: false,
         };
-        root.expand();
+        root.expand_root(game, color);
         root
     }
 
-    pub fn run_playout(&mut self, color: Color, config: Arc<Config>, rng: &mut XorShiftRng) {
+    pub fn run_playout(&mut self, game: &Game, color: Color, config: Arc<Config>, rng: &mut XorShiftRng) {
         let (path, is_win) = {
-            let (path, leaf) = self.find_leaf_and_mark(vec!());
-            leaf.expand();
+            let (path, moves, leaf) = self.find_leaf_and_mark(vec!(), vec!());
+            let mut board = game.board();
+            for &m in moves.iter() {
+                board.play(m);
+            }
+            leaf.expand(&board, color);
             if leaf.is_terminal() {
-                let is_win = leaf.game.winner() == color;
+                let is_win = leaf.won;
                 leaf.mark_as_terminal(is_win);
                 (path, is_win)
             } else {
-                let playout_result = config.playout.run(&leaf.board(), None, rng);
+                let playout_result = config.playout.run(&board, None, rng);
                 (path, playout_result.winner() == color)
             }
         };
@@ -88,15 +93,26 @@ impl Node {
         }
     }
 
-    pub fn expand(&mut self) {
-        self.terminal = self.game.is_over();
+    fn expand_root(&mut self, game: &Game, color: Color) {
+        self.terminal = game.is_over();
+        self.won = game.winner() == color;
         if !self.terminal {
-            let pass = Pass(self.game.next_player());
-            let new_game = self.game.play(pass).unwrap();
-            self.children = vec!(Node::new(new_game, pass));
-            for &m in self.game.legal_moves_without_eyes().iter() {
-                let new_game = self.game.play(m).unwrap();
-                self.children.push(Node::new(new_game, m));
+            let pass = Pass(game.next_player());
+            self.children = vec!(Node::new(pass));
+            for &m in game.legal_moves_without_eyes().iter() {
+                self.children.push(Node::new(m));
+            }
+        }
+    }
+
+    pub fn expand(&mut self, board: &Board, color: Color) {
+        self.terminal = board.is_game_over();
+        self.won = board.winner() == color;
+        if !self.terminal {
+            let pass = Pass(board.next_player());
+            self.children = vec!(Node::new(pass));
+            for &m in board.legal_moves_without_eyes().iter() {
+                self.children.push(Node::new(m));
             }
         }
     }
@@ -114,14 +130,15 @@ impl Node {
         }
     }
 
-    pub fn find_leaf_and_mark(&mut self, mut path: Vec<usize>) -> (Vec<usize>, &mut Node) {
+    pub fn find_leaf_and_mark(&mut self, mut path: Vec<usize>, mut moves: Vec<Move>) -> (Vec<usize>, Vec<Move>, &mut Node) {
         self.record_play();
         if self.is_leaf() {
-            (path, self)
+            (path, moves, self)
         } else {
             let index = self.next_uct_child_index();
             path.push(index);
-            self.children[index].find_leaf_and_mark(path)
+            moves.push(self.children[index].m());
+            self.children[index].find_leaf_and_mark(path, moves)
         }
     }
 
@@ -154,11 +171,7 @@ impl Node {
         self.plays += 1;
     }
 
-    pub fn board(&self) -> Board {
-        self.game.board()
-    }
-
-    pub fn m(&self) -> Option<Move> {
+    pub fn m(&self) -> Move {
         self.m
     }
 

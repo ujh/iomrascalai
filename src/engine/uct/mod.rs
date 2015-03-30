@@ -49,7 +49,7 @@ impl UctEngine {
 impl Engine for UctEngine {
 
     fn gen_move(&self, color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
-        let mut root = Node::root(game);
+        let mut root = Node::root(game, color);
         let mut counter = 0;
         let mut rng = weak_rng();
         loop {
@@ -57,10 +57,10 @@ impl Engine for UctEngine {
                 let best_node = root.best();
                 log!("{} simulations", counter);
                 log!("Returning the best move({}% wins)", best_node.win_ratio()*100.0);
-                sender.send(best_node.m().unwrap());
+                sender.send(best_node.m());
                 break;
             } else {
-                root.run_playout(color, self.config.clone(), &mut rng);
+                root.run_playout(game, color, self.config.clone(), &mut rng);
                 counter += 1;
             }
         }

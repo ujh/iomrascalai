@@ -36,7 +36,7 @@ use test::Bencher;
 #[test]
 fn root_expands_the_children() {
     let game = Game::new(2, 0.5, KgsChinese);
-    let root = Node::root(&game);
+    let root = Node::root(&game, Black);
     assert_eq!(5, root.children.len());
 }
 
@@ -44,9 +44,9 @@ fn root_expands_the_children() {
 fn expand_adds_the_pass_move_as_a_child() {
     let game = Game::new(2, 0.5, KgsChinese);
     let color = game.next_player();
-    let mut node = Node::new(game, Pass(Black));
-    node.expand();
-    assert!(node.children.iter().any(|n| n.m == Some(Pass(color))));
+    let mut node = Node::new(Pass(Black));
+    node.expand(&game.board(), color);
+    assert!(node.children.iter().any(|n| n.m == Pass(color)));
 }
 
 #[test]
@@ -54,19 +54,19 @@ fn expand_doesnt_add_children_to_terminal_nodes() {
     let mut game = Game::new(5, 6.5, KgsChinese);
     game = game.play(Pass(Black)).unwrap();
     game = game.play(Pass(White)).unwrap();
-    let mut node = Node::new(game, Pass(Black));
-    node.expand();
+    let mut node = Node::new(Pass(Black));
+    node.expand(&game.board(), Black);
     assert_eq!(0, node.children.len());
 }
 
 #[test]
 fn run_playout_explores_all_unvisited_children_first() {
     let game = Game::new(2, 0.5, KgsChinese);
-    let mut root = Node::root(&game);
+    let mut root = Node::root(&game, Black);
     let config = Arc::new(Config::default());
     let mut rng = weak_rng();
     for _ in 0..5 {
-        root.run_playout(Black, config.clone(), &mut rng);
+        root.run_playout(&game, Black, config.clone(), &mut rng);
     }
     assert_eq!(5, root.children.len());
     assert!(root.children.iter().all(|n| n.plays == 1));
@@ -75,11 +75,11 @@ fn run_playout_explores_all_unvisited_children_first() {
 #[test]
 fn run_playout_expands_the_leaves() {
     let game = Game::new(2, 0.5, KgsChinese);
-    let mut root = Node::root(&game);
+    let mut root = Node::root(&game, Black);
     let config = Arc::new(Config::default());
     let mut rng = weak_rng();
     for _ in 0..5 {
-        root.run_playout(Black, config.clone(), &mut rng);
+        root.run_playout(&game, Black, config.clone(), &mut rng);
     }
     assert_eq!(5, root.children.len());
     // The pass move
@@ -87,11 +87,28 @@ fn run_playout_expands_the_leaves() {
     // The other moves
     assert!(root.children[1..].iter().all(|n| n.children.len() == 4));
 }
+
+// 1. The root node has to be set up correctly so that the children
+//    have a uct value that is not NaN (plays == 1).
+// 2. Make sure that terminal nodes are "played", i.e. either a win or
+//    a loss is reported and the wins are recorded in the tree.
+// 3. Check if siblings of a terminal node will ever be explored
+//    (check the uct value of a terminal node)
+// 4. Maybe use the root node's plays and wins to keep track of the
+//    number of playouts and the average win rate.
+// 5. The game probably doesn't need to be stored in the nodes.
+//    Keeping a list of moves and passing those to the playout is
+//    probably more efficient. BUT using the current code this means
+//    that we don't check for super ko violations in the tree!
+// 6. Add a test to make sure that the children of the root node don't
+//    violate the super ko rule.
+// 7. Implement resigning support
+
 #[bench]
 fn uct_playout_19x19(b: &mut Bencher) {
     let game = Game::new(19, 6.5, KgsChinese);
     let mut rng = weak_rng();
-    let mut root = Node::root(&game);
+    let mut root = Node::root(&game, Black);
     let config = Arc::new(Config::default());
-    b.iter(|| root.run_playout(Black, config.clone(), &mut rng));
+    b.iter(|| root.run_playout(&game, Black, config.clone(), &mut rng));
 }
