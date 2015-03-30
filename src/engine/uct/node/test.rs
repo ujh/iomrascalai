@@ -76,8 +76,25 @@ fn run_playout_expands_the_leaves() {
     assert!(root.children.iter().all(|n| n.children.len() == 3));
 }
 
-// 1. The root node has to be set up correctly so that the children
-//    have a uct value that is not NaN (plays == 1).
+#[test]
+fn run_playout_sets_play_on_the_root() {
+    let game = Game::new(2, 0.5, KgsChinese);
+    let mut root = Node::root(&game, Black);
+    let config = Arc::new(Config::default());
+    let mut rng = weak_rng();
+    root.run_playout(&game, Black, config.clone(), &mut rng);
+    assert_eq!(2, root.plays);
+    assert!(false);
+}
+
+#[test]
+fn the_root_needs_to_be_initialized_with_1_plays_for_correct_uct_calculations() {
+    let game = Game::new(2, 0.5, KgsChinese);
+    let mut root = Node::root(&game, Black);
+    assert_eq!(1, root.plays);
+ }
+
+
 // 2. Make sure that terminal nodes are "played", i.e. either a win or
 //    a loss is reported and the wins are recorded in the tree.
 // 3. Check if siblings of a terminal node will ever be explored

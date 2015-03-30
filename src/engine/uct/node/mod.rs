@@ -55,6 +55,7 @@ impl Node {
 
     pub fn root(game: &Game, color: Color) -> Node {
         let mut root = Node::new(Pass(Empty));
+        root.plays = 1; // So that we don't get NaN on the first UCT calculation
         root.expand_root(&game, color);
         root
     }
@@ -80,7 +81,7 @@ impl Node {
             self.record_win_on_path(&path);
         }
     }
-    
+
     fn expand_root(&mut self, game: &Game, color: Color) {
         if !game.is_over() {
             self.children = game.legal_moves_without_eyes()
@@ -98,14 +99,14 @@ impl Node {
                 .map(|&m| Node::new(m))
                 .collect();
         }
-        
+
         expanded
     }
 
     pub fn has_no_children(&self) -> bool {
         self.children.len() == 0
     }
-    
+
     pub fn is_leaf(&self) -> bool {
         self.children.len() == 0
     }
