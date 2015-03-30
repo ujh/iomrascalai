@@ -28,7 +28,6 @@ use config::Config;
 use game::Game;
 
 use rand::XorShiftRng;
-use rand::weak_rng;
 use std::f32;
 use std::num::Float;
 use std::sync::Arc;
@@ -40,9 +39,7 @@ pub struct Node {
     children: Vec<Node>,
     m: Move,
     plays: usize,
-    terminal: bool,
     wins: usize,
-    won: bool,
 }
 
 impl Node {
@@ -52,22 +49,13 @@ impl Node {
             children: vec!(),
             m: m,
             plays: 0,
-            terminal: false,
             wins: 0,
-            won: false,
         }
     }
 
     pub fn root(game: &Game, color: Color) -> Node {
-        let mut root = Node {
-            children: vec!(),
-            m: Pass(Empty),
-            plays: 0,
-            terminal: false,
-            wins: 0,
-            won: false,
-        };
-        root.expand_root(game, color);
+        let mut root = Node::new(Pass(Empty));
+        root.expand(&game.board(), color);
         root
     }
 
@@ -78,9 +66,9 @@ impl Node {
             for &m in moves.iter() {
                 board.play(m);
             }
-            leaf.expand(&board, color);
-            if leaf.is_terminal() {
-                let is_win = leaf.won;
+            let expanded = leaf.expand(&board, color);
+            if !expanded {
+                let is_win = board.winner() == color;
                 leaf.mark_as_terminal(is_win);
                 (path, is_win)
             } else {
@@ -93,34 +81,24 @@ impl Node {
         }
     }
 
-    fn expand_root(&mut self, game: &Game, color: Color) {
-        self.terminal = game.is_over();
-        self.won = game.winner() == color;
-        if !self.terminal {
-            self.children = vec!();
-            for &m in game.legal_moves_without_eyes().iter() {
-                self.children.push(Node::new(m));
-            }
+    pub fn expand(&mut self, board: &Board, color: Color) -> bool {
+        let expanded = !board.is_game_over();
+        if expanded {
+            self.children = board.legal_moves_without_eyes()
+                .iter()
+                .map(|&m| Node::new(m))
+                .collect();
         }
-    }
-
-    pub fn expand(&mut self, board: &Board, color: Color) {
-        self.terminal = board.is_game_over();
-        self.won = board.winner() == color;
-        if !self.terminal {
-            self.children = vec!();
-            for &m in board.legal_moves_without_eyes().iter() {
-                self.children.push(Node::new(m));
-            }
-        }
+        
+        expanded
     }
 
     pub fn has_no_children(&self) -> bool {
         self.children.len() == 0
     }
-
-    pub fn is_terminal(&self) -> bool {
-        self.terminal
+    
+    pub fn is_leaf(&self) -> bool {
+        self.children.len() == 0
     }
 
     pub fn mark_as_terminal(&mut self, is_win: bool) {
@@ -149,10 +127,6 @@ impl Node {
         if path.len() > 0 {
             self.children[path[0]].record_win_on_path(&path[1..]);
         }
-    }
-
-    pub fn is_leaf(&self) -> bool {
-        self.children.len() == 0
     }
 
     pub fn best(&self) -> &Node {
