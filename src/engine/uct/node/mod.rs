@@ -54,23 +54,23 @@ impl Node {
     }
 
     pub fn root(game: &Game, color: Color) -> Node {
-        let mut root = Node::new(Pass(Empty));
+        let mut root = Node::new(Pass(color));
         // So that we don't get NaN on the first UCT calculation
         root.plays = 1;
         // Now that plays is 1, this needs to be one too to keep the
         // win ratio calculations correct.
         root.wins = 1;
-        root.expand_root(&game, color);
+        root.expand_root(&game);
         root
     }
 
-    pub fn find_leaf_and_expand(&mut self, game: &Game, color: Color) -> (Vec<usize>, Vec<Move>, bool) {
+    pub fn find_leaf_and_expand(&mut self, game: &Game) -> (Vec<usize>, Vec<Move>, bool) {
         let (path, moves, leaf) = self.find_leaf_and_mark(vec!(), vec!());
         let mut board = game.board();
         for &m in moves.iter() {
             board.play(m);
         }
-        let expanded = leaf.expand(&board, color);
+        let expanded = leaf.expand(&board);
         if !expanded {
             let is_win = board.winner() == leaf.color();
             leaf.mark_as_terminal(is_win);
@@ -90,7 +90,7 @@ impl Node {
         }
     }
 
-    fn expand_root(&mut self, game: &Game, color: Color) {
+    fn expand_root(&mut self, game: &Game) {
         if !game.is_over() {
             self.children = game.legal_moves_without_eyes()
                 .iter()
@@ -99,7 +99,7 @@ impl Node {
         }
  }
 
-    pub fn expand(&mut self, board: &Board, color: Color) -> bool {
+    pub fn expand(&mut self, board: &Board) -> bool {
         let expanded = !board.is_game_over();
         if expanded {
             self.children = board.legal_moves_without_eyes()
