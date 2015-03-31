@@ -2,7 +2,7 @@
 
 description = "An AI for the game of Go"
 name = "iomrascalai"
-version = "0.1.7"
+version = "0.2.0"
 authors = ["Urban Hafner <contact@urbanhafner.com>",
         "Thomas Poinsot <thomas.poinsot1@gmail.com>",
         "Igor Polyakov <iopguy+iomrasclai@gmail.com>"]
