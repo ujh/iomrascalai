@@ -72,7 +72,7 @@ impl Node {
         }
         let expanded = leaf.expand(&board, color);
         if !expanded {
-            let is_win = board.winner() == color;
+            let is_win = board.winner() == leaf.color();
             leaf.mark_as_terminal(is_win);
         }
         (path, moves, expanded)
