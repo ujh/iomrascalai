@@ -118,7 +118,8 @@ fn spin_up_worker<'a>(config: Arc<Config>, board: Board, color: Color, send_to_m
                     for &m in moves.iter() {
                         b.play(m);
                     }
-                    // TODO: Do nothing if the game has ended already.
+                    // Playout is smart enough to correctly handle the
+                    // case where the game is already over.
                     let playout_result = config.playout.run(&b, None, &mut rng);
                     let winner = playout_result.winner();
                     let send_to_self = send_to_self.clone();
