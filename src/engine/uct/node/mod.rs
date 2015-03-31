@@ -128,12 +128,12 @@ impl Node {
         }
     }
 
-    pub fn record_on_path(&mut self, path: &[usize], is_win: bool) {
-        if is_win {
+    pub fn record_on_path(&mut self, path: &[usize], winner: Color) {
+        if self.color() == winner {
             self.record_win();
-            if path.len() > 0 {
-                self.children[path[0]].record_on_path(&path[1..], is_win);
-            }
+        }
+        if path.len() > 0 {
+            self.children[path[0]].record_on_path(&path[1..], winner);
         }
     }
 
@@ -201,6 +201,10 @@ impl Node {
         } else {
             (self.wins as f32) / (self.plays as f32)
         }
+    }
+
+    pub fn color(&self) -> Color {
+        *self.m().color()
     }
 
 }

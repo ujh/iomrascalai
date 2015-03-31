@@ -106,6 +106,25 @@ fn no_super_ko_violations_in_the_children_of_the_root() {
     assert!(root.children.iter().all(|n| n.m() != Play(White, 2, 9)));
 }
 
+#[test]
+fn record_on_path_only_records_wins_for_the_correct_color() {
+    let mut grandchild = Node::new(Pass(Black));
+    let mut child = Node::new(Pass(White));
+    child.children = vec!(grandchild);
+    let mut root = Node::new(Pass(Black));
+    root.children = vec!(child);
+
+    root.record_on_path(&vec!(0, 0), Black);
+    assert_eq!(1, root.wins);
+    assert_eq!(0, root.children[0].wins);
+    assert_eq!(1, root.children[0].children[0].wins);
+
+    root.record_on_path(&vec!(0, 0), White);
+    assert_eq!(1, root.wins);
+    assert_eq!(1, root.children[0].wins);
+    assert_eq!(1, root.children[0].children[0].wins);
+}
+
 
 // 2. Make sure that terminal nodes are "played", i.e. either a win or
 //    a loss is reported and the wins are recorded in the tree.
