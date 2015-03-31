@@ -54,26 +54,26 @@ fn expand_doesnt_add_children_to_terminal_nodes() {
 }
 
 #[test]
-fn run_playout_explores_all_unvisited_children_first() {
+fn unvisited_children_are_explored_first() {
     let game = Game::new(2, 0.5, KgsChinese);
     let mut root = Node::root(&game, Black);
     let config = Arc::new(Config::default());
     let mut rng = weak_rng();
     for _ in 0..4 {
-        root.run_playout(&game, Black, config.clone(), &mut rng);
+        root.find_leaf_and_expand(&game, Black);
     }
     assert_eq!(4, root.children.len());
     assert!(root.children.iter().all(|n| n.plays == 1));
 }
 
 #[test]
-fn run_playout_expands_the_leaves() {
+fn find_leaf_and_expand_expands_the_leaves() {
     let game = Game::new(2, 0.5, KgsChinese);
     let mut root = Node::root(&game, Black);
     let config = Arc::new(Config::default());
     let mut rng = weak_rng();
     for _ in 0..4 {
-        root.run_playout(&game, Black, config.clone(), &mut rng);
+        root.find_leaf_and_expand(&game, Black);
     }
     assert_eq!(4, root.children.len());
     assert!(root.children.iter().all(|n| n.children.len() == 3));
@@ -85,7 +85,7 @@ fn run_playout_sets_play_on_the_root() {
     let mut root = Node::root(&game, Black);
     let config = Arc::new(Config::default());
     let mut rng = weak_rng();
-    root.run_playout(&game, Black, config.clone(), &mut rng);
+    root.find_leaf_and_expand(&game, Black);
     assert_eq!(2, root.plays);
 }
 
@@ -116,13 +116,3 @@ fn no_super_ko_violations_in_the_children_of_the_root() {
 // 8. Make sure everything works fine in the game tree when there are
 //    no moves to simulate anymore.
 // 9. Implement multi threading
-
-
-#[bench]
-fn uct_playout_19x19(b: &mut Bencher) {
-    let game = Game::new(19, 6.5, KgsChinese);
-    let mut rng = weak_rng();
-    let mut root = Node::root(&game, Black);
-    let config = Arc::new(Config::default());
-    b.iter(|| root.run_playout(&game, Black, config.clone(), &mut rng));
-}
