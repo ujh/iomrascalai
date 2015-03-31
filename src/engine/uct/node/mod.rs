@@ -55,7 +55,11 @@ impl Node {
 
     pub fn root(game: &Game, color: Color) -> Node {
         let mut root = Node::new(Pass(Empty));
-        root.plays = 1; // So that we don't get NaN on the first UCT calculation
+        // So that we don't get NaN on the first UCT calculation
+        root.plays = 1;
+        // Now that plays is 1, this needs to be one too to keep the
+        // win ratio calculations correct.
+        root.wins = 1;
         root.expand_root(&game, color);
         root
     }

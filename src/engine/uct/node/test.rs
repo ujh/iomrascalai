@@ -94,6 +94,7 @@ fn the_root_needs_to_be_initialized_with_1_plays_for_correct_uct_calculations() 
     let game = Game::new(2, 0.5, KgsChinese);
     let mut root = Node::root(&game, Black);
     assert_eq!(1, root.plays);
+    assert_eq!(1, root.wins);
  }
 
 #[test]
