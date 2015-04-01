@@ -127,6 +127,10 @@ impl<'a> GTPInterpreter<'a> {
         }
     }
 
+    pub fn quit(&self) {
+        self.send_halt_to_controller.send(());
+    }
+
     pub fn game<'b>(&'b self) -> &'b Game {
         &self.game
     }
@@ -238,7 +242,7 @@ impl<'a> GTPInterpreter<'a> {
         	},
             KnownCommands::showboard        => Command::ShowBoard(format!("\n{}", self.game)),
             KnownCommands::quit             => {
-                self.send_halt_to_controller.send(());
+                self.quit();
                 Command::Quit
             },
             KnownCommands::final_score      => Command::FinalScore(format!("{}", self.game.score())),

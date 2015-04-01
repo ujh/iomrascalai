@@ -36,61 +36,71 @@ fn empty_string() {
     match command {
     	Command::Empty => (),
     	_ => panic!("Expected Command::Empty")
-	}
+    }
+    interpreter.quit();
 }
 
 #[test]
 fn loadsgf_wrong_file() {
     let mut interpreter = GTPInterpreter::new(Arc::new(Config::default()), Box::new(RandomEngine::new()));
     interpreter.read("loadsgf wrongfileactually\n");
+    interpreter.quit();
 }
 
 #[test]
 fn loadsgf_one_argument() {
     let mut interpreter = GTPInterpreter::new(Arc::new(Config::default()), Box::new(RandomEngine::new()));
     interpreter.read("loadsgf\n");
+    interpreter.quit();
 }
 
 #[test]
 fn time_left_one_argument() {
     let mut interpreter = GTPInterpreter::new(Arc::new(Config::default()), Box::new(RandomEngine::new()));
     interpreter.read("time_left\n");
+    interpreter.quit();
 }
 
 #[test]
 fn time_settings_one_argument() {
     let mut interpreter = GTPInterpreter::new(Arc::new(Config::default()), Box::new(RandomEngine::new()));
     interpreter.read("time_settings\n");
+    interpreter.quit();
 }
 
 #[test]
 fn play_one_argument() {
     let mut interpreter = GTPInterpreter::new(Arc::new(Config::default()), Box::new(RandomEngine::new()));
     interpreter.read("play\n");
+    interpreter.quit();
 }
 
 #[test]
 fn genmove_one_argument() {
     let mut interpreter = GTPInterpreter::new(Arc::new(Config::default()), Box::new(RandomEngine::new()));
     interpreter.read("genmove\n");
+    interpreter.quit();
 }
 
 #[test]
 fn komi_one_argument() {
     let mut interpreter = GTPInterpreter::new(Arc::new(Config::default()), Box::new(RandomEngine::new()));
     interpreter.read("komi\n");
+    interpreter.quit();
 }
 
 #[test]
 fn boardsize_one_argument() {
     let mut interpreter = GTPInterpreter::new(Arc::new(Config::default()), Box::new(RandomEngine::new()));
     interpreter.read("boardsize\n");
+    interpreter.quit();
 }
 
 #[test]
 fn known_command_one_argument() {
     let mut interpreter = GTPInterpreter::new(Arc::new(Config::default()), Box::new(RandomEngine::new()));
     interpreter.read("known_command\n");
+    interpreter.quit();
 }
 
 #[test]
@@ -102,6 +112,7 @@ fn no_newline_at_end_of_list_commands() {
         Command::ListCommands(cs) => assert_eq!(expected, cs),
         _                         => panic!("wrong match")
     }
+    interpreter.quit();
 }
 
 #[test]
@@ -110,6 +121,7 @@ fn boardsize_sets_the_correct_size() {
     assert_eq!(19, interpreter.game.size());
     interpreter.read("boardsize 9\n");
     assert_eq!(9, interpreter.game.size());
+    interpreter.quit();
 }
 
 #[test]
@@ -118,6 +130,7 @@ fn boardsize_resets_the_board() {
     interpreter.read("play b a1\n");
     interpreter.read("boardsize 9\n");
     assert_eq!(0, interpreter.game.move_number());
+    interpreter.quit();
 }
 
 #[test]
@@ -125,6 +138,7 @@ fn play_plays_a_move() {
     let mut interpreter = GTPInterpreter::new(Arc::new(Config::default()), Box::new(RandomEngine::new()));
     interpreter.read("play b a1\n");
     assert_eq!(1, interpreter.game.move_number());
+    interpreter.quit();
 }
 
 #[test]
@@ -132,6 +146,7 @@ fn sets_the_komi() {
     let mut interpreter = GTPInterpreter::new(Arc::new(Config::default()), Box::new(RandomEngine::new()));
     interpreter.read("komi 10\n");
     assert_eq!(10.0, interpreter.komi());
+    interpreter.quit();
 }
 
 #[test]
@@ -141,6 +156,7 @@ fn sets_the_time() {
     assert_eq!(30_000, interpreter.main_time());
     assert_eq!(20_000, interpreter.byo_time());
     assert_eq!(10, interpreter.byo_stones());
+    interpreter.quit();
 }
 
 #[test]
@@ -149,6 +165,7 @@ fn clear_board_resets_the_board() {
     interpreter.read("play b a1\n");
     interpreter.read("clear_board\n");
     assert_eq!(0, interpreter.game.move_number());
+    interpreter.quit();
 }
 
 #[test]
@@ -158,6 +175,7 @@ fn final_score_no_move() {
         Command::FinalScore(score) => assert_eq!("W+6.5", score),
         _                          => panic!("FinalScore expected!")
     }
+    interpreter.quit();
 }
 
 #[test]
@@ -169,4 +187,5 @@ fn final_score_one_move() {
         Command::FinalScore(score) => assert_eq!("B+9.5", score),
         _                          => panic!("FinalScore expected!")
     }
+    interpreter.quit();
 }
