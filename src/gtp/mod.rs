@@ -33,7 +33,6 @@ use sgf::parser::Parser;
 use timer::Timer;
 use strenum::Strenum;
 
-use std::old_io::Writer;
 use std::sync::Arc;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
@@ -209,10 +208,6 @@ impl<'a> GTPInterpreter<'a> {
         	    let color = Color::from_gtp(comm);
                     self.send_game_to_controller.send((self.game.clone(), color, self.timer.clone()));
                     let m = self.receive_move_from_controller.recv().unwrap();
-                    // let (send_move, receive_move) = channel::<Move>();
-                    // self.controller.run_and_return_move(color, &self.game, &self.timer, send_move);
-                    // let m = receive_move.recv().unwrap();
-                    log!("gtp: after run_and_return_move");
                     match self.game.play(m) {
                         Ok(g) => {
                             self.game = g;

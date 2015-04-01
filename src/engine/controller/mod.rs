@@ -69,12 +69,8 @@ impl<'a> EngineController<'a> {
                 send_move.send(r.unwrap());
             },
             _ = receive_time_up.recv() => {
-                log!("requesting move");
                 send_signal_to_engine.send(());
-                log!("waiting for move");
                 let m = receive_move_from_engine.recv().unwrap();
-                log!("move {:?} received", m);
-                // It waits here for the thread::scoped to finish up.
                 send_move.send(m);
             }
         )
