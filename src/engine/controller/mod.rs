@@ -30,6 +30,7 @@ use std::old_io::Writer;
 use std::old_io::timer::sleep;
 use std::sync::Arc;
 use std::sync::mpsc::channel;
+use std::sync::mpsc::Sender;
 use std::thread;
 use std::time::duration::Duration;
 
@@ -49,7 +50,7 @@ impl<'a> EngineController<'a> {
         }
     }
 
-    pub fn run_and_return_move(&mut self, color: Color, game: &Game, timer: &mut Timer) -> Move {
+    pub fn run_and_return_move(&mut self, color: Color, game: &Game, timer: &mut Timer, send_move: Sender<Move>) {
         let budget = self.budget(timer, game);
         let (send_move_to_controller, receive_move_from_engine) = channel();
         let (send_signal_to_engine, receive_signal_from_controller) = channel::<()>();
@@ -64,7 +65,9 @@ impl<'a> EngineController<'a> {
             send_time_up_to_controller.send(());
         });
         select!(
-            r = receive_move_from_engine.recv() => { r.unwrap() },
+            r = receive_move_from_engine.recv() => {
+                send_move.send(r.unwrap());
+            },
             _ = receive_time_up.recv() => {
                 log!("requesting move");
                 send_signal_to_engine.send(());
@@ -72,7 +75,7 @@ impl<'a> EngineController<'a> {
                 let m = receive_move_from_engine.recv().unwrap();
                 log!("move {:?} received", m);
                 // It waits here for the thread::scoped to finish up.
-                m
+                send_move.send(m);
             }
         )
     }

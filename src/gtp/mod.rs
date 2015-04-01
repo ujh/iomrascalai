@@ -35,6 +35,7 @@ use strenum::Strenum;
 
 use std::old_io::Writer;
 use std::sync::Arc;
+use std::sync::mpsc::channel;
 
 pub mod driver;
 mod test;
@@ -180,7 +181,9 @@ impl<'a> GTPInterpreter<'a> {
             KnownCommands::genmove          => match command.get(1) {
         	Some(comm) => {
         	    let color = Color::from_gtp(comm);
-                    let m = self.controller.run_and_return_move(color, &self.game, &mut self.timer);
+                    let (send_move, receive_move) = channel::<Move>();
+                    self.controller.run_and_return_move(color, &self.game, &mut self.timer, send_move);
+                    let m = receive_move.recv().unwrap();
                     log!("gtp: after run_and_return_move");
                     match self.game.play(m) {
                         Ok(g) => {
