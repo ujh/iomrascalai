@@ -93,6 +93,7 @@ pub struct GTPInterpreter<'a> {
     guard: thread::JoinGuard<'a, ()>,
     receive_move_from_controller: Receiver<Move>,
     send_game_to_controller: Sender<(Game, Color, Timer)>,
+    send_halt_to_controller: Sender<()>,
     timer: Timer,
 }
 
@@ -102,13 +103,18 @@ impl<'a> GTPInterpreter<'a> {
         let boardsize = 19;
         let (send_game_to_controller, receive_game_from_interpreter) = channel::<(Game, Color, Timer)>();
         let (send_move_to_interpreter, receive_move_from_controller) = channel::<Move>();
+        let (send_halt_to_controller, receive_halt_from_interpreter) = channel::<()>();
         let controller_config = config.clone();
         let guard = thread::scoped(move || {
             let controller = EngineController::new(controller_config, engine);
-            // TODO: Do I need to do something special on quit?
             loop {
-                let (game, color, timer) = receive_game_from_interpreter.recv().unwrap();
-                controller.run_and_return_move(color, &game, &timer, send_move_to_interpreter.clone());
+                select!(data = receive_game_from_interpreter.recv() => {
+                    let (game, color, timer) = data.unwrap();
+                    controller.run_and_return_move(color, &game, &timer, send_move_to_interpreter.clone());
+                },
+                        _ = receive_halt_from_interpreter.recv() => {
+                            break;
+                        })
             }
         });
         GTPInterpreter {
@@ -117,6 +123,7 @@ impl<'a> GTPInterpreter<'a> {
             guard: guard,
             receive_move_from_controller: receive_move_from_controller,
             send_game_to_controller: send_game_to_controller,
+            send_halt_to_controller: send_halt_to_controller,
             timer: Timer::new(),
         }
     }
@@ -235,7 +242,10 @@ impl<'a> GTPInterpreter<'a> {
             	None => Command::Error
         	},
             KnownCommands::showboard        => Command::ShowBoard(format!("\n{}", self.game)),
-            KnownCommands::quit             => Command::Quit,
+            KnownCommands::quit             => {
+                self.send_halt_to_controller.send(());
+                Command::Quit
+            },
             KnownCommands::final_score      => Command::FinalScore(format!("{}", self.game.score())),
             KnownCommands::time_settings    => match command.get(3) {
             	Some(third) => {
