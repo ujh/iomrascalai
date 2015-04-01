@@ -49,8 +49,25 @@ fn expand_doesnt_add_children_to_terminal_nodes() {
     game = game.play(Pass(Black)).unwrap();
     game = game.play(Pass(White)).unwrap();
     let mut node = Node::new(Pass(Black));
-    node.expand(&game.board());
+    node.expand(&game.board(), 1);
     assert_eq!(0, node.children.len());
+}
+
+#[test]
+fn expand_doesnt_add_children_if_threshold_not_met() {
+    let game = Game::new(2, 0.5, KgsChinese);
+    let mut node = Node::new(Pass(Black));
+    node.expand(&game.board(), 2);
+    assert_eq!(0, node.children.len());
+}
+
+#[test]
+fn expand_adds_children_if_threshold_is_met() {
+    let game = Game::new(2, 0.5, KgsChinese);
+    let mut node = Node::new(Pass(Black));
+    node.plays = 2;
+    node.expand(&game.board(), 2);
+    assert_eq!(4, node.children.len());
 }
 
 #[test]
@@ -60,7 +77,7 @@ fn unvisited_children_are_explored_first() {
     let config = Arc::new(Config::default());
     let mut rng = weak_rng();
     for _ in 0..4 {
-        root.find_leaf_and_expand(&game);
+        root.find_leaf_and_expand(&game, 1);
     }
     assert_eq!(4, root.children.len());
     assert!(root.children.iter().all(|n| n.plays == 1));
@@ -73,7 +90,7 @@ fn find_leaf_and_expand_expands_the_leaves() {
     let config = Arc::new(Config::default());
     let mut rng = weak_rng();
     for _ in 0..4 {
-        root.find_leaf_and_expand(&game);
+        root.find_leaf_and_expand(&game, 1);
     }
     assert_eq!(4, root.children.len());
     assert!(root.children.iter().all(|n| n.children.len() == 3));
@@ -85,7 +102,7 @@ fn run_playout_sets_play_on_the_root() {
     let mut root = Node::root(&game, Black);
     let config = Arc::new(Config::default());
     let mut rng = weak_rng();
-    root.find_leaf_and_expand(&game);
+    root.find_leaf_and_expand(&game, 1);
     assert_eq!(2, root.plays);
 }
 
