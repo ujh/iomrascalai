@@ -180,9 +180,10 @@ impl<'a> GTPInterpreter<'a> {
             },
             KnownCommands::genmove          => match command.get(1) {
         	Some(comm) => {
+                    self.timer.start();
         	    let color = Color::from_gtp(comm);
                     let (send_move, receive_move) = channel::<Move>();
-                    self.controller.run_and_return_move(color, &self.game, &mut self.timer, send_move);
+                    self.controller.run_and_return_move(color, &self.game, &self.timer, send_move);
                     let m = receive_move.recv().unwrap();
                     log!("gtp: after run_and_return_move");
                     match self.game.play(m) {

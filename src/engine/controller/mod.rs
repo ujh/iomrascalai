@@ -50,7 +50,7 @@ impl<'a> EngineController<'a> {
         }
     }
 
-    pub fn run_and_return_move(&mut self, color: Color, game: &Game, timer: &mut Timer, send_move: Sender<Move>) {
+    pub fn run_and_return_move(&mut self, color: Color, game: &Game, timer: &Timer, send_move: Sender<Move>) {
         let budget = self.budget(timer, game);
         let (send_move_to_controller, receive_move_from_engine) = channel();
         let (send_signal_to_engine, receive_signal_from_controller) = channel::<()>();
@@ -80,8 +80,7 @@ impl<'a> EngineController<'a> {
         )
     }
 
-    fn budget(&self, timer: &mut Timer, game: &Game) -> i64 {
-        timer.start();
+    fn budget(&self, timer: &Timer, game: &Game) -> i64 {
         let budget = timer.budget(game);
         if self.config.log {
             log!("Thinking for {}ms ({}ms time left)", budget, timer.main_time_left());
