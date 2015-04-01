@@ -33,6 +33,7 @@ use sgf::parser::Parser;
 use timer::Timer;
 use strenum::Strenum;
 
+use std::old_io::Writer;
 use std::sync::Arc;
 
 pub mod driver;
@@ -177,9 +178,10 @@ impl<'a> GTPInterpreter<'a> {
                 None => Command::Error
             },
             KnownCommands::genmove          => match command.get(1) {
-        		Some(comm) => {
-        			let color = Color::from_gtp(comm);
+        	Some(comm) => {
+        	    let color = Color::from_gtp(comm);
                     let m = self.controller.run_and_return_move(color, &self.game, &mut self.timer);
+                    log!("gtp: after run_and_return_move");
                     match self.game.play(m) {
                         Ok(g) => {
                             self.game = g;
