@@ -29,6 +29,7 @@ pub struct Config {
     pub playout: Box<Playout>,
     pub ruleset: Ruleset,
     pub threads: usize,
+    pub uct_expand_after: usize,
 }
 
 impl Config {
@@ -39,6 +40,7 @@ impl Config {
             playout: Box::new(NoEyesPlayout::new()),
             ruleset: Minimal,
             threads: 1,
+            uct_expand_after: 10,
         }
     }
 
