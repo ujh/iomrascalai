@@ -57,7 +57,7 @@ pub fn factory(opt: Option<String>, config: Arc<Config>) -> Box<Engine> {
     }
 }
 
-pub trait Engine: Sync {
+pub trait Engine: Send + Sync {
 
     fn gen_move(&self, Color, &Game, sender: Sender<Move>, receiver: Receiver<()>);
     fn engine_type(&self) -> &'static str {

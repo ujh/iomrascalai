@@ -50,7 +50,7 @@ impl<'a> EngineController<'a> {
         }
     }
 
-    pub fn run_and_return_move(&mut self, color: Color, game: &Game, timer: &Timer, send_move: Sender<Move>) {
+    pub fn run_and_return_move(&self, color: Color, game: &Game, timer: &Timer, send_move: Sender<Move>) {
         let budget = self.budget(timer, game);
         let (send_move_to_controller, receive_move_from_engine) = channel();
         let (send_signal_to_engine, receive_signal_from_controller) = channel::<()>();

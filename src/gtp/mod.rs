@@ -35,7 +35,10 @@ use strenum::Strenum;
 
 use std::old_io::Writer;
 use std::sync::Arc;
+use std::sync::mpsc::Receiver;
+use std::sync::mpsc::Sender;
 use std::sync::mpsc::channel;
+use std::thread;
 
 pub mod driver;
 mod test;
@@ -86,8 +89,10 @@ pub enum Command {
 
 pub struct GTPInterpreter<'a> {
     config: Arc<Config>,
-    controller: EngineController<'a>,
     game: Game,
+    guard: thread::JoinGuard<'a, ()>,
+    receive_move_from_controller: Receiver<Move>,
+    send_game_to_controller: Sender<(Game, Color, Timer)>,
     timer: Timer,
 }
 
@@ -95,10 +100,23 @@ impl<'a> GTPInterpreter<'a> {
     pub fn new<'b>(config: Arc<Config>, engine: Box<Engine + 'b>) -> GTPInterpreter<'b> {
         let komi      = 6.5;
         let boardsize = 19;
+        let (send_game_to_controller, receive_game_from_interpreter) = channel::<(Game, Color, Timer)>();
+        let (send_move_to_interpreter, receive_move_from_controller) = channel::<Move>();
+        let controller_config = config.clone();
+        let guard = thread::scoped(move || {
+            let controller = EngineController::new(controller_config, engine);
+            // TODO: Do I need to do something special on quit?
+            loop {
+                let (game, color, timer) = receive_game_from_interpreter.recv().unwrap();
+                controller.run_and_return_move(color, &game, &timer, send_move_to_interpreter.clone());
+            }
+        });
         GTPInterpreter {
             config: config.clone(),
-            controller: EngineController::new(config.clone(), engine),
             game: Game::new(boardsize, komi, config.ruleset),
+            guard: guard,
+            receive_move_from_controller: receive_move_from_controller,
+            send_game_to_controller: send_game_to_controller,
             timer: Timer::new(),
         }
     }
@@ -182,9 +200,11 @@ impl<'a> GTPInterpreter<'a> {
         	Some(comm) => {
                     self.timer.start();
         	    let color = Color::from_gtp(comm);
-                    let (send_move, receive_move) = channel::<Move>();
-                    self.controller.run_and_return_move(color, &self.game, &self.timer, send_move);
-                    let m = receive_move.recv().unwrap();
+                    self.send_game_to_controller.send((self.game.clone(), color, self.timer.clone()));
+                    let m = self.receive_move_from_controller.recv().unwrap();
+                    // let (send_move, receive_move) = channel::<Move>();
+                    // self.controller.run_and_return_move(color, &self.game, &self.timer, send_move);
+                    // let m = receive_move.recv().unwrap();
                     log!("gtp: after run_and_return_move");
                     match self.game.play(m) {
                         Ok(g) => {
