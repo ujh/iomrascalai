@@ -19,8 +19,8 @@
  *                                                                      *
  ************************************************************************/
 
+use playout::NoEyesPlayout;
 use playout::Playout;
-use playout::SimplePlayout;
 use ruleset::Minimal;
 use ruleset::Ruleset;
 
@@ -36,7 +36,7 @@ impl Config {
     pub fn default() -> Config {
         Config {
             log: false,
-            playout: Box::new(SimplePlayout::new()),
+            playout: Box::new(NoEyesPlayout::new()),
             ruleset: Minimal,
             threads: 1,
         }

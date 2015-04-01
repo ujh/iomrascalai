@@ -71,7 +71,7 @@ mod version;
 pub fn main() {
     let mut opts = Options::new();
     let args : Vec<String> = args().collect();
-    opts.optopt("e", "engine", "select an engine (defaults to amaf)", "amaf|mc|random");
+    opts.optopt("e", "engine", "select an engine (defaults to amaf)", "amaf|mc|random|uct");
     opts.optopt("r", "ruleset", "select the ruleset (defaults to chinese)", "cgos|chinese|tromp-taylor|minimal");
     opts.optopt("t", "threads", "number of threads to use (defaults to 1)", "NUM");
     opts.optopt("p", "playout", "type of playout to use (defaults to no-eyes)", "no-eyes|no-eyes-with-pass|simple|simple-with-pass");

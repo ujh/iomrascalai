@@ -24,6 +24,7 @@ pub use self::mc::AmafMcEngine;
 pub use self::mc::SimpleMcEngine;
 pub use self::move_stats::MoveStats;
 pub use self::random::RandomEngine;
+pub use self::uct::UctEngine;
 use board::Color;
 use board::Move;
 use config::Config;
@@ -39,6 +40,7 @@ mod mc;
 mod move_stats;
 mod random;
 mod test;
+mod uct;
 
 pub fn factory(opt: Option<String>, config: Arc<Config>) -> Box<Engine> {
     let engine_arg = opt.map(|s| s.into_ascii_lowercase());
@@ -47,6 +49,7 @@ pub fn factory(opt: Option<String>, config: Arc<Config>) -> Box<Engine> {
             match s.as_ref() {
                 "random" => Box::new(RandomEngine::new()),
                 "mc"     => Box::new(SimpleMcEngine::new(config.clone())),
+                "uct"    => Box::new(UctEngine::new(config.clone())),
                 _        => Box::new(AmafMcEngine::new(config.clone())),
             }
         },

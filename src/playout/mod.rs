@@ -52,11 +52,16 @@ pub fn factory(opt: Option<String>) -> Box<Playout> {
 
 pub trait Playout: Sync + Send {
 
-    fn run(&self, b: &Board, initial_move: &Move, rng: &mut XorShiftRng) -> PlayoutResult {
+    fn run(&self, b: &Board, initial_move: Option<&Move>, rng: &mut XorShiftRng) -> PlayoutResult {
         let mut board = b.clone();
         let mut played_moves = Vec::new();
-        board.play(*initial_move);
-        played_moves.push(*initial_move);
+        match initial_move {
+            Some(&m) => {
+                board.play(m);
+                played_moves.push(m);
+            },
+            None => {}
+        }
         let max_moves = self.max_moves(board.size());
         let mut move_count = 0;
         while !board.is_game_over() && move_count < max_moves {
@@ -89,7 +94,7 @@ pub trait Playout: Sync + Send {
                 } else {
                     0
                 };
-                
+
                 let first = playable_move.unwrap();
                 let r = first + rng.gen::<usize>() % (vacant.len() + add - first);
                 if r == vacant.len() {
