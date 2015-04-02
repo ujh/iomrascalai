@@ -35,6 +35,7 @@ use timer::Timer;
 use std::sync::Arc;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
+use std::sync::mpsc::channel;
 use time::PreciseTime;
 
 pub struct EarlyReturnEngine;
@@ -62,9 +63,11 @@ fn the_engine_can_use_less_time_than_allocated() {
     let mut timer = Timer::new();
     let budget = timer.budget(&game);
     let engine = Box::new(EarlyReturnEngine::new());
-    let mut controller = EngineController::new(Arc::new(Config::default()), engine);
+    let controller = EngineController::new(Arc::new(Config::default()), engine);
     let start_time = PreciseTime::now();
-    let m = controller.run_and_return_move(color, &game, &mut timer);
+    let (sender, receiver) = channel::<Move>();
+    controller.run_and_return_move(color, &game, &timer, sender);
+    let m = receiver.recv().unwrap();
     let elapsed_time = start_time.to(PreciseTime::now()).num_milliseconds();
     assert!(elapsed_time < budget);
     assert_eq!(Pass(color), m);
@@ -98,9 +101,11 @@ fn the_controller_asks_the_engine_for_a_move_when_the_time_is_up() {
     timer.setup(1, 0, 0);
     let budget = timer.budget(&game);
     let engine = Box::new(WaitingEngine::new());
-    let mut controller = EngineController::new(Arc::new(Config::default()), engine);
+    let controller = EngineController::new(Arc::new(Config::default()), engine);
     let start_time = PreciseTime::now();
-    let m = controller.run_and_return_move(color, &game, &mut timer);
+    let (sender, receiver) = channel::<Move>();
+    controller.run_and_return_move(color, &game, &timer, sender);
+    let m = receiver.recv().unwrap();
     let elapsed_time = start_time.to(PreciseTime::now()).num_milliseconds();
     assert!(elapsed_time >= budget);
     assert_eq!(Pass(color), m);

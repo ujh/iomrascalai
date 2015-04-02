@@ -30,6 +30,7 @@ use std::old_io::Writer;
 use std::old_io::timer::sleep;
 use std::sync::Arc;
 use std::sync::mpsc::channel;
+use std::sync::mpsc::Sender;
 use std::thread;
 use std::time::duration::Duration;
 
@@ -49,7 +50,7 @@ impl<'a> EngineController<'a> {
         }
     }
 
-    pub fn run_and_return_move(&mut self, color: Color, game: &Game, timer: &mut Timer) -> Move {
+    pub fn run_and_return_move(&self, color: Color, game: &Game, timer: &Timer, send_move: Sender<Move>) {
         let budget = self.budget(timer, game);
         let (send_move_to_controller, receive_move_from_engine) = channel();
         let (send_signal_to_engine, receive_signal_from_controller) = channel::<()>();
@@ -64,16 +65,18 @@ impl<'a> EngineController<'a> {
             send_time_up_to_controller.send(());
         });
         select!(
-            r = receive_move_from_engine.recv() => { r.unwrap() },
+            r = receive_move_from_engine.recv() => {
+                send_move.send(r.unwrap());
+            },
             _ = receive_time_up.recv() => {
                 send_signal_to_engine.send(());
-                receive_move_from_engine.recv().unwrap()
+                let m = receive_move_from_engine.recv().unwrap();
+                send_move.send(m);
             }
         )
     }
 
-    fn budget(&self, timer: &mut Timer, game: &Game) -> i64 {
-        timer.start();
+    fn budget(&self, timer: &Timer, game: &Game) -> i64 {
         let budget = timer.budget(game);
         if self.config.log {
             log!("Thinking for {}ms ({}ms time left)", budget, timer.main_time_left());

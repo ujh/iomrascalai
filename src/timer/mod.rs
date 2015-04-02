@@ -27,6 +27,7 @@ use time::precise_time_ns;
 
 mod test;
 
+#[derive(Clone)]
 struct Clock {
     start: Option<i64>,
     end:   Option<i64>,
@@ -71,6 +72,7 @@ impl Clock {
     }
 }
 
+#[derive(Clone)]
 pub struct Timer {
     byo_stones: i32, // stones per byo yomi period
     byo_stones_left: i32,
