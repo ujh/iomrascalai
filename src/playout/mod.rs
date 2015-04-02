@@ -66,7 +66,7 @@ pub trait Playout: Sync + Send {
         let mut move_count = 0;
         while !board.is_game_over() && move_count < max_moves {
             let m = self.select_move(&board, rng);
-            board.play(m);
+            board.play_legal_move(m);
             played_moves.push(m);
             move_count += 1;
         }

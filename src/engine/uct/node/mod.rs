@@ -1,6 +1,6 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2015 Urban Hafner                                          *
+ * Copyright 2015 Urban Hafner, Igor Polyakov                           *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -68,7 +68,7 @@ impl Node {
         let (path, moves, leaf) = self.find_leaf_and_mark(vec!(), vec!());
         let mut board = game.board();
         for &m in moves.iter() {
-            board.play(m);
+            board.play_legal_move(m);
         }
         let not_terminal = leaf.expand(&board, expand_after);
         if !not_terminal {

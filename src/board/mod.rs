@@ -333,20 +333,27 @@ impl Board {
     //#[inline(never)] //turn off for profiling
     // Note: Same as get(), the board is indexed starting at 1-1
     pub fn play(&mut self, m: Move) -> Result<(), IllegalMove> {
-        match self.is_legal(m) {
-            Err(e) => return Err(e),
-            Ok(_)  => {}
-        }
+        try!(self.is_legal(m));
+        self.play_legal_move(m);
+        Ok(())
+    }
+    
+    //always called on moves that are already known to be legal
+    pub fn play_legal_move(&mut self, m: Move) {
         self.previous_player = *m.color();
+        
         if m.is_pass() {
             self.consecutive_passes += 1;
-            return Ok(());
+            return;
+        } else {
+            self.consecutive_passes = 0;
         }
-        self.consecutive_passes = 0;
+        
         if m.is_resign() {
             self.resigned_by = *m.color();
-            return Ok(());
+            return;
         }
+        
         // Create new chain or merge it with the neighbouring ones. It
         // removes coord from the list of liberties of the
         // neighbouring chains.
@@ -369,8 +376,9 @@ impl Board {
             self.ko = None;
         }
         self.update_vacant(&m);
-        Ok(())
     }
+    
+    
     //#[inline(never)] //turn off for profiling
     fn update_vacant(&mut self, m: &Move) {
         let pos = self.vacant.iter().position(|&c| c == m.coord()).unwrap();
