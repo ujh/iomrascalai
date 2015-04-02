@@ -108,12 +108,12 @@ pub fn main() {
         Some(r) => Ruleset::from_string(r),
         None    => KgsChinese
     };
-    let config = Arc::new(Config {
-        log: log,
-        playout: playout::factory(matches.opt_str("p")),
-        ruleset: ruleset,
-        threads: threads,
-    });
+    let mut config = Config::default();
+    config.log = log;
+    config.playout = playout::factory(matches.opt_str("p"));
+    config.ruleset = ruleset;
+    config.threads = threads;
+    let config = Arc::new(config);
     let engine = engine::factory(matches.opt_str("e"), config.clone());
     Driver::new(config.clone(), engine);
 }

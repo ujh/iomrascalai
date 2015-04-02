@@ -64,18 +64,18 @@ impl Node {
         root
     }
 
-    pub fn find_leaf_and_expand(&mut self, game: &Game) -> (Vec<usize>, Vec<Move>, bool) {
+    pub fn find_leaf_and_expand(&mut self, game: &Game, expand_after: usize) -> (Vec<usize>, Vec<Move>, bool) {
         let (path, moves, leaf) = self.find_leaf_and_mark(vec!(), vec!());
         let mut board = game.board();
         for &m in moves.iter() {
             board.play(m);
         }
-        let expanded = leaf.expand(&board);
-        if !expanded {
+        let not_terminal = leaf.expand(&board, expand_after);
+        if !not_terminal {
             let is_win = board.winner() == leaf.color();
             leaf.mark_as_terminal(is_win);
         }
-        (path, moves, expanded)
+        (path, moves, not_terminal)
     }
 
     pub fn find_leaf_and_mark(&mut self, mut path: Vec<usize>, mut moves: Vec<Move>) -> (Vec<usize>, Vec<Move>, &mut Node) {
@@ -99,16 +99,15 @@ impl Node {
         }
  }
 
-    pub fn expand(&mut self, board: &Board) -> bool {
-        let expanded = !board.is_game_over();
-        if expanded {
+    pub fn expand(&mut self, board: &Board, expand_after: usize) -> bool {
+        let not_terminal = !board.is_game_over();
+        if not_terminal && self.plays >= expand_after {
             self.children = board.legal_moves_without_eyes()
                 .iter()
                 .map(|&m| Node::new(m))
                 .collect();
         }
-
-        expanded
+        not_terminal
     }
 
     pub fn has_no_children(&self) -> bool {
