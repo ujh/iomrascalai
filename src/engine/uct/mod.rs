@@ -1,6 +1,6 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2015 Urban Hafner                                          *
+ * Copyright 2015 Urban Hafner, Igor Polyakov                           *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -116,7 +116,7 @@ fn spin_up_worker<'a>(config: Arc<Config>, board: Board, color: Color, send_to_m
                     // call run(). One is enough!
                     let mut b = board.clone();
                     for &m in moves.iter() {
-                        b.play(m);
+                        b.play_legal_move(m);
                     }
                     // Playout is smart enough to correctly handle the
                     // case where the game is already over.
