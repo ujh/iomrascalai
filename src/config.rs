@@ -37,7 +37,7 @@ impl Config {
     pub fn default() -> Config {
         Config {
             log: false,
-            playout: Box::new(NoEyesPlayout::new()),
+            playout: ::playout::factory(Some(String::from_str("default"))),
             ruleset: Minimal,
             threads: 1,
             uct_expand_after: 1,
