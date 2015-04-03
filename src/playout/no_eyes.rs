@@ -49,30 +49,3 @@ impl Playout for NoEyesPlayout {
     }
 
 }
-
-#[derive(Debug)]
-pub struct NoEyesWithPassPlayout;
-
-impl NoEyesWithPassPlayout {
-
-    pub fn new() -> NoEyesWithPassPlayout {
-        NoEyesWithPassPlayout
-    }
-
-}
-
-impl Playout for NoEyesWithPassPlayout {
-
-    fn is_playable(&self, board: &Board, m: &Move) -> bool {
-        !board.is_eye(&m.coord(), *m.color())
-    }
-
-    fn include_pass(&self) -> bool {
-        true
-    }
-
-    fn playout_type(&self) -> String {
-        format!("{:?}", self)
-    }
-
-}

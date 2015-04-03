@@ -20,29 +20,22 @@
  ************************************************************************/
 
 pub use self::no_eyes::NoEyesPlayout;
-pub use self::no_eyes::NoEyesWithPassPlayout;
-pub use self::simple::SimplePlayout;
-pub use self::simple::SimpleWithPassPlayout;
 use board::Board;
 use board::Color;
 use board::Move;
 use board::Pass;
 use board::Play;
 
-//use rand::random;
 use rand::{Rng, XorShiftRng};
 
 mod no_eyes;
-mod simple;
 mod test;
 
 pub fn factory(opt: Option<String>) -> Box<Playout> {
     match opt {
         Some(s) => {
             match s.as_ref() {
-                "no-eyes-with-pass" => Box::new(NoEyesWithPassPlayout::new()),
-                "simple" => Box::new(SimplePlayout::new()),
-                "simple-with-pass" => Box::new(SimpleWithPassPlayout::new()),
+                "no-self-atari" => Box::new(NoEyesPlayout::new()),
                 _ => Box::new(NoEyesPlayout::new()),
             }
         },

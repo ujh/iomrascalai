@@ -25,7 +25,6 @@ use board::Black;
 use board::Board;
 use board::Play;
 use playout::NoEyesPlayout;
-use playout::NoEyesWithPassPlayout;
 use playout::Playout;
 use ruleset::KgsChinese;
 
@@ -73,39 +72,6 @@ fn no_eyes_13x13(b: &mut Bencher) {
 fn no_eyes_19x19(b: &mut Bencher) {
     let board = Board::new(19, 6.5, KgsChinese);
     let playout = NoEyesPlayout::new();
-    let mut rng = weak_rng();
-    b.iter(|| {
-        let mut b = board.clone();
-        playout.run(&mut b, Some(&Play(Black, 1, 1)), &mut rng)
-    });
-}
-
-#[bench]
-fn with_pass_09x09(b: &mut Bencher) {
-    let board = Board::new(9, 6.5, KgsChinese);
-    let playout = NoEyesWithPassPlayout::new();
-    let mut rng = weak_rng();
-    b.iter(|| {
-        let mut b = board.clone();
-        playout.run(&mut b, Some(&Play(Black, 1, 1)), &mut rng)
-    });
-}
-
-#[bench]
-fn with_pass_13x13(b: &mut Bencher) {
-    let board = Board::new(13, 6.5, KgsChinese);
-    let playout = NoEyesWithPassPlayout::new();
-    let mut rng = weak_rng();
-    b.iter(|| {
-        let mut b = board.clone();
-        playout.run(&mut b, Some(&Play(Black, 1, 1)), &mut rng)
-    });
-}
-
-#[bench]
-fn with_pass_19x19(b: &mut Bencher) {
-    let board = Board::new(19, 6.5, KgsChinese);
-    let playout = NoEyesWithPassPlayout::new();
     let mut rng = weak_rng();
     b.iter(|| {
         let mut b = board.clone();
