@@ -40,7 +40,7 @@ impl Config {
             playout: Box::new(NoEyesPlayout::new()),
             ruleset: Minimal,
             threads: 1,
-            uct_expand_after: 10,
+            uct_expand_after: 1,
         }
     }
 
