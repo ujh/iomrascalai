@@ -26,26 +26,37 @@ use super::Playout;
 #[derive(Debug)]
 pub struct NoEyesPlayout;
 
-impl NoEyesPlayout {
-
-    pub fn new() -> NoEyesPlayout {
-        NoEyesPlayout
-    }
-
-}
-
 impl Playout for NoEyesPlayout {
 
     fn is_playable(&self, board: &Board, m: &Move) -> bool {
         !board.is_eye(&m.coord(), *m.color())
     }
 
-    fn include_pass(&self) -> bool {
-        false
-    }
-
     fn playout_type(&self) -> String {
         format!("{:?}", self)
     }
+}
 
+//strings of 7 or more don't play self-atari in this playout
+#[derive(Debug)]
+pub struct NoSelfAtariPlayout;
+
+impl Playout for NoSelfAtariPlayout {
+
+    fn is_playable(&self, board: &Board, m: &Move) -> bool {
+        !board.is_eye(&m.coord(), *m.color())
+        && (
+            board.liberty_count(m.coord()) > 1 ||
+            {
+                let liberties = board.new_chain_liberties(*m);
+                let removed_enemies = board.removes_enemy_neighbouring_stones(*m);
+                liberties + removed_enemies > 1
+            } 
+            || board.new_chain_length(*m) < 7
+        )
+    }
+    
+    fn playout_type(&self) -> String {
+        format!("{:?}", self)
+    }
 }

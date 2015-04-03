@@ -20,6 +20,7 @@
  ************************************************************************/
 
 pub use self::no_eyes::NoEyesPlayout;
+pub use self::no_eyes::NoSelfAtariPlayout;
 use board::Board;
 use board::Color;
 use board::Move;
@@ -32,14 +33,9 @@ mod no_eyes;
 mod test;
 
 pub fn factory(opt: Option<String>) -> Box<Playout> {
-    match opt {
-        Some(s) => {
-            match s.as_ref() {
-                "no-self-atari" => Box::new(NoEyesPlayout::new()),
-                _ => Box::new(NoEyesPlayout::new()),
-            }
-        },
-        None => Box::new(NoEyesPlayout::new())
+    match opt.as_ref().map(::std::ops::Deref::deref) {
+        Some("no-self-atari") => Box::new(NoSelfAtariPlayout),
+        _ => Box::new(NoEyesPlayout),
     }
 }
 
@@ -63,7 +59,6 @@ pub trait Playout: Sync + Send {
     }
 
     fn is_playable(&self, board: &Board, m: &Move) -> bool;
-    fn include_pass(&self) -> bool;
 
     fn max_moves(&self, size: u8) -> usize {
         size as usize * size as usize * 3
@@ -72,20 +67,14 @@ pub trait Playout: Sync + Send {
     fn select_move(&self, board: &Board, rng: &mut XorShiftRng) -> Move {
         let color = board.next_player();
         let vacant = board.vacant();
-        let playable_move =  vacant
+        let playable_move = vacant
             .iter()
             .map(|c| Play(color, c.col, c.row))
             .position(|m| board.is_legal(m).is_ok() && self.is_playable(board, &m));
         if playable_move.is_some() {
             loop {
-                let add = if self.include_pass() {
-                    1
-                } else {
-                    0
-                };
-
                 let first = playable_move.unwrap();
-                let r = first + rng.gen::<usize>() % (vacant.len() + add - first);
+                let r = first + rng.gen::<usize>() % (vacant.len() - first);
                 if r == vacant.len() {
                     return Pass(color);
                 } else {
