@@ -52,23 +52,19 @@ pub fn factory(opt: Option<String>) -> Box<Playout> {
 
 pub trait Playout: Sync + Send {
 
-    fn run(&self, b: &Board, initial_move: Option<&Move>, rng: &mut XorShiftRng) -> PlayoutResult {
-        let mut board = b.clone();
+    fn run(&self, board: &mut Board, initial_move: Option<&Move>, rng: &mut XorShiftRng) -> PlayoutResult {
         let mut played_moves = Vec::new();
-        match initial_move {
-            Some(&m) => {
-                board.play(m);
-                played_moves.push(m);
-            },
-            None => {}
-        }
+        
+        initial_move.map(|&m| {
+            board.play_legal_move(m);
+            played_moves.push(m);
+        });
+
         let max_moves = self.max_moves(board.size());
-        let mut move_count = 0;
-        while !board.is_game_over() && move_count < max_moves {
+        while !board.is_game_over() && played_moves.len() < max_moves {
             let m = self.select_move(&board, rng);
             board.play_legal_move(m);
             played_moves.push(m);
-            move_count += 1;
         }
         PlayoutResult::new(played_moves, board.winner())
     }
@@ -116,7 +112,6 @@ pub trait Playout: Sync + Send {
 
 }
 
-#[derive(Debug)]
 pub struct PlayoutResult {
     moves: Vec<Move>,
     winner: Color,

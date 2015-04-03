@@ -34,10 +34,10 @@ use test::Bencher;
 
 #[test]
 fn should_add_the_passed_moves_as_the_first_move() {
-    let board = Board::new(9, 6.5, KgsChinese);
+    let mut board = Board::new(9, 6.5, KgsChinese);
     let playout = NoEyesPlayout::new();
     let mut rng = weak_rng();
-    let result = playout.run(&board, Some(&Play(Black, 1, 1)), &mut rng);
+    let result = playout.run(&mut board, Some(&Play(Black, 1, 1)), &mut rng);
     assert_eq!(Play(Black, 1, 1), result.moves()[0]);
 }
 
@@ -52,7 +52,10 @@ fn no_eyes_09x09(b: &mut Bencher) {
     let board = Board::new(9, 6.5, KgsChinese);
     let playout = NoEyesPlayout::new();
     let mut rng = weak_rng();
-    b.iter(|| playout.run(&board, Some(&Play(Black, 1, 1)), &mut rng))
+    b.iter(|| {
+        let mut b = board.clone();
+        playout.run(&mut b, Some(&Play(Black, 1, 1)), &mut rng)
+    });
 }
 
 #[bench]
@@ -60,7 +63,10 @@ fn no_eyes_13x13(b: &mut Bencher) {
     let board = Board::new(13, 6.5, KgsChinese);
     let playout = NoEyesPlayout::new();
     let mut rng = weak_rng();
-    b.iter(|| playout.run(&board, Some(&Play(Black, 1, 1)), &mut rng))
+    b.iter(|| {
+        let mut b = board.clone();
+        playout.run(&mut b, Some(&Play(Black, 1, 1)), &mut rng)
+    });
 }
 
 #[bench]
@@ -68,7 +74,10 @@ fn no_eyes_19x19(b: &mut Bencher) {
     let board = Board::new(19, 6.5, KgsChinese);
     let playout = NoEyesPlayout::new();
     let mut rng = weak_rng();
-    b.iter(|| playout.run(&board, Some(&Play(Black, 1, 1)), &mut rng))
+    b.iter(|| {
+        let mut b = board.clone();
+        playout.run(&mut b, Some(&Play(Black, 1, 1)), &mut rng)
+    });
 }
 
 #[bench]
@@ -76,7 +85,10 @@ fn with_pass_09x09(b: &mut Bencher) {
     let board = Board::new(9, 6.5, KgsChinese);
     let playout = NoEyesWithPassPlayout::new();
     let mut rng = weak_rng();
-    b.iter(|| playout.run(&board, Some(&Play(Black, 1, 1)), &mut rng))
+    b.iter(|| {
+        let mut b = board.clone();
+        playout.run(&mut b, Some(&Play(Black, 1, 1)), &mut rng)
+    });
 }
 
 #[bench]
@@ -84,7 +96,10 @@ fn with_pass_13x13(b: &mut Bencher) {
     let board = Board::new(13, 6.5, KgsChinese);
     let playout = NoEyesWithPassPlayout::new();
     let mut rng = weak_rng();
-    b.iter(|| playout.run(&board, Some(&Play(Black, 1, 1)), &mut rng))
+    b.iter(|| {
+        let mut b = board.clone();
+        playout.run(&mut b, Some(&Play(Black, 1, 1)), &mut rng)
+    });
 }
 
 #[bench]
@@ -92,5 +107,8 @@ fn with_pass_19x19(b: &mut Bencher) {
     let board = Board::new(19, 6.5, KgsChinese);
     let playout = NoEyesWithPassPlayout::new();
     let mut rng = weak_rng();
-    b.iter(|| playout.run(&board, Some(&Play(Black, 1, 1)), &mut rng))
+    b.iter(|| {
+        let mut b = board.clone();
+        playout.run(&mut b, Some(&Play(Black, 1, 1)), &mut rng)
+    });
 }
