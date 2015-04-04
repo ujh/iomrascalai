@@ -131,14 +131,14 @@ impl Parser {
 
     fn size(&self) -> u8 {
         let props = self.tokenize();
-        let prop = props.iter().find(|p| p.name == "SZ").unwrap();
-        prop.val.parse().unwrap()
+        let prop = props.iter().find(|p| p.name == "SZ");
+        prop.and_then(|p| p.val.parse().ok()).unwrap_or(19)
     }
 
     fn komi(&self) -> f32 {
         let props = self.tokenize();
-        let prop = props.iter().find(|p| p.name == "KM").unwrap();
-        prop.val.parse().unwrap()
+        let prop = props.iter().find(|p| p.name == "KM");
+        prop.and_then(|p| p.val.parse().ok()).unwrap_or(6.5)
     }
 
     fn tokenize<'a>(&'a self) -> Vec<Property<'a>> {
