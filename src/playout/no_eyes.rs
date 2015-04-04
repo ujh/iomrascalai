@@ -56,7 +56,7 @@ impl Playout for NoSelfAtariPlayout {
                 liberties + removed_enemies > 1
                 }
             } 
-            || board.new_chain_length(*m) < 7
+            || board.new_chain_length(*m) < 3 //don't suicide 3 stone groups in the playouts, only in the tree
         )
     }
     
