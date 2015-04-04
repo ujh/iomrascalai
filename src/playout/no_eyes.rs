@@ -48,9 +48,13 @@ impl Playout for NoSelfAtariPlayout {
         && (
             board.liberty_count(m.coord()) > 1 ||
             {
-                let liberties = board.new_chain_liberties(*m);
                 let removed_enemies = board.removes_enemy_neighbouring_stones(*m);
+                
+                removed_enemies > 1 ||
+                {
+                let liberties = board.new_chain_liberties(*m);
                 liberties + removed_enemies > 1
+                }
             } 
             || board.new_chain_length(*m) < 7
         )
