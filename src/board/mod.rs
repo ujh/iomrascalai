@@ -579,24 +579,28 @@ impl Board {
     }
     
     pub fn new_chain_liberties(&self, m: Move) -> usize {
-        self.neighbours(m.coord()).iter()
-            .fold(0, |count, c| {
-                if(self.color(c) == *m.color()) {
-                    //add the liberties the chain has minus this point
-                    count + self.get_chain(*c).unwrap().liberties().len() - 1   
-                } else {
-                    count
+        let mut set: HashSet<Coord> = HashSet::new();
+        
+        for &c in self.neighbours(m.coord()).iter() {
+            if(self.color(&c) == *m.color()) {
+                //add the liberties the chain
+                for &liberty in self.get_chain(c).unwrap().liberties() {
+                    set.insert(liberty);
                 }
-            })
+            } else if(self.color(&c) == Empty)  {
+                set.insert(c);
+            }
+        };
+        set.len() - 1 //minus the stone we're about to play
     }
     
-    //the length of all merged chains not including the current move
+    //the length of all merged chains after the current move
     pub fn new_chain_length(&self, m: Move) -> usize {
         let set: HashSet<&Coord> = self.neighbours(m.coord()).iter()
             .filter(|c| self.color(c) == *m.color())
             .flat_map(|c| self.get_chain(*c).unwrap().coords().iter())
             .collect();
-        set.len()
+        set.len() + 1 //plus the stone we're about to play
     }
 
     pub fn score(&self) -> Score {
