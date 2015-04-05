@@ -563,6 +563,45 @@ impl Board {
         self.board[c.to_index(self.size)].chain_id = -1;
         self.board[c.to_index(self.size)].color = Empty;
     }
+    
+    pub fn liberty_count(&self, c: Coord) -> usize {
+        self.neighbours(c).iter().filter(|c| self.color(c) == Empty).count()
+    }
+    
+    pub fn removes_enemy_neighbouring_stones(&self, m: Move) -> usize {
+        let enemy = m.color().opposite();
+        self.neighbours(m.coord()).iter()                           //for all neighbours
+            .filter(|c| {                                           //take only
+                self.color(c) == enemy &&                           //the enemy stones
+                self.get_chain(**c).unwrap().liberties().len() == 1 //that have 1 liberty
+            })
+            .count()
+    }
+    
+    pub fn new_chain_liberties(&self, m: Move) -> usize {
+        let mut set: HashSet<Coord> = HashSet::new();
+        
+        for &c in self.neighbours(m.coord()).iter() {
+            if(self.color(&c) == *m.color()) {
+                //add the liberties the chain
+                for &liberty in self.get_chain(c).unwrap().liberties() {
+                    set.insert(liberty);
+                }
+            } else if(self.color(&c) == Empty)  {
+                set.insert(c);
+            }
+        };
+        set.len() - 1 //minus the stone we're about to play
+    }
+    
+    //the length of all merged chains after the current move
+    pub fn new_chain_length(&self, m: Move) -> usize {
+        let set: HashSet<&Coord> = self.neighbours(m.coord()).iter()
+            .filter(|c| self.color(c) == *m.color())
+            .flat_map(|c| self.get_chain(*c).unwrap().coords().iter())
+            .collect();
+        set.len() + 1 //plus the stone we're about to play
+    }
 
     pub fn score(&self) -> Score {
         Score::new(self)

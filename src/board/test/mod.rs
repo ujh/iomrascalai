@@ -42,6 +42,7 @@ use std::path::Path;
 mod diagonals;
 mod eye;
 mod ko;
+mod hypotheticals;
 
 #[test]
 fn getting_a_valid_coord_returns_a_color() {

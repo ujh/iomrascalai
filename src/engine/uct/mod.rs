@@ -112,15 +112,13 @@ fn spin_up_worker<'a>(config: Arc<Config>, board: Board, color: Color, send_to_m
                 _ = receive_halt.recv() => { break; },
                 task = receive_from_main.recv() => {
                     let (path, moves, expanded) = task.unwrap();
-                    // TODO: We do a clone here and then one when we
-                    // call run(). One is enough!
                     let mut b = board.clone();
                     for &m in moves.iter() {
                         b.play_legal_move(m);
                     }
                     // Playout is smart enough to correctly handle the
                     // case where the game is already over.
-                    let playout_result = config.playout.run(&b, None, &mut rng);
+                    let playout_result = config.playout.run(&mut b, None, &mut rng);
                     let winner = playout_result.winner();
                     let send_to_self = send_to_self.clone();
                     send_to_main.send(((path, winner), send_to_self));

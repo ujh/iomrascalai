@@ -26,53 +26,41 @@ use super::Playout;
 #[derive(Debug)]
 pub struct NoEyesPlayout;
 
-impl NoEyesPlayout {
-
-    pub fn new() -> NoEyesPlayout {
-        NoEyesPlayout
-    }
-
-}
-
 impl Playout for NoEyesPlayout {
 
     fn is_playable(&self, board: &Board, m: &Move) -> bool {
         !board.is_eye(&m.coord(), *m.color())
     }
 
-    fn include_pass(&self) -> bool {
-        false
-    }
-
     fn playout_type(&self) -> String {
         format!("{:?}", self)
     }
-
 }
 
+//strings of 7 or more don't play self-atari in this playout
 #[derive(Debug)]
-pub struct NoEyesWithPassPlayout;
+pub struct NoSelfAtariPlayout;
 
-impl NoEyesWithPassPlayout {
-
-    pub fn new() -> NoEyesWithPassPlayout {
-        NoEyesWithPassPlayout
-    }
-
-}
-
-impl Playout for NoEyesWithPassPlayout {
+impl Playout for NoSelfAtariPlayout {
 
     fn is_playable(&self, board: &Board, m: &Move) -> bool {
         !board.is_eye(&m.coord(), *m.color())
+        && (
+            board.liberty_count(m.coord()) > 1 ||
+            {
+                let removed_enemies = board.removes_enemy_neighbouring_stones(*m);
+                
+                removed_enemies > 1 ||
+                {
+                let liberties = board.new_chain_liberties(*m);
+                liberties + removed_enemies > 1
+                }
+            } 
+            || board.new_chain_length(*m) < 3 //don't suicide 3 stone groups in the playouts, only in the tree
+        )
     }
-
-    fn include_pass(&self) -> bool {
-        true
-    }
-
+    
     fn playout_type(&self) -> String {
         format!("{:?}", self)
     }
-
 }

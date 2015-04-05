@@ -125,7 +125,8 @@ fn spin_up_worker<'a, T: McEngine>(color: Color, recv_halt: Receiver<()>, moves:
         loop {
             for _ in 0..runs {
                 let m = moves[rng.gen::<usize>() % moves.len()];
-                let playout_result = config.playout.run(&board, Some(&m), &mut rng);
+                let mut b = board.clone();
+                let playout_result = config.playout.run(&mut b, Some(&m), &mut rng);
                 let winner = playout_result.winner();
                 T::record_playout(&mut stats, &playout_result, winner == color);
             }
