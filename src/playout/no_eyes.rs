@@ -52,7 +52,6 @@ impl Playout for NoSelfAtariPlayout {
                 
                 removed_enemies > 1 ||
                 {
-                //let liberties = board.new_chain_liberties(*m);
                 (removed_enemies > 0 && board.new_chain_liberties_greater_than(*m, 0)) ||
                 board.new_chain_liberties_greater_than(*m, 1)
                 }
