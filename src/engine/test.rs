@@ -26,9 +26,9 @@ use config::Config;
 use std::sync::Arc;
 
 #[test]
-fn factory_returns_amaf_by_default() {
+fn factory_returns_uct_by_default() {
     let engine = super::factory(None, Arc::new(Config::default()));
-    assert_eq!("amaf", engine.engine_type());
+    assert_eq!("uct", engine.engine_type());
 }
 
 #[test]
@@ -44,7 +44,13 @@ fn factory_returns_simple_mc_when_given_mc() {
 }
 
 #[test]
-fn factory_rutuyrns_amaf_for_any_other_string() {
-    let engine = super::factory(Some(String::from_str("foo")), Arc::new(Config::default()));
+fn factory_returns_amaf_when_given_amaf() {
+    let engine = super::factory(Some(String::from_str("amaf")), Arc::new(Config::default()));
     assert_eq!("amaf", engine.engine_type());
+}
+
+#[test]
+fn factory_returns_uct_for_any_other_string() {
+    let engine = super::factory(Some(String::from_str("foo")), Arc::new(Config::default()));
+    assert_eq!("uct", engine.engine_type());
 }
