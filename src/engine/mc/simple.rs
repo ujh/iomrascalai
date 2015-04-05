@@ -62,9 +62,9 @@ impl McEngine for SimpleMcEngine {
     fn record_playout(stats: &mut MoveStats, playout: &PlayoutResult, won: bool) {
         let m = playout.moves()[0];
         if won {
-            stats.record_win(&m);
+            stats.record_win(m);
         } else {
-            stats.record_loss(&m);
+            stats.record_loss(m);
         }
     }
 

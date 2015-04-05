@@ -45,19 +45,20 @@ impl Playout for NoSelfAtariPlayout {
 
     fn is_playable(&self, board: &Board, m: &Move) -> bool {
         !board.is_eye(&m.coord(), *m.color())
-        && (
-            board.liberty_count(m.coord()) > 1 ||
+        && {
+            let empty = board.liberty_count(m.coord());
+            empty > 1 ||
             {
                 let removed_enemies = board.removes_enemy_neighbouring_stones(*m);
                 
-                removed_enemies > 1 ||
+                empty + removed_enemies > 1 ||
                 {
-                let liberties = board.new_chain_liberties(*m);
-                liberties + removed_enemies > 1
+                (removed_enemies > 0 && board.new_chain_liberties_greater_than(*m, 0)) ||
+                board.new_chain_liberties_greater_than(*m, 1)
                 }
-            } 
-            || board.new_chain_length(*m) < 3 //don't suicide 3 stone groups in the playouts, only in the tree
-        )
+            }
+            || board.new_chain_length_less_than(*m, 3) //you can self-atari one or two stones in playouts
+        }
     }
     
     fn playout_type(&self) -> String {

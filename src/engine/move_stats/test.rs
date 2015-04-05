@@ -45,10 +45,10 @@ mod move_stats {
     fn returns_the_best_move() {
         let moves = vec![Play(Black, 1, 1), Play(Black, 2, 2)];
         let mut stats = MoveStats::new(&moves, Black);
-        stats.record_win(&Play(Black, 1, 1));
-        stats.record_loss(&Play(Black, 1, 1));
-        stats.record_win(&Play(Black, 2, 2));
-        stats.record_win(&Play(Black, 2, 2));
+        stats.record_win(Play(Black, 1, 1));
+        stats.record_loss(Play(Black, 1, 1));
+        stats.record_win(Play(Black, 2, 2));
+        stats.record_win(Play(Black, 2, 2));
         let (m, ms) = stats.best();
         assert_eq!(Play(Black, 2, 2), m);
         assert_eq!(ms.plays, 2);
@@ -59,8 +59,8 @@ mod move_stats {
     fn all_wins_returns_true_when_no_losses_were_recorded() {
         let moves = vec![Play(Black, 1, 1), Play(Black, 2, 2)];
         let mut stats = MoveStats::new(&moves, Black);
-        stats.record_win(&Play(Black, 1, 1));
-        stats.record_win(&Play(Black, 2, 2));
+        stats.record_win(Play(Black, 1, 1));
+        stats.record_win(Play(Black, 2, 2));
         assert!(stats.all_wins());
     }
 
@@ -68,7 +68,7 @@ mod move_stats {
     fn all_wins_returns_false_when_a_loss_was_recorded() {
         let moves = vec![Play(Black, 1, 1), Play(Black, 2, 2)];
         let mut stats = MoveStats::new(&moves, Black);
-        stats.record_loss(&Play(Black, 1, 1));
+        stats.record_loss(Play(Black, 1, 1));
         assert!(!stats.all_wins());
     }
 
@@ -76,8 +76,8 @@ mod move_stats {
     fn all_losses_returns_true_when_no_wins_were_recorded() {
         let moves = vec![Play(Black, 1, 1), Play(Black, 2, 2)];
         let mut stats = MoveStats::new(&moves, Black);
-        stats.record_loss(&Play(Black, 1, 1));
-        stats.record_loss(&Play(Black, 2, 2));
+        stats.record_loss(Play(Black, 1, 1));
+        stats.record_loss(Play(Black, 2, 2));
         assert!(stats.all_losses());
     }
 
@@ -85,7 +85,7 @@ mod move_stats {
     fn all_losses_returns_false_when_a_win_was_recorded() {
         let moves = vec![Play(Black, 1, 1), Play(Black, 2, 2)];
         let mut stats = MoveStats::new(&moves, Black);
-        stats.record_win(&Play(Black, 1, 1));
+        stats.record_win(Play(Black, 1, 1));
         assert!(!stats.all_losses());
     }
 
@@ -93,14 +93,14 @@ mod move_stats {
     fn record_win_does_nothing_for_untracked_moves() {
         let moves = vec!();
         let mut stats = MoveStats::new(&moves, Black);
-        stats.record_win(&Play(Black, 1, 1));
+        stats.record_win(Play(Black, 1, 1));
     }
 
     #[test]
     fn record_loss_does_nothing_for_untracked_moves() {
         let moves = vec!();
         let mut stats = MoveStats::new(&moves, Black);
-        stats.record_loss(&Play(Black, 1, 1));
+        stats.record_loss(Play(Black, 1, 1));
     }
 
     #[test]
@@ -108,9 +108,9 @@ mod move_stats {
         let m = Play(Black, 1, 1);
         let moves = vec!(m);
         let mut stats = MoveStats::new(&moves, Black);
-        stats.record_win(&m);
+        stats.record_win(m);
         let mut other = MoveStats::new(&moves, Black);
-        other.record_loss(&m);
+        other.record_loss(m);
         stats.merge(&other);
         let ms = stats.stats.get(&m).unwrap();
         assert_eq!(ms.wins, 1);
@@ -124,7 +124,7 @@ mod move_stats {
         let mut stats = MoveStats::new(&moves, Black);
         let moves2 = vec!(m);
         let mut other = MoveStats::new(&moves2, Black);
-        other.record_loss(&m);
+        other.record_loss(m);
         stats.merge(&other);
         assert!(!stats.stats.get(&m).is_some());
     }

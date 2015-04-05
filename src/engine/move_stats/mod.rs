@@ -28,16 +28,16 @@ use std::collections::HashMap;
 
 mod test;
 
-pub struct MoveStats<'a> {
+pub struct MoveStats {
     color: Color,
-    stats: HashMap<&'a Move, MoveStat>,
+    stats: HashMap<Move, MoveStat>,
 }
 
-impl<'a> MoveStats<'a> {
+impl MoveStats {
 
     pub fn new(moves: &Vec<Move>, color: Color) -> MoveStats {
         let mut stats = HashMap::new();
-        for m in moves.iter() {
+        for &m in moves.iter() {
             stats.insert(m, MoveStat::new());
         }
         MoveStats {
@@ -46,14 +46,14 @@ impl<'a> MoveStats<'a> {
         }
     }
 
-    pub fn record_win(&mut self, m: &Move) {
+    pub fn record_win(&mut self, m: Move) {
         match self.stats.get_mut(&m) {
             Some(stat) => stat.won(),
             None       => {}
         }
     }
 
-    pub fn record_loss(&mut self, m: &Move) {
+    pub fn record_loss(&mut self, m: Move) {
         match self.stats.get_mut(&m) {
             Some(stat) => stat.lost(),
             None       => {}
@@ -73,7 +73,7 @@ impl<'a> MoveStats<'a> {
         let mut move_stats = MoveStat::new();
         for (m_new, ms) in self.stats.iter() {
             if ms.win_ratio() > move_stats.win_ratio() {
-                m = **m_new;
+                m = *m_new;
                 move_stats = *ms;
             }
         }
@@ -92,7 +92,7 @@ impl<'a> MoveStats<'a> {
 }
 
 
-#[derive(Copy)]
+#[derive(Copy, Clone)]
 pub struct MoveStat {
     wins: usize,
     plays: usize
