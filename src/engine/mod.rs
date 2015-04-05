@@ -49,11 +49,11 @@ pub fn factory(opt: Option<String>, config: Arc<Config>) -> Box<Engine> {
             match s.as_ref() {
                 "random" => Box::new(RandomEngine::new()),
                 "mc"     => Box::new(SimpleMcEngine::new(config.clone())),
-                "uct"    => Box::new(UctEngine::new(config.clone())),
-                _        => Box::new(AmafMcEngine::new(config.clone())),
+                "amaf"   => Box::new(AmafMcEngine::new(config.clone())),
+                _        => Box::new(UctEngine::new(config.clone())),
             }
         },
-        None => Box::new(AmafMcEngine::new(config.clone()))
+        None => Box::new(UctEngine::new(config.clone()))
     }
 }
 
