@@ -74,7 +74,7 @@ pub fn main() {
     opts.optopt("e", "engine", "select an engine (defaults to uct)", "amaf|mc|random|uct");
     opts.optopt("r", "ruleset", "select the ruleset (defaults to chinese)", "cgos|chinese|tromp-taylor|minimal");
     opts.optopt("t", "threads", "number of threads to use (defaults to 1)", "NUM");
-    opts.optopt("p", "playout", "type of playout to use (defaults to light)", "light|no-self-atari");
+    opts.optopt("p", "playout", "type of playout to use (defaults to no-self-atari)", "light|no-self-atari");
     opts.optflag("h", "help", "print this help menu");
     opts.optflag("v", "version", "print the version number");
     opts.optflag("l", "log", "log to stderr (defaults to false)");
