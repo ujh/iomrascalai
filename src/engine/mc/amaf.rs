@@ -62,9 +62,9 @@ impl McEngine for AmafMcEngine {
     fn record_playout(stats: &mut MoveStats, playout: &PlayoutResult, won: bool) {
         for m in playout.moves().iter() {
             if won {
-                stats.record_win(&m);
+                stats.record_win(*m);
             } else {
-                stats.record_loss(&m);
+                stats.record_loss(*m);
             }
         }
     }

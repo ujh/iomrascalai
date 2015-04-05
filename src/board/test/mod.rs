@@ -142,7 +142,7 @@ fn legal_moves_should_return_nothing_after_a_resign() {
 
     b.play(Resign(Black));
 
-    assert_eq!(vec!(), b.legal_moves_without_superko_check());
+    assert_eq!(0, b.legal_moves_without_superko_check().len());
 }
 
 #[test]
@@ -151,7 +151,7 @@ fn legal_moves_without_eyes_should_return_nothing_after_a_resing() {
 
     b.play(Resign(Black));
 
-    assert_eq!(vec!(), b.legal_moves_without_eyes());
+    assert_eq!(0, b.legal_moves_without_eyes().len());
 }
 
 

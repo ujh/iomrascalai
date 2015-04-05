@@ -103,7 +103,7 @@ fn finish(color: Color, game: &Game, stats: MoveStats, sender: Sender<Move>, hal
     }
 }
 
-fn spin_up<'a, T: McEngine>(color: Color, config: Arc<Config>, moves: &'a Vec<Move>, game: &Game, send_result: Sender<(MoveStats<'a>, usize)>) -> (Vec<thread::JoinGuard<'a, ()>>, Vec<Sender<()>>) {
+fn spin_up<'a, T: McEngine>(color: Color, config: Arc<Config>, moves: &'a Vec<Move>, game: &Game, send_result: Sender<(MoveStats, usize)>) -> (Vec<thread::JoinGuard<'a, ()>>, Vec<Sender<()>>) {
     let mut guards = Vec::new();
     let mut halt_senders = Vec::new();
     for _ in 0..config.threads {
@@ -117,7 +117,7 @@ fn spin_up<'a, T: McEngine>(color: Color, config: Arc<Config>, moves: &'a Vec<Mo
     (guards, halt_senders)
 }
 
-fn spin_up_worker<'a, T: McEngine>(color: Color, recv_halt: Receiver<()>, moves: &'a Vec<Move>, board: Board, config: Arc<Config>, send_result: Sender<(MoveStats<'a>, usize)>) -> thread::JoinGuard<'a, ()> {
+fn spin_up_worker<'a, T: McEngine>(color: Color, recv_halt: Receiver<()>, moves: &'a Vec<Move>, board: Board, config: Arc<Config>, send_result: Sender<(MoveStats, usize)>) -> thread::JoinGuard<'a, ()> {
     thread::scoped(move || {
         let runs = 100;
         let mut rng = weak_rng();

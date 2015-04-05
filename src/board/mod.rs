@@ -560,7 +560,8 @@ impl Board {
     fn remove_stone(&mut self, c: Coord) {
         // Resetting the chain_id is not strictly necessary, but will
         // make debugging easier.
-        self.board[c.to_index(self.size)].chain_id = -1;
+        //self.board[c.to_index(self.size)].chain_id = -1;
+        //removed because compiler error
         self.board[c.to_index(self.size)].color = Empty;
     }
     
