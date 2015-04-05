@@ -34,8 +34,8 @@ mod test;
 
 pub fn factory(opt: Option<String>) -> Box<Playout> {
     match opt.as_ref().map(::std::ops::Deref::deref) {
-        Some("no-self-atari") => Box::new(NoSelfAtariPlayout),
-        _ => Box::new(NoEyesPlayout),
+        Some("light") => Box::new(NoEyesPlayout),
+        _             => Box::new(NoSelfAtariPlayout),
     }
 }
 
@@ -43,7 +43,7 @@ pub trait Playout: Sync + Send {
 
     fn run(&self, board: &mut Board, initial_move: Option<&Move>, rng: &mut XorShiftRng) -> PlayoutResult {
         let mut played_moves = Vec::new();
-        
+
         initial_move.map(|&m| {
             board.play_legal_move(m);
             played_moves.push(m);
