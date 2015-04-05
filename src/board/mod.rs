@@ -624,7 +624,7 @@ impl Board {
         set.len() + 1 //plus the stone we're about to play
     }
     
-    pub fn new_chain_length_greater_than(&self, m: Move, limit: usize) -> bool {
+    pub fn new_chain_length_less_than(&self, m: Move, limit: usize) -> bool {
         let mut set: HashSet<&Coord> = HashSet::new();
         
         for &c in self.neighbours(m.coord()).iter() {
@@ -632,13 +632,13 @@ impl Board {
                 for coord in self.get_chain(c).unwrap().coords().iter() {
                     set.insert(coord);
                     if set.len() + 1 > limit {
-                        return true;
+                        return false;
                     }
                 }
             }
         }
         
-        false
+        true
     }
 
     pub fn score(&self) -> Score {

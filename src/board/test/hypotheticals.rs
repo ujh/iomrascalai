@@ -116,7 +116,7 @@ fn two_stones_have_six_liberties() {
     
     let play = Play(Black, 10, 12);
     assert_eq!(2, board.new_chain_length(play));
-    assert!(board.new_chain_length_greater_than(play, 1));
+    assert!(board.new_chain_length_less_than(play, 3));
     assert_eq!(6, board.new_chain_liberties(play));
     assert!(board.new_chain_liberties_greater_than(play, 5));
 }
@@ -128,7 +128,7 @@ fn three_stones_have_eight_liberties() {
     let board  = game.board();
     let play = Play(Black, 10, 10);
     assert_eq!(3, board.new_chain_length(play));
-    assert!(board.new_chain_length_greater_than(play, 2));
+    assert!(board.new_chain_length_less_than(play, 4));
     assert_eq!(8, board.new_chain_liberties(play));
     assert!(board.new_chain_liberties_greater_than(play, 7));
 }
@@ -140,7 +140,7 @@ fn four_stones_have_eight_liberties() {
     let board  = game.board();
     let play = Play(Black, 10, 7);
     assert_eq!(4, board.new_chain_length(play));
-    assert!(board.new_chain_length_greater_than(play, 3));
+    assert!(board.new_chain_length_less_than(play, 5));
     assert_eq!(8, board.new_chain_liberties(play));
     assert!(board.new_chain_liberties_greater_than(play, 7));
 }
@@ -152,7 +152,7 @@ fn five_stones_have_eight_liberties() {
     let board  = game.board();
     let play = Play(Black, 10, 4);
     assert_eq!(5, board.new_chain_length(play));
-    assert!(board.new_chain_length_greater_than(play, 4));
+    assert!(board.new_chain_length_less_than(play, 6));
     assert_eq!(8, board.new_chain_liberties(play));
     assert!(board.new_chain_liberties_greater_than(play, 7));
 }
@@ -164,7 +164,7 @@ fn six_stones_have_nine_liberties() {
     let board  = game.board();
     let play = Play(Black, 15, 17);
     assert_eq!(6, board.new_chain_length(play));
-    assert!(board.new_chain_length_greater_than(play, 5));
+    assert!(board.new_chain_length_less_than(play, 7));
     assert_eq!(9, board.new_chain_liberties(play));
     assert!(board.new_chain_liberties_greater_than(play, 8));
 }
@@ -177,7 +177,7 @@ fn seven_stones_have_ten_liberties() {
     let play = Play(Black, 15, 13);
 
     assert_eq!(7, board.new_chain_length(play));
-    assert!(board.new_chain_length_greater_than(play, 6));
+    assert!(board.new_chain_length_less_than(play, 8));
     assert_eq!(10, board.new_chain_liberties(play));
     assert!(board.new_chain_liberties_greater_than(play, 9));
 }
@@ -189,7 +189,7 @@ fn nine_stones_have_twelve_liberties() {
     let board  = game.board();
     let play = Play(Black, 15, 9);
     assert_eq!(9, board.new_chain_length(play));
-    assert!(board.new_chain_length_greater_than(play, 8));
+    assert!(board.new_chain_length_less_than(play, 10));
     assert_eq!(12, board.new_chain_liberties(play));
     assert!(board.new_chain_liberties_greater_than(play, 11));
 }
