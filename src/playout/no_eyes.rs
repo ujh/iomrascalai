@@ -52,11 +52,12 @@ impl Playout for NoSelfAtariPlayout {
                 
                 removed_enemies > 1 ||
                 {
-                let liberties = board.new_chain_liberties(*m);
-                liberties + removed_enemies > 1
+                //let liberties = board.new_chain_liberties(*m);
+                (removed_enemies > 0 && board.new_chain_liberties_greater_than(*m, 0)) ||
+                board.new_chain_liberties_greater_than(*m, 1)
                 }
             } 
-            || board.new_chain_length(*m) < 3 //don't suicide 3 stone groups in the playouts, only in the tree
+            || !board.new_chain_length_greater_than(*m, 3) //don't suicide 3 stone groups in the playouts, only in the tree
         )
     }
     
