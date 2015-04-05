@@ -1,3 +1,8 @@
+## 0.2.0 [☰](https://github.com/ujh/iomrascalai/compare/0.1.7...0.2.0)
+
+* UCT engine
+* A new playout policy that doesn't put large strings into self atari
+
 ## 0.1.7 [☰](https://github.com/ujh/iomrascalai/compare/0.1.6...0.1.7)
 
 * Improvements of the playout speeds
