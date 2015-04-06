@@ -597,6 +597,47 @@ impl Board {
         false
     }
     
+    pub fn new_chain_liberties_greater_than_zero(&self, m: Move) -> bool {
+        for &c in self.neighbours(m.coord()).iter() {
+            if self.color(&c) == *m.color() {
+                for &liberty in self.get_chain(c).unwrap().liberties() {
+                    if liberty != m.coord() {
+                        return true;
+                    }
+                }
+            } else if self.color(&c) == Empty {
+                return true;
+            }
+        }
+        
+        false
+    }
+    
+    pub fn new_chain_liberties_greater_than_one(&self, m: Move) -> bool {
+        let mut first_liberty: Option<Coord> = None;
+        for &c in self.neighbours(m.coord()).iter() {
+            if self.color(&c) == *m.color() {
+                for &liberty in self.get_chain(c).unwrap().liberties() {
+                    if liberty != m.coord() && first_liberty.is_none() {
+                        first_liberty = Some(liberty);
+                    } else if liberty != m.coord() && first_liberty.is_some() {
+                        if Some(liberty) != first_liberty {
+                            return true;
+                        }
+                    }
+                }
+            } else if self.color(&c) == Empty {
+                if first_liberty.is_none() {
+                    first_liberty = Some(c);
+                } else if Some(c) != first_liberty {
+                    return true;
+                }
+            }
+        }
+        
+        false
+    }
+    
     pub fn new_chain_length_less_than(&self, m: Move, limit: usize) -> bool {
         let mut set: HashSet<&Coord> = HashSet::new();
         
@@ -606,6 +647,25 @@ impl Board {
                     set.insert(coord);
                     if set.len() + 1 > limit {
                         return false;
+                    }
+                }
+            }
+        }
+        
+        true
+    }
+    
+    pub fn new_chain_length_less_than_three(&self, m: Move) -> bool {
+        let mut one_neighbour_found = false;
+        for &c in self.neighbours(m.coord()).iter() {
+            if self.color(&c) == *m.color() {
+                if one_neighbour_found {
+                    return false;
+                } else {
+                    if self.get_chain(c).unwrap().coords().len() > 1 {
+                        return false;
+                    } else {
+                        one_neighbour_found = true;
                     }
                 }
             }

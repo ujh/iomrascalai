@@ -37,7 +37,7 @@ impl Playout for NoEyesPlayout {
     }
 }
 
-//strings of 7 or more don't play self-atari in this playout
+//strings of 3 or more don't play self-atari in this playout because it makes an eye for the opponent
 #[derive(Debug)]
 pub struct NoSelfAtariPlayout;
 
@@ -53,11 +53,11 @@ impl Playout for NoSelfAtariPlayout {
                 
                 empty + removed_enemies > 1 ||
                 {
-                (removed_enemies > 0 && board.new_chain_liberties_greater_than(*m, 0)) ||
-                board.new_chain_liberties_greater_than(*m, 1)
+                (removed_enemies > 0 && board.new_chain_liberties_greater_than_zero(*m)) ||
+                board.new_chain_liberties_greater_than_one(*m)
                 }
             }
-            || board.new_chain_length_less_than(*m, 3) //you can self-atari one or two stones in playouts
+            || board.new_chain_length_less_than_three(*m) //you can self-atari one or two stones in playouts
         }
     }
     
