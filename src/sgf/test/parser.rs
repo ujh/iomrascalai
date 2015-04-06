@@ -1,6 +1,6 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2014 Urban Hafner                                          *
+ * Copyright 2014 Urban Hafner, Igor Polyakov                           *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -27,21 +27,21 @@ use sgf::parser::Parser;
 
 #[test]
 fn sets_the_board_size_from_sgf() {
-    let parser = Parser::from_path(Path::new("fixtures/sgf/empty.sgf"));
+    let parser = Parser::from_path(Path::new("fixtures/sgf/empty.sgf")).unwrap();
     let game  = parser.game().unwrap();
     assert_eq!(game.size(), 19);
 }
 
 #[test]
 fn sets_the_komi_from_sgf() {
-    let parser = Parser::from_path(Path::new("fixtures/sgf/empty.sgf"));
+    let parser = Parser::from_path(Path::new("fixtures/sgf/empty.sgf")).unwrap();
     let game  = parser.game().unwrap();
     assert_eq!(game.komi(), 6.5);
 }
 
 #[test]
 fn play_handicap_stones() {
-    let parser = Parser::from_path(Path::new("fixtures/sgf/handicap.sgf"));
+    let parser = Parser::from_path(Path::new("fixtures/sgf/handicap.sgf")).unwrap();
     let game  = parser.game().unwrap();
     assert_eq!(game.get(4,4), Black);
     assert_eq!(game.get(16,4), Black);
@@ -50,7 +50,7 @@ fn play_handicap_stones() {
 
 #[test]
 fn play_moves() {
-    let parser = Parser::from_path(Path::new("fixtures/sgf/twomoves.sgf"));
+    let parser = Parser::from_path(Path::new("fixtures/sgf/twomoves.sgf")).unwrap();
     let game  = parser.game().unwrap();
     assert_eq!(game.get(4, 15), Black);
     assert_eq!(game.get(16, 7), White);
@@ -58,7 +58,7 @@ fn play_moves() {
 
 #[test]
 fn finished_game() {
-    let parser = Parser::from_path(Path::new("fixtures/sgf/finished.sgf"));
+    let parser = Parser::from_path(Path::new("fixtures/sgf/finished.sgf")).unwrap();
     let game   = parser.game().unwrap();
     assert!(game.is_over());
 }

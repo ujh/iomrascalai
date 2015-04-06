@@ -89,7 +89,7 @@ pub enum Command {
 pub struct GTPInterpreter<'a> {
     config: Arc<Config>,
     game: Game,
-    guard: thread::JoinGuard<'a, ()>,
+    _guard: thread::JoinGuard<'a, ()>,
     receive_move_from_controller: Receiver<Move>,
     send_game_to_controller: Sender<(Game, Color, Timer)>,
     send_halt_to_controller: Sender<()>,
@@ -97,7 +97,7 @@ pub struct GTPInterpreter<'a> {
 }
 
 impl<'a> GTPInterpreter<'a> {
-    pub fn new<'b>(config: Arc<Config>, engine: Box<Engine + 'b>) -> GTPInterpreter<'b> {
+    pub fn new(config: Arc<Config>, engine: Box<Engine>) -> GTPInterpreter<'a> {
         let komi      = 6.5;
         let boardsize = 19;
         let (send_game_to_controller, receive_game_from_interpreter) = channel::<(Game, Color, Timer)>();
@@ -119,7 +119,7 @@ impl<'a> GTPInterpreter<'a> {
         GTPInterpreter {
             config: config.clone(),
             game: Game::new(boardsize, komi, config.ruleset),
-            guard: guard,
+            _guard: guard,
             receive_move_from_controller: receive_move_from_controller,
             send_game_to_controller: send_game_to_controller,
             send_halt_to_controller: send_halt_to_controller,
@@ -128,7 +128,7 @@ impl<'a> GTPInterpreter<'a> {
     }
 
     pub fn quit(&self) {
-        self.send_halt_to_controller.send(());
+        self.send_halt_to_controller.send(()).unwrap();
     }
 
     pub fn game<'b>(&'b self) -> &'b Game {
@@ -143,11 +143,11 @@ impl<'a> GTPInterpreter<'a> {
         self.config.ruleset
     }
 
-    pub fn main_time(&self) -> i64 {
+    pub fn main_time(&self) -> u32 {
         self.timer.main_time()
     }
 
-    pub fn byo_time(&self) -> i64 {
+    pub fn byo_time(&self) -> u32 {
         self.timer.byo_time()
     }
 
@@ -210,7 +210,7 @@ impl<'a> GTPInterpreter<'a> {
         	Some(comm) => {
                     self.timer.start();
         	    let color = Color::from_gtp(comm);
-                    self.send_game_to_controller.send((self.game.clone(), color, self.timer.clone()));
+                    self.send_game_to_controller.send((self.game.clone(), color, self.timer.clone())).unwrap();
                     let m = self.receive_move_from_controller.recv().unwrap();
                     match self.game.play(m) {
                         Ok(g) => {
@@ -249,7 +249,7 @@ impl<'a> GTPInterpreter<'a> {
             KnownCommands::time_settings    => match command.get(3) {
             	Some(third) => {
             		//command[1] and command[2] should be there
-                    match (command[1].parse::<i64>(), command[2].parse::<i64>(), third.parse::<i32>()) {
+                    match (command[1].parse::<u32>(), command[2].parse::<u32>(), third.parse::<i32>()) {
                         (Ok(main), Ok(byo), Ok(stones)) => {
                             self.timer.setup(main, byo, stones);
                             Command::TimeSettings
@@ -263,7 +263,7 @@ impl<'a> GTPInterpreter<'a> {
             	Some(third) => {
             		//command[2] should be there
             		//TODO: seems wrong, missing a color
-                    match (command[2].parse::<i64>(), third.parse::<i32>()) {
+                    match (command[2].parse::<u32>(), third.parse::<i32>()) {
                         (Ok(time), Ok(stones)) => {
                             self.timer.update(time, stones);
                             Command::TimeLeft
@@ -277,7 +277,7 @@ impl<'a> GTPInterpreter<'a> {
             	Some(comm) => {
                     let filename = comm;
 
-                    match Parser::attempt_from_path(Path::new(filename)) {
+                    match Parser::from_path(Path::new(filename)) {
                     	Ok(parser) => {
                     		let game = parser.game();
                             match game {

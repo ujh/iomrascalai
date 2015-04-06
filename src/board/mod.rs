@@ -33,8 +33,6 @@ use ruleset::Ruleset;
 use score::Score;
 use self::point::Point;
 
-use rand::Rng;
-use rand::XorShiftRng;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fmt;
@@ -579,32 +577,16 @@ impl Board {
             .count()
     }
     
-    pub fn new_chain_liberties(&self, m: Move) -> usize {
-        let mut set: HashSet<Coord> = HashSet::new();
-        
-        for &c in self.neighbours(m.coord()).iter() {
-            if(self.color(&c) == *m.color()) {
-                //add the liberties the chain
-                for &liberty in self.get_chain(c).unwrap().liberties() {
-                    set.insert(liberty);
-                }
-            } else if(self.color(&c) == Empty)  {
-                set.insert(c);
-            }
-        };
-        set.len() - 1 //minus the stone we're about to play
-    }
-    
     pub fn new_chain_liberties_greater_than(&self, m: Move, limit: usize) -> bool {
         let mut set: HashSet<Coord> = HashSet::new();
         
         for &c in self.neighbours(m.coord()).iter() {
-            if(self.color(&c) == *m.color()) {
+            if self.color(&c) == *m.color() {
                 //add the liberties the chain
                 for &liberty in self.get_chain(c).unwrap().liberties() {
                     set.insert(liberty);
                 }
-            } else if(self.color(&c) == Empty)  {
+            } else if self.color(&c) == Empty {
                 set.insert(c);
             }
             
@@ -613,15 +595,6 @@ impl Board {
             }
         };
         false
-    }
-    
-    //the length of all merged chains after the current move
-    pub fn new_chain_length(&self, m: Move) -> usize {
-        let set: HashSet<&Coord> = self.neighbours(m.coord()).iter()
-            .filter(|c| self.color(c) == *m.color())
-            .flat_map(|c| self.get_chain(*c).unwrap().coords().iter())
-            .collect();
-        set.len() + 1 //plus the stone we're about to play
     }
     
     pub fn new_chain_length_less_than(&self, m: Move, limit: usize) -> bool {

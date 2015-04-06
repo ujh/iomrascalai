@@ -1,6 +1,6 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2015 Urban Hafner                                          *
+ * Copyright 2015 Urban Hafner, Igor Polyakov                           *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -19,7 +19,6 @@
  *                                                                      *
  ************************************************************************/
 
-use playout::NoEyesPlayout;
 use playout::Playout;
 use ruleset::Minimal;
 use ruleset::Ruleset;

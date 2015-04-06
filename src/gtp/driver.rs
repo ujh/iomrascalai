@@ -27,7 +27,7 @@ use super::GTPInterpreter;
 use version;
 
 use std::sync::Arc;
-use std::old_io::stdio::stdin;
+use std::io::stdin;
 
 pub struct Driver;
 
@@ -39,12 +39,15 @@ impl Driver {
 
         let mut interpreter = GTPInterpreter::new(config, engine);
         let mut reader = stdin();
+        let mut command = String::new();
 
         loop {
+            command.clear();
+            reader.read_line(&mut command).unwrap();
 
-            let command = interpreter.read(reader.read_line().unwrap().as_ref());
+            let gtp_command = interpreter.read(&*command);
 
-            match command {
+            match gtp_command {
                 Command::BoardSize          => print!("= \n\n"),
                 Command::ClearBoard         => print!("= \n\n"),
                 Command::FinalScore(s)      => print!("= {}\n\n", s),

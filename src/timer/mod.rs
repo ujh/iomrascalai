@@ -21,16 +21,14 @@
 
 use game::Info;
 
-use std::num::Float;
-use std::num::SignedInt;
 use time::precise_time_ns;
 
 mod test;
 
 #[derive(Clone)]
 struct Clock {
-    start: Option<i64>,
-    end:   Option<i64>,
+    start: Option<u64>,
+    end:   Option<u64>,
 }
 
 impl Clock {
@@ -43,19 +41,19 @@ impl Clock {
     }
 
     pub fn start(&mut self) {
-        self.start = Some(precise_time_ns() as i64);
+        self.start = Some(precise_time_ns());
         self.end   = None;
     }
 
     pub fn stop(&mut self) {
-        self.end = Some(precise_time_ns() as i64);
+        self.end = Some(precise_time_ns());
     }
 
-    fn time_elapsed_in_ms(&self) -> i64 {
+    fn time_elapsed_in_ms(&self) -> u32 {
         match self.start {
             Some(start) => {
                 match self.end {
-                    Some(end) => (end - start) / 1000000,
+                    Some(end) => ((end - start) / 1000000) as u32,
                     None      => 0
                 }
             },
@@ -76,10 +74,10 @@ impl Clock {
 pub struct Timer {
     byo_stones: i32, // stones per byo yomi period
     byo_stones_left: i32,
-    byo_time: i64, // byo yomi time in ms
-    byo_time_left: i64,
-    main_time: i64, // main time in ms
-    main_time_left: i64,
+    byo_time: u32, // byo yomi time in ms
+    byo_time_left: u32,
+    main_time: u32, // main time in ms
+    main_time_left: u32,
     clock: Clock,
 }
 
@@ -105,14 +103,14 @@ impl Timer {
         self.clock.stop();
     }
 
-    pub fn setup(&mut self, main_in_s: i64, byo_in_s: i64, stones: i32) {
+    pub fn setup(&mut self, main_in_s: u32, byo_in_s: u32, stones: i32) {
         self.set_main_time(main_in_s * 1000);
         self.set_byo_time(byo_in_s * 1000);
         self.set_byo_stones(stones);
         self.clock.stop();
     }
 
-    pub fn update(&mut self, time_in_s: i64, stones: i32) {
+    pub fn update(&mut self, time_in_s: u32, stones: i32) {
         if stones == 0 {
             self.main_time_left = time_in_s * 1000;
         } else {
@@ -132,20 +130,18 @@ impl Timer {
         self.adjust_time();
     }
 
-    fn new_time_left(&self) -> i64 {
-        self.main_time_left - self.clock.time_elapsed_in_ms()
-    }
-
     fn adjust_time(&mut self) {
-        let new_time_left = self.new_time_left();
-        if new_time_left < 0 {
-            let overtime_spent = new_time_left.abs();
+        let time_elapsed = self.clock.time_elapsed_in_ms();
+        
+        if time_elapsed > self.main_time_left {
+            let overtime_spent = time_elapsed - self.main_time_left;
             self.main_time_left = 0;
-            self.byo_time_left -= overtime_spent;
-            if self.byo_time_left < 0 {
+            
+            if overtime_spent > self.byo_time_left {
                 self.byo_time_left = 0;
                 self.byo_stones_left = 0;
             } else {
+                self.byo_time_left -= overtime_spent;
                 self.byo_stones_left -= 1;
                 if self.byo_stones_left == 0 {
                     self.byo_time_left = self.byo_time;
@@ -153,28 +149,28 @@ impl Timer {
                 }
             }
         } else {
-            self.main_time_left = new_time_left;
+            self.main_time_left -= time_elapsed;
         }
     }
 
-    pub fn main_time(&self) -> i64 {
+    pub fn main_time(&self) -> u32 {
         self.main_time
     }
 
-    pub fn main_time_left(&self) -> i64 {
+    pub fn main_time_left(&self) -> u32 {
         self.main_time_left
     }
 
-    fn set_main_time(&mut self, time: i64) {
+    fn set_main_time(&mut self, time: u32) {
         self.main_time = time;
         self.main_time_left = time;
     }
 
-    pub fn byo_time(&self) -> i64 {
+    pub fn byo_time(&self) -> u32 {
         self.byo_time
     }
 
-    fn set_byo_time(&mut self, time: i64) {
+    fn set_byo_time(&mut self, time: u32) {
         self.byo_time = time;
         self.byo_time_left = time;
     }
@@ -193,17 +189,17 @@ impl Timer {
         0.5
     }
 
-    pub fn budget<T: Info>(&self, game: &T) -> i64 {
+    pub fn budget<T: Info>(&self, game: &T) -> u32 {
         // If there's still main time left
         if self.main_time_left > 0 {
             // TODO: Are there issues with all these values being ints?
-            (self.main_time_left as f32 / (self.C() * game.vacant_point_count() as f32)).floor() as i64
+            (self.main_time_left as f32 / (self.C() * game.vacant_point_count() as f32)).floor() as u32
         } else if self.byo_time_left == 0 {
             0
         } else {
             // Else use byoyomi time
             // TODO: Does that need to be adjusted wrt to time_left?
-            (self.byo_time_left as f32 / self.byo_stones_left as f32).floor() as i64
+            (self.byo_time_left as f32 / self.byo_stones_left as f32).floor() as u32
         }
     }
 }

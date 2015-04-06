@@ -1,7 +1,7 @@
 /************************************************************************
  *                                                                      *
  * Copyright 2014 Urban Hafner, Thomas Poinsot                          *
- * Copyright 2015 Urban Hafner                                          *
+ * Copyright 2015 Urban Hafner, Igor Polyakov                           *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -52,7 +52,7 @@ fn replaying_directly_on_a_ko_point_should_be_illegal() {
 
 #[test]
 fn positional_super_ko_should_be_legal() {
-    let parser    = Parser::from_path(Path::new("fixtures/sgf/positional-superko.sgf"));
+    let parser    = Parser::from_path(Path::new("fixtures/sgf/positional-superko.sgf")).unwrap();
     let game      = parser.game().unwrap();
     let mut board = game.board();
     let super_ko = board.play(Play(White, 2, 9));
@@ -61,7 +61,7 @@ fn positional_super_ko_should_be_legal() {
 
 #[test]
 fn recapture_that_captures_several_stones_isnt_ko() {
-    let parser    = Parser::from_path(Path::new("fixtures/sgf/recapture-but-not-ko.sgf"));
+    let parser    = Parser::from_path(Path::new("fixtures/sgf/recapture-but-not-ko.sgf")).unwrap();
     let game      = parser.game().unwrap();
     let mut board = game.board();
     let result = board.play(Play(White, 1, 6)); // a6

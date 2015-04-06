@@ -1,7 +1,7 @@
 /************************************************************************
  *                                                                      *
  * Copyright 2014 Urban Hafner, Thomas Poinsot                          *
- * Copyright 2015 Urban Hafner                                          *
+ * Copyright 2015 Urban Hafner, Igor Polyakov                           *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -30,7 +30,6 @@ use self::territory::Territory;
 
 use core::fmt::Display;
 use std::fmt;
-use std::num::Float;
 
 mod territory;
 mod test;

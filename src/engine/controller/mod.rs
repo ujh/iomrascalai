@@ -25,14 +25,13 @@ use config::Config;
 use engine::Engine;
 use game::Game;
 use timer::Timer;
-use std::old_io::Writer;
+use std::io::Write;
 
-use std::old_io::timer::sleep;
 use std::sync::Arc;
 use std::sync::mpsc::channel;
 use std::sync::mpsc::Sender;
 use std::thread;
-use std::time::duration::Duration;
+use std::thread::sleep_ms;
 
 mod test;
 
@@ -56,27 +55,27 @@ impl<'a> EngineController<'a> {
         let (send_signal_to_engine, receive_signal_from_controller) = channel::<()>();
         // Saving the guard into a variable is necessary. Otherwise
         // the code blocks right here.
-        let guard = thread::scoped(|| {
+        let _guard = thread::scoped(|| {
             self.engine.gen_move(color, game, send_move_to_controller, receive_signal_from_controller);
         });
         let (send_time_up_to_controller, receive_time_up) = channel();
         thread::spawn(move || {
-            sleep(Duration::milliseconds(budget));
-            send_time_up_to_controller.send(());
+            sleep_ms(budget);
+            send_time_up_to_controller.send(()).unwrap();
         });
         select!(
             r = receive_move_from_engine.recv() => {
-                send_move.send(r.unwrap());
+                send_move.send(r.unwrap()).unwrap();
             },
             _ = receive_time_up.recv() => {
-                send_signal_to_engine.send(());
+                send_signal_to_engine.send(()).unwrap();
                 let m = receive_move_from_engine.recv().unwrap();
-                send_move.send(m);
+                send_move.send(m).unwrap();
             }
         )
     }
 
-    fn budget(&self, timer: &Timer, game: &Game) -> i64 {
+    fn budget(&self, timer: &Timer, game: &Game) -> u32 {
         let budget = timer.budget(game);
         if self.config.log {
             log!("Thinking for {}ms ({}ms time left)", budget, timer.main_time_left());

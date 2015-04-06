@@ -60,7 +60,7 @@ impl Engine for EarlyReturnEngine {
 fn the_engine_can_use_less_time_than_allocated() {
     let game = Game::new(19, 6.5, Minimal);
     let color = game.next_player();
-    let mut timer = Timer::new();
+    let timer = Timer::new();
     let budget = timer.budget(&game);
     let engine = Box::new(EarlyReturnEngine::new());
     let controller = EngineController::new(Arc::new(Config::default()), engine);
@@ -69,7 +69,7 @@ fn the_engine_can_use_less_time_than_allocated() {
     controller.run_and_return_move(color, &game, &timer, sender);
     let m = receiver.recv().unwrap();
     let elapsed_time = start_time.to(PreciseTime::now()).num_milliseconds();
-    assert!(elapsed_time < budget);
+    assert!(elapsed_time < budget as i64);
     assert_eq!(Pass(color), m);
 }
 
@@ -93,6 +93,7 @@ impl Engine for WaitingEngine {
 
 }
 
+//TODO: this sometimes fails
 #[test]
 fn the_controller_asks_the_engine_for_a_move_when_the_time_is_up() {
     let game = Game::new(19, 6.5, Minimal);
@@ -107,6 +108,6 @@ fn the_controller_asks_the_engine_for_a_move_when_the_time_is_up() {
     controller.run_and_return_move(color, &game, &timer, sender);
     let m = receiver.recv().unwrap();
     let elapsed_time = start_time.to(PreciseTime::now()).num_milliseconds();
-    assert!(elapsed_time >= budget);
+    assert!(elapsed_time >= budget as i64);
     assert_eq!(Pass(color), m);
 }

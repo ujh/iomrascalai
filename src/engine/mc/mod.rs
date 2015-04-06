@@ -1,7 +1,7 @@
 /************************************************************************
  *                                                                      *
  * Copyright 2014 Urban Hafner                                          *
- * Copyright 2015 Urban Hafner, Thomas Poinsot                          *
+ * Copyright 2015 Urban Hafner, Thomas Poinsot, Igor Polyakov           *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -36,8 +36,7 @@ use playout::PlayoutResult;
 
 use rand::Rng;
 use rand::weak_rng;
-use std::marker::MarkerTrait;
-use std::old_io::Writer;
+use std::io::Write;
 use std::sync::Arc;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
@@ -47,7 +46,7 @@ use std::thread;
 mod amaf;
 mod simple;
 
-pub trait McEngine: MarkerTrait {
+pub trait McEngine {
 
     fn record_playout(&mut MoveStats, &PlayoutResult, bool);
 
@@ -59,13 +58,13 @@ fn gen_move<T: McEngine>(config: Arc<Config>, color: Color, game: &Game, sender:
         if config.log {
             log!("No moves to simulate!");
         }
-        sender.send(Pass(color));
+        sender.send(Pass(color)).unwrap();
         return;
     }
     let mut stats = MoveStats::new(&moves, color);
     let mut counter = 0;
     let (send_result, receive_result) = channel::<(MoveStats, usize)>();
-    let (guards, halt_senders) = spin_up::<T>(color, config.clone(), &moves, game, send_result);
+    let (_guards, halt_senders) = spin_up::<T>(color, config.clone(), &moves, game, send_result);
     loop {
         select!(
             result = receive_result.recv() => {
@@ -87,18 +86,18 @@ fn gen_move<T: McEngine>(config: Arc<Config>, color: Color, game: &Game, sender:
 
 fn finish(color: Color, game: &Game, stats: MoveStats, sender: Sender<Move>, halt_senders: Vec<Sender<()>>) -> String {
     for halt_sender in halt_senders.iter() {
-        halt_sender.send(());
+        halt_sender.send(()).unwrap();
     }
     if stats.all_losses() {
         if game.winner() == color {
-            sender.send(Pass(color));
+            sender.send(Pass(color)).unwrap();
         } else {
-            sender.send(Resign(color));
+            sender.send(Resign(color)).unwrap();
         }
         String::from_str("All simulations were losses")
     } else {
         let (m, s) = stats.best();
-        sender.send(m);
+        sender.send(m).unwrap();
         format!("Returning the best move ({}% wins)", s.win_ratio()*100.0)
     }
 }
@@ -133,7 +132,7 @@ fn spin_up_worker<'a, T: McEngine>(color: Color, recv_halt: Receiver<()>, moves:
             if recv_halt.try_recv().is_ok() {
                 break;
             } else {
-                send_result.send((stats, runs));
+                send_result.send((stats, runs)).unwrap();
                 stats = MoveStats::new(moves, color);
             }
         }

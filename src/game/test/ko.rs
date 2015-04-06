@@ -1,7 +1,7 @@
 /************************************************************************
  *                                                                      *
  * Copyright 2014 Urban Hafner, Thomas Poinsot                          *
- * Copyright 2015 Urban Hafner                                          *
+ * Copyright 2015 Urban Hafner, Igor Polyakov                           *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -53,7 +53,7 @@ fn replaying_directly_on_a_ko_point_should_be_illegal() {
 
 #[test]
 fn positional_super_ko_should_be_illegal() {
-    let parser = Parser::from_path(Path::new("fixtures/sgf/positional-superko.sgf"));
+    let parser = Parser::from_path(Path::new("fixtures/sgf/positional-superko.sgf")).unwrap();
     let game   = parser.game().unwrap();
     let super_ko = game.play(Play(White, 2, 9));
     match super_ko {
@@ -64,7 +64,7 @@ fn positional_super_ko_should_be_illegal() {
 
 #[test]
 fn legal_moves_shouldnt_contain_super_ko_moves() {
-    let parser   = Parser::from_path(Path::new("fixtures/sgf/positional-superko.sgf"));
+    let parser   = Parser::from_path(Path::new("fixtures/sgf/positional-superko.sgf")).unwrap();
     let game     = parser.game().unwrap();
     let super_ko = Play(White, 2, 9);
     assert!(!game.legal_moves().contains(&super_ko), "super ko move found");
@@ -72,7 +72,7 @@ fn legal_moves_shouldnt_contain_super_ko_moves() {
 
 #[test]
 fn not_a_super_ko() {
-    let parser   = Parser::from_path(Path::new("fixtures/sgf/not-superko.sgf"));
+    let parser   = Parser::from_path(Path::new("fixtures/sgf/not-superko.sgf")).unwrap();
     let game     = parser.game().unwrap();
     let no_super_ko = game.play(Play(Black, 1, 1));
     match no_super_ko {
@@ -83,7 +83,7 @@ fn not_a_super_ko() {
 
 #[test]
 fn not_a_super_ko2() {
-    let parser   = Parser::from_path(Path::new("fixtures/sgf/not-superko2.sgf"));
+    let parser   = Parser::from_path(Path::new("fixtures/sgf/not-superko2.sgf")).unwrap();
     let game     = parser.game().unwrap();
     let no_super_ko = game.play(Play(Black, 13, 12));
     match no_super_ko {
