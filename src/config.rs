@@ -19,7 +19,6 @@
  *                                                                      *
  ************************************************************************/
 
-use playout::NoEyesPlayout;
 use playout::Playout;
 use ruleset::Minimal;
 use ruleset::Ruleset;

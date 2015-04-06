@@ -20,9 +20,7 @@
  *                                                                      *
  ************************************************************************/
 #![feature(collections)]
-#![feature(convert)]
 #![feature(core)]
-#![feature(old_io)]
 #![feature(plugin)]
 #![feature(std_misc)]
 #![feature(test)]
@@ -49,7 +47,7 @@ use std::sync::Arc;
 
 macro_rules! log(
     ($($arg:tt)*) => (
-        match writeln!(&mut ::std::old_io::stdio::stderr(), $($arg)* ) {
+        match writeln!(&mut ::std::io::stderr(), $($arg)* ) {
             Ok(_) => {},
             Err(x) => panic!("Unable to write to stderr: {}", x),
         }

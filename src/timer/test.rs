@@ -24,8 +24,7 @@
 use game::Info;
 use super::Timer;
 
-use std::old_io::timer::sleep;
-use std::time::duration::Duration;
+use std::thread::sleep_ms;
 
 #[test]
 fn the_timer_doesnt_start_on_new() {
@@ -104,7 +103,7 @@ fn start_starts_the_clock() {
 fn stop_changes_the_time_left() {
     let mut timer = Timer::new();
     timer.start();
-    sleep(Duration::milliseconds(10));
+    sleep_ms(10);
     timer.stop();
     assert!(timer.main_time_left < timer.main_time);
 }
@@ -114,15 +113,6 @@ fn stop_stops_the_clock() {
     let mut timer = Timer::new();
     timer.stop();
     assert!(timer.clock.stopped());
-}
-
-#[test]
-fn new_time_left_subtracts_the_elapsed_time() {
-    let mut timer = Timer::new();
-    assert_eq!(5*60*1000, timer.main_time_left);
-    timer.clock.start = Some(0);
-    timer.clock.end   = Some(1000000);
-    assert_eq!(5*60*1000-1, timer.new_time_left());
 }
 
 #[test]

@@ -29,7 +29,7 @@ use sgf::Parser;
 
 #[test]
 fn corner_no_enemies_is_eye() {
-    let parser = Parser::from_path(Path::new("fixtures/sgf/eye/corner-no-enemies.sgf"));
+    let parser = Parser::from_path(Path::new("fixtures/sgf/eye/corner-no-enemies.sgf")).unwrap();
     let game   = parser.game().unwrap();
     let board  = game.board();
     assert_eq!(true, board.is_eye(&Coord::new(1,5), Black));
@@ -37,7 +37,7 @@ fn corner_no_enemies_is_eye() {
 
 #[test]
 fn corner_not_an_eye_is_no_eye() {
-    let parser = Parser::from_path(Path::new("fixtures/sgf/eye/corner-not-an-eye.sgf"));
+    let parser = Parser::from_path(Path::new("fixtures/sgf/eye/corner-not-an-eye.sgf")).unwrap();
     let game   = parser.game().unwrap();
     let board  = game.board();
     assert_eq!(false, board.is_eye(&Coord::new(1,5), Black));
@@ -45,7 +45,7 @@ fn corner_not_an_eye_is_no_eye() {
 
 #[test]
 fn corner_one_enemy_is_no_eye() {
-    let parser = Parser::from_path(Path::new("fixtures/sgf/eye/corner-one-enemy.sgf"));
+    let parser = Parser::from_path(Path::new("fixtures/sgf/eye/corner-one-enemy.sgf")).unwrap();
     let game   = parser.game().unwrap();
     let board  = game.board();
     assert_eq!(false, board.is_eye(&Coord::new(1,5), Black));
@@ -53,7 +53,7 @@ fn corner_one_enemy_is_no_eye() {
 
 #[test]
 fn edge_no_enemies_is_eye() {
-    let parser = Parser::from_path(Path::new("fixtures/sgf/eye/edge-no-enemies.sgf"));
+    let parser = Parser::from_path(Path::new("fixtures/sgf/eye/edge-no-enemies.sgf")).unwrap();
     let game   = parser.game().unwrap();
     let board  = game.board();
     assert_eq!(true, board.is_eye(&Coord::new(1,3), Black));
@@ -61,7 +61,7 @@ fn edge_no_enemies_is_eye() {
 
 #[test]
 fn edge_not_an_eye_is_no_eye() {
-    let parser = Parser::from_path(Path::new("fixtures/sgf/eye/edge-not-an-eye.sgf"));
+    let parser = Parser::from_path(Path::new("fixtures/sgf/eye/edge-not-an-eye.sgf")).unwrap();
     let game   = parser.game().unwrap();
     let board  = game.board();
     assert_eq!(false, board.is_eye(&Coord::new(1,3), Black));
@@ -69,7 +69,7 @@ fn edge_not_an_eye_is_no_eye() {
 
 #[test]
 fn edge_one_enemy_is_no_eye() {
-    let parser = Parser::from_path(Path::new("fixtures/sgf/eye/edge-one-enemy.sgf"));
+    let parser = Parser::from_path(Path::new("fixtures/sgf/eye/edge-one-enemy.sgf")).unwrap();
     let game   = parser.game().unwrap();
     let board  = game.board();
     assert_eq!(false, board.is_eye(&Coord::new(1,3), Black));
@@ -77,7 +77,7 @@ fn edge_one_enemy_is_no_eye() {
 
 #[test]
 fn no_enemies_is_an_eye() {
-    let parser = Parser::from_path(Path::new("fixtures/sgf/eye/no-enemies.sgf"));
+    let parser = Parser::from_path(Path::new("fixtures/sgf/eye/no-enemies.sgf")).unwrap();
     let game   = parser.game().unwrap();
     let board  = game.board();
     assert_eq!(true, board.is_eye(&Coord::new(3,3), Black));
@@ -85,7 +85,7 @@ fn no_enemies_is_an_eye() {
 
 #[test]
 fn not_an_eye_is_no_eye() {
-    let parser = Parser::from_path(Path::new("fixtures/sgf/eye/not-an-eye.sgf"));
+    let parser = Parser::from_path(Path::new("fixtures/sgf/eye/not-an-eye.sgf")).unwrap();
     let game   = parser.game().unwrap();
     let board  = game.board();
     assert_eq!(false, board.is_eye(&Coord::new(3,3), Black));
@@ -93,7 +93,7 @@ fn not_an_eye_is_no_eye() {
 
 #[test]
 fn one_enemy_is_an_eye() {
-    let parser = Parser::from_path(Path::new("fixtures/sgf/eye/one-enemy.sgf"));
+    let parser = Parser::from_path(Path::new("fixtures/sgf/eye/one-enemy.sgf")).unwrap();
     let game   = parser.game().unwrap();
     let board  = game.board();
     assert_eq!(true, board.is_eye(&Coord::new(3,3), Black));
@@ -101,7 +101,7 @@ fn one_enemy_is_an_eye() {
 
 #[test]
 fn two_enemies_is_not_an_eye() {
-    let parser = Parser::from_path(Path::new("fixtures/sgf/eye/two-enemies.sgf"));
+    let parser = Parser::from_path(Path::new("fixtures/sgf/eye/two-enemies.sgf")).unwrap();
     let game   = parser.game().unwrap();
     let board  = game.board();
     assert_eq!(false, board.is_eye(&Coord::new(3,3), Black));
@@ -109,7 +109,7 @@ fn two_enemies_is_not_an_eye() {
 
 #[test]
 fn legal_moves_without_eyes_shouldnt_include_an_eye() {
-    let parser = Parser::from_path(Path::new("fixtures/sgf/eye/no-enemies.sgf"));
+    let parser = Parser::from_path(Path::new("fixtures/sgf/eye/no-enemies.sgf")).unwrap();
     let game   = parser.game().unwrap();
     let mut board  = game.board();
     board.play(Pass(White));

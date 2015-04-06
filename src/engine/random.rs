@@ -44,7 +44,7 @@ impl Engine for RandomEngine {
         let mut moves = game.legal_moves();
         moves.push(Pass(color));
         let m = moves[random::<usize>() % moves.len()];
-        sender.send(m);
+        sender.send(m).unwrap();
     }
 
     fn engine_type(&self) -> &'static str {

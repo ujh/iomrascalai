@@ -21,16 +21,11 @@
 
 use board::Board;
 use board::Color;
-use board::Empty;
 use board::Move;
 use board::Pass;
-use config::Config;
 use game::Game;
 
-use rand::XorShiftRng;
 use std::f32;
-use std::num::Float;
-use std::sync::Arc;
 use std::usize;
 
 mod test;

@@ -30,7 +30,6 @@ use self::territory::Territory;
 
 use core::fmt::Display;
 use std::fmt;
-use std::num::Float;
 
 mod territory;
 mod test;

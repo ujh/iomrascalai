@@ -95,7 +95,7 @@ impl Parser {
         Parser {sgf: sgf}
     }
 
-    pub fn attempt_from_path(path: &Path) -> Result<Parser, ::std::io::Error> {
+    pub fn from_path(path: &Path) -> Result<Parser, ::std::io::Error> {
     	match File::open(&path) {
     		Ok(mut file) => {
 		        let mut contents = String::new();
@@ -107,13 +107,6 @@ impl Parser {
     		Err(e) => Err(e)
 		}
 	}
-
-    pub fn from_path(path: &Path) -> Parser {
-        let mut f = File::open(&path).unwrap();
-        let mut contents = String::new();
-        f.read_to_string(&mut contents).unwrap();
-        Parser::new(contents)
-    }
 
     pub fn game(&self) -> Result<Game, IllegalMove> {
         let mut game = Game::new(self.size(), self.komi(), Minimal);

@@ -487,7 +487,7 @@ fn komi_returns_the_komi() {
 
 #[test]
 fn adv_stones_removed_only_contains_each_coord_once() {
-    let parser = Parser::from_path(Path::new("fixtures/sgf/not-superko2.sgf"));
+    let parser = Parser::from_path(Path::new("fixtures/sgf/not-superko2.sgf")).unwrap();
     let game = parser.game().unwrap();
     let board = game.board();
     let mut removed_coords = board.adv_stones_removed().clone();

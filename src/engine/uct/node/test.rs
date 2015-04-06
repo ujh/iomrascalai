@@ -116,7 +116,7 @@ fn the_root_needs_to_be_initialized_with_1_plays_for_correct_uct_calculations() 
 
 #[test]
 fn no_super_ko_violations_in_the_children_of_the_root() {
-    let parser = Parser::from_path(Path::new("fixtures/sgf/positional-superko.sgf"));
+    let parser = Parser::from_path(Path::new("fixtures/sgf/positional-superko.sgf")).unwrap();
     let game = parser.game().unwrap();
     let mut root = Node::root(&game, White);
     // Play(White, 2, 9) is a super ko violation
