@@ -36,7 +36,6 @@ use ruleset::KgsChinese;
 use ruleset::Minimal;
 use sgf::Parser;
 
-use rand::weak_rng;
 use std::path::Path;
 
 mod diagonals;

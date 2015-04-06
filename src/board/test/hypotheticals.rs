@@ -23,8 +23,6 @@
 use std::path::Path;
 use board::Black;
 use board::Coord;
-use board::Pass;
-use board::White;
 use board::movement::Play;
 use sgf::Parser;
 

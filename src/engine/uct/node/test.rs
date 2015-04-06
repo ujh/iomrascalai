@@ -1,6 +1,6 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2015 Urban Hafner                                          *
+ * Copyright 2015 Urban Hafner, Igor Polyakov                           *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -25,16 +25,12 @@ use board::Black;
 use board::Pass;
 use board::Play;
 use board::White;
-use config::Config;
 use game::Game;
 use ruleset::KgsChinese;
 use sgf::Parser;
 use super::Node;
 
-use rand::weak_rng;
 use std::path::Path;
-use std::sync::Arc;
-use test::Bencher;
 
 #[test]
 fn root_expands_the_children() {
@@ -74,8 +70,6 @@ fn expand_adds_children_if_threshold_is_met() {
 fn unvisited_children_are_explored_first() {
     let game = Game::new(2, 0.5, KgsChinese);
     let mut root = Node::root(&game, Black);
-    let config = Arc::new(Config::default());
-    let mut rng = weak_rng();
     for _ in 0..4 {
         root.find_leaf_and_expand(&game, 1);
     }
@@ -87,8 +81,6 @@ fn unvisited_children_are_explored_first() {
 fn find_leaf_and_expand_expands_the_leaves() {
     let game = Game::new(2, 0.5, KgsChinese);
     let mut root = Node::root(&game, Black);
-    let config = Arc::new(Config::default());
-    let mut rng = weak_rng();
     for _ in 0..4 {
         root.find_leaf_and_expand(&game, 1);
     }
@@ -100,8 +92,6 @@ fn find_leaf_and_expand_expands_the_leaves() {
 fn run_playout_sets_play_on_the_root() {
     let game = Game::new(2, 0.5, KgsChinese);
     let mut root = Node::root(&game, Black);
-    let config = Arc::new(Config::default());
-    let mut rng = weak_rng();
     root.find_leaf_and_expand(&game, 1);
     assert_eq!(2, root.plays);
 }
@@ -109,7 +99,7 @@ fn run_playout_sets_play_on_the_root() {
 #[test]
 fn the_root_needs_to_be_initialized_with_1_plays_for_correct_uct_calculations() {
     let game = Game::new(2, 0.5, KgsChinese);
-    let mut root = Node::root(&game, Black);
+    let root = Node::root(&game, Black);
     assert_eq!(1, root.plays);
     assert_eq!(1, root.wins);
  }
@@ -118,14 +108,14 @@ fn the_root_needs_to_be_initialized_with_1_plays_for_correct_uct_calculations() 
 fn no_super_ko_violations_in_the_children_of_the_root() {
     let parser = Parser::from_path(Path::new("fixtures/sgf/positional-superko.sgf")).unwrap();
     let game = parser.game().unwrap();
-    let mut root = Node::root(&game, White);
+    let root = Node::root(&game, White);
     // Play(White, 2, 9) is a super ko violation
     assert!(root.children.iter().all(|n| n.m() != Play(White, 2, 9)));
 }
 
 #[test]
 fn record_on_path_only_records_wins_for_the_correct_color() {
-    let mut grandchild = Node::new(Pass(Black));
+    let grandchild = Node::new(Pass(Black));
     let mut child = Node::new(Pass(White));
     child.children = vec!(grandchild);
     let mut root = Node::new(Pass(Black));

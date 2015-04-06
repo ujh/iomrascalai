@@ -60,7 +60,7 @@ impl Engine for EarlyReturnEngine {
 fn the_engine_can_use_less_time_than_allocated() {
     let game = Game::new(19, 6.5, Minimal);
     let color = game.next_player();
-    let mut timer = Timer::new();
+    let timer = Timer::new();
     let budget = timer.budget(&game);
     let engine = Box::new(EarlyReturnEngine::new());
     let controller = EngineController::new(Arc::new(Config::default()), engine);
