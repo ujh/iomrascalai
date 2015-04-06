@@ -75,14 +75,11 @@ pub trait Playout: Sync + Send {
             loop {
                 let first = playable_move.unwrap();
                 let r = first + rng.gen::<usize>() % (vacant.len() - first);
-                if r == vacant.len() {
-                    return Pass(color);
-                } else {
-                    let c = vacant[r];
-                    let m = Play(color, c.col, c.row);
-                    if board.is_legal(m).is_ok() && self.is_playable(board, &m) {
-                        return m;
-                    }
+                
+                let c = vacant[r];
+                let m = Play(color, c.col, c.row);
+                if board.is_legal(m).is_ok() && self.is_playable(board, &m) {
+                    return m;
                 }
             }
         } else {
