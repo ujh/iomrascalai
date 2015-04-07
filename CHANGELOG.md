@@ -1,3 +1,7 @@
+## 0.2.1 [☰](https://github.com/ujh/iomrascalai/compare/0.2.0...master) (unreleased)
+
+* ...
+
 ## 0.2.0 [☰](https://github.com/ujh/iomrascalai/compare/0.1.7...0.2.0)
 
 * UCT engine
