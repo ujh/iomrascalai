@@ -37,6 +37,7 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fmt;
 use std::sync::Arc;
+use smallvec::SmallVec4;
 
 mod chain;
 mod coord;
@@ -597,16 +598,62 @@ impl Board {
         false
     }
     
+    pub fn new_chain_liberties_greater_than_zero(&self, m: Move) -> bool {
+        for &c in self.neighbours(m.coord()).iter() {
+            if self.color(&c) == *m.color() {
+                for &liberty in self.get_chain(c).unwrap().liberties() {
+                    if liberty != m.coord() {
+                        return true;
+                    }
+                }
+            } else if self.color(&c) == Empty {
+                return true;
+            }
+        }
+        
+        false
+    }
+    
+    pub fn new_chain_liberties_greater_than_one(&self, m: Move) -> bool {
+        let mut first_liberty: Option<Coord> = None;
+        for &c in self.neighbours(m.coord()).iter() {
+            if self.color(&c) == *m.color() {
+                for &liberty in self.get_chain(c).unwrap().liberties() {
+                    if liberty != m.coord() && first_liberty.is_none() {
+                        first_liberty = Some(liberty);
+                    } else if liberty != m.coord() && first_liberty.is_some() {
+                        if Some(liberty) != first_liberty {
+                            return true;
+                        }
+                    }
+                }
+            } else if self.color(&c) == Empty {
+                if first_liberty.is_none() {
+                    first_liberty = Some(c);
+                } else if Some(c) != first_liberty {
+                    return true;
+                }
+            }
+        }
+        
+        false
+    }
+    
     pub fn new_chain_length_less_than(&self, m: Move, limit: usize) -> bool {
-        let mut set: HashSet<&Coord> = HashSet::new();
+        let mut chain_ids = SmallVec4::new();
+        let mut length = 0;
         
         for &c in self.neighbours(m.coord()).iter() {
             if self.color(&c) == *m.color() {
-                for coord in self.get_chain(c).unwrap().coords().iter() {
-                    set.insert(coord);
-                    if set.len() + 1 > limit {
-                        return false;
-                    }
+                let chain = self.get_chain(c).unwrap();
+                
+                if !chain_ids.contains(&chain.id()) {
+                    length += chain.coords().len();
+                    chain_ids.push(chain.id());
+                }
+   
+                if length + 1 > limit {
+                    return false;
                 }
             }
         }
