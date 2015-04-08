@@ -37,6 +37,7 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fmt;
 use std::sync::Arc;
+use smallvec::SmallVec4;
 
 mod chain;
 mod coord;
@@ -639,34 +640,20 @@ impl Board {
     }
     
     pub fn new_chain_length_less_than(&self, m: Move, limit: usize) -> bool {
-        let mut set: HashSet<&Coord> = HashSet::new();
+        let mut chain_ids = SmallVec4::new();
+        let mut length = 0;
         
         for &c in self.neighbours(m.coord()).iter() {
             if self.color(&c) == *m.color() {
-                for coord in self.get_chain(c).unwrap().coords().iter() {
-                    set.insert(coord);
-                    if set.len() + 1 > limit {
-                        return false;
-                    }
+                let chain = self.get_chain(c).unwrap();
+                
+                if !chain_ids.contains(&chain.id()) {
+                    length += chain.coords().len();
+                    chain_ids.push(chain.id());
                 }
-            }
-        }
-        
-        true
-    }
-    
-    pub fn new_chain_length_less_than_three(&self, m: Move) -> bool {
-        let mut one_neighbour_found = false;
-        for &c in self.neighbours(m.coord()).iter() {
-            if self.color(&c) == *m.color() {
-                if one_neighbour_found {
+   
+                if length + 1 > limit {
                     return false;
-                } else {
-                    if self.get_chain(c).unwrap().coords().len() > 1 {
-                        return false;
-                    } else {
-                        one_neighbour_found = true;
-                    }
                 }
             }
         }

@@ -125,7 +125,6 @@ fn two_stones_have_six_liberties() {
     let board  = game.board();
     
     let play = Play(Black, 10, 12);
-    assert!(board.new_chain_length_less_than_three(play));
     assert!(board.new_chain_length_less_than(play, 3));
     assert!(board.new_chain_liberties_greater_than(play, 5));
 }

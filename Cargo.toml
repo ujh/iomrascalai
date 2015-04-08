@@ -18,6 +18,7 @@ regex           = "*"
 regex_macros    = "*"
 strenum         = "*"
 time            = "*"
+smallvec        = "*"
 
 [profile.release]
 opt-level = 3
