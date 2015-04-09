@@ -31,7 +31,6 @@ use playout::Playout;
 use ruleset::KgsChinese;
 
 use rand::weak_rng;
-use std::sync::Arc;
 use test::Bencher;
 
 #[test]

@@ -27,8 +27,6 @@ use engine::RandomEngine;
 use super::Command;
 use super::GTPInterpreter;
 
-use std::sync::Arc;
-
 #[test]
 fn empty_string() {
     let mut interpreter = GTPInterpreter::new(Config::default(), Box::new(RandomEngine::new()));

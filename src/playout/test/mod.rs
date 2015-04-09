@@ -23,8 +23,6 @@
 
 use config::Config;
 
-use std::sync::Arc;
-
 mod no_eyes;
 
 fn config() -> Config {

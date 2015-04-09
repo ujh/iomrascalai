@@ -26,7 +26,6 @@ use super::Command;
 use super::GTPInterpreter;
 use version;
 
-use std::sync::Arc;
 use std::io::stdin;
 
 pub struct Driver;
