@@ -43,12 +43,12 @@ impl Playout for NoEyesPlayout {
 //don't self atari strings that will make an eye after dying, which is strings of 7+
 #[derive(Debug)]
 pub struct NoSelfAtariPlayout {
-    config: Arc<Config>
+    config: Config
 }
 
 impl NoSelfAtariPlayout {
 
-    pub fn new(config: Arc<Config>) -> NoSelfAtariPlayout {
+    pub fn new(config: Config) -> NoSelfAtariPlayout {
         NoSelfAtariPlayout { config: config }
     }
 

@@ -28,8 +28,8 @@ use super::Timer;
 use std::sync::Arc;
 use std::thread::sleep_ms;
 
-fn config() -> Arc<Config> {
-    Arc::new(Config::default())
+fn config() -> Config {
+    Config::default()
 }
 
 #[test]

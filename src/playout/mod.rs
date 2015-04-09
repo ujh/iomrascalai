@@ -34,7 +34,7 @@ use std::sync::Arc;
 mod no_eyes;
 mod test;
 
-pub fn factory(opt: Option<String>, config: Arc<Config>) -> Box<Playout> {
+pub fn factory(opt: Option<String>, config: Config) -> Box<Playout> {
     match opt.as_ref().map(::std::ops::Deref::deref) {
         Some("light") => Box::new(NoEyesPlayout),
         _             => Box::new(NoSelfAtariPlayout::new(config)),

@@ -38,8 +38,8 @@ use std::sync::mpsc::Sender;
 use std::sync::mpsc::channel;
 use time::PreciseTime;
 
-fn config() -> Arc<Config> {
-    Arc::new(Config::default())
+fn config() -> Config {
+    Config::default()
 }
 
 pub struct EarlyReturnEngine;
@@ -67,7 +67,7 @@ fn the_engine_can_use_less_time_than_allocated() {
     let timer = Timer::new(config());
     let budget = timer.budget(&game);
     let engine = Box::new(EarlyReturnEngine::new());
-    let controller = EngineController::new(Arc::new(Config::default()), engine);
+    let controller = EngineController::new(Config::default(), engine);
     let start_time = PreciseTime::now();
     let (sender, receiver) = channel::<Move>();
     controller.run_and_return_move(color, &game, &timer, sender);
@@ -106,7 +106,7 @@ fn the_controller_asks_the_engine_for_a_move_when_the_time_is_up() {
     timer.setup(1, 0, 0);
     let budget = timer.budget(&game);
     let engine = Box::new(WaitingEngine::new());
-    let controller = EngineController::new(Arc::new(Config::default()), engine);
+    let controller = EngineController::new(Config::default(), engine);
     let start_time = PreciseTime::now();
     let (sender, receiver) = channel::<Move>();
     controller.run_and_return_move(color, &game, &timer, sender);

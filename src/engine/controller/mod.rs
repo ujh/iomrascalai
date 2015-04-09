@@ -36,13 +36,13 @@ use std::thread::sleep_ms;
 mod test;
 
 pub struct EngineController<'a> {
-    config: Arc<Config>,
+    config: Config,
     engine: Box<Engine + 'a>,
 }
 
 impl<'a> EngineController<'a> {
 
-    pub fn new<'b>(config: Arc<Config>, engine: Box<Engine + 'b>) -> EngineController<'b> {
+    pub fn new<'b>(config: Config, engine: Box<Engine + 'b>) -> EngineController<'b> {
         EngineController {
             config: config,
             engine: engine,

@@ -22,22 +22,22 @@
 use ruleset::Minimal;
 use ruleset::Ruleset;
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct UctConfig {
     pub expand_after: usize,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct TimerConfig {
     pub c: f32,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct PlayoutConfig {
     pub no_self_atari_cutoff: usize,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct Config {
     pub log: bool,
     pub playout: PlayoutConfig,

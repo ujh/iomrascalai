@@ -35,13 +35,13 @@ use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 
 pub struct SimpleMcEngine {
-    config: Arc<Config>,
+    config: Config,
     playout: Arc<Box<Playout>>,
 }
 
 impl SimpleMcEngine {
 
-    pub fn new(config: Arc<Config>, playout: Box<Playout>) -> SimpleMcEngine {
+    pub fn new(config: Config, playout: Box<Playout>) -> SimpleMcEngine {
         SimpleMcEngine { config: config, playout: Arc::new(playout) }
     }
 
@@ -50,7 +50,7 @@ impl SimpleMcEngine {
 impl Engine for SimpleMcEngine {
 
     fn gen_move(&self, color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
-        super::gen_move::<SimpleMcEngine>(self.config.clone(), self.playout.clone(), color, game, sender, receiver);
+        super::gen_move::<SimpleMcEngine>(self.config, self.playout.clone(), color, game, sender, receiver);
     }
 
     fn engine_type(&self) -> &'static str {
