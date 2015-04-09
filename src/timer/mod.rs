@@ -19,9 +19,11 @@
  *                                                                      *
  ************************************************************************/
 
+use config::Config;
 use game::Info;
 
 use time::precise_time_ns;
+use std::sync::Arc;
 
 mod test;
 
@@ -79,11 +81,12 @@ pub struct Timer {
     main_time: u32, // main time in ms
     main_time_left: u32,
     clock: Clock,
+    config: Arc<Config>,
 }
 
 impl Timer {
 
-    pub fn new() -> Timer {
+    pub fn new(config: Arc<Config>) -> Timer {
         Timer {
             byo_stones: 0,
             byo_stones_left: 0,
@@ -92,6 +95,7 @@ impl Timer {
             main_time: 300000, // 5min
             main_time_left: 300000,
             clock: Clock::new(),
+            config: config,
         }
 
     }
@@ -132,11 +136,11 @@ impl Timer {
 
     fn adjust_time(&mut self) {
         let time_elapsed = self.clock.time_elapsed_in_ms();
-        
+
         if time_elapsed > self.main_time_left {
             let overtime_spent = time_elapsed - self.main_time_left;
             self.main_time_left = 0;
-            
+
             if overtime_spent > self.byo_time_left {
                 self.byo_time_left = 0;
                 self.byo_stones_left = 0;
@@ -184,16 +188,15 @@ impl Timer {
         self.byo_stones_left = stones;
     }
 
-    #[allow(non_snake_case)]
-    fn C(&self) -> f32 {
-        0.5
+    fn c(&self) -> f32 {
+        self.config.timer.c
     }
 
     pub fn budget<T: Info>(&self, game: &T) -> u32 {
         // If there's still main time left
         if self.main_time_left > 0 {
             // TODO: Are there issues with all these values being ints?
-            (self.main_time_left as f32 / (self.C() * game.vacant_point_count() as f32)).floor() as u32
+            (self.main_time_left as f32 / (self.c() * game.vacant_point_count() as f32)).floor() as u32
         } else if self.byo_time_left == 0 {
             0
         } else {
