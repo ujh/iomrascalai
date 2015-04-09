@@ -109,10 +109,10 @@ pub fn main() {
     };
     let mut config = Config::default();
     config.log = log;
-    config.playout = playout::factory(matches.opt_str("p"));
     config.ruleset = ruleset;
     config.threads = threads;
     let config = Arc::new(config);
-    let engine = engine::factory(matches.opt_str("e"), config.clone());
+    let playout = playout::factory(matches.opt_str("p"), config.clone());
+    let engine = engine::factory(matches.opt_str("e"), config.clone(), playout);
     Driver::new(config.clone(), engine);
 }

@@ -19,16 +19,32 @@
  *                                                                      *
  ************************************************************************/
 
-use playout::Playout;
 use ruleset::Minimal;
 use ruleset::Ruleset;
 
+#[derive(Debug)]
+pub struct UctConfig {
+    pub expand_after: usize,
+}
+
+#[derive(Debug)]
+pub struct TimerConfig {
+    pub c: f32,
+}
+
+#[derive(Debug)]
+pub struct PlayoutConfig {
+    pub no_self_atari_cutoff: usize,
+}
+
+#[derive(Debug)]
 pub struct Config {
     pub log: bool,
-    pub playout: Box<Playout>,
+    pub playout: PlayoutConfig,
     pub ruleset: Ruleset,
     pub threads: usize,
-    pub uct_expand_after: usize,
+    pub timer: TimerConfig,
+    pub uct: UctConfig,
 }
 
 impl Config {
@@ -36,10 +52,17 @@ impl Config {
     pub fn default() -> Config {
         Config {
             log: false,
-            playout: ::playout::factory(Some(String::from_str("default"))),
+            playout: PlayoutConfig {
+                no_self_atari_cutoff: 7,
+            },
             ruleset: Minimal,
             threads: 1,
-            uct_expand_after: 1,
+            timer: TimerConfig {
+                c: 0.5
+            },
+            uct: UctConfig {
+                expand_after: 1,
+            },
         }
     }
 

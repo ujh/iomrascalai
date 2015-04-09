@@ -26,16 +26,18 @@ use board::Color;
 use board::Move;
 use board::Pass;
 use board::Play;
+use config::Config;
 
 use rand::{Rng, XorShiftRng};
+use std::sync::Arc;
 
 mod no_eyes;
 mod test;
 
-pub fn factory(opt: Option<String>) -> Box<Playout> {
+pub fn factory(opt: Option<String>, config: Arc<Config>) -> Box<Playout> {
     match opt.as_ref().map(::std::ops::Deref::deref) {
         Some("light") => Box::new(NoEyesPlayout),
-        _             => Box::new(NoSelfAtariPlayout),
+        _             => Box::new(NoSelfAtariPlayout::new(config)),
     }
 }
 
@@ -75,7 +77,7 @@ pub trait Playout: Sync + Send {
             loop {
                 let first = playable_move.unwrap();
                 let r = first + rng.gen::<usize>() % (vacant.len() - first);
-                
+
                 let c = vacant[r];
                 let m = Play(color, c.col, c.row);
                 if board.is_legal(m).is_ok() && self.is_playable(board, &m) {
@@ -87,7 +89,7 @@ pub trait Playout: Sync + Send {
         }
     }
 
-    fn playout_type(&self) -> String;
+    fn playout_type(&self) -> &'static str;
 
 }
 

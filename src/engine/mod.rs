@@ -29,6 +29,7 @@ use board::Color;
 use board::Move;
 use config::Config;
 use game::Game;
+use playout::Playout;
 
 use std::ascii::OwnedAsciiExt;
 use std::sync::Arc;
@@ -42,18 +43,18 @@ mod random;
 mod test;
 mod uct;
 
-pub fn factory(opt: Option<String>, config: Arc<Config>) -> Box<Engine> {
+pub fn factory(opt: Option<String>, config: Arc<Config>, playout: Box<Playout>) -> Box<Engine> {
     let engine_arg = opt.map(|s| s.into_ascii_lowercase());
     match engine_arg {
         Some(s) => {
             match s.as_ref() {
                 "random" => Box::new(RandomEngine::new()),
-                "mc"     => Box::new(SimpleMcEngine::new(config.clone())),
-                "amaf"   => Box::new(AmafMcEngine::new(config.clone())),
-                _        => Box::new(UctEngine::new(config.clone())),
+                "mc"     => Box::new(SimpleMcEngine::new(config.clone(), playout)),
+                "amaf"   => Box::new(AmafMcEngine::new(config.clone(), playout)),
+                _        => Box::new(UctEngine::new(config.clone(), playout)),
             }
         },
-        None => Box::new(UctEngine::new(config.clone()))
+        None => Box::new(UctEngine::new(config.clone(), playout))
     }
 }
 

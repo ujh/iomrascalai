@@ -22,35 +22,45 @@
 #![cfg(test)]
 
 use config::Config;
+use playout::Playout;
+use playout;
 
 use std::sync::Arc;
 
+fn config() -> Arc<Config> {
+    Arc::new(Config::default())
+}
+
+fn playout() -> Box<Playout> {
+    playout::factory(None, config())
+}
+
 #[test]
 fn factory_returns_uct_by_default() {
-    let engine = super::factory(None, Arc::new(Config::default()));
+    let engine = super::factory(None, config(), playout());
     assert_eq!("uct", engine.engine_type());
 }
 
 #[test]
 fn factory_returns_random_engine_when_give_random() {
-    let engine = super::factory(Some(String::from_str("random")), Arc::new(Config::default()));
+    let engine = super::factory(Some(String::from_str("random")), config(), playout());
     assert_eq!("random", engine.engine_type());
 }
 
 #[test]
 fn factory_returns_simple_mc_when_given_mc() {
-    let engine = super::factory(Some(String::from_str("mc")), Arc::new(Config::default()));
+    let engine = super::factory(Some(String::from_str("mc")), config(), playout());
     assert_eq!("simple-mc", engine.engine_type());
 }
 
 #[test]
 fn factory_returns_amaf_when_given_amaf() {
-    let engine = super::factory(Some(String::from_str("amaf")), Arc::new(Config::default()));
+    let engine = super::factory(Some(String::from_str("amaf")), config(), playout());
     assert_eq!("amaf", engine.engine_type());
 }
 
 #[test]
 fn factory_returns_uct_for_any_other_string() {
-    let engine = super::factory(Some(String::from_str("foo")), Arc::new(Config::default()));
+    let engine = super::factory(Some(String::from_str("foo")), config(), playout());
     assert_eq!("uct", engine.engine_type());
 }

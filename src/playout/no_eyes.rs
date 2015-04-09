@@ -21,7 +21,10 @@
 
 use board::Board;
 use board::Move;
+use config::Config;
 use super::Playout;
+
+use std::sync::Arc;
 
 #[derive(Debug)]
 pub struct NoEyesPlayout;
@@ -32,14 +35,28 @@ impl Playout for NoEyesPlayout {
         !board.is_eye(&m.coord(), *m.color())
     }
 
-    fn playout_type(&self) -> String {
-        format!("{:?}", self)
+    fn playout_type(&self) -> &'static str {
+        "no-eyes"
     }
 }
 
 //don't self atari strings that will make an eye after dying, which is strings of 7+
 #[derive(Debug)]
-pub struct NoSelfAtariPlayout;
+pub struct NoSelfAtariPlayout {
+    config: Arc<Config>
+}
+
+impl NoSelfAtariPlayout {
+
+    pub fn new(config: Arc<Config>) -> NoSelfAtariPlayout {
+        NoSelfAtariPlayout { config: config }
+    }
+
+    fn cutoff(&self) -> usize {
+        self.config.playout.no_self_atari_cutoff
+    }
+
+}
 
 impl Playout for NoSelfAtariPlayout {
 
@@ -50,18 +67,19 @@ impl Playout for NoSelfAtariPlayout {
             empty > 1 ||
             {
                 let removed_enemies = board.removes_enemy_neighbouring_stones(*m);
-                
+
                 empty + removed_enemies > 1 ||
                 {
                 (removed_enemies > 0 && board.new_chain_liberties_greater_than_zero(*m)) ||
                 board.new_chain_liberties_greater_than_one(*m)
                 }
             }
-            || board.new_chain_length_less_than(*m, 7)
+            || board.new_chain_length_less_than(*m, self.cutoff())
         }
     }
-    
-    fn playout_type(&self) -> String {
-        format!("{:?}", self)
+
+    fn playout_type(&self) -> &'static str {
+        "no-self-atari"
     }
+
 }

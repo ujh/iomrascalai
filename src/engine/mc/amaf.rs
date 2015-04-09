@@ -24,6 +24,7 @@ use board::Color;
 use board::Move;
 use config::Config;
 use game::Game;
+use playout::Playout;
 use playout::PlayoutResult;
 use super::Engine;
 use super::McEngine;
@@ -34,13 +35,14 @@ use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 
 pub struct AmafMcEngine {
-    config: Arc<Config>
+    config: Arc<Config>,
+    playout: Arc<Box<Playout>>,
 }
 
 impl AmafMcEngine {
 
-    pub fn new(config: Arc<Config>) -> AmafMcEngine {
-        AmafMcEngine { config: config }
+    pub fn new(config: Arc<Config>, playout: Box<Playout>) -> AmafMcEngine {
+        AmafMcEngine { config: config, playout: Arc::new(playout) }
     }
 
 }
@@ -48,7 +50,7 @@ impl AmafMcEngine {
 impl Engine for AmafMcEngine {
 
     fn gen_move(&self, color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
-        super::gen_move::<AmafMcEngine>(self.config.clone(), color, game, sender, receiver);
+        super::gen_move::<AmafMcEngine>(self.config.clone(), self.playout.clone(), color, game, sender, receiver);
     }
 
     fn engine_type(&self) -> &'static str {

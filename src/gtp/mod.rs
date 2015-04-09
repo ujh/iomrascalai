@@ -123,7 +123,7 @@ impl<'a> GTPInterpreter<'a> {
             receive_move_from_controller: receive_move_from_controller,
             send_game_to_controller: send_game_to_controller,
             send_halt_to_controller: send_halt_to_controller,
-            timer: Timer::new(),
+            timer: Timer::new(config.clone()),
         }
     }
 

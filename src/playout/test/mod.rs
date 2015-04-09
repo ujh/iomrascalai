@@ -21,22 +21,30 @@
 
 #![cfg(test)]
 
+use config::Config;
+
+use std::sync::Arc;
+
 mod no_eyes;
+
+fn config() -> Arc<Config> {
+    Arc::new(Config::default())
+}
 
 #[test]
 fn factory_returns_no_self_atari_by_default() {
-    let playout = super::factory(None);
-    assert_eq!("NoSelfAtariPlayout", playout.playout_type());
+    let playout = super::factory(None, config());
+    assert_eq!("no-self-atari", playout.playout_type());
 }
 
 #[test]
 fn factory_returns_no_self_atari_when_given_any_string() {
-    let playout = super::factory(Some(String::from_str("foo")));
-    assert_eq!("NoSelfAtariPlayout", playout.playout_type());
+    let playout = super::factory(Some(String::from_str("foo")), config());
+    assert_eq!("no-self-atari", playout.playout_type());
 }
 
 #[test]
 fn factory_returns_no_eyes_when_given_light() {
-    let playout = super::factory(Some(String::from_str("light")));
-    assert_eq!("NoEyesPlayout", playout.playout_type());
+    let playout = super::factory(Some(String::from_str("light")), config());
+    assert_eq!("no-eyes", playout.playout_type());
 }
