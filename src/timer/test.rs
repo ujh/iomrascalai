@@ -21,20 +21,26 @@
 
 #![cfg(test)]
 
+use config::Config;
 use game::Info;
 use super::Timer;
 
+use std::sync::Arc;
 use std::thread::sleep_ms;
+
+fn config() -> Arc<Config> {
+    Arc::new(Config::default())
+}
 
 #[test]
 fn the_timer_doesnt_start_on_new() {
-    let clock = Timer::new().clock;
+    let clock = Timer::new(config()).clock;
     assert!(clock.stopped());
 }
 
 #[test]
 fn the_timer_has_a_default_of_5_min_sudden_death() {
-    let timer = Timer::new();
+    let timer = Timer::new(config());
     assert_eq!(5*60*1000, timer.main_time);
     assert_eq!(0, timer.byo_time);
     assert_eq!(0, timer.byo_stones);
@@ -42,7 +48,7 @@ fn the_timer_has_a_default_of_5_min_sudden_death() {
 
 #[test]
 fn reset_stops_the_clock_and_resets_everything() {
-    let mut timer = Timer::new();
+    let mut timer = Timer::new(config());
     timer.main_time_left  = 1;
     timer.byo_time_left   = 1;
     timer.byo_stones_left = 1;
@@ -55,7 +61,7 @@ fn reset_stops_the_clock_and_resets_everything() {
 
 #[test]
 fn update_converts_to_ms_and_resets_everything() {
-    let mut timer = Timer::new();
+    let mut timer = Timer::new(config());
     timer.main_time_left  = 1;
     timer.byo_time_left   = 1;
     timer.byo_stones_left = 1;
@@ -71,14 +77,14 @@ fn update_converts_to_ms_and_resets_everything() {
 
 #[test]
 fn update_sets_the_main_time() {
-    let mut timer = Timer::new();
+    let mut timer = Timer::new(config());
     timer.update(1, 0);
     assert_eq!(1000, timer.main_time_left);
 }
 
 #[test]
 fn update_sets_the_byo_time() {
-    let mut timer = Timer::new();
+    let mut timer = Timer::new(config());
     timer.update(1, 1);
     assert_eq!(0, timer.main_time_left);
     assert_eq!(1000, timer.byo_time_left);
@@ -87,21 +93,21 @@ fn update_sets_the_byo_time() {
 
 #[test]
 fn update_starts_the_clock() {
-    let mut timer = Timer::new();
+    let mut timer = Timer::new(config());
     timer.update(1, 0);
     assert!(timer.clock.running());
 }
 
 #[test]
 fn start_starts_the_clock() {
-    let mut timer = Timer::new();
+    let mut timer = Timer::new(config());
     timer.start();
     assert!(timer.clock.running());
 }
 
 #[test]
 fn stop_changes_the_time_left() {
-    let mut timer = Timer::new();
+    let mut timer = Timer::new(config());
     timer.start();
     sleep_ms(10);
     timer.stop();
@@ -110,14 +116,14 @@ fn stop_changes_the_time_left() {
 
 #[test]
 fn stop_stops_the_clock() {
-    let mut timer = Timer::new();
+    let mut timer = Timer::new(config());
     timer.stop();
     assert!(timer.clock.stopped());
 }
 
 #[test]
 fn adjust_time_updates_the_main_time() {
-    let mut timer = Timer::new();
+    let mut timer = Timer::new(config());
     assert_eq!(5*60*1000, timer.main_time_left);
     timer.clock.start = Some(0);
     timer.clock.end   = Some(1000000);
@@ -127,7 +133,7 @@ fn adjust_time_updates_the_main_time() {
 
 #[test]
 fn adjust_time_updates_the_byo_time() {
-    let mut timer = Timer::new();
+    let mut timer = Timer::new(config());
     timer.setup(0, 1, 2);
     timer.clock.start = Some(0);
     timer.clock.end   = Some(1000000);
@@ -138,7 +144,7 @@ fn adjust_time_updates_the_byo_time() {
 
 #[test]
 fn adjust_time_updates_the_byo_stones() {
-    let mut timer = Timer::new();
+    let mut timer = Timer::new(config());
     timer.setup(0, 1, 2);
     timer.clock.start = Some(0);
     timer.clock.end   = Some(1000000);
@@ -148,7 +154,7 @@ fn adjust_time_updates_the_byo_stones() {
 
 #[test]
 fn adjust_time_resets_the_byo_time_after_the_last_move() {
-    let mut timer = Timer::new();
+    let mut timer = Timer::new(config());
     timer.setup(0, 1, 2);
     timer.byo_time_left   = 500;
     timer.byo_stones_left = 1;
@@ -162,7 +168,7 @@ fn adjust_time_resets_the_byo_time_after_the_last_move() {
 
 #[test]
 fn adjust_time_splits_time_between_main_and_byo_time() {
-    let mut timer = Timer::new();
+    let mut timer = Timer::new(config());
     timer.setup(1, 2, 2);
     timer.clock.start = Some(0);
     timer.clock.end   = Some(1000000*1000*2);
@@ -174,7 +180,7 @@ fn adjust_time_splits_time_between_main_and_byo_time() {
 
 #[test]
 fn adjust_time_sets_remaining_time_to_zero_in_absolute_time_if_time_is_over() {
-    let mut timer = Timer::new();
+    let mut timer = Timer::new(config());
     timer.setup(1, 0, 0);
     timer.clock.start = Some(0);
     timer.clock.end   = Some(1000000*1000*2);
@@ -186,7 +192,7 @@ fn adjust_time_sets_remaining_time_to_zero_in_absolute_time_if_time_is_over() {
 
 #[test]
 fn adjust_time_sets_remaining_time_to_zero_in_byo_time_if_time_is_over() {
-    let mut timer = Timer::new();
+    let mut timer = Timer::new(config());
     timer.setup(0, 1, 0);
     timer.clock.start = Some(0);
     timer.clock.end   = Some(1000000*1000*2);
@@ -218,7 +224,7 @@ impl Info for TestGameInfo {
 
 #[test]
 fn budget_returns_zero_if_the_time_is_over() {
-    let mut timer = Timer::new();
+    let mut timer = Timer::new(config());
     timer.main_time_left  = 0;
     timer.byo_time_left   = 0;
     timer.byo_stones_left = 0;
@@ -228,7 +234,7 @@ fn budget_returns_zero_if_the_time_is_over() {
 
 #[test]
 fn budget_returns_a_fraction_of_the_byo_time_remaining() {
-    let mut timer = Timer::new();
+    let mut timer = Timer::new(config());
     timer.main_time_left  = 0;
     timer.byo_time_left   = 2;
     timer.byo_stones_left = 2;
@@ -238,7 +244,7 @@ fn budget_returns_a_fraction_of_the_byo_time_remaining() {
 
 #[test]
 fn budget_rounds_down_when_calculating_the_byo_time() {
-    let mut timer = Timer::new();
+    let mut timer = Timer::new(config());
     timer.main_time_left  = 0;
     timer.byo_time_left   = 3;
     timer.byo_stones_left = 2;
@@ -248,7 +254,7 @@ fn budget_rounds_down_when_calculating_the_byo_time() {
 
 #[test]
 fn budget_during_main_time_uses_the_vacant_points_to_calculate_the_time() {
-    let mut timer = Timer::new();
+    let mut timer = Timer::new(config());
     timer.main_time_left = 10;
     let info = TestGameInfo::new(10);
     assert_eq!(2, timer.budget(&info));
@@ -256,7 +262,7 @@ fn budget_during_main_time_uses_the_vacant_points_to_calculate_the_time() {
 
 #[test]
 fn budget_during_main_time_rounds_down() {
-    let mut timer = Timer::new();
+    let mut timer = Timer::new(config());
     timer.main_time_left = 11;
     let info = TestGameInfo::new(10);
     assert_eq!(2, timer.budget(&info));

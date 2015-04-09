@@ -52,7 +52,7 @@ pub trait McEngine {
 
 }
 
-fn gen_move<T: McEngine>(config: Arc<Config>, color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
+fn gen_move<T: McEngine>(config: Arc<Config>, playout: Arc<Box<Playout>>, color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
     let moves = game.legal_moves_without_eyes();
     if moves.is_empty() {
         if config.log {
@@ -64,7 +64,7 @@ fn gen_move<T: McEngine>(config: Arc<Config>, color: Color, game: &Game, sender:
     let mut stats = MoveStats::new(&moves, color);
     let mut counter = 0;
     let (send_result, receive_result) = channel::<(MoveStats, usize)>();
-    let (_guards, halt_senders) = spin_up::<T>(color, config.clone(), &moves, game, send_result);
+    let (_guards, halt_senders) = spin_up::<T>(color, config.clone(), playout.clone(), &moves, game, send_result);
     loop {
         select!(
             result = receive_result.recv() => {
@@ -102,21 +102,20 @@ fn finish(color: Color, game: &Game, stats: MoveStats, sender: Sender<Move>, hal
     }
 }
 
-fn spin_up<'a, T: McEngine>(color: Color, config: Arc<Config>, moves: &'a Vec<Move>, game: &Game, send_result: Sender<(MoveStats, usize)>) -> (Vec<thread::JoinGuard<'a, ()>>, Vec<Sender<()>>) {
+fn spin_up<'a, T: McEngine>(color: Color, config: Arc<Config>, playout: Arc<Box<Playout>>, moves: &'a Vec<Move>, game: &Game, send_result: Sender<(MoveStats, usize)>) -> (Vec<thread::JoinGuard<'a, ()>>, Vec<Sender<()>>) {
     let mut guards = Vec::new();
     let mut halt_senders = Vec::new();
     for _ in 0..config.threads {
         let (send_halt, receive_halt) = channel::<()>();
         halt_senders.push(send_halt);
         let send_result = send_result.clone();
-        let config = config.clone();
-        let guard = spin_up_worker::<T>(color, receive_halt, moves, game.board(), config, send_result);
+        let guard = spin_up_worker::<T>(color, receive_halt, moves, game.board(), playout.clone(), send_result);
         guards.push(guard);
     }
     (guards, halt_senders)
 }
 
-fn spin_up_worker<'a, T: McEngine>(color: Color, recv_halt: Receiver<()>, moves: &'a Vec<Move>, board: Board, config: Arc<Config>, send_result: Sender<(MoveStats, usize)>) -> thread::JoinGuard<'a, ()> {
+fn spin_up_worker<'a, T: McEngine>(color: Color, recv_halt: Receiver<()>, moves: &'a Vec<Move>, board: Board, playout: Arc<Box<Playout>>, send_result: Sender<(MoveStats, usize)>) -> thread::JoinGuard<'a, ()> {
     thread::scoped(move || {
         let runs = 100;
         let mut rng = weak_rng();
@@ -125,7 +124,7 @@ fn spin_up_worker<'a, T: McEngine>(color: Color, recv_halt: Receiver<()>, moves:
             for _ in 0..runs {
                 let m = moves[rng.gen::<usize>() % moves.len()];
                 let mut b = board.clone();
-                let playout_result = config.playout.run(&mut b, Some(&m), &mut rng);
+                let playout_result = playout.run(&mut b, Some(&m), &mut rng);
                 let winner = playout_result.winner();
                 T::record_playout(&mut stats, &playout_result, winner == color);
             }
