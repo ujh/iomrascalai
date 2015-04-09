@@ -24,8 +24,6 @@ use board::Move;
 use config::Config;
 use super::Playout;
 
-use std::sync::Arc;
-
 #[derive(Debug)]
 pub struct NoEyesPlayout;
 

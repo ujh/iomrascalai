@@ -32,7 +32,6 @@ use game::Game;
 use playout::Playout;
 
 use std::ascii::OwnedAsciiExt;
-use std::sync::Arc;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 

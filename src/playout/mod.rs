@@ -29,7 +29,6 @@ use board::Play;
 use config::Config;
 
 use rand::{Rng, XorShiftRng};
-use std::sync::Arc;
 
 mod no_eyes;
 mod test;

@@ -25,8 +25,6 @@ use config::Config;
 use playout::Playout;
 use playout;
 
-use std::sync::Arc;
-
 fn config() -> Config {
     Config::default()
 }

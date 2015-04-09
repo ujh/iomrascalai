@@ -25,7 +25,6 @@ use config::Config;
 use game::Info;
 use super::Timer;
 
-use std::sync::Arc;
 use std::thread::sleep_ms;
 
 fn config() -> Config {

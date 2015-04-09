@@ -32,7 +32,6 @@ use ruleset::Minimal;
 use super::EngineController;
 use timer::Timer;
 
-use std::sync::Arc;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 use std::sync::mpsc::channel;

@@ -23,7 +23,6 @@ use config::Config;
 use game::Info;
 
 use time::precise_time_ns;
-use std::sync::Arc;
 
 mod test;
 

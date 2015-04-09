@@ -27,7 +27,6 @@ use game::Game;
 use timer::Timer;
 use std::io::Write;
 
-use std::sync::Arc;
 use std::sync::mpsc::channel;
 use std::sync::mpsc::Sender;
 use std::thread;

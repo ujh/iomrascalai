@@ -44,7 +44,6 @@ use version::version;
 use getopts::Options;
 use std::ascii::OwnedAsciiExt;
 use std::env::args;
-use std::sync::Arc;
 
 macro_rules! log(
     ($($arg:tt)*) => (
