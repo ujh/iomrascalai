@@ -43,18 +43,18 @@ mod random;
 mod test;
 mod uct;
 
-pub fn factory(opt: Option<String>, config: Arc<Config>, playout: Box<Playout>) -> Box<Engine> {
+pub fn factory(opt: Option<String>, config: Config, playout: Box<Playout>) -> Box<Engine> {
     let engine_arg = opt.map(|s| s.into_ascii_lowercase());
     match engine_arg {
         Some(s) => {
             match s.as_ref() {
                 "random" => Box::new(RandomEngine::new()),
-                "mc"     => Box::new(SimpleMcEngine::new(config.clone(), playout)),
-                "amaf"   => Box::new(AmafMcEngine::new(config.clone(), playout)),
-                _        => Box::new(UctEngine::new(config.clone(), playout)),
+                "mc"     => Box::new(SimpleMcEngine::new(config, playout)),
+                "amaf"   => Box::new(AmafMcEngine::new(config, playout)),
+                _        => Box::new(UctEngine::new(config, playout)),
             }
         },
-        None => Box::new(UctEngine::new(config.clone(), playout))
+        None => Box::new(UctEngine::new(config, playout))
     }
 }
 

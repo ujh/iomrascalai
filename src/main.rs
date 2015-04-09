@@ -111,8 +111,8 @@ pub fn main() {
     config.log = log;
     config.ruleset = ruleset;
     config.threads = threads;
-    let config = Arc::new(config);
-    let playout = playout::factory(matches.opt_str("p"), config.clone());
-    let engine = engine::factory(matches.opt_str("e"), config.clone(), playout);
-    Driver::new(config.clone(), engine);
+
+    let playout = playout::factory(matches.opt_str("p"), config);
+    let engine = engine::factory(matches.opt_str("e"), config, playout);
+    Driver::new(config, engine);
 }

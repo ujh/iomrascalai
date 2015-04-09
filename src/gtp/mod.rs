@@ -87,7 +87,7 @@ pub enum Command {
 }
 
 pub struct GTPInterpreter<'a> {
-    config: Arc<Config>,
+    config: Config,
     game: Game,
     _guard: thread::JoinGuard<'a, ()>,
     receive_move_from_controller: Receiver<Move>,
@@ -97,13 +97,13 @@ pub struct GTPInterpreter<'a> {
 }
 
 impl<'a> GTPInterpreter<'a> {
-    pub fn new(config: Arc<Config>, engine: Box<Engine>) -> GTPInterpreter<'a> {
+    pub fn new(config: Config, engine: Box<Engine>) -> GTPInterpreter<'a> {
         let komi      = 6.5;
         let boardsize = 19;
         let (send_game_to_controller, receive_game_from_interpreter) = channel::<(Game, Color, Timer)>();
         let (send_move_to_interpreter, receive_move_from_controller) = channel::<Move>();
         let (send_halt_to_controller, receive_halt_from_interpreter) = channel::<()>();
-        let controller_config = config.clone();
+        let controller_config = config;
         let guard = thread::scoped(move || {
             let controller = EngineController::new(controller_config, engine);
             loop {
@@ -117,13 +117,13 @@ impl<'a> GTPInterpreter<'a> {
             }
         });
         GTPInterpreter {
-            config: config.clone(),
+            config: config,
             game: Game::new(boardsize, komi, config.ruleset),
             _guard: guard,
             receive_move_from_controller: receive_move_from_controller,
             send_game_to_controller: send_game_to_controller,
             send_halt_to_controller: send_halt_to_controller,
-            timer: Timer::new(config.clone()),
+            timer: Timer::new(config),
         }
     }
 

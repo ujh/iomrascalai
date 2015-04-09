@@ -27,8 +27,8 @@ use playout;
 
 use std::sync::Arc;
 
-fn config() -> Arc<Config> {
-    Arc::new(Config::default())
+fn config() -> Config {
+    Config::default()
 }
 
 fn playout() -> Box<Playout> {
