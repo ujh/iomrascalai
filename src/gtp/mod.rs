@@ -106,7 +106,7 @@ impl<'a> GTPInterpreter<'a> {
         let (send_halt_to_controller, receive_halt_from_interpreter) = channel::<()>();
         let controller_config = config;
         let guard = thread::scoped(move || {
-            let controller = EngineController::new(controller_config, engine);
+            let mut controller = EngineController::new(controller_config, engine);
             loop {
                 select!(data = receive_game_from_interpreter.recv() => {
                     let (game, color, timer) = data.unwrap();

@@ -43,20 +43,28 @@ mod node;
 
 pub struct UctEngine {
     config: Config,
+    gen_moves: usize,
     playout: Arc<Box<Playout>>,
+    plays: usize,
 }
 
 impl UctEngine {
 
     pub fn new(config: Config, playout: Box<Playout>) -> UctEngine {
-        UctEngine { config: config, playout: Arc::new(playout) }
+        UctEngine {
+            config: config,
+            gen_moves: 0,
+            playout: Arc::new(playout),
+            plays: 0,
+        }
     }
 
 }
 
 impl Engine for UctEngine {
 
-    fn gen_move(&self, color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
+    fn gen_move(&mut self, color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
+        self.gen_moves += 1; // dummy field to test making the engines mutable
         let mut root = Node::root(game, color);
         if root.has_no_children() {
             if self.config.log {
@@ -81,6 +89,10 @@ impl Engine for UctEngine {
                 }
                 )
         }
+    }
+
+    fn play(&mut self, _: Move) {
+        self.plays += 1; // Dummy field to test making the engines mutable
     }
 
     fn engine_type(&self) -> &'static str {

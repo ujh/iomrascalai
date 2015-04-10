@@ -49,7 +49,7 @@ impl SimpleMcEngine {
 
 impl Engine for SimpleMcEngine {
 
-    fn gen_move(&self, color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
+    fn gen_move(&mut self, color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
         super::gen_move::<SimpleMcEngine>(self.config, self.playout.clone(), color, game, sender, receiver);
     }
 

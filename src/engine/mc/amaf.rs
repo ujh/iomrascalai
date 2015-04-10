@@ -49,7 +49,7 @@ impl AmafMcEngine {
 
 impl Engine for AmafMcEngine {
 
-    fn gen_move(&self, color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
+    fn gen_move(&mut self, color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
         super::gen_move::<AmafMcEngine>(self.config, self.playout.clone(), color, game, sender, receiver);
     }
 
