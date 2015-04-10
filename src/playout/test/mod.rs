@@ -23,12 +23,10 @@
 
 use config::Config;
 
-use std::sync::Arc;
-
 mod no_eyes;
 
-fn config() -> Arc<Config> {
-    Arc::new(Config::default())
+fn config() -> Config {
+    Config::default()
 }
 
 #[test]
