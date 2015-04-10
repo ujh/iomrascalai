@@ -140,14 +140,6 @@ fn play_plays_a_move() {
 }
 
 #[test]
-fn play_notifies_the_engine_of_the_move() {
-    // Build a special engine for this and then maybe use std::cell to
-    // make sure it was called. Or maybe make the methods on the
-    // engine mutable. We'll need that later on anyway.
-    assert!(false);
-}
-
-#[test]
 fn sets_the_komi() {
     let mut interpreter = GTPInterpreter::new(Config::default(), Box::new(RandomEngine::new()));
     interpreter.read("komi 10\n");
