@@ -76,7 +76,7 @@ impl Engine for UctEngine {
                 res = receive_result_from_threads.recv() => {
                     let ((path, winner), send_to_thread) = res.unwrap();
                     root.record_on_path(&path, winner);
-                    let data = root.find_leaf_and_expand(game, self.config.uct.expand_after);
+                    let data = root.find_leaf_and_expand(game, self.config.uct.expand_after, self.config.uct.tuned);
                     send_to_thread.send(data).unwrap();
                 }
                 )

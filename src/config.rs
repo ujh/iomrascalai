@@ -25,6 +25,7 @@ use ruleset::Ruleset;
 #[derive(Debug, Copy, Clone)]
 pub struct UctConfig {
     pub expand_after: usize,
+    pub tuned: bool,
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -62,6 +63,7 @@ impl Config {
             },
             uct: UctConfig {
                 expand_after: 1,
+                tuned: true,
             },
         }
     }
