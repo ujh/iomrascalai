@@ -114,7 +114,7 @@ pub fn main() {
     config.ruleset = ruleset;
     config.threads = threads;
     config.uct.tuned = match policy {
-        Some("ucb1") => false,
+        Some(str) => if str == "ucb1" { false } else { true},
         _ => true
     };
 
