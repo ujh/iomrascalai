@@ -60,6 +60,11 @@ impl UctEngine {
     fn set_new_root(&mut self, m: Move) {
         let new_root = self.root.find_child(m);
         self.root = new_root;
+        // Set these values to zero, as the new root is actually a
+        // node of the opponent. Otherwise the win ratio would
+        // approach 0% as we win the game. And then we would resign!
+        self.root.plays = 0;
+        self.root.wins = 0;
     }
 
 }
@@ -72,12 +77,6 @@ impl Engine for UctEngine {
         } else {
             self.set_new_root(game.last_move());
         }
-        if self.config.log {
-            let rm = self.root.m();
-            log!("Continuing with {:?} {} ({} simulations, {}% wins on average)", rm.color(), rm.to_gtp(), self.root.plays()-1, self.root.win_ratio()*100.0);
-
-        }
-
         if self.root.has_no_children() {
             if self.config.log {
                 log!("No moves to simulate!");
