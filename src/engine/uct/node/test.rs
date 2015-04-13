@@ -71,7 +71,7 @@ fn unvisited_children_are_explored_first() {
     let game = Game::new(2, 0.5, KgsChinese);
     let mut root = Node::root(&game, Black);
     for _ in 0..4 {
-        root.find_leaf_and_expand(&game, 1);
+        root.find_leaf_and_expand(&game, 1, false);
     }
     assert_eq!(4, root.children.len());
     assert!(root.children.iter().all(|n| n.plays == 1));
@@ -82,7 +82,7 @@ fn find_leaf_and_expand_expands_the_leaves() {
     let game = Game::new(2, 0.5, KgsChinese);
     let mut root = Node::root(&game, Black);
     for _ in 0..4 {
-        root.find_leaf_and_expand(&game, 1);
+        root.find_leaf_and_expand(&game, 1, false);
     }
     assert_eq!(4, root.children.len());
     assert!(root.children.iter().all(|n| n.children.len() == 3));
@@ -92,7 +92,7 @@ fn find_leaf_and_expand_expands_the_leaves() {
 fn run_playout_sets_play_on_the_root() {
     let game = Game::new(2, 0.5, KgsChinese);
     let mut root = Node::root(&game, Black);
-    root.find_leaf_and_expand(&game, 1);
+    root.find_leaf_and_expand(&game, 1, false);
     assert_eq!(2, root.plays);
 }
 

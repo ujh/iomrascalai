@@ -59,8 +59,8 @@ impl Node {
         root
     }
 
-    pub fn find_leaf_and_expand(&mut self, game: &Game, expand_after: usize) -> (Vec<usize>, Vec<Move>, bool) {
-        let (path, moves, leaf) = self.find_leaf_and_mark(vec!(), vec!());
+    pub fn find_leaf_and_expand(&mut self, game: &Game, expand_after: usize, tuned: bool) -> (Vec<usize>, Vec<Move>, bool) {
+        let (path, moves, leaf) = self.find_leaf_and_mark(vec!(), vec!(), tuned);
         let mut board = game.board();
         for &m in moves.iter() {
             board.play_legal_move(m);
@@ -73,15 +73,15 @@ impl Node {
         (path, moves, not_terminal)
     }
 
-    pub fn find_leaf_and_mark(&mut self, mut path: Vec<usize>, mut moves: Vec<Move>) -> (Vec<usize>, Vec<Move>, &mut Node) {
+    pub fn find_leaf_and_mark(&mut self, mut path: Vec<usize>, mut moves: Vec<Move>, tuned: bool) -> (Vec<usize>, Vec<Move>, &mut Node) {
         self.record_play();
         if self.is_leaf() {
             (path, moves, self)
         } else {
-            let index = self.next_uct_child_index();
+            let index = if tuned { self.next_uct_tuned_child_index() } else { self.next_uct_child_index() };
             path.push(index);
             moves.push(self.children[index].m());
-            self.children[index].find_leaf_and_mark(path, moves)
+            self.children[index].find_leaf_and_mark(path, moves, tuned)
         }
     }
 
@@ -162,8 +162,28 @@ impl Node {
     pub fn plays(&self) -> usize {
         self.plays
     }
+    
+    fn next_uct_tuned_child_index(&self) -> usize {
+        let mut index = 0;
+        for i in 1..self.children.len() {
+            if self.children[i].uct_tuned_value(self.plays) > self.children[index].uct_tuned_value(self.plays) {
+                index = i;
+            }
+        }
+        index
+    }
+    
+    fn uct_tuned_value(&self, parent_plays: usize) -> f32 {
+        const MAX_BERNOULLI_VARIANCE: f32 = 0.25;
+        let p = self.win_ratio(); //bernoulli distribution parameter
+        let variance = p * (1.0 - p);
+        let variance_upper_bound = variance + ((2.0 * (parent_plays as f32).ln())/(self.plays as f32)).sqrt();
+        let smaller_upper_bound = MAX_BERNOULLI_VARIANCE.min(variance_upper_bound); //can't be greater than the theoretical variance
+        
+        p + (((parent_plays as f32).ln()) * smaller_upper_bound / (self.plays as f32)).sqrt()
+    }
 
-    pub fn next_uct_child_index(&self) -> usize {
+    fn next_uct_child_index(&self) -> usize {
         let mut index = 0;
         for i in 1..self.children.len() {
             if self.children[i].uct_value(self.plays) > self.children[index].uct_value(self.plays) {
