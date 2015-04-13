@@ -57,14 +57,9 @@ impl UctEngine {
         }
     }
 
-    fn set_new_root(&mut self, m: Move) {
-        let new_root = self.root.find_child(m);
-        self.root = new_root;
-        // Set these values to zero, as the new root is actually a
-        // node of the opponent. Otherwise the win ratio would
-        // approach 0% as we win the game. And then we would resign!
-        self.root.plays = 0;
-        self.root.wins = 0;
+    fn set_new_root(&mut self, m: Move, color: Color) {
+        self.root = self.root.find_child(m);
+        self.root.make_root(color);
     }
 
 }
@@ -75,7 +70,7 @@ impl Engine for UctEngine {
         if self.root.m() == Pass(Empty) {
             self.root = Node::root(game, color);
         } else {
-            self.set_new_root(game.last_move());
+            self.set_new_root(game.last_move(), color);
         }
         if self.root.has_no_children() {
             if self.config.log {
@@ -90,7 +85,7 @@ impl Engine for UctEngine {
             select!(
                 _ = receiver.recv() => {
                     let m = finish(&self.root, game, color, sender, self.config, halt_senders);
-                    self.set_new_root(m);
+                    self.set_new_root(m, color);
                     break;
                 },
                 res = receive_result_from_threads.recv() => {

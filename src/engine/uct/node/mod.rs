@@ -61,6 +61,18 @@ impl Node {
         root
     }
 
+    pub fn make_root(&mut self, color: Color) {
+        // Set these values to zero, as the new root is actually a
+        // node of the opponent. Otherwise the win ratio would
+        // approach 0% as we win the game. And then we would resign!
+        self.plays = 0;
+        self.wins = 0;
+        // The root has to have the color of the player we want to
+        // simulate. Otherwise the win statistics are for the wrong
+        // player!
+        self.m = Pass(color);
+    }
+
     pub fn find_leaf_and_expand(&mut self, game: &Game, expand_after: usize, tuned: bool) -> (Vec<usize>, Vec<Move>, bool) {
         let (path, moves, leaf) = self.find_leaf_and_mark(vec!(), vec!(), tuned);
         let mut board = game.board();
