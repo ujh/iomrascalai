@@ -133,7 +133,7 @@ fn finish(root: Node, game: &Game, color: Color, sender: Sender<Move>, config: C
         halt_sender.send(()).unwrap();
     }
 
-    if root.mostly_losses() {
+    if root.mostly_losses(config.uct.end_of_game_cutoff) {
         if game.winner() == color {
             sender.send(Pass(color)).unwrap();
         } else {

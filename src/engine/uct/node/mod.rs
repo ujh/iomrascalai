@@ -140,9 +140,9 @@ impl Node {
         }
         best
     }
-    
-    pub fn mostly_losses(&self) -> bool {
-        self.win_ratio() < 0.01
+
+    pub fn mostly_losses(&self, cutoff: f32) -> bool {
+        self.win_ratio() < cutoff
     }
 
     pub fn record_win(&mut self) {
@@ -160,7 +160,7 @@ impl Node {
     pub fn plays(&self) -> usize {
         self.plays
     }
-    
+
     fn next_uct_tuned_child_index(&self) -> usize {
         let mut index = 0;
         for i in 1..self.children.len() {
@@ -170,14 +170,14 @@ impl Node {
         }
         index
     }
-    
+
     fn uct_tuned_value(&self, parent_plays: usize) -> f32 {
         const MAX_BERNOULLI_VARIANCE: f32 = 0.25;
         let p = self.win_ratio(); //bernoulli distribution parameter
         let variance = p * (1.0 - p);
         let variance_upper_bound = variance + ((2.0 * (parent_plays as f32).ln())/(self.plays as f32)).sqrt();
         let smaller_upper_bound = MAX_BERNOULLI_VARIANCE.min(variance_upper_bound); //can't be greater than the theoretical variance
-        
+
         p + (((parent_plays as f32).ln()) * smaller_upper_bound / (self.plays as f32)).sqrt()
     }
 

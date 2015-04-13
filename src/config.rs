@@ -24,6 +24,7 @@ use ruleset::Ruleset;
 
 #[derive(Debug, Copy, Clone)]
 pub struct UctConfig {
+    pub end_of_game_cutoff: f32,
     pub expand_after: usize,
     pub tuned: bool,
 }
@@ -62,6 +63,7 @@ impl Config {
                 c: 0.5
             },
             uct: UctConfig {
+                end_of_game_cutoff: 0.01,
                 expand_after: 1,
                 tuned: true,
             },
