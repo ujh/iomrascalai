@@ -12,7 +12,7 @@ rm -f *benchmark*
 THREADS=8
 
 GNUGO="gnugo --mode gtp --level 0 --chinese-rules --positional-superko --capture-all-dead --score aftermath --play-out-aftermath"
-IOMRASCALAI="./target/release/iomrascalai -r chinese -t $THREADS"
+IOMRASCALAI="./target/release/iomrascalai -r chinese -t $THREADS -l"
 REFEREE="$GNUGO"
 SIZE=9
 GAMES=100
