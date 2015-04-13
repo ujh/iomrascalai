@@ -132,6 +132,13 @@ fn record_on_path_only_records_wins_for_the_correct_color() {
     assert_eq!(1, root.children[0].children[0].wins);
 }
 
+#[test]
+fn find_child_returns_the_correct_child() {
+    let mut root = Node::new(Pass(Black));
+    let child = Node::new(Play(White, 1, 1));
+    root.children = vec!(Node::new(Play(Black, 5, 5)), child.clone(), Node::new(Play(Black, 3, 7)));
+    assert_eq!(child, root.find_child(Play(White, 1, 1)));
+}
 
 // 2. Make sure that terminal nodes are "played", i.e. either a win or
 //    a loss is reported and the wins are recorded in the tree.

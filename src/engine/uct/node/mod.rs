@@ -31,7 +31,7 @@ use std::usize;
 
 mod test;
 
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Node {
     children: Vec<Node>,
     m: Move,
