@@ -21,8 +21,8 @@
 
 use board::Board;
 use board::Color;
-use board::Empty;
 use board::Move;
+use board::NoMove;
 use board::Pass;
 use game::Game;
 
@@ -178,7 +178,7 @@ impl Node {
     pub fn find_child(&self, m: Move) -> Node {
         match self.children.iter().find(|c| c.m() == m) {
             Some(node) => node.clone(),
-            None => Node::new(Pass(Empty)),
+            None => Node::new(NoMove),
         }
     }
 

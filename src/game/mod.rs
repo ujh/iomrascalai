@@ -23,10 +23,9 @@
 use board::Board;
 use board::Color;
 use board::Coord;
-use board::Empty;
 use board::IllegalMove;
 use board::Move;
-use board::Pass;
+use board::NoMove;
 use ruleset::Ruleset;
 use score::Score;
 use self::zobrist_hash_table::ZobristHashTable;
@@ -58,7 +57,7 @@ impl Game {
 
         Game {
             board: new_board,
-            last_move: Pass(Empty),
+            last_move: NoMove,
             move_number: 0,
             zobrist_hash_table: ZobristHashTable::new(size),
         }

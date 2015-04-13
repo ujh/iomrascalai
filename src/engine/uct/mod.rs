@@ -23,6 +23,7 @@ use board::Board;
 use board::Color;
 use board::Empty;
 use board::Move;
+use board::NoMove;
 use board::Pass;
 use board::Resign;
 use config::Config;
@@ -53,7 +54,7 @@ impl UctEngine {
         UctEngine {
             config: config,
             playout: Arc::new(playout),
-            root: Node::new(Pass(Empty)),
+            root: Node::new(NoMove),
         }
     }
 
@@ -67,7 +68,7 @@ impl UctEngine {
 impl Engine for UctEngine {
 
     fn gen_move(&mut self, color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
-        if self.root.m() == Pass(Empty) {
+        if self.root.m() == NoMove {
             self.root = Node::root(game, color);
         } else {
             self.set_new_root(game.last_move(), color);

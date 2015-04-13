@@ -26,6 +26,7 @@ pub use self::Color::White;
 pub use self::chain::Chain;
 pub use self::coord::Coord;
 pub use self::movement::Move;
+pub use self::movement::NoMove;
 pub use self::movement::Pass;
 pub use self::movement::Play;
 pub use self::movement::Resign;
@@ -337,23 +338,23 @@ impl Board {
         self.play_legal_move(m);
         Ok(())
     }
-    
+
     //always called on moves that are already known to be legal
     pub fn play_legal_move(&mut self, m: Move) {
         self.previous_player = *m.color();
-        
+
         if m.is_pass() {
             self.consecutive_passes += 1;
             return;
         } else {
             self.consecutive_passes = 0;
         }
-        
+
         if m.is_resign() {
             self.resigned_by = *m.color();
             return;
         }
-        
+
         // Create new chain or merge it with the neighbouring ones. It
         // removes coord from the list of liberties of the
         // neighbouring chains.
@@ -377,8 +378,8 @@ impl Board {
         }
         self.update_vacant(&m);
     }
-    
-    
+
+
     //#[inline(never)] //turn off for profiling
     fn update_vacant(&mut self, m: &Move) {
         let pos = self.vacant.iter().position(|&c| c == m.coord()).unwrap();
