@@ -30,6 +30,7 @@ use std::usize;
 
 mod test;
 
+#[derive(Clone)]
 pub struct Node {
     children: Vec<Node>,
     m: Move,
@@ -159,6 +160,10 @@ impl Node {
 
     pub fn plays(&self) -> usize {
         self.plays
+    }
+
+    pub fn find_child(&self, m: Move) -> Node {
+        self.children.iter().find(|c| c.m() == m).unwrap().clone()
     }
 
     fn next_uct_tuned_child_index(&self) -> usize {

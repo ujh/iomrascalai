@@ -43,9 +43,8 @@ mod node;
 
 pub struct UctEngine {
     config: Config,
-    gen_moves: usize,
     playout: Arc<Box<Playout>>,
-    plays: usize,
+    root: Node,
 }
 
 impl UctEngine {
@@ -53,9 +52,15 @@ impl UctEngine {
     pub fn new(config: Config, playout: Box<Playout>) -> UctEngine {
         UctEngine {
             config: config,
-            gen_moves: 0,
             playout: Arc::new(playout),
-            plays: 0,
+            root: Node::new(Pass(Empty)),
+        }
+    }
+
+    fn set_new_root(&mut self, m: Move) {
+        if self.root.m() != Pass(Empty) {
+            let new_root = self.root.find_child(m);
+            self.root = new_root;
         }
     }
 
@@ -64,9 +69,10 @@ impl UctEngine {
 impl Engine for UctEngine {
 
     fn gen_move(&mut self, color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
-        self.gen_moves += 1; // dummy field to test making the engines mutable
-        let mut root = Node::root(game, color);
-        if root.has_no_children() {
+        if self.root.m() == Pass(Empty) {
+            self.root = Node::root(game, color);
+        }
+        if self.root.has_no_children() {
             if self.config.log {
                 log!("No moves to simulate!");
             }
@@ -78,21 +84,22 @@ impl Engine for UctEngine {
         loop {
             select!(
                 _ = receiver.recv() => {
-                    finish(root, game, color, sender, self.config, halt_senders);
+                    let m = finish(&self.root, game, color, sender, self.config, halt_senders);
+                    self.set_new_root(m);
                     break;
                 },
                 res = receive_result_from_threads.recv() => {
                     let ((path, winner), send_to_thread) = res.unwrap();
-                    root.record_on_path(&path, winner);
-                    let data = root.find_leaf_and_expand(game, self.config.uct.expand_after, self.config.uct.tuned);
+                    self.root.record_on_path(&path, winner);
+                    let data = self.root.find_leaf_and_expand(game, self.config.uct.expand_after, self.config.uct.tuned);
                     send_to_thread.send(data).unwrap();
                 }
                 )
         }
     }
 
-    fn play(&mut self, _: Move) {
-        self.plays += 1; // Dummy field to test making the engines mutable
+    fn play(&mut self, m: Move) {
+        self.set_new_root(m);
     }
 
     fn engine_type(&self) -> &'static str {
@@ -140,20 +147,22 @@ fn spin_up_worker<'a>(playout: Arc<Box<Playout>>, board: Board, send_to_main: Se
     })
 }
 
-fn finish(root: Node, game: &Game, color: Color, sender: Sender<Move>, config: Config, halt_senders: Vec<Sender<()>>) {
+fn finish(root: &Node, game: &Game, color: Color, sender: Sender<Move>, config: Config, halt_senders: Vec<Sender<()>>) -> Move {
     for halt_sender in halt_senders.iter() {
         halt_sender.send(()).unwrap();
     }
 
     if root.mostly_losses(config.uct.end_of_game_cutoff) {
-        if game.winner() == color {
-            sender.send(Pass(color)).unwrap();
+        let m = if game.winner() == color {
+            Pass(color)
         } else {
-            sender.send(Resign(color)).unwrap();
-        }
+            Resign(color)
+        };
+        sender.send(m).unwrap();
         if config.log {
             log!("Almost all simulations were losses");
         }
+        m
     } else {
         let best_node = root.best();
         if config.log {
@@ -161,5 +170,6 @@ fn finish(root: Node, game: &Game, color: Color, sender: Sender<Move>, config: C
             log!("Returning the best move({}% wins)", best_node.win_ratio()*100.0);
         }
         sender.send(best_node.m()).unwrap();
+        best_node.m()
     }
 }

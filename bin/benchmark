@@ -6,7 +6,7 @@ cd "$DIR/.."
 set -ex
 
 cargo build --release
-rm -f *benchmark*
+# rm -f *benchmark*
 
 THREADS=8
 
