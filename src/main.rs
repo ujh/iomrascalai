@@ -73,7 +73,7 @@ pub fn main() {
     opts.optopt("r", "ruleset", "select the ruleset (defaults to chinese)", "cgos|chinese|tromp-taylor|minimal");
     opts.optopt("t", "threads", "number of threads to use (defaults to 1)", "NUM");
     opts.optopt("p", "playout", "type of playout to use (defaults to no-self-atari)", "light|no-self-atari");
-    opts.optopt("P", "policies", "choose which policy to use (defaults to ucb1tuned)", "tuned|ucb1");
+    opts.optopt("P", "policies", "choose which policy to use (defaults to tuned)", "tuned|ucb1");
     opts.optflag("h", "help", "print this help menu");
     opts.optflag("v", "version", "print the version number");
     opts.optflag("l", "log", "log to stderr (defaults to false)");
@@ -107,7 +107,7 @@ pub fn main() {
         Some(r) => Ruleset::from_string(r),
         None    => KgsChinese
     };
-    
+
     let policy = matches.opt_str("P").map(|s| s.into_ascii_lowercase());
     let mut config = Config::default();
     config.log = log;
