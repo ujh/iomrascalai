@@ -132,14 +132,15 @@ fn finish(root: Node, game: &Game, color: Color, sender: Sender<Move>, config: C
     for halt_sender in halt_senders.iter() {
         halt_sender.send(()).unwrap();
     }
-    if root.all_losses() {
+
+    if root.mostly_losses() {
         if game.winner() == color {
             sender.send(Pass(color)).unwrap();
         } else {
             sender.send(Resign(color)).unwrap();
         }
         if config.log {
-            log!("All simulations were losses");
+            log!("Almost all simulations were losses");
         }
     } else {
         let best_node = root.best();

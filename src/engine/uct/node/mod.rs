@@ -140,11 +140,9 @@ impl Node {
         }
         best
     }
-
-    pub fn all_losses(&self) -> bool {
-        self.children
-            .iter()
-            .all(|n| n.wins == 0)
+    
+    pub fn mostly_losses(&self) -> bool {
+        self.win_ratio() < 0.01
     }
 
     pub fn record_win(&mut self) {
