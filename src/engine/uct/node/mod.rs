@@ -21,6 +21,7 @@
 
 use board::Board;
 use board::Color;
+use board::Empty;
 use board::Move;
 use board::Pass;
 use game::Game;
@@ -163,7 +164,10 @@ impl Node {
     }
 
     pub fn find_child(&self, m: Move) -> Node {
-        self.children.iter().find(|c| c.m() == m).unwrap().clone()
+        match self.children.iter().find(|c| c.m() == m) {
+            Some(node) => node.clone(),
+            None => Node::new(Pass(Empty)),
+        }
     }
 
     fn next_uct_tuned_child_index(&self) -> usize {

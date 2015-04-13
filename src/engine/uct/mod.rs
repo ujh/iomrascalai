@@ -58,10 +58,8 @@ impl UctEngine {
     }
 
     fn set_new_root(&mut self, m: Move) {
-        if self.root.m() != Pass(Empty) {
-            let new_root = self.root.find_child(m);
-            self.root = new_root;
-        }
+        let new_root = self.root.find_child(m);
+        self.root = new_root;
     }
 
 }
@@ -71,7 +69,15 @@ impl Engine for UctEngine {
     fn gen_move(&mut self, color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
         if self.root.m() == Pass(Empty) {
             self.root = Node::root(game, color);
+        } else {
+            self.set_new_root(game.last_move());
         }
+        if self.config.log {
+            let rm = self.root.m();
+            log!("Continuing with {:?} {} ({} simulations, {}% wins on average)", rm.color(), rm.to_gtp(), self.root.plays()-1, self.root.win_ratio()*100.0);
+
+        }
+
         if self.root.has_no_children() {
             if self.config.log {
                 log!("No moves to simulate!");
@@ -96,10 +102,6 @@ impl Engine for UctEngine {
                 }
                 )
         }
-    }
-
-    fn play(&mut self, m: Move) {
-        self.set_new_root(m);
     }
 
     fn engine_type(&self) -> &'static str {

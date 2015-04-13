@@ -92,7 +92,6 @@ pub struct GTPInterpreter<'a> {
     receive_move_from_controller: Receiver<Move>,
     send_game_to_controller: Sender<(Game, Color, Timer)>,
     send_halt_to_controller: Sender<()>,
-    send_play_to_controller: Sender<Move>,
     timer: Timer,
 }
 
@@ -102,23 +101,19 @@ impl<'a> GTPInterpreter<'a> {
         let boardsize = 19;
         let (send_game_to_controller, receive_game_from_interpreter) = channel::<(Game, Color, Timer)>();
         let (send_move_to_interpreter, receive_move_from_controller) = channel::<Move>();
-        let (send_play_to_controller, receive_play_from_interpreter) = channel::<Move>();
         let (send_halt_to_controller, receive_halt_from_interpreter) = channel::<()>();
         let controller_config = config;
         let guard = thread::scoped(move || {
             let mut controller = EngineController::new(controller_config, engine);
             loop {
-                select!(data = receive_game_from_interpreter.recv() => {
-                    let (game, color, timer) = data.unwrap();
-                    controller.run_and_return_move(color, &game, &timer, send_move_to_interpreter.clone());
-                },
-                        data = receive_play_from_interpreter.recv() => {
-                            let m = data.unwrap();
-                            controller.play_move(m);
-                        },
-                        _ = receive_halt_from_interpreter.recv() => {
-                            break;
-                        })
+                select!(
+                    data = receive_game_from_interpreter.recv() => {
+                        let (game, color, timer) = data.unwrap();
+                        controller.run_and_return_move(color, &game, &timer, send_move_to_interpreter.clone());
+                    },
+                    _ = receive_halt_from_interpreter.recv() => {
+                        break;
+                    })
             }
         });
         GTPInterpreter {
@@ -128,7 +123,6 @@ impl<'a> GTPInterpreter<'a> {
             receive_move_from_controller: receive_move_from_controller,
             send_game_to_controller: send_game_to_controller,
             send_halt_to_controller: send_halt_to_controller,
-            send_play_to_controller: send_play_to_controller,
             timer: Timer::new(config),
         }
     }
@@ -237,7 +231,6 @@ impl<'a> GTPInterpreter<'a> {
                     match self.game.play(m) {
                         Ok(g) => {
                             self.game = g;
-                            self.send_play_to_controller.send(m).unwrap();
                             Command::Play
                         },
                         Err(e) => {
