@@ -34,6 +34,7 @@ mod test;
 #[derive(Clone, Debug, PartialEq)]
 pub struct Node {
     children: Vec<Node>,
+    descendants: usize,
     m: Move,
     plays: usize,
     wins: usize,
@@ -44,6 +45,7 @@ impl Node {
     pub fn new(m: Move) -> Node {
         Node {
             children: vec!(),
+            descendants: 0,
             m: m,
             plays: 0,
             wins: 0,
@@ -73,18 +75,20 @@ impl Node {
         self.m = Pass(color);
     }
 
-    pub fn find_leaf_and_expand(&mut self, game: &Game, expand_after: usize, tuned: bool) -> (Vec<usize>, Vec<Move>, bool) {
+    pub fn find_leaf_and_expand(&mut self, game: &Game, expand_after: usize, tuned: bool) -> (Vec<usize>, Vec<Move>, bool, usize) {
         let (path, moves, leaf) = self.find_leaf_and_mark(vec!(), vec!(), tuned);
         let mut board = game.board();
         for &m in moves.iter() {
             board.play_legal_move(m);
         }
+        let previous_desc = leaf.descendants;
         let not_terminal = leaf.expand(&board, expand_after);
         if !not_terminal {
             let is_win = board.winner() == leaf.color();
             leaf.mark_as_terminal(is_win);
         }
-        (path, moves, not_terminal)
+        let new_desc = leaf.descendants - previous_desc;
+        (path, moves, not_terminal, new_desc)
     }
 
     pub fn find_leaf_and_mark(&mut self, mut path: Vec<usize>, mut moves: Vec<Move>, tuned: bool) -> (Vec<usize>, Vec<Move>, &mut Node) {
@@ -92,7 +96,11 @@ impl Node {
         if self.is_leaf() {
             (path, moves, self)
         } else {
-            let index = if tuned { self.next_uct_tuned_child_index() } else { self.next_uct_child_index() };
+            let index = if tuned {
+                self.next_uct_tuned_child_index()
+            } else {
+                self.next_uct_child_index()
+            };
             path.push(index);
             moves.push(self.children[index].m());
             self.children[index].find_leaf_and_mark(path, moves, tuned)
@@ -105,6 +113,7 @@ impl Node {
                 .iter()
                 .map(|&m| Node::new(m))
                 .collect();
+            self.descendants = self.children.len();
         }
  }
 
@@ -115,6 +124,7 @@ impl Node {
                 .iter()
                 .map(|&m| Node::new(m))
                 .collect();
+            self.descendants = self.children.len();
         }
         not_terminal
     }
@@ -136,12 +146,13 @@ impl Node {
         }
     }
 
-    pub fn record_on_path(&mut self, path: &[usize], winner: Color) {
+    pub fn record_on_path(&mut self, path: &[usize], winner: Color, new_nodes: usize) {
         if self.color() == winner {
             self.record_win();
         }
         if path.len() > 0 {
-            self.children[path[0]].record_on_path(&path[1..], winner);
+            self.descendants += new_nodes;
+            self.children[path[0]].record_on_path(&path[1..], winner, new_nodes);
         }
     }
 

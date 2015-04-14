@@ -80,7 +80,7 @@ impl Engine for UctEngine {
             sender.send(Pass(color)).unwrap();
             return;
         }
-        let (send_result_to_main, receive_result_from_threads) = channel::<((Vec<usize>, Color), Sender<(Vec<usize>, Vec<Move>, bool)>)>();
+        let (send_result_to_main, receive_result_from_threads) = channel::<((Vec<usize>, Color, usize), Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>();
         let (_guards, halt_senders) = spin_up(self.config, self.playout.clone(), game, send_result_to_main);
         loop {
             select!(
@@ -90,8 +90,8 @@ impl Engine for UctEngine {
                     break;
                 },
                 res = receive_result_from_threads.recv() => {
-                    let ((path, winner), send_to_thread) = res.unwrap();
-                    self.root.record_on_path(&path, winner);
+                    let ((path, winner, nodes_added), send_to_thread) = res.unwrap();
+                    self.root.record_on_path(&path, winner, nodes_added);
                     let data = self.root.find_leaf_and_expand(game, self.config.uct.expand_after, self.config.uct.tuned);
                     send_to_thread.send(data).unwrap();
                 }
@@ -104,7 +104,7 @@ impl Engine for UctEngine {
     }
 }
 
-fn spin_up<'a>(config: Config, playout: Arc<Box<Playout>>, game: &Game, send_to_main: Sender<((Vec<usize>, Color), Sender<(Vec<usize>, Vec<Move>, bool)>)>) -> (Vec<thread::JoinGuard<'a, ()>>, Vec<Sender<()>>) {
+fn spin_up<'a>(config: Config, playout: Arc<Box<Playout>>, game: &Game, send_to_main: Sender<((Vec<usize>, Color, usize), Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>) -> (Vec<thread::JoinGuard<'a, ()>>, Vec<Sender<()>>) {
     let mut guards = Vec::new();
     let mut halt_senders = Vec::new();
     for _ in 0..config.threads {
@@ -117,17 +117,17 @@ fn spin_up<'a>(config: Config, playout: Arc<Box<Playout>>, game: &Game, send_to_
     (guards, halt_senders)
 }
 
-fn spin_up_worker<'a>(playout: Arc<Box<Playout>>, board: Board, send_to_main: Sender<((Vec<usize>, Color),Sender<(Vec<usize>, Vec<Move>, bool)>)>, receive_halt: Receiver<()>) -> thread::JoinGuard<'a, ()> {
+fn spin_up_worker<'a>(playout: Arc<Box<Playout>>, board: Board, send_to_main: Sender<((Vec<usize>, Color, usize),Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>, receive_halt: Receiver<()>) -> thread::JoinGuard<'a, ()> {
     thread::scoped(move || {
         let mut rng = weak_rng();
-        let (send_to_self, receive_from_main) = channel::<(Vec<usize>, Vec<Move>, bool)>();
+        let (send_to_self, receive_from_main) = channel::<(Vec<usize>, Vec<Move>, bool, usize)>();
         // Send this empty message to get everything started
-        send_to_main.send(((vec!(), Empty), send_to_self.clone())).unwrap();
+        send_to_main.send(((vec!(), Empty, 0), send_to_self.clone())).unwrap();
         loop {
             select!(
                 _ = receive_halt.recv() => { break; },
                 task = receive_from_main.recv() => {
-                    let (path, moves, _) = task.unwrap();
+                    let (path, moves, _, nodes_added) = task.unwrap();
                     let mut b = board.clone();
                     for &m in moves.iter() {
                         b.play_legal_move(m);
@@ -137,7 +137,7 @@ fn spin_up_worker<'a>(playout: Arc<Box<Playout>>, board: Board, send_to_main: Se
                     let playout_result = playout.run(&mut b, None, &mut rng);
                     let winner = playout_result.winner();
                     let send_to_self = send_to_self.clone();
-                    send_to_main.send(((path, winner), send_to_self)).unwrap();
+                    send_to_main.send(((path, winner, nodes_added), send_to_self)).unwrap();
                 }
                 )
         }
