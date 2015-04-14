@@ -5,7 +5,6 @@ cd "$DIR/.."
 
 set -ex
 
-# cargo clean
 cargo build --release
 rm -f *benchmark*
 
@@ -13,14 +12,12 @@ THREADS=8
 
 GNUGO="gnugo --mode gtp --level 0 --chinese-rules --positional-superko --capture-all-dead --score aftermath --play-out-aftermath"
 IOMRASCALAI="./target/release/iomrascalai -r chinese -t $THREADS -l"
-ID="gogui-display -verbose \"$IOMRASCALAI\""
 REFEREE="$GNUGO"
 SIZE=9
 GAMES=100
 TIME="5m"
 
-# Play 100 games between GnuGo and the current AMAF
-gogui-twogtp -auto -black "$GNUGO" -white "$ID" \
+gogui-twogtp -auto -black "$GNUGO" -white "$IOMRASCALAI" \
              -size $SIZE -alternate -games $GAMES -sgffile gnugo-benchmark \
              -time $TIME -referee "$REFEREE" -verbose
 gogui-twogtp -analyze gnugo-benchmark.dat
