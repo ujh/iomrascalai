@@ -68,7 +68,7 @@ impl UctEngine {
 impl Engine for UctEngine {
 
     fn gen_move(&mut self, color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
-        if self.root.m() == NoMove {
+        if !self.config.uct.reuse_subtree || self.root.m() == NoMove {
             self.root = Node::root(game, color);
         } else {
             self.set_new_root(game.last_move(), color);

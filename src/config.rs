@@ -26,6 +26,7 @@ use ruleset::Ruleset;
 pub struct UctConfig {
     pub end_of_game_cutoff: f32,
     pub expand_after: usize,
+    pub reuse_subtree: bool,
     pub tuned: bool,
 }
 
@@ -65,6 +66,7 @@ impl Config {
             uct: UctConfig {
                 end_of_game_cutoff: 0.01,
                 expand_after: 1,
+                reuse_subtree: true,
                 tuned: true,
             },
         }
