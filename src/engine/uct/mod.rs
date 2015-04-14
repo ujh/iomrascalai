@@ -45,6 +45,7 @@ mod node;
 pub struct UctEngine {
     config: Config,
     playout: Arc<Box<Playout>>,
+    previous_node_count: usize,
     root: Node,
 }
 
@@ -54,6 +55,7 @@ impl UctEngine {
         UctEngine {
             config: config,
             playout: Arc::new(playout),
+            previous_node_count: 0,
             root: Node::new(NoMove),
         }
     }
@@ -71,7 +73,16 @@ impl Engine for UctEngine {
         if !self.config.uct.reuse_subtree || self.root.m() == NoMove {
             self.root = Node::root(game, color);
         } else {
+            // Needed for the first reusal. Otherwise it's 0 and we
+            // get a percentage of inf.
+            self.previous_node_count = self.root.descendants();
             self.set_new_root(game.last_move(), color);
+            let reused_node_count = self.root.descendants();
+            if self.config.log {
+                let percentage = reused_node_count as f32 / self.previous_node_count as f32;
+                log!("Reusing {} nodes ({}%)", reused_node_count, percentage*100.0)
+            }
+            self.previous_node_count = reused_node_count;
         }
         if self.root.has_no_children() {
             if self.config.log {
@@ -163,8 +174,8 @@ fn finish(root: &Node, game: &Game, color: Color, sender: Sender<Move>, config: 
     } else {
         let best_node = root.best();
         if config.log {
-            log!("{} simulations ({}% wins on average)", root.plays()-1, root.win_ratio()*100.0);
-            log!("Returning the best move({}% wins)", best_node.win_ratio()*100.0);
+            log!("{} simulations ({}% wins on average, {} nodes)", root.plays()-1, root.win_ratio()*100.0, root.descendants());
+            log!("Returning the best move ({}% wins)", best_node.win_ratio()*100.0);
         }
         sender.send(best_node.m()).unwrap();
         best_node.m()

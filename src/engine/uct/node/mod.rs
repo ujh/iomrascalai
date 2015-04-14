@@ -186,6 +186,10 @@ impl Node {
         self.plays
     }
 
+    pub fn descendants(&self) -> usize {
+        self.descendants
+    }
+
     pub fn find_child(&self, m: Move) -> Node {
         match self.children.iter().find(|c| c.m() == m) {
             Some(node) => node.clone(),
