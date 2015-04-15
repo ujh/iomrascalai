@@ -76,8 +76,15 @@ impl Engine for UctEngine {
             // Needed for the first reusal. Otherwise it's 0 and we
             // get a percentage of inf.
             self.previous_node_count = self.root.descendants();
-            self.set_new_root(game.last_move(), color);
-            self.root.remove_illegal_children(game);
+            // We don't currently include pass moves in the tree, so
+            // we need to handle the case where the opponent plays a
+            // pass move separately.
+            if game.last_move().is_pass() {
+                self.root = Node::root(game, color);
+            } else {
+                self.set_new_root(game.last_move(), color);
+                self.root.remove_illegal_children(game);
+            }
             let reused_node_count = self.root.descendants();
             if self.config.log {
                 let percentage = reused_node_count as f32 / self.previous_node_count as f32;
