@@ -568,14 +568,23 @@ impl Board {
         self.neighbours(c).iter().filter(|c| self.color(c) == Empty).count()
     }
     
-    pub fn removes_enemy_neighbouring_stones(&self, m: Move) -> usize {
+    pub fn removes_multiple_enemy_neighbouring_stones(&self, m: Move) -> (bool, bool) {
         let enemy = m.color().opposite();
-        self.neighbours(m.coord()).iter()                           //for all neighbours
-            .filter(|c| {                                           //take only
-                self.color(c) == enemy &&                           //the enemy stones
-                self.get_chain(**c).unwrap().liberties().len() == 1 //that have 1 liberty
-            })
-            .count()
+        let mut found_one = false;
+        for &c in self.neighbours(m.coord()).iter() {
+            if self.color(&c) == enemy {                                       //the enemy stones
+                let chain = self.get_chain(c).unwrap();
+                if chain.liberties().len() == 1 {                              //that have one liberty
+                    if found_one || chain.coords().len() > 1 {
+                        return (true, true);
+                    } else {
+                        found_one = true;
+                    }
+                }
+            }
+        }
+        
+        (found_one, false)
     }
     
     pub fn new_chain_liberties_greater_than(&self, m: Move, limit: usize) -> bool {
