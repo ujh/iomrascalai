@@ -42,6 +42,7 @@ pub struct PlayoutConfig {
 
 #[derive(Debug, Copy, Clone)]
 pub struct Config {
+    pub debug: bool,
     pub log: bool,
     pub playout: PlayoutConfig,
     pub ruleset: Ruleset,
@@ -54,6 +55,7 @@ impl Config {
 
     pub fn default() -> Config {
         Config {
+            debug: true,
             log: false,
             playout: PlayoutConfig {
                 no_self_atari_cutoff: 7,

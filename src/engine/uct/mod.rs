@@ -100,7 +100,14 @@ impl Engine for UctEngine {
                     let ((path, winner, nodes_added), send_to_thread) = res.unwrap();
                     self.root.record_on_path(&path, winner, nodes_added);
                     let data = self.root.find_leaf_and_expand(game, self.config.uct.expand_after, self.config.uct.tuned);
-                    send_to_thread.send(data).unwrap();
+                    match send_to_thread.send(data) {
+                        Ok(_) => {},
+                        Err(e) => {
+                            if self.config.debug {
+                                log!("[DEBUG] send_to_thread failed with {:?}", e);
+                            }
+                        }
+                    }
                 }
                 )
         }
@@ -124,13 +131,13 @@ fn spin_up<'a>(config: Config, playout: Arc<Box<Playout>>, game: &Game, send_to_
         let (send_halt, receive_halt) = channel::<()>();
         halt_senders.push(send_halt);
         let send_to_main = send_to_main.clone();
-        let guard = spin_up_worker(playout.clone(), game.board(), send_to_main, receive_halt);
+        let guard = spin_up_worker(config, playout.clone(), game.board(), send_to_main, receive_halt);
         guards.push(guard);
     }
     (guards, halt_senders)
 }
 
-fn spin_up_worker<'a>(playout: Arc<Box<Playout>>, board: Board, send_to_main: Sender<((Vec<usize>, Color, usize),Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>, receive_halt: Receiver<()>) -> thread::JoinGuard<'a, ()> {
+fn spin_up_worker<'a>(config: Config, playout: Arc<Box<Playout>>, board: Board, send_to_main: Sender<((Vec<usize>, Color, usize),Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>, receive_halt: Receiver<()>) -> thread::JoinGuard<'a, ()> {
     thread::scoped(move || {
         let mut rng = weak_rng();
         let (send_to_self, receive_from_main) = channel::<(Vec<usize>, Vec<Move>, bool, usize)>();
@@ -150,7 +157,14 @@ fn spin_up_worker<'a>(playout: Arc<Box<Playout>>, board: Board, send_to_main: Se
                     let playout_result = playout.run(&mut b, None, &mut rng);
                     let winner = playout_result.winner();
                     let send_to_self = send_to_self.clone();
-                    send_to_main.send(((path, winner, nodes_added), send_to_self)).unwrap();
+                    match send_to_main.send(((path, winner, nodes_added), send_to_self)) {
+                        Ok(_) => {},
+                        Err(e) => {
+                            if config.debug {
+                                log!("[DEBUG] send_to_main failed with {:?}", e);
+                            }
+                        }
+                    }
                 }
                 )
         }
