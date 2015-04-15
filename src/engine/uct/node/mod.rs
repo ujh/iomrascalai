@@ -84,6 +84,7 @@ impl Node {
         }
         to_remove.reverse();
         for &index in to_remove.iter() {
+            self.descendants -= self.children[index].descendants;
             self.children.remove(index);
         }
     }
