@@ -63,5 +63,6 @@ pub trait Engine: Send + Sync {
     fn engine_type(&self) -> &'static str {
         ""
     }
+    fn reset(&mut self) {}
 
 }

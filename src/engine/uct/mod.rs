@@ -113,6 +113,12 @@ impl Engine for UctEngine {
     fn engine_type(&self) -> &'static str {
         "uct"
     }
+
+    fn reset(&mut self) {
+        self.previous_node_count = 0;
+        self.root = Node::new(NoMove);
+    }
+
 }
 
 fn spin_up<'a>(config: Config, playout: Arc<Box<Playout>>, game: &Game, send_to_main: Sender<((Vec<usize>, Color, usize), Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>) -> (Vec<thread::JoinGuard<'a, ()>>, Vec<Sender<()>>) {
