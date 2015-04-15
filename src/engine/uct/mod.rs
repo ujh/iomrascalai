@@ -84,13 +84,13 @@ impl Engine for UctEngine {
             } else {
                 self.set_new_root(game.last_move(), color);
                 self.root.remove_illegal_children(game);
+                let reused_node_count = self.root.descendants();
+                if self.config.log {
+                    let percentage = reused_node_count as f32 / self.previous_node_count as f32;
+                    log!("Reusing {} nodes ({}%)", reused_node_count, percentage*100.0)
+                }
             }
-            let reused_node_count = self.root.descendants();
-            if self.config.log {
-                let percentage = reused_node_count as f32 / self.previous_node_count as f32;
-                log!("Reusing {} nodes ({}%)", reused_node_count, percentage*100.0)
-            }
-            self.previous_node_count = reused_node_count;
+            self.previous_node_count = self.root.descendants();
         }
         if self.root.has_no_children() {
             if self.config.log {
