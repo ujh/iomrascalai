@@ -64,7 +64,10 @@ fn removes_one_stone() {
     let game   = parser.game().unwrap();
     let board  = game.board();
     let play   = Play(Black, 4, 19);
-    assert_eq!(1, board.removes_enemy_neighbouring_stones(play));
+    let (removes_stone, removes_stones) = board.removes_multiple_enemy_neighbouring_stones(play);
+
+    assert!(removes_stone);
+    assert!(!removes_stones);
     assert!(!board.new_chain_liberties_greater_than_zero(play)); //doesn't check for removing stones
     assert!(!board.new_chain_liberties_greater_than_one(play));
 }
@@ -75,7 +78,10 @@ fn removes_two_stones() {
     let game   = parser.game().unwrap();
     let board  = game.board();
     let play   = Play(Black, 4, 15);
-    assert_eq!(2, board.removes_enemy_neighbouring_stones(play));
+    let (removes_stone, removes_stones) = board.removes_multiple_enemy_neighbouring_stones(play);
+
+    assert!(removes_stone);
+    assert!(removes_stones);
     assert!(board.new_chain_liberties_greater_than_zero(play));
     assert!(board.new_chain_liberties_greater_than_one(play));
 }
@@ -86,7 +92,10 @@ fn removes_three_stones() {
     let game   = parser.game().unwrap();
     let board  = game.board();
     let play   = Play(Black, 4, 10);
-    assert_eq!(3, board.removes_enemy_neighbouring_stones(play));
+    let (removes_stone, removes_stones) = board.removes_multiple_enemy_neighbouring_stones(play);
+
+    assert!(removes_stone);
+    assert!(removes_stones);
     assert!(board.new_chain_liberties_greater_than_zero(play));
     assert!(!board.new_chain_liberties_greater_than_one(play)); //doesn't check for removing stones
 }
@@ -97,7 +106,10 @@ fn removes_four_stones() {
     let game   = parser.game().unwrap();
     let board  = game.board();
     let play   = Play(Black, 4, 4);
-    assert_eq!(4, board.removes_enemy_neighbouring_stones(play));
+    let (removes_stone, removes_stones) = board.removes_multiple_enemy_neighbouring_stones(play);
+
+    assert!(removes_stone);
+    assert!(removes_stones);
     assert!(!board.new_chain_liberties_greater_than_zero(play)); //doesn't check for removing stones
     assert!(!board.new_chain_liberties_greater_than_one(play));
 }
@@ -107,7 +119,11 @@ fn removes_three_neighbours() {
     let parser = Parser::from_path(Path::new("fixtures/sgf/hypothetical-plays.sgf")).unwrap();
     let game   = parser.game().unwrap();
     let board  = game.board();
-    assert_eq!(3, board.removes_enemy_neighbouring_stones(Play(Black, 9, 18)));
+    let play   = Play(Black, 9, 18);
+    let (removes_stone, removes_stones) = board.removes_multiple_enemy_neighbouring_stones(play);
+    
+    assert!(removes_stone);
+    assert!(removes_stones);
 }
 
 #[test]
@@ -115,7 +131,11 @@ fn removes_two_neighbours() {
     let parser = Parser::from_path(Path::new("fixtures/sgf/hypothetical-plays.sgf")).unwrap();
     let game   = parser.game().unwrap();
     let board  = game.board();
-    assert_eq!(2, board.removes_enemy_neighbouring_stones(Play(Black, 9, 15)));
+    let play   = Play(Black, 9, 15);
+    let (removes_stone, removes_stones) = board.removes_multiple_enemy_neighbouring_stones(play);
+    
+    assert!(removes_stone);
+    assert!(removes_stones);
 }
 
 #[test]
