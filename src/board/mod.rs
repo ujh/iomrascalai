@@ -571,16 +571,17 @@ impl Board {
     pub fn removes_multiple_enemy_neighbouring_stones(&self, m: Move) -> (bool, bool) {
         let enemy = m.color().opposite();
         let mut found_one = false;
-        for &c in self.neighbours(m.coord()).iter() {
-            if self.color(&c) == enemy {                                       //the enemy stones
-                let chain = self.get_chain(c).unwrap();
-                if chain.liberties().len() == 1 {                              //that have one liberty
-                    if found_one || chain.coords().len() > 1 {
-                        return (true, true);
-                    } else {
-                        found_one = true;
-                    }
-                }
+        
+        let chains = self.neighbours(m.coord()).iter()
+            .filter(|c| self.color(c) == enemy)
+            .map(|&c| self.get_chain(c).unwrap())
+            .filter(|chain| chain.liberties().len() == 1);
+        
+        for chain in chains {
+            if found_one || chain.coords().len() > 1 {
+                return (true, true);
+            } else {
+                found_one = true;
             }
         }
         
