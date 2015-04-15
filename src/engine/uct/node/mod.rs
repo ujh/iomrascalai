@@ -75,6 +75,19 @@ impl Node {
         self.m = Pass(color);
     }
 
+    pub fn remove_illegal_children(&mut self, game: &Game) {
+        let mut to_remove = vec!();
+        for (index, node) in self.children.iter().enumerate() {
+            if game.play(node.m()).is_err() {
+                to_remove.push(index);
+            }
+        }
+        to_remove.reverse();
+        for &index in to_remove.iter() {
+            self.children.remove(index);
+        }
+    }
+
     pub fn find_leaf_and_expand(&mut self, game: &Game, expand_after: usize, tuned: bool) -> (Vec<usize>, Vec<Move>, bool, usize) {
         let (path, moves, leaf) = self.find_leaf_and_mark(vec!(), vec!(), tuned);
         let mut board = game.board();

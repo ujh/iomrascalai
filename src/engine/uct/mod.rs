@@ -77,6 +77,7 @@ impl Engine for UctEngine {
             // get a percentage of inf.
             self.previous_node_count = self.root.descendants();
             self.set_new_root(game.last_move(), color);
+            self.root.remove_illegal_children(game);
             let reused_node_count = self.root.descendants();
             if self.config.log {
                 let percentage = reused_node_count as f32 / self.previous_node_count as f32;
