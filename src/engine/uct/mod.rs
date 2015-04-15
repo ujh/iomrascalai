@@ -60,9 +60,8 @@ impl UctEngine {
         }
     }
 
-    fn set_new_root(&mut self, m: Move, color: Color) {
-        self.root = self.root.find_child(m);
-        self.root.make_root(color);
+    fn set_new_root(&mut self, game: &Game, color: Color) {
+        self.root = self.root.find_new_root(game, color);
     }
 
 }
@@ -70,27 +69,16 @@ impl UctEngine {
 impl Engine for UctEngine {
 
     fn gen_move(&mut self, color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
-        if !self.config.uct.reuse_subtree || self.root.m() == NoMove {
+        if !self.config.uct.reuse_subtree {
             self.root = Node::root(game, color);
         } else {
-            // Needed for the first reusal. Otherwise it's 0 and we
-            // get a percentage of inf.
             self.previous_node_count = self.root.descendants();
-            self.set_new_root(game.last_move(), color);
-            self.root.remove_illegal_children(game);
-            // We don't currently include pass moves in the tree, so
-            // we need to handle the case where the opponent plays a
-            // pass move separately.
-            if self.root.has_no_children() {
-                self.root = Node::root(game, color);
-            } else {
-                let reused_node_count = self.root.descendants();
-                if self.config.log {
-                    let percentage = reused_node_count as f32 / self.previous_node_count as f32;
-                    log!("Reusing {} nodes ({}%)", reused_node_count, percentage*100.0)
-                }
+            self.set_new_root(game, color);
+            let reused_node_count = self.root.descendants();
+            if self.config.log && self.previous_node_count > 0 {
+                let percentage = reused_node_count as f32 / self.previous_node_count as f32;
+                log!("Reusing {} nodes ({}%)", reused_node_count, percentage*100.0)
             }
-            self.previous_node_count = self.root.descendants();
         }
         if self.root.has_no_children() {
             if self.config.log {
@@ -105,7 +93,7 @@ impl Engine for UctEngine {
             select!(
                 _ = receiver.recv() => {
                     let m = finish(&self.root, game, color, sender, self.config, halt_senders);
-                    self.set_new_root(m, color);
+                    self.set_new_root(&game.play(m).unwrap(), color);
                     break;
                 },
                 res = receive_result_from_threads.recv() => {

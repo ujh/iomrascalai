@@ -63,6 +63,21 @@ impl Node {
         root
     }
 
+    pub fn find_new_root(&self, game: &Game, color: Color) -> Node {
+        let mut new_root = self.find_child(game.last_move());
+        new_root.make_root(color);
+        new_root.remove_illegal_children(game);
+        // We don't currently include pass moves in the tree, so
+        // we need to handle the case where the opponent plays a
+        // pass move separately. This branch also handles the
+        // first move where we don't have a tree, yet.
+        if new_root.has_no_children() {
+            Node::root(game, color)
+        } else {
+            new_root
+        }
+    }
+
     pub fn make_root(&mut self, color: Color) {
         // Set these values to zero, as the new root is actually a
         // node of the opponent. Otherwise the win ratio would
