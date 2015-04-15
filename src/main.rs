@@ -22,6 +22,7 @@
 #![feature(collections)]
 #![feature(core)]
 #![feature(plugin)]
+#![feature(scoped)]
 #![feature(std_misc)]
 #![feature(test)]
 #![plugin(regex_macros)]
