@@ -19,5 +19,5 @@ TIME="5m"
 
 gogui-twogtp -auto -black "$GNUGO" -white "$IOMRASCALAI" \
              -size $SIZE -alternate -games $GAMES -sgffile gnugo-benchmark \
-             -time $TIME -referee "$REFEREE" -verbose
+             -time $TIME -referee "$REFEREE" -verbose -debugtocomment
 gogui-twogtp -analyze gnugo-benchmark.dat
