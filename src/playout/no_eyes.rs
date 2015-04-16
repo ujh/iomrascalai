@@ -59,23 +59,9 @@ impl NoSelfAtariPlayout {
 impl Playout for NoSelfAtariPlayout {
 
     fn is_playable(&self, board: &Board, m: &Move) -> bool {
-        !board.is_eye(&m.coord(), *m.color())
-        && {
-            let empty = board.liberty_count(m.coord()); //empty coordinates next to the move
-            empty > 1 ||    //then we are definitely going to be fine for now
-            {
-                let (removes_stone, removes_stones) = board.removes_multiple_enemy_neighbouring_stones(*m); //do we capture at least one stone
-
-                (empty > 0 && removes_stone) || //if we have a liberty and capture a stone we're not in a snapback
-                removes_stones || //or if we capture two we're not going to be recaptured immediately
-                //unless it's a multiple step snapback
-                {
-                (removes_stone && board.new_chain_liberties_greater_than_zero(*m)) || //one liberty by connecting and capture one stone is not a snapback
-                board.new_chain_liberties_greater_than_one(*m) //two liberties by not connecting so not connect and die
-                }
-            }
-            || board.new_chain_length_less_than(*m, self.cutoff()) //suicide for smaller groups is ok
-        }
+        !board.is_eye(&m.coord(), *m.color()) &&
+            board.is_not_self_atari(m) ||
+            board.new_chain_length_less_than(*m, self.cutoff()) //suicide for smaller groups is ok
     }
 
     fn playout_type(&self) -> &'static str {

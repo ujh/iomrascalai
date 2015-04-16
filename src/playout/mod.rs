@@ -73,14 +73,23 @@ pub trait Playout: Sync + Send {
             .map(|c| Play(color, c.col, c.row))
             .position(|m| board.is_legal(m).is_ok() && self.is_playable(board, &m));
         if playable_move.is_some() {
+            let mut include_pass = 0;
             loop {
+                
                 let first = playable_move.unwrap();
-                let r = first + rng.gen::<usize>() % (vacant.len() - first);
-
+                let r = first + rng.gen::<usize>() % (vacant.len() - first + include_pass);
+                
+                if r == vacant.len() {
+                    return Pass(color);
+                }
                 let c = vacant[r];
                 let m = Play(color, c.col, c.row);
                 if board.is_legal(m).is_ok() && self.is_playable(board, &m) {
-                    return m;
+                    if !board.is_not_self_atari(&m) {
+                        include_pass = 1; //try to pass in a seki sometimes
+                    } else {
+                        return m;
+                    }
                 }
             }
         } else {

@@ -29,6 +29,7 @@ pub use self::movement::Move;
 pub use self::movement::Pass;
 pub use self::movement::Play;
 pub use self::movement::Resign;
+
 use ruleset::Ruleset;
 use score::Score;
 use self::point::Point;
@@ -37,10 +38,10 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fmt;
 use std::sync::Arc;
-use smallvec::SmallVec4;
 
 mod chain;
 mod coord;
+mod hypotheticals;
 mod movement;
 mod point;
 mod test;
@@ -562,113 +563,6 @@ impl Board {
         //self.board[c.to_index(self.size)].chain_id = -1;
         //removed because compiler error
         self.board[c.to_index(self.size)].color = Empty;
-    }
-    
-    pub fn liberty_count(&self, c: Coord) -> usize {
-        self.neighbours(c).iter().filter(|c| self.color(c) == Empty).count()
-    }
-    
-    pub fn removes_multiple_enemy_neighbouring_stones(&self, m: Move) -> (bool, bool) {
-        let enemy = m.color().opposite();
-        let mut found_one = false;
-        
-        let chains = self.neighbours(m.coord()).iter()
-            .filter(|c| self.color(c) == enemy)
-            .map(|&c| self.get_chain(c).unwrap())
-            .filter(|chain| chain.liberties().len() == 1);
-        
-        for chain in chains {
-            if found_one || chain.coords().len() > 1 {
-                return (true, true);
-            } else {
-                found_one = true;
-            }
-        }
-        
-        (found_one, false)
-    }
-    
-    pub fn new_chain_liberties_greater_than(&self, m: Move, limit: usize) -> bool {
-        let mut set: HashSet<Coord> = HashSet::new();
-        
-        for &c in self.neighbours(m.coord()).iter() {
-            if self.color(&c) == *m.color() {
-                //add the liberties the chain
-                for &liberty in self.get_chain(c).unwrap().liberties() {
-                    set.insert(liberty);
-                }
-            } else if self.color(&c) == Empty {
-                set.insert(c);
-            }
-            
-            if set.len() - 1 > limit {
-                return true;
-            }
-        };
-        false
-    }
-    
-    pub fn new_chain_liberties_greater_than_zero(&self, m: Move) -> bool {
-        for &c in self.neighbours(m.coord()).iter() {
-            if self.color(&c) == *m.color() {
-                for &liberty in self.get_chain(c).unwrap().liberties() {
-                    if liberty != m.coord() {
-                        return true;
-                    }
-                }
-            } else if self.color(&c) == Empty {
-                return true;
-            }
-        }
-        
-        false
-    }
-    
-    pub fn new_chain_liberties_greater_than_one(&self, m: Move) -> bool {
-        let mut first_liberty: Option<Coord> = None;
-        for &c in self.neighbours(m.coord()).iter() {
-            if self.color(&c) == *m.color() {
-                for &liberty in self.get_chain(c).unwrap().liberties() {
-                    if liberty != m.coord() && first_liberty.is_none() {
-                        first_liberty = Some(liberty);
-                    } else if liberty != m.coord() && first_liberty.is_some() {
-                        if Some(liberty) != first_liberty {
-                            return true;
-                        }
-                    }
-                }
-            } else if self.color(&c) == Empty {
-                if first_liberty.is_none() {
-                    first_liberty = Some(c);
-                } else if Some(c) != first_liberty {
-                    return true;
-                }
-            }
-        }
-        
-        false
-    }
-    
-    pub fn new_chain_length_less_than(&self, m: Move, limit: usize) -> bool {
-        let mut chain_ids = SmallVec4::new();
-        let mut length = 0;
-        
-        for &c in self.neighbours(m.coord()).iter() {
-            if self.color(&c) == *m.color() {
-                let chain = self.get_chain(c).unwrap();
-                
-                if !chain_ids.contains(&chain.id()) {
-                    length += chain.coords().len();
-                    chain_ids.push(chain.id());
-                }
-   
-                if length + 1 > limit {
-                    return false;
-                }
-            }
-        }
-        
-        true
     }
 
     pub fn score(&self) -> Score {
