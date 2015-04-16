@@ -85,7 +85,7 @@ pub trait Playout: Sync + Send {
                 let c = vacant[r];
                 let m = Play(color, c.col, c.row);
                 if board.is_legal(m).is_ok() && self.is_playable(board, &m) {
-                    if !board.is_not_self_atari(&m) {
+                    if include_pass == 0 && !board.is_not_self_atari(&m) {
                         include_pass = 1; //try to pass in a seki sometimes
                     } else {
                         return m;
