@@ -22,6 +22,7 @@
 pub use self::Move::Pass;
 pub use self::Move::Play;
 pub use self::Move::Resign;
+pub use self::Move::NoMove;
 use board::Color;
 use board::Coord;
 
@@ -29,6 +30,7 @@ mod test;
 
 #[derive(Debug, Eq, PartialEq, Hash, Copy, Clone)]
 pub enum Move {
+    NoMove,
     Pass(Color),
     Play(Color, u8, u8),
     Resign(Color),
@@ -54,6 +56,7 @@ impl Move {
             Pass(_)           => String::from_str("pass"),
             Play(_, col, row) => Coord::new(col, row).to_gtp(),
             Resign(_)         => String::from_str("resign"),
+            NoMove            => panic!("Can't turn Move::NoMove into a GTP move!"),
         }
     }
 
@@ -63,6 +66,7 @@ impl Move {
             Play(ref c, _, _) => c,
             Pass(ref c)       => c,
             Resign(ref c)     => c,
+            NoMove            => panic!("Move::NoMove has no color!"),
         }
     }
 
@@ -72,6 +76,7 @@ impl Move {
             Play(_, col, row) => Coord::new(col, row),
             Pass(_)           => panic!("You have tried to get the coord() of a Pass move"),
             Resign(_)         => panic!("You have tried to get the coord() of a Resign"),
+            NoMove            => panic!("You have tried to get the coord() of a NoMove"),
         }
     }
 

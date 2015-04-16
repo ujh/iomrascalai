@@ -70,14 +70,15 @@ mod version;
 pub fn main() {
     let mut opts = Options::new();
     let args : Vec<String> = args().collect();
+    opts.optflag("h", "help", "print this help menu");
+    opts.optflag("l", "log", "log to stderr (defaults to false)");
+    opts.optflag("v", "version", "print the version number");
+    opts.optopt("", "reuse-subtree", "reuse the subtree from the previous search (defaults to true)", "true|false");
+    opts.optopt("P", "policies", "choose which policy to use (defaults to tuned)", "tuned|ucb1");
     opts.optopt("e", "engine", "select an engine (defaults to uct)", "amaf|mc|random|uct");
+    opts.optopt("p", "playout", "type of playout to use (defaults to no-self-atari)", "light|no-self-atari");
     opts.optopt("r", "ruleset", "select the ruleset (defaults to chinese)", "cgos|chinese|tromp-taylor|minimal");
     opts.optopt("t", "threads", "number of threads to use (defaults to 1)", "NUM");
-    opts.optopt("p", "playout", "type of playout to use (defaults to no-self-atari)", "light|no-self-atari");
-    opts.optopt("P", "policies", "choose which policy to use (defaults to tuned)", "tuned|ucb1");
-    opts.optflag("h", "help", "print this help menu");
-    opts.optflag("v", "version", "print the version number");
-    opts.optflag("l", "log", "log to stderr (defaults to false)");
 
     let matches = match opts.parse(args.tail()) {
         Ok(m) => m,
@@ -93,6 +94,16 @@ pub fn main() {
         println!("Iomrascálaí {}", version::version());
         return;
     }
+    let reuse_subtree_arg = matches.opt_str("reuse-subtree").map(|s| s.into_ascii_lowercase());
+    let reuse_subtree = match reuse_subtree_arg {
+        Some(arg) => {
+            match arg.parse::<bool>() {
+                Ok(v) => v,
+                Err(_) => panic!("Unknown value ({}) as argument to --reuse-subtree", arg)
+            }
+        },
+        None => true
+    };
     let log = matches.opt_present("l");
     let threads = match matches.opt_str("t") {
         Some(s) => {
@@ -118,7 +129,7 @@ pub fn main() {
         Some(str) => if str == "ucb1" { false } else { true},
         _ => true
     };
-
+    config.uct.reuse_subtree = reuse_subtree;
     let playout = playout::factory(matches.opt_str("p"), config);
     let engine = engine::factory(matches.opt_str("e"), config, playout);
     Driver::new(config, engine);

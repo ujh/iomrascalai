@@ -22,6 +22,7 @@
 use board::Board;
 use board::Color;
 use board::Move;
+use board::NoMove;
 use board::Pass;
 use game::Game;
 
@@ -30,8 +31,10 @@ use std::usize;
 
 mod test;
 
+#[derive(Clone, Debug, PartialEq)]
 pub struct Node {
     children: Vec<Node>,
+    descendants: usize,
     m: Move,
     plays: usize,
     wins: usize,
@@ -42,6 +45,7 @@ impl Node {
     pub fn new(m: Move) -> Node {
         Node {
             children: vec!(),
+            descendants: 0,
             m: m,
             plays: 0,
             wins: 0,
@@ -59,18 +63,61 @@ impl Node {
         root
     }
 
-    pub fn find_leaf_and_expand(&mut self, game: &Game, expand_after: usize, tuned: bool) -> (Vec<usize>, Vec<Move>, bool) {
+    pub fn find_new_root(&self, game: &Game, color: Color) -> Node {
+        let mut new_root = self.find_child(game.last_move());
+        new_root.make_root(color);
+        new_root.remove_illegal_children(game);
+        // We don't currently include pass moves in the tree, so
+        // we need to handle the case where the opponent plays a
+        // pass move separately. This branch also handles the
+        // first move where we don't have a tree, yet.
+        if new_root.has_no_children() {
+            Node::root(game, color)
+        } else {
+            new_root
+        }
+    }
+
+    pub fn make_root(&mut self, color: Color) {
+        // Set these values to zero, as the new root is actually a
+        // node of the opponent. Otherwise the win ratio would
+        // approach 0% as we win the game. And then we would resign!
+        self.plays = 0;
+        self.wins = 0;
+        // The root has to have the color of the player we want to
+        // simulate. Otherwise the win statistics are for the wrong
+        // player!
+        self.m = Pass(color);
+    }
+
+    pub fn remove_illegal_children(&mut self, game: &Game) {
+        let mut to_remove = vec!();
+        for (index, node) in self.children.iter().enumerate() {
+            if game.play(node.m()).is_err() {
+                to_remove.push(index);
+            }
+        }
+        to_remove.reverse();
+        for &index in to_remove.iter() {
+            self.descendants -= self.children[index].descendants;
+            self.children.remove(index);
+        }
+    }
+
+    pub fn find_leaf_and_expand(&mut self, game: &Game, expand_after: usize, tuned: bool) -> (Vec<usize>, Vec<Move>, bool, usize) {
         let (path, moves, leaf) = self.find_leaf_and_mark(vec!(), vec!(), tuned);
         let mut board = game.board();
         for &m in moves.iter() {
             board.play_legal_move(m);
         }
+        let previous_desc = leaf.descendants;
         let not_terminal = leaf.expand(&board, expand_after);
         if !not_terminal {
             let is_win = board.winner() == leaf.color();
             leaf.mark_as_terminal(is_win);
         }
-        (path, moves, not_terminal)
+        let new_desc = leaf.descendants - previous_desc;
+        (path, moves, not_terminal, new_desc)
     }
 
     pub fn find_leaf_and_mark(&mut self, mut path: Vec<usize>, mut moves: Vec<Move>, tuned: bool) -> (Vec<usize>, Vec<Move>, &mut Node) {
@@ -78,7 +125,11 @@ impl Node {
         if self.is_leaf() {
             (path, moves, self)
         } else {
-            let index = if tuned { self.next_uct_tuned_child_index() } else { self.next_uct_child_index() };
+            let index = if tuned {
+                self.next_uct_tuned_child_index()
+            } else {
+                self.next_uct_child_index()
+            };
             path.push(index);
             moves.push(self.children[index].m());
             self.children[index].find_leaf_and_mark(path, moves, tuned)
@@ -91,6 +142,7 @@ impl Node {
                 .iter()
                 .map(|&m| Node::new(m))
                 .collect();
+            self.descendants = self.children.len();
         }
  }
 
@@ -101,6 +153,7 @@ impl Node {
                 .iter()
                 .map(|&m| Node::new(m))
                 .collect();
+            self.descendants = self.children.len();
         }
         not_terminal
     }
@@ -122,12 +175,13 @@ impl Node {
         }
     }
 
-    pub fn record_on_path(&mut self, path: &[usize], winner: Color) {
+    pub fn record_on_path(&mut self, path: &[usize], winner: Color, new_nodes: usize) {
         if self.color() == winner {
             self.record_win();
         }
         if path.len() > 0 {
-            self.children[path[0]].record_on_path(&path[1..], winner);
+            self.descendants += new_nodes;
+            self.children[path[0]].record_on_path(&path[1..], winner, new_nodes);
         }
     }
 
@@ -159,6 +213,17 @@ impl Node {
 
     pub fn plays(&self) -> usize {
         self.plays
+    }
+
+    pub fn descendants(&self) -> usize {
+        self.descendants
+    }
+
+    pub fn find_child(&self, m: Move) -> Node {
+        match self.children.iter().find(|c| c.m() == m) {
+            Some(node) => node.clone(),
+            None => Node::new(NoMove),
+        }
     }
 
     fn next_uct_tuned_child_index(&self) -> usize {

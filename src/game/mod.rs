@@ -25,6 +25,7 @@ use board::Color;
 use board::Coord;
 use board::IllegalMove;
 use board::Move;
+use board::NoMove;
 use ruleset::Ruleset;
 use score::Score;
 use self::zobrist_hash_table::ZobristHashTable;
@@ -45,6 +46,7 @@ pub trait Info {
 #[derive(Clone)]
 pub struct Game {
     board: Board,
+    last_move: Move,
     move_number: u16,
     zobrist_hash_table: ZobristHashTable,
 }
@@ -55,16 +57,18 @@ impl Game {
 
         Game {
             board: new_board,
+            last_move: NoMove,
             move_number: 0,
             zobrist_hash_table: ZobristHashTable::new(size),
         }
     }
 
-    pub fn with_new_state(board: Board, move_number: u16, zobrist_hash_table: ZobristHashTable ) -> Game {
+    pub fn with_new_state(board: Board, move_number: u16, zobrist_hash_table: ZobristHashTable, last_move: Move) -> Game {
         Game {
-            board:                  board,
-            move_number:            move_number,
-            zobrist_hash_table:     zobrist_hash_table
+            board: board,
+            last_move: last_move,
+            move_number: move_number,
+            zobrist_hash_table: zobrist_hash_table,
        }
     }
 
@@ -73,7 +77,7 @@ impl Game {
 
         match new_board.play(m) {
             Ok(_) => {
-                let mut new_game_state = Game::with_new_state(new_board, self.move_number + 1, self.zobrist_hash_table.clone());
+                let mut new_game_state = Game::with_new_state(new_board, self.move_number + 1, self.zobrist_hash_table.clone(), m);
                 if !m.is_pass() && !m.is_resign() {
                     match new_game_state.check_and_update_super_ko(&m) {
                         Err(_) => return Err(IllegalMove::SuperKo),
@@ -102,6 +106,10 @@ impl Game {
 
     pub fn move_number(&self) -> u16 {
         self.move_number
+    }
+
+    pub fn last_move(&self) -> Move {
+        self.last_move
     }
 
     pub fn is_over(&self) -> bool {

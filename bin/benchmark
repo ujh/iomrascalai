@@ -5,8 +5,10 @@ cd "$DIR/.."
 
 set -ex
 
+FN="gnugo-benchmark"
+
 cargo build --release
-rm -f *benchmark*
+rm -f $FN*
 
 THREADS=8
 
@@ -18,6 +20,6 @@ GAMES=100
 TIME="5m"
 
 gogui-twogtp -auto -black "$GNUGO" -white "$IOMRASCALAI" \
-             -size $SIZE -alternate -games $GAMES -sgffile gnugo-benchmark \
-             -time $TIME -referee "$REFEREE" -verbose
-gogui-twogtp -analyze gnugo-benchmark.dat
+             -size $SIZE -alternate -games $GAMES -sgffile $FN \
+             -time $TIME -referee "$REFEREE" -verbose -debugtocomment
+gogui-twogtp -analyze $FN.dat

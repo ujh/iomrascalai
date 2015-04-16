@@ -23,6 +23,7 @@ use board::Board;
 use board::Color;
 use board::Empty;
 use board::Move;
+use board::NoMove;
 use board::Pass;
 use board::Resign;
 use config::Config;
@@ -44,40 +45,69 @@ mod node;
 pub struct UctEngine {
     config: Config,
     playout: Arc<Box<Playout>>,
+    previous_node_count: usize,
+    root: Node,
 }
 
 impl UctEngine {
 
     pub fn new(config: Config, playout: Box<Playout>) -> UctEngine {
-        UctEngine { config: config, playout: Arc::new(playout) }
+        UctEngine {
+            config: config,
+            playout: Arc::new(playout),
+            previous_node_count: 0,
+            root: Node::new(NoMove),
+        }
+    }
+
+    fn set_new_root(&mut self, game: &Game, color: Color) {
+        self.root = self.root.find_new_root(game, color);
     }
 
 }
 
 impl Engine for UctEngine {
 
-    fn gen_move(&self, color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
-        let mut root = Node::root(game, color);
-        if root.has_no_children() {
+    fn gen_move(&mut self, color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
+        if !self.config.uct.reuse_subtree {
+            self.root = Node::root(game, color);
+        } else {
+            self.previous_node_count = self.root.descendants();
+            self.set_new_root(game, color);
+            let reused_node_count = self.root.descendants();
+            if self.config.log && self.previous_node_count > 0 {
+                let percentage = reused_node_count as f32 / self.previous_node_count as f32;
+                log!("Reusing {} nodes ({}%)", reused_node_count, percentage*100.0)
+            }
+        }
+        if self.root.has_no_children() {
             if self.config.log {
                 log!("No moves to simulate!");
             }
             sender.send(Pass(color)).unwrap();
             return;
         }
-        let (send_result_to_main, receive_result_from_threads) = channel::<((Vec<usize>, Color), Sender<(Vec<usize>, Vec<Move>, bool)>)>();
+        let (send_result_to_main, receive_result_from_threads) = channel::<((Vec<usize>, Color, usize), Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>();
         let (_guards, halt_senders) = spin_up(self.config, self.playout.clone(), game, send_result_to_main);
         loop {
             select!(
                 _ = receiver.recv() => {
-                    finish(root, game, color, sender, self.config, halt_senders);
+                    let m = finish(&self.root, game, color, sender, self.config, halt_senders);
+                    self.set_new_root(&game.play(m).unwrap(), color);
                     break;
                 },
                 res = receive_result_from_threads.recv() => {
-                    let ((path, winner), send_to_thread) = res.unwrap();
-                    root.record_on_path(&path, winner);
-                    let data = root.find_leaf_and_expand(game, self.config.uct.expand_after, self.config.uct.tuned);
-                    send_to_thread.send(data).unwrap();
+                    let ((path, winner, nodes_added), send_to_thread) = res.unwrap();
+                    self.root.record_on_path(&path, winner, nodes_added);
+                    let data = self.root.find_leaf_and_expand(game, self.config.uct.expand_after, self.config.uct.tuned);
+                    match send_to_thread.send(data) {
+                        Ok(_) => {},
+                        Err(e) => {
+                            if self.config.debug {
+                                log!("[DEBUG] send_to_thread failed with {:?}", e);
+                            }
+                        }
+                    }
                 }
                 )
         }
@@ -86,32 +116,38 @@ impl Engine for UctEngine {
     fn engine_type(&self) -> &'static str {
         "uct"
     }
+
+    fn reset(&mut self) {
+        self.previous_node_count = 0;
+        self.root = Node::new(NoMove);
+    }
+
 }
 
-fn spin_up<'a>(config: Config, playout: Arc<Box<Playout>>, game: &Game, send_to_main: Sender<((Vec<usize>, Color), Sender<(Vec<usize>, Vec<Move>, bool)>)>) -> (Vec<thread::JoinGuard<'a, ()>>, Vec<Sender<()>>) {
+fn spin_up<'a>(config: Config, playout: Arc<Box<Playout>>, game: &Game, send_to_main: Sender<((Vec<usize>, Color, usize), Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>) -> (Vec<thread::JoinGuard<'a, ()>>, Vec<Sender<()>>) {
     let mut guards = Vec::new();
     let mut halt_senders = Vec::new();
     for _ in 0..config.threads {
         let (send_halt, receive_halt) = channel::<()>();
         halt_senders.push(send_halt);
         let send_to_main = send_to_main.clone();
-        let guard = spin_up_worker(playout.clone(), game.board(), send_to_main, receive_halt);
+        let guard = spin_up_worker(config, playout.clone(), game.board(), send_to_main, receive_halt);
         guards.push(guard);
     }
     (guards, halt_senders)
 }
 
-fn spin_up_worker<'a>(playout: Arc<Box<Playout>>, board: Board, send_to_main: Sender<((Vec<usize>, Color),Sender<(Vec<usize>, Vec<Move>, bool)>)>, receive_halt: Receiver<()>) -> thread::JoinGuard<'a, ()> {
+fn spin_up_worker<'a>(config: Config, playout: Arc<Box<Playout>>, board: Board, send_to_main: Sender<((Vec<usize>, Color, usize),Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>, receive_halt: Receiver<()>) -> thread::JoinGuard<'a, ()> {
     thread::scoped(move || {
         let mut rng = weak_rng();
-        let (send_to_self, receive_from_main) = channel::<(Vec<usize>, Vec<Move>, bool)>();
+        let (send_to_self, receive_from_main) = channel::<(Vec<usize>, Vec<Move>, bool, usize)>();
         // Send this empty message to get everything started
-        send_to_main.send(((vec!(), Empty), send_to_self.clone())).unwrap();
+        send_to_main.send(((vec!(), Empty, 0), send_to_self.clone())).unwrap();
         loop {
             select!(
                 _ = receive_halt.recv() => { break; },
                 task = receive_from_main.recv() => {
-                    let (path, moves, _) = task.unwrap();
+                    let (path, moves, _, nodes_added) = task.unwrap();
                     let mut b = board.clone();
                     for &m in moves.iter() {
                         b.play_legal_move(m);
@@ -121,33 +157,43 @@ fn spin_up_worker<'a>(playout: Arc<Box<Playout>>, board: Board, send_to_main: Se
                     let playout_result = playout.run(&mut b, None, &mut rng);
                     let winner = playout_result.winner();
                     let send_to_self = send_to_self.clone();
-                    send_to_main.send(((path, winner), send_to_self)).unwrap();
+                    match send_to_main.send(((path, winner, nodes_added), send_to_self)) {
+                        Ok(_) => {},
+                        Err(e) => {
+                            if config.debug {
+                                log!("[DEBUG] send_to_main failed with {:?}", e);
+                            }
+                        }
+                    }
                 }
                 )
         }
     })
 }
 
-fn finish(root: Node, game: &Game, color: Color, sender: Sender<Move>, config: Config, halt_senders: Vec<Sender<()>>) {
+fn finish(root: &Node, game: &Game, color: Color, sender: Sender<Move>, config: Config, halt_senders: Vec<Sender<()>>) -> Move {
     for halt_sender in halt_senders.iter() {
         halt_sender.send(()).unwrap();
     }
 
     if root.mostly_losses(config.uct.end_of_game_cutoff) {
-        if game.winner() == color {
-            sender.send(Pass(color)).unwrap();
+        let m = if game.winner() == color {
+            Pass(color)
         } else {
-            sender.send(Resign(color)).unwrap();
-        }
+            Resign(color)
+        };
+        sender.send(m).unwrap();
         if config.log {
             log!("Almost all simulations were losses");
         }
+        m
     } else {
         let best_node = root.best();
         if config.log {
-            log!("{} simulations ({}% wins on average)", root.plays()-1, root.win_ratio()*100.0);
-            log!("Returning the best move({}% wins)", best_node.win_ratio()*100.0);
+            log!("{} simulations ({}% wins on average, {} nodes)", root.plays()-1, root.win_ratio()*100.0, root.descendants());
+            log!("Returning the best move ({}% wins)", best_node.win_ratio()*100.0);
         }
         sender.send(best_node.m()).unwrap();
+        best_node.m()
     }
 }

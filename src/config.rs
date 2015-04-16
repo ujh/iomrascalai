@@ -26,6 +26,7 @@ use ruleset::Ruleset;
 pub struct UctConfig {
     pub end_of_game_cutoff: f32,
     pub expand_after: usize,
+    pub reuse_subtree: bool,
     pub tuned: bool,
 }
 
@@ -41,6 +42,7 @@ pub struct PlayoutConfig {
 
 #[derive(Debug, Copy, Clone)]
 pub struct Config {
+    pub debug: bool,
     pub log: bool,
     pub playout: PlayoutConfig,
     pub ruleset: Ruleset,
@@ -53,6 +55,7 @@ impl Config {
 
     pub fn default() -> Config {
         Config {
+            debug: true,
             log: false,
             playout: PlayoutConfig {
                 no_self_atari_cutoff: 7,
@@ -65,6 +68,7 @@ impl Config {
             uct: UctConfig {
                 end_of_game_cutoff: 0.01,
                 expand_after: 1,
+                reuse_subtree: true,
                 tuned: true,
             },
         }

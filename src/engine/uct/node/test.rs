@@ -89,11 +89,19 @@ fn find_leaf_and_expand_expands_the_leaves() {
 }
 
 #[test]
-fn run_playout_sets_play_on_the_root() {
+fn find_leaf_and_expand_sets_play_on_the_root() {
     let game = Game::new(2, 0.5, KgsChinese);
     let mut root = Node::root(&game, Black);
     root.find_leaf_and_expand(&game, 1, false);
     assert_eq!(2, root.plays);
+}
+
+#[test]
+fn find_leaf_and_expand_returns_the_number_of_nodes_added() {
+    let game = Game::new(2, 0.5, KgsChinese);
+    let mut root = Node::root(&game, Black);
+    let (_,_,_,count) = root.find_leaf_and_expand(&game, 1, false);
+    assert_eq!(3, count);
 }
 
 #[test]
@@ -121,15 +129,64 @@ fn record_on_path_only_records_wins_for_the_correct_color() {
     let mut root = Node::new(Pass(Black));
     root.children = vec!(child);
 
-    root.record_on_path(&vec!(0, 0), Black);
+    root.record_on_path(&vec!(0, 0), Black, 0);
     assert_eq!(1, root.wins);
     assert_eq!(0, root.children[0].wins);
     assert_eq!(1, root.children[0].children[0].wins);
 
-    root.record_on_path(&vec!(0, 0), White);
+    root.record_on_path(&vec!(0, 0), White, 0);
     assert_eq!(1, root.wins);
     assert_eq!(1, root.children[0].wins);
     assert_eq!(1, root.children[0].children[0].wins);
+}
+
+#[test]
+fn record_on_path_updates_the_descendant_counts() {
+    let mut grandchild = Node::new(Pass(Black));
+    // The leaf already has the correct value set
+    grandchild.descendants = 5;
+    let mut child = Node::new(Pass(White));
+    child.children = vec!(grandchild);
+    child.descendants = 1;
+    let mut root = Node::new(Pass(Black));
+    root.children = vec!(child);
+    root.descendants = 2;
+
+    root.record_on_path(&vec!(0, 0), Black, 5);
+    assert_eq!(7, root.descendants);
+    assert_eq!(6, root.children[0].descendants);
+    assert_eq!(5, root.children[0].children[0].descendants);
+}
+
+#[test]
+fn find_child_returns_the_correct_child() {
+    let mut root = Node::new(Pass(Black));
+    let child = Node::new(Play(White, 1, 1));
+    root.children = vec!(Node::new(Play(Black, 5, 5)), child.clone(), Node::new(Play(Black, 3, 7)));
+    assert_eq!(child, root.find_child(Play(White, 1, 1)));
+}
+
+#[test]
+fn new_sets_the_descendats_to_zero() {
+    let node = Node::new(Pass(Black));
+    assert_eq!(0, node.descendants);
+}
+
+#[test]
+fn expand_root_sets_the_correct_descendant_count_on_the_root() {
+    let game = Game::new(5, 6.5, KgsChinese);
+    let mut root = Node::new(Pass(Black));
+    root.expand_root(&game);
+    assert_eq!(25, root.descendants);
+}
+
+#[test]
+fn expand_sets_the_descendant_count_if_the_node_was_expanded() {
+    let game = Game::new(5, 6.5, KgsChinese);
+    let board = game.board();
+    let mut node = Node::new(Pass(Black));
+    node.expand(&board, 0);
+    assert_eq!(25, node.descendants);
 }
 
 

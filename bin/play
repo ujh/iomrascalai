@@ -1,0 +1,13 @@
+#!/bin/bash
+
+DIR=$( cd $(dirname "${BASH_SOURCE[0]}") && pwd )
+cd "$DIR/.."
+
+set -ex
+
+cargo build --release
+
+IOMRASCALAI="./target/release/iomrascalai -t 8 -l"
+SIZE=5
+
+gogui -computer-black -program "$IOMRASCALAI" -size $SIZE

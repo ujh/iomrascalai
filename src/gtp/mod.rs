@@ -85,13 +85,18 @@ pub enum Command {
     Version,
 }
 
+pub enum ControllerCommand {
+    GenMove(Game, Color, Timer),
+    Reset,
+    ShutDown,
+}
+
 pub struct GTPInterpreter<'a> {
+    _guard: thread::JoinGuard<'a, ()>,
     config: Config,
     game: Game,
-    _guard: thread::JoinGuard<'a, ()>,
     receive_move_from_controller: Receiver<Move>,
-    send_game_to_controller: Sender<(Game, Color, Timer)>,
-    send_halt_to_controller: Sender<()>,
+    send_command_to_controller: Sender<ControllerCommand>,
     timer: Timer,
 }
 
@@ -99,35 +104,40 @@ impl<'a> GTPInterpreter<'a> {
     pub fn new(config: Config, engine: Box<Engine>) -> GTPInterpreter<'a> {
         let komi      = 6.5;
         let boardsize = 19;
-        let (send_game_to_controller, receive_game_from_interpreter) = channel::<(Game, Color, Timer)>();
+        let (send_command_to_controller, receive_command_from_interpreter) = channel::<ControllerCommand>();
         let (send_move_to_interpreter, receive_move_from_controller) = channel::<Move>();
-        let (send_halt_to_controller, receive_halt_from_interpreter) = channel::<()>();
         let controller_config = config;
         let guard = thread::scoped(move || {
-            let controller = EngineController::new(controller_config, engine);
+            let mut controller = EngineController::new(controller_config, engine);
             loop {
-                select!(data = receive_game_from_interpreter.recv() => {
-                    let (game, color, timer) = data.unwrap();
-                    controller.run_and_return_move(color, &game, &timer, send_move_to_interpreter.clone());
-                },
-                        _ = receive_halt_from_interpreter.recv() => {
-                            break;
-                        })
+                match receive_command_from_interpreter.recv() {
+                    Ok(command) => {
+                        match command {
+                            ControllerCommand::GenMove(game, color, timer) => {
+                                controller.run_and_return_move(color, &game, &timer, send_move_to_interpreter.clone());
+                            },
+                            ControllerCommand::Reset => {
+                                controller.reset();
+                            }
+                            ControllerCommand::ShutDown => { break; },
+                        }
+                    },
+                    Err(_) => { break; }
+                }
             }
         });
         GTPInterpreter {
+            _guard: guard,
             config: config,
             game: Game::new(boardsize, komi, config.ruleset),
-            _guard: guard,
             receive_move_from_controller: receive_move_from_controller,
-            send_game_to_controller: send_game_to_controller,
-            send_halt_to_controller: send_halt_to_controller,
+            send_command_to_controller: send_command_to_controller,
             timer: Timer::new(config),
         }
     }
 
     pub fn quit(&self) {
-        self.send_halt_to_controller.send(()).unwrap();
+        self.send_command_to_controller.send(ControllerCommand::ShutDown).unwrap();
     }
 
     pub fn game<'b>(&'b self) -> &'b Game {
@@ -192,6 +202,7 @@ impl<'a> GTPInterpreter<'a> {
             KnownCommands::clear_board      => {
                 self.game = Game::new(self.boardsize(), self.komi(), self.ruleset());
                 self.timer.reset();
+                self.send_command_to_controller.send(ControllerCommand::Reset).unwrap();
                 Command::ClearBoard
             },
             KnownCommands::komi             => match command.get(1) {
@@ -209,7 +220,8 @@ impl<'a> GTPInterpreter<'a> {
         	Some(comm) => {
                     self.timer.start();
         	    let color = Color::from_gtp(comm);
-                    self.send_game_to_controller.send((self.game.clone(), color, self.timer.clone())).unwrap();
+                    let command = ControllerCommand::GenMove(self.game.clone(), color, self.timer.clone());
+                    self.send_command_to_controller.send(command).unwrap();
                     let m = self.receive_move_from_controller.recv().unwrap();
                     match self.game.play(m) {
                         Ok(g) => {

@@ -59,9 +59,10 @@ pub fn factory(opt: Option<String>, config: Config, playout: Box<Playout>) -> Bo
 
 pub trait Engine: Send + Sync {
 
-    fn gen_move(&self, Color, &Game, sender: Sender<Move>, receiver: Receiver<()>);
+    fn gen_move(&mut self, Color, &Game, sender: Sender<Move>, receiver: Receiver<()>);
     fn engine_type(&self) -> &'static str {
         ""
     }
+    fn reset(&mut self) {}
 
 }
