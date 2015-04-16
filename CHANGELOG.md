@@ -1,6 +1,8 @@
 ## 0.2.1 [☰](https://github.com/ujh/iomrascalai/compare/0.2.0...master) (unreleased)
 
-* ...
+* New UCT policy UCB1tuned
+* Reuse the subtree from the previous genmove
+* Seki detection in the self atari code in the playouts
 
 ## 0.2.0 [☰](https://github.com/ujh/iomrascalai/compare/0.1.7...0.2.0)
 
