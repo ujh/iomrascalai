@@ -582,16 +582,8 @@ impl Board {
         self.consecutive_passes == 2 || self.resigned_by != Empty
     }
 
-    pub fn ruleset(&self) -> Ruleset {
-        self.ruleset
-    }
-
     pub fn size(&self) -> u8 {
         self.size
-    }
-
-    pub fn chains<'b>(&'b self) -> &'b Vec<Chain> {
-        &self.chains
     }
 
     pub fn vacant_point_count(&self) -> u16 {

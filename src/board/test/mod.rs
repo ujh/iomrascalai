@@ -468,7 +468,7 @@ fn legal_moves_only_contains_legal_moves() {
 #[test]
 fn ruleset_returns_the_correct_ruleset() {
     let b = Board::new(1, 6.5, Minimal);
-    assert_eq!(b.ruleset(), Minimal);
+    assert_eq!(b.ruleset, Minimal);
 }
 
 #[test]

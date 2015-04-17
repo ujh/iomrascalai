@@ -100,10 +100,6 @@ impl Game {
         self.board.color(&Coord::new(col, row))
     }
 
-    pub fn ruleset(&self) -> Ruleset {
-        self.board.ruleset()
-    }
-
     pub fn move_number(&self) -> u16 {
         self.move_number
     }
