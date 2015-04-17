@@ -140,10 +140,6 @@ impl<'a> GTPInterpreter<'a> {
         self.send_command_to_controller.send(ControllerCommand::ShutDown).unwrap();
     }
 
-    pub fn game<'b>(&'b self) -> &'b Game {
-        &self.game
-    }
-
     pub fn komi(&self) -> f32 {
         self.game.komi()
     }
