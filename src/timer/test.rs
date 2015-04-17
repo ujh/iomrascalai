@@ -34,7 +34,8 @@ fn config() -> Config {
 #[test]
 fn the_timer_doesnt_start_on_new() {
     let clock = Timer::new(config()).clock;
-    assert!(clock.stopped());
+    assert!(clock.start.is_none());
+    assert!(clock.end.is_none());
 }
 
 #[test]
@@ -55,7 +56,7 @@ fn reset_stops_the_clock_and_resets_everything() {
     assert_eq!(timer.main_time, timer.main_time_left);
     assert_eq!(timer.byo_time, timer.byo_time_left);
     assert_eq!(timer.byo_stones, timer.byo_stones_left);
-    assert!(timer.clock.stopped());
+    assert!(timer.clock.end.is_some());
 }
 
 #[test]
@@ -71,7 +72,7 @@ fn update_converts_to_ms_and_resets_everything() {
     assert_eq!(2000, timer.byo_time_left);
     assert_eq!(2, timer.byo_stones);
     assert_eq!(2, timer.byo_stones_left);
-    assert!(timer.clock.stopped());
+    assert!(timer.clock.end.is_some());
 }
 
 #[test]
@@ -94,14 +95,16 @@ fn update_sets_the_byo_time() {
 fn update_starts_the_clock() {
     let mut timer = Timer::new(config());
     timer.update(1, 0);
-    assert!(timer.clock.running());
+    assert!(timer.clock.start.is_some());
+    assert!(timer.clock.end.is_none());
 }
 
 #[test]
 fn start_starts_the_clock() {
     let mut timer = Timer::new(config());
     timer.start();
-    assert!(timer.clock.running());
+    assert!(timer.clock.start.is_some());
+    assert!(timer.clock.end.is_none());
 }
 
 #[test]
@@ -117,7 +120,7 @@ fn stop_changes_the_time_left() {
 fn stop_stops_the_clock() {
     let mut timer = Timer::new(config());
     timer.stop();
-    assert!(timer.clock.stopped());
+    assert!(timer.clock.end.is_some());
 }
 
 #[test]

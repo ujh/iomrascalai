@@ -140,28 +140,12 @@ impl<'a> GTPInterpreter<'a> {
         self.send_command_to_controller.send(ControllerCommand::ShutDown).unwrap();
     }
 
-    pub fn game<'b>(&'b self) -> &'b Game {
-        &self.game
-    }
-
     pub fn komi(&self) -> f32 {
         self.game.komi()
     }
 
     pub fn ruleset(&self) -> Ruleset {
         self.config.ruleset
-    }
-
-    pub fn main_time(&self) -> u32 {
-        self.timer.main_time()
-    }
-
-    pub fn byo_time(&self) -> u32 {
-        self.timer.byo_time()
-    }
-
-    pub fn byo_stones(&self) -> i32 {
-        self.timer.byo_stones()
     }
 
     pub fn boardsize(&self) -> u8 {

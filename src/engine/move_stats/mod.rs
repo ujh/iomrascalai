@@ -64,10 +64,6 @@ impl MoveStats {
         self.stats.values().all(|stat| stat.all_losses())
     }
 
-    pub fn all_wins(&self) -> bool {
-        self.stats.values().all(|stat| stat.all_wins())
-    }
-
     pub fn best(&self) -> (Move, MoveStat) {
         let mut m = Pass(self.color);
         let mut move_stats = MoveStat::new();
@@ -110,10 +106,6 @@ impl MoveStat {
 
     pub fn lost(&mut self) {
         self.plays = self.plays + 1;
-    }
-
-    pub fn all_wins(&self) -> bool {
-        self.wins == self.plays
     }
 
     pub fn all_losses(&self) -> bool {

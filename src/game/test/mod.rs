@@ -30,22 +30,8 @@ use board::Resign;
 use board::White;
 use game::Game;
 use ruleset::KgsChinese;
-use ruleset::Minimal;
 
 mod ko;
-
-#[test]
-fn should_start_counting_moves_at_0() {
-    let g = Game::new(5, 6.5, Minimal);
-    assert_eq!(0, g.move_number());
-}
-
-#[test]
-fn should_increment_move_count_by_1_for_each_move() {
-    let mut g = Game::new(5, 6.5, Minimal);
-    g = g.play(Play(Black, 1, 1)).unwrap();
-    assert_eq!(1, g.move_number());
-}
 
 #[test]
 fn catch_suicide_moves_in_chinese() {
@@ -67,12 +53,6 @@ fn catch_suicide_moves_in_chinese() {
         Err(e) => assert_eq!(e, IllegalMove::SuicidePlay),
         Ok(_)  => panic!("Expected Err!")
     }
-}
-
-#[test]
-fn next_player_should_return_board_next_player() {
-    let g = Game::new(3, 6.5, KgsChinese);
-    assert_eq!(g.board.next_player(), g.next_player());
 }
 
 #[test]

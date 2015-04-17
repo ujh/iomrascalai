@@ -25,8 +25,6 @@ use board::Coord;
 
 use std::collections::HashSet;
 
-mod test;
-
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct Chain {
     color:  Color,
@@ -43,10 +41,6 @@ impl Chain {
             id:     id,
             libs:   libs,
         }
-    }
-
-    pub fn color(&self) -> Color {
-        self.color
     }
 
     #[inline(always)]
@@ -87,7 +81,4 @@ impl Chain {
         self.libs.len() == 0
     }
 
-    pub fn show(&self) -> String {
-        format!("{:<3}| {:?}, libs: {:?}, stones: {:?}", self.id, self.color, self.libs, self.coords)
-    }
 }

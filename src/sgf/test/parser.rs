@@ -20,10 +20,12 @@
  ************************************************************************/
 
 #![cfg(test)]
-use std::path::Path;
 use board::Black;
+use board::Coord;
 use board::White;
 use sgf::parser::Parser;
+
+use std::path::Path;
 
 #[test]
 fn sets_the_board_size_from_sgf() {
@@ -43,17 +45,17 @@ fn sets_the_komi_from_sgf() {
 fn play_handicap_stones() {
     let parser = Parser::from_path(Path::new("fixtures/sgf/handicap.sgf")).unwrap();
     let game  = parser.game().unwrap();
-    assert_eq!(game.get(4,4), Black);
-    assert_eq!(game.get(16,4), Black);
-    assert_eq!(game.get(16,16), Black);
+    assert_eq!(game.board().color(&Coord::new(4,4)), Black);
+    assert_eq!(game.board().color(&Coord::new(16,4)), Black);
+    assert_eq!(game.board().color(&Coord::new(16,16)), Black);
 }
 
 #[test]
 fn play_moves() {
     let parser = Parser::from_path(Path::new("fixtures/sgf/twomoves.sgf")).unwrap();
     let game  = parser.game().unwrap();
-    assert_eq!(game.get(4, 15), Black);
-    assert_eq!(game.get(16, 7), White);
+    assert_eq!(game.board().color(&Coord::new(4, 15)), Black);
+    assert_eq!(game.board().color(&Coord::new(16, 7)), White);
 }
 
 #[test]

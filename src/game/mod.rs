@@ -22,7 +22,6 @@
 
 use board::Board;
 use board::Color;
-use board::Coord;
 use board::IllegalMove;
 use board::Move;
 use board::NoMove;
@@ -47,7 +46,6 @@ pub trait Info {
 pub struct Game {
     board: Board,
     last_move: Move,
-    move_number: u16,
     zobrist_hash_table: ZobristHashTable,
 }
 
@@ -58,16 +56,14 @@ impl Game {
         Game {
             board: new_board,
             last_move: NoMove,
-            move_number: 0,
             zobrist_hash_table: ZobristHashTable::new(size),
         }
     }
 
-    pub fn with_new_state(board: Board, move_number: u16, zobrist_hash_table: ZobristHashTable, last_move: Move) -> Game {
+    pub fn with_new_state(board: Board, zobrist_hash_table: ZobristHashTable, last_move: Move) -> Game {
         Game {
             board: board,
             last_move: last_move,
-            move_number: move_number,
             zobrist_hash_table: zobrist_hash_table,
        }
     }
@@ -77,7 +73,7 @@ impl Game {
 
         match new_board.play(m) {
             Ok(_) => {
-                let mut new_game_state = Game::with_new_state(new_board, self.move_number + 1, self.zobrist_hash_table.clone(), m);
+                let mut new_game_state = Game::with_new_state(new_board, self.zobrist_hash_table.clone(), m);
                 if !m.is_pass() && !m.is_resign() {
                     match new_game_state.check_and_update_super_ko(&m) {
                         Err(_) => return Err(IllegalMove::SuperKo),
@@ -92,20 +88,6 @@ impl Game {
 
     fn check_and_update_super_ko(&mut self, m: &Move) -> Result<(),()>{
         self.zobrist_hash_table.check_and_update_super_ko(m, &self.board)
-    }
-
-    // Note: This method uses 1-1 as the origin point, not 0-0. 19-19 is a valid coordinate in a 19-sized board, while 0-0 is not.
-    //       this is done because I think it makes more sense in the context of go. (Least surprise principle, etc...)
-    pub fn get(&self, col: u8, row: u8) -> Color {
-        self.board.color(&Coord::new(col, row))
-    }
-
-    pub fn ruleset(&self) -> Ruleset {
-        self.board.ruleset()
-    }
-
-    pub fn move_number(&self) -> u16 {
-        self.move_number
     }
 
     pub fn last_move(&self) -> Move {
@@ -136,22 +118,8 @@ impl Game {
         self.board.set_komi(komi);
     }
 
-    pub fn board_size(&self) -> u8 {
-        self.board.size()
-    }
-
     pub fn board(&self) -> Board {
         self.board.clone()
-    }
-
-    pub fn show_chains(&self) {
-        for c in self.board.chains().iter() {
-            println!("{}", c.show());
-        }
-    }
-
-    pub fn next_player(&self) -> Color {
-        self.board.next_player()
     }
 
     pub fn legal_moves(&self) -> Vec<Move> {

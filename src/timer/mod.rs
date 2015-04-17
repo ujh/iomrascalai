@@ -62,22 +62,15 @@ impl Clock {
         }
     }
 
-    pub fn stopped(&self) -> bool {
-        !self.running()
-    }
-
-    pub fn running(&self) -> bool {
-        self.start.is_some() && self.end.is_none()
-    }
 }
 
 #[derive(Clone)]
 pub struct Timer {
-    byo_stones: i32, // stones per byo yomi period
+    pub byo_stones: i32, // stones per byo yomi period
     byo_stones_left: i32,
-    byo_time: u32, // byo yomi time in ms
+    pub byo_time: u32, // byo yomi time in ms
     byo_time_left: u32,
-    main_time: u32, // main time in ms
+    pub main_time: u32, // main time in ms
     main_time_left: u32,
     clock: Clock,
     config: Config,
@@ -156,10 +149,6 @@ impl Timer {
         }
     }
 
-    pub fn main_time(&self) -> u32 {
-        self.main_time
-    }
-
     pub fn main_time_left(&self) -> u32 {
         self.main_time_left
     }
@@ -169,17 +158,9 @@ impl Timer {
         self.main_time_left = time;
     }
 
-    pub fn byo_time(&self) -> u32 {
-        self.byo_time
-    }
-
     fn set_byo_time(&mut self, time: u32) {
         self.byo_time = time;
         self.byo_time_left = time;
-    }
-
-    pub fn byo_stones(&self) -> i32 {
-        self.byo_stones
     }
 
     fn set_byo_stones(&mut self, stones: i32) {
