@@ -144,12 +144,6 @@ impl Game {
         self.board.clone()
     }
 
-    pub fn show_chains(&self) {
-        for c in self.board.chains().iter() {
-            println!("{}", c.show());
-        }
-    }
-
     pub fn next_player(&self) -> Color {
         self.board.next_player()
     }
