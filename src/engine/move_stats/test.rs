@@ -56,23 +56,6 @@ mod move_stats {
     }
 
     #[test]
-    fn all_wins_returns_true_when_no_losses_were_recorded() {
-        let moves = vec![Play(Black, 1, 1), Play(Black, 2, 2)];
-        let mut stats = MoveStats::new(&moves, Black);
-        stats.record_win(Play(Black, 1, 1));
-        stats.record_win(Play(Black, 2, 2));
-        assert!(stats.all_wins());
-    }
-
-    #[test]
-    fn all_wins_returns_false_when_a_loss_was_recorded() {
-        let moves = vec![Play(Black, 1, 1), Play(Black, 2, 2)];
-        let mut stats = MoveStats::new(&moves, Black);
-        stats.record_loss(Play(Black, 1, 1));
-        assert!(!stats.all_wins());
-    }
-
-    #[test]
     fn all_losses_returns_true_when_no_wins_were_recorded() {
         let moves = vec![Play(Black, 1, 1), Play(Black, 2, 2)];
         let mut stats = MoveStats::new(&moves, Black);
