@@ -60,8 +60,8 @@ impl Playout for NoSelfAtariPlayout {
 
     fn is_playable(&self, board: &Board, m: &Move) -> bool {
         !board.is_eye(&m.coord(), *m.color()) &&
-            board.is_not_self_atari(m) ||
-            board.new_chain_length_less_than(*m, self.cutoff()) //suicide for smaller groups is ok
+            (board.is_not_self_atari(m) ||
+            board.new_chain_length_less_than(*m, self.cutoff())) //suicide for smaller groups is ok
     }
 
     fn playout_type(&self) -> &'static str {
