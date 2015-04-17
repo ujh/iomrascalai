@@ -22,26 +22,33 @@
 use ruleset::Minimal;
 use ruleset::Ruleset;
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub struct UctConfig {
     pub end_of_game_cutoff: f32,
     pub expand_after: usize,
+    pub priors: UctPriorsConfig,
     pub reuse_subtree: bool,
     pub tuned: bool,
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub struct UctPriorsConfig {
+    pub neutral_plays: usize,
+    pub neutral_wins: usize,
+}
+
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub struct TimerConfig {
     pub c: f32,
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub struct PlayoutConfig {
     pub ladder_check: bool,
     pub no_self_atari_cutoff: usize,
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Config {
     pub debug: bool,
     pub log: bool,
@@ -70,6 +77,10 @@ impl Config {
             uct: UctConfig {
                 end_of_game_cutoff: 0.01,
                 expand_after: 1,
+                priors: UctPriorsConfig {
+                    neutral_plays: 10,
+                    neutral_wins: 5,
+                },
                 reuse_subtree: true,
                 tuned: true,
             },

@@ -24,6 +24,7 @@ use board::Color;
 use board::Move;
 use board::NoMove;
 use board::Pass;
+use config::Config;
 use game::Game;
 
 use std::f32;
@@ -34,6 +35,7 @@ mod test;
 #[derive(Clone, Debug, PartialEq)]
 pub struct Node {
     children: Vec<Node>,
+    config: Config,
     descendants: usize,
     m: Move,
     plays: usize,
@@ -42,18 +44,19 @@ pub struct Node {
 
 impl Node {
 
-    pub fn new(m: Move) -> Node {
+    pub fn new(m: Move, config: Config) -> Node {
         Node {
             children: vec!(),
+            config: config,
             descendants: 0,
             m: m,
-            plays: 0,
-            wins: 0,
+            plays: config.uct.priors.neutral_plays,
+            wins: config.uct.priors.neutral_wins,
         }
     }
 
-    pub fn root(game: &Game, color: Color) -> Node {
-        let mut root = Node::new(Pass(color));
+    pub fn root(game: &Game, color: Color, config: Config) -> Node {
+        let mut root = Node::new(Pass(color), config);
         // So that we don't get NaN on the first UCT calculation
         root.plays = 1;
         // Now that plays is 1, this needs to be one too to keep the
@@ -72,7 +75,7 @@ impl Node {
         // pass move separately. This branch also handles the
         // first move where we don't have a tree, yet.
         if new_root.has_no_children() {
-            Node::root(game, color)
+            Node::root(game, color, self.config)
         } else {
             new_root
         }
@@ -104,14 +107,14 @@ impl Node {
         }
     }
 
-    pub fn find_leaf_and_expand(&mut self, game: &Game, expand_after: usize, tuned: bool) -> (Vec<usize>, Vec<Move>, bool, usize) {
-        let (path, moves, leaf) = self.find_leaf_and_mark(vec!(), vec!(), tuned);
+    pub fn find_leaf_and_expand(&mut self, game: &Game) -> (Vec<usize>, Vec<Move>, bool, usize) {
+        let (path, moves, leaf) = self.find_leaf_and_mark(vec!(), vec!());
         let mut board = game.board();
         for &m in moves.iter() {
             board.play_legal_move(m);
         }
         let previous_desc = leaf.descendants;
-        let not_terminal = leaf.expand(&board, expand_after);
+        let not_terminal = leaf.expand(&board);
         if !not_terminal {
             let is_win = board.winner() == leaf.color();
             leaf.mark_as_terminal(is_win);
@@ -120,19 +123,19 @@ impl Node {
         (path, moves, not_terminal, new_desc)
     }
 
-    pub fn find_leaf_and_mark(&mut self, mut path: Vec<usize>, mut moves: Vec<Move>, tuned: bool) -> (Vec<usize>, Vec<Move>, &mut Node) {
+    pub fn find_leaf_and_mark(&mut self, mut path: Vec<usize>, mut moves: Vec<Move>) -> (Vec<usize>, Vec<Move>, &mut Node) {
         self.record_play();
         if self.is_leaf() {
             (path, moves, self)
         } else {
-            let index = if tuned {
+            let index = if self.config.uct.tuned {
                 self.next_uct_tuned_child_index()
             } else {
                 self.next_uct_child_index()
             };
             path.push(index);
             moves.push(self.children[index].m());
-            self.children[index].find_leaf_and_mark(path, moves, tuned)
+            self.children[index].find_leaf_and_mark(path, moves)
         }
     }
 
@@ -140,18 +143,18 @@ impl Node {
         if !game.is_over() {
             self.children = game.legal_moves_without_eyes()
                 .iter()
-                .map(|&m| Node::new(m))
+                .map(|&m| Node::new(m, self.config))
                 .collect();
             self.descendants = self.children.len();
         }
  }
 
-    pub fn expand(&mut self, board: &Board, expand_after: usize) -> bool {
+    pub fn expand(&mut self, board: &Board) -> bool {
         let not_terminal = !board.is_game_over();
-        if not_terminal && self.plays >= expand_after {
+        if not_terminal && self.plays >= self.config.uct.expand_after {
             self.children = board.legal_moves_without_eyes()
                 .iter()
-                .map(|&m| Node::new(m))
+                .map(|&m| Node::new(m, self.config))
                 .collect();
             self.descendants = self.children.len();
         }
@@ -222,7 +225,7 @@ impl Node {
     pub fn find_child(&self, m: Move) -> Node {
         match self.children.iter().find(|c| c.m() == m) {
             Some(node) => node.clone(),
-            None => Node::new(NoMove),
+            None => Node::new(NoMove, self.config),
         }
     }
 
