@@ -45,10 +45,6 @@ impl Coord {
         coords
     }
 
-    pub fn from_index(id: usize, board_size: u8) -> Coord {
-        Coord {col: (id%board_size as usize + 1) as u8, row: (id/board_size as usize + 1) as u8}
-    }
-
     pub fn neighbours(&self, board_size: u8) -> Vec<Coord> {
         let mut neighbours = Vec::new();
 
