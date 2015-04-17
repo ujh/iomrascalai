@@ -1,4 +1,4 @@
-## 0.2.1 [☰](https://github.com/ujh/iomrascalai/compare/0.2.0...master) (unreleased)
+## 0.2.1 [☰](https://github.com/ujh/iomrascalai/compare/0.2.0...0.2.1)
 
 * New UCT policy UCB1tuned
 * Reuse the subtree from the previous genmove
