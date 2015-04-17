@@ -43,12 +43,10 @@ impl Chain {
         }
     }
 
-    #[inline(always)]
     pub fn coords<'a>(&'a self) -> &'a Vec<Coord> {
         &self.coords
     }
 
-    #[inline(always)]
     pub fn liberties(&self) -> &HashSet<Coord> {
         &self.libs
     }
@@ -61,22 +59,18 @@ impl Chain {
         self.id = id;
     }
 
-    #[inline(always)]
     pub fn add_liberty(&mut self, coord: Coord) {
         self.libs.insert(coord);
     }
 
-    #[inline(always)]
     pub fn remove_liberty(&mut self, coord: Coord) {
         self.libs.remove(&coord);
     }
 
-    #[inline(always)]
     pub fn add_coord(&mut self, coord: Coord) {
         self.coords.push(coord);
     }
 
-    #[inline(always)]
     pub fn is_captured(&self) -> bool {
         self.libs.len() == 0
     }
