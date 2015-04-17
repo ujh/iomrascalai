@@ -152,18 +152,6 @@ impl<'a> GTPInterpreter<'a> {
         self.config.ruleset
     }
 
-    pub fn main_time(&self) -> u32 {
-        self.timer.main_time()
-    }
-
-    pub fn byo_time(&self) -> u32 {
-        self.timer.byo_time()
-    }
-
-    pub fn byo_stones(&self) -> i32 {
-        self.timer.byo_stones()
-    }
-
     pub fn boardsize(&self) -> u8 {
         self.game.size()
     }
