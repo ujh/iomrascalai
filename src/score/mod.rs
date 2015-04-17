@@ -68,14 +68,6 @@ impl Score {
         }
     }
 
-    pub fn white_stones(&self) -> usize {
-        self.white_stones
-    }
-
-    pub fn black_stones(&self) -> usize {
-        self.black_stones
-    }
-
     fn score(&self) -> f32 {
         (self.black_stones as f32 - (self.white_stones as f32 + self.komi)).abs()
     }
