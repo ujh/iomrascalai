@@ -62,7 +62,7 @@ impl Engine for EarlyReturnEngine {
 #[test]
 fn the_engine_can_use_less_time_than_allocated() {
     let game = Game::new(19, 6.5, Minimal);
-    let color = game.next_player();
+    let color = game.board().next_player();
     let timer = Timer::new(config());
     let budget = timer.budget(&game);
     let engine = Box::new(EarlyReturnEngine::new());
@@ -100,7 +100,7 @@ impl Engine for WaitingEngine {
 #[test]
 fn the_controller_asks_the_engine_for_a_move_when_the_time_is_up() {
     let game = Game::new(19, 6.5, Minimal);
-    let color = game.next_player();
+    let color = game.board().next_player();
     let mut timer = Timer::new(config());
     timer.setup(1, 0, 0);
     let budget = timer.budget(&game);
