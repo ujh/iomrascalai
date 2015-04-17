@@ -60,7 +60,6 @@ impl Move {
         }
     }
 
-    #[inline(always)]
     pub fn color(&self) -> &Color {
         match *self {
             Play(ref c, _, _) => c,
@@ -70,7 +69,6 @@ impl Move {
         }
     }
 
-    #[inline(always)]
     pub fn coord(&self) -> Coord {
         match *self {
             Play(_, col, row) => Coord::new(col, row),
@@ -80,7 +78,6 @@ impl Move {
         }
     }
 
-    #[inline(always)]
     pub fn is_pass(&self) -> bool {
         match *self {
             Pass(_) => true,
