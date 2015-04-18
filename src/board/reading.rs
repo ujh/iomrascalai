@@ -78,24 +78,22 @@ impl Board {
         if let Some(liberty) = group.liberties().iter().next() {
 
             let m = Play(player, liberty.col, liberty.row);
-
             if self.play(m).is_ok() {
-                let cloned = self.clone();
-                let gr = cloned.get_chain(*liberty);
                 
-                //let gr = self.get_chain(*liberty).cloned();
+                let gr = self.get_chain(*liberty).cloned();
                 
                 if let Some(g) = gr {
                     let liberties = g.liberties().len();
-
                     match liberties {
                         2 => if self.capture_ladder(&g).is_none() {
                             solutions.push(m)
+                        } else {
                         },
                         1 => {},
-                        _ => solutions.push(m),
+                        _ => { solutions.push(m)},
                     };
                 };
+            } else {
             }
         }
         
@@ -105,24 +103,24 @@ impl Board {
     //if two liberties read ladder
     //returns None if can't capture
     pub fn capture_ladder(&mut self, group: &Chain) -> Option<Move> {
-
         let player = group.color().opposite();
         let group_coord = group.coords().iter().next().unwrap();
         for liberty in group.liberties().iter() {
             let m = Play(player, liberty.col, liberty.row);
             if self.is_legal(m).is_ok() {
                 if group.liberties().len() == 2 {
-                    self.play_legal_move(m);
+                    let mut cloned = self.clone();
+                    cloned.play_legal_move(m);
 
-                    let cloned = self.clone();
-                    let gr = cloned.get_chain(*group_coord);
-                    //let gr = self.get_chain(*group_coord).cloned();
+                    let gr = cloned.get_chain(*group_coord).cloned();
                     
                     if let Some(g) = gr {
-                        if self.fix_atari(&g).len() == 0 {
+                        if cloned.fix_atari(&g).len() == 0 {
+
                             return Some(m);
                         }
                     };
+                    
                 }
                 
                 if group.liberties().len() == 1 {
