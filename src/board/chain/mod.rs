@@ -42,6 +42,10 @@ impl Chain {
             libs:   libs,
         }
     }
+    
+    pub fn color(&self) -> Color {
+        self.color
+    }
 
     #[inline(always)]
     pub fn coords<'a>(&'a self) -> &'a Vec<Coord> {

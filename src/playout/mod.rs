@@ -52,7 +52,7 @@ pub trait Playout: Sync + Send {
 
         let max_moves = self.max_moves(board.size());
         while !board.is_game_over() && played_moves.len() < max_moves {
-            let m = self.select_move(&board, rng);
+            let m = self.select_move(board, rng);
             board.play_legal_move(m);
             played_moves.push(m);
         }
@@ -67,6 +67,19 @@ pub trait Playout: Sync + Send {
 
     fn select_move(&self, board: &Board, rng: &mut XorShiftRng) -> Move {
         let color = board.next_player();
+        
+        //if own group of more than one stone has one or two liberties, check if it can be captured
+        let mut in_danger = board.chains().iter()
+            .filter(|chain| chain.coords().len() > 1 && chain.liberties().len() <= 2);
+            
+        if let Some(chain) = in_danger.next() {
+            let solutions = board.save_group(chain);
+            if solutions.len() > 0 { //if we can actually save it
+                let random = rng.gen::<usize>() % solutions.len();
+                return solutions[random];
+            }
+        }
+        
         let vacant = board.vacant();
         let playable_move = vacant
             .iter()
