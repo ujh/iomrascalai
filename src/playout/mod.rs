@@ -70,8 +70,8 @@ pub trait Playout: Sync + Send {
         
         //if own group of more than one stone has one or two liberties, check if it can be captured
         let mut in_danger = board.chains().iter()
-            .filter(|chain| chain.coords().len() > 1 && chain.liberties().len() <= 2);
-            
+            .filter(|chain| chain.color() == color && chain.coords().len() > 1 && chain.liberties().len() <= 2);
+   
         if let Some(chain) = in_danger.next() {
             let solutions = board.save_group(chain);
             if solutions.len() > 0 { //if we can actually save it
@@ -85,11 +85,9 @@ pub trait Playout: Sync + Send {
             .iter()
             .map(|c| Play(color, c.col, c.row))
             .position(|m| board.is_legal(m).is_ok() && self.is_playable(board, &m));
-        if playable_move.is_some() {
+        if let Some(first) = playable_move {
             let mut include_pass = 0;
             loop {
-                
-                let first = playable_move.unwrap();
                 let r = first + rng.gen::<usize>() % (vacant.len() - first + include_pass);
                 
                 if r == vacant.len() {

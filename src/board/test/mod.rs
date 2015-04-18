@@ -42,6 +42,7 @@ mod diagonals;
 mod eye;
 mod ko;
 mod hypotheticals;
+mod reading;
 
 #[test]
 fn getting_a_valid_coord_returns_a_color() {
