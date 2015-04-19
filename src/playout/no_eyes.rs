@@ -36,6 +36,10 @@ impl Playout for NoEyesPlayout {
     fn playout_type(&self) -> &'static str {
         "no-eyes"
     }
+    
+    fn check_for_ladders(&self) -> bool {
+        false
+    }
 }
 
 //don't self atari strings that will make an eye after dying, which is strings of 7+
@@ -60,12 +64,16 @@ impl Playout for NoSelfAtariPlayout {
 
     fn is_playable(&self, board: &Board, m: &Move) -> bool {
         !board.is_eye(&m.coord(), *m.color()) &&
-            board.is_not_self_atari(m) ||
-            board.new_chain_length_less_than(*m, self.cutoff()) //suicide for smaller groups is ok
+            (board.is_not_self_atari(m) ||
+            board.new_chain_length_less_than(*m, self.cutoff())) //suicide for smaller groups is ok
     }
 
     fn playout_type(&self) -> &'static str {
         "no-self-atari"
+    }
+    
+    fn check_for_ladders(&self) -> bool {
+        self.config.playout.ladder_check
     }
 
 }

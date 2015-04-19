@@ -39,12 +39,14 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fmt;
 use std::sync::Arc;
+use smallvec::SmallVec4;
 
 mod chain;
 mod coord;
 mod hypotheticals;
 mod movement;
 mod point;
+mod reading;
 mod test;
 
 #[derive(Debug, Eq, PartialEq)]
@@ -422,11 +424,12 @@ impl Board {
     fn update_libs_of_adjacent_opposing_chains(&mut self, m: &Move) {
         let coord = m.coord();
         let color = m.color().opposite();
-        let adv_chains_ids: HashSet<usize> = self.neighbours(coord)
+        let adv_chains_ids: SmallVec4<usize> = self.neighbours(coord)
             .iter()
             .filter(|&c| self.color(c) == color)
             .map(|c| self.chain_id(c))
             .collect();
+
         for &id in adv_chains_ids.iter() {
             self.chains[id].remove_liberty(coord);
         }
@@ -582,6 +585,10 @@ impl Board {
 
     pub fn vacant_point_count(&self) -> u16 {
         self.vacant.len() as u16
+    }
+    
+    pub fn chains<'b>(&'b self) -> &'b Vec<Chain> {
+        &self.chains
     }
 
     pub fn as_string(&self) -> String {

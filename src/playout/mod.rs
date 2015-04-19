@@ -52,7 +52,7 @@ pub trait Playout: Sync + Send {
 
         let max_moves = self.max_moves(board.size());
         while !board.is_game_over() && played_moves.len() < max_moves {
-            let m = self.select_move(&board, rng);
+            let m = self.select_move(board, rng);
             board.play_legal_move(m);
             played_moves.push(m);
         }
@@ -67,16 +67,31 @@ pub trait Playout: Sync + Send {
 
     fn select_move(&self, board: &Board, rng: &mut XorShiftRng) -> Move {
         let color = board.next_player();
+        
+        //if own group of more than one stone has one or two liberties, check if it can be captured
+        
+        if self.check_for_ladders() {
+            let mut in_danger = board.chains().iter()
+                .filter(|chain| chain.color() == color && chain.coords().len() > 1 && chain.liberties().len() == 1);
+   
+            if let Some(chain) = in_danger.next() {
+                let solutions = board.save_group(chain);
+                if solutions.len() > 0 { //if we can actually save it
+                    let random = rng.gen::<usize>() % solutions.len();
+                    return solutions[random];
+                }
+            }
+        }
+
+        
         let vacant = board.vacant();
         let playable_move = vacant
             .iter()
             .map(|c| Play(color, c.col, c.row))
             .position(|m| board.is_legal(m).is_ok() && self.is_playable(board, &m));
-        if playable_move.is_some() {
+        if let Some(first) = playable_move {
             let mut include_pass = 0;
             loop {
-                
-                let first = playable_move.unwrap();
                 let r = first + rng.gen::<usize>() % (vacant.len() - first + include_pass);
                 
                 if r == vacant.len() {
@@ -98,7 +113,8 @@ pub trait Playout: Sync + Send {
     }
 
     fn playout_type(&self) -> &'static str;
-
+    
+    fn check_for_ladders(&self) -> bool;
 }
 
 pub struct PlayoutResult {

@@ -23,7 +23,6 @@ use board::{Board, Move};
 use board::Color::Empty;
 use board::coord::Coord;
 
-use std::collections::HashSet;
 use smallvec::SmallVec4;
  
  impl Board {
@@ -44,7 +43,7 @@ use smallvec::SmallVec4;
             }
         }
     }
-    
+
     pub fn liberty_count(&self, c: Coord) -> usize {
         self.neighbours(c).iter().filter(|c| self.color(c) == Empty).count()
     }
@@ -68,27 +67,7 @@ use smallvec::SmallVec4;
         
         (found_one, false)
     }
-    
-    pub fn new_chain_liberties_greater_than(&self, m: Move, limit: usize) -> bool {
-        let mut set: HashSet<Coord> = HashSet::new();
-        
-        for &c in self.neighbours(m.coord()).iter() {
-            if self.color(&c) == *m.color() {
-                //add the liberties the chain
-                for &liberty in self.get_chain(c).unwrap().liberties() {
-                    set.insert(liberty);
-                }
-            } else if self.color(&c) == Empty {
-                set.insert(c);
-            }
-            
-            if set.len() - 1 > limit {
-                return true;
-            }
-        };
-        false
-    }
-    
+
     pub fn new_chain_liberties_greater_than_zero(&self, m: Move) -> bool {
         for &c in self.neighbours(m.coord()).iter() {
             if self.color(&c) == *m.color() {
@@ -104,7 +83,7 @@ use smallvec::SmallVec4;
         
         false
     }
-    
+
     pub fn new_chain_liberties_greater_than_one(&self, m: Move) -> bool {
         let mut first_liberty: Option<Coord> = None;
         for &c in self.neighbours(m.coord()).iter() {
@@ -128,6 +107,29 @@ use smallvec::SmallVec4;
         }
         
         false
+    }
+    
+    pub fn new_chain_liberties_greater_than(&self, m: Move, limit: usize) -> bool {
+        let liberty_iterator = self.neighbours(m.coord()).iter()
+            .filter(|c| self.color(&c) == *m.color())
+            .flat_map(|&c| self.get_chain(c).unwrap().liberties())
+            .filter(|&liberty| *liberty != m.coord());
+         
+         let empty_iterator = self.neighbours(m.coord()).iter()
+            .filter(|c| self.color(&c) == Empty);
+         
+         let mut liberties = SmallVec4::new();
+         for liberty in liberty_iterator.chain(empty_iterator) {
+            if !liberties.contains(liberty) {
+                liberties.push(*liberty);
+            }
+            
+            if liberties.len() > limit {
+                return true;
+            }
+         }
+         
+         false
     }
     
     pub fn new_chain_length_less_than(&self, m: Move, limit: usize) -> bool {
