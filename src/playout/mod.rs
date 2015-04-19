@@ -69,16 +69,20 @@ pub trait Playout: Sync + Send {
         let color = board.next_player();
         
         //if own group of more than one stone has one or two liberties, check if it can be captured
-        let mut in_danger = board.chains().iter()
-            .filter(|chain| chain.color() == color && chain.coords().len() > 1 && chain.liberties().len() == 1);
+        
+        if self.check_for_ladders() {
+            let mut in_danger = board.chains().iter()
+                .filter(|chain| chain.color() == color && chain.coords().len() > 1 && chain.liberties().len() == 1);
    
-        if let Some(chain) = in_danger.next() {
-            let solutions = board.save_group(chain);
-            if solutions.len() > 0 { //if we can actually save it
-                let random = rng.gen::<usize>() % solutions.len();
-                return solutions[random];
+            if let Some(chain) = in_danger.next() {
+                let solutions = board.save_group(chain);
+                if solutions.len() > 0 { //if we can actually save it
+                    let random = rng.gen::<usize>() % solutions.len();
+                    return solutions[random];
+                }
             }
         }
+
         
         let vacant = board.vacant();
         let playable_move = vacant
@@ -109,7 +113,8 @@ pub trait Playout: Sync + Send {
     }
 
     fn playout_type(&self) -> &'static str;
-
+    
+    fn check_for_ladders(&self) -> bool;
 }
 
 pub struct PlayoutResult {

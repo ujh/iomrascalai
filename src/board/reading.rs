@@ -19,7 +19,7 @@
  *                                                                      *
  ************************************************************************/
 
-use board::{Board, Chain, Move, Pass, Play};
+use board::{Board, Chain, Coord, Move, Pass, Play};
 
 use smallvec::SmallVec4;
 
@@ -49,21 +49,21 @@ impl Board {
             let enemy = group.color().opposite();
             
             let mut it;
-            let mut ids = SmallVec4::new();
-            let mut one_liberty_enemy_groups = SmallVec4::new();
+            let mut one_liberty_enemy_groups: SmallVec4<Coord> = SmallVec4::new();
             for &coord in group.coords().iter() {
                 it = self.neighbours(coord).iter()
-                        .filter(|c| self.color(c) == enemy)
-                        .map(|c| self.chain_id(c));
-                for id in it {
-                    if !ids.contains(&id) {
-                        ids.push(id);
-                        one_liberty_enemy_groups.push(coord);
+                    .filter(|c| self.color(c) == enemy)
+                    .map(|&c| self.get_chain(c).unwrap())
+                    .filter(|chain| chain.liberties().len() == 1)
+                    .flat_map(|chain| chain.liberties());
+                for liberty in it {
+                    if !one_liberty_enemy_groups.contains(&liberty) {
+                        one_liberty_enemy_groups.push(*liberty);
                     }
                 }
             }
 
-            for &atari in one_liberty_enemy_groups.iter() {
+            for atari in one_liberty_enemy_groups.iter() {
                 let m = Play(player, atari.col, atari.row);
                 if self.is_legal(m).is_ok() {
                     solutions.push(m);
@@ -75,7 +75,7 @@ impl Board {
         if let Some(liberty) = group.liberties().iter().next() {
             let m = Play(player, liberty.col, liberty.row);
             if self.is_legal(m).is_ok() {
-                if self.new_chain_liberties_greater_than_two(m) {
+                if self.new_chain_liberties_greater_than(m, 2) {
                     solutions.push(m);
                 } else if self.new_chain_liberties_greater_than_one(m) {
                     let mut cloned = self.clone();
@@ -98,40 +98,75 @@ impl Board {
     //returns None if can't capture
     pub fn capture_ladder(&self, group: &Chain) -> Option<Move> {
         let player = group.color().opposite();
-        let group_coord = group.coords().iter().next().unwrap();
         
         if group.liberties().len() > 2 {
             return None;
         }
         
-        for liberty in group.liberties().iter() {
+        if group.liberties().len() == 1 {
+            let liberty = group.liberties().iter().next().unwrap();
             let m = Play(player, liberty.col, liberty.row);
-            
-            if group.liberties().len() == 1 {
-                return Some(m);
-            }
-            
+            return Some(m);
+        }
+        
+        let mut liberties = group.liberties().iter();
+
+        let liberty1 = liberties.next().unwrap();
+        let liberty2 = liberties.next().unwrap();
+        
+        let lib2_move = Play(group.color(), liberty2.col, liberty2.row);
+        
+        //if lib2 move gives more than 3 liberties, forget about reading out lib1
+        if !self.new_chain_liberties_greater_than(lib2_move, 3) { 
+            let m = Play(player, liberty1.col, liberty1.row);
             let mut cloned = self.clone();
 
             if self.next_player() != player {
                 cloned.play_legal_move(Pass(self.next_player()));
             }
             
-            if self.is_legal(m).is_ok() {
-                if group.liberties().len() == 2 {
-                    cloned.play_legal_move(m);
+            let cap = cloned.try_capture(group, m);
+            if cap.is_some() {
+                return cap;
+            }
+        }
+        
+        let lib1_move = Play(group.color(), liberty1.col, liberty1.row);
+        
+        //same as above, but reversed
+        if !self.new_chain_liberties_greater_than(lib1_move, 3) {
+        
+            let m = Play(player, liberty2.col, liberty2.row);
+            let mut cloned = self.clone();
 
-                    let gr = cloned.get_chain(*group_coord).cloned();
-
-                    if let Some(g) = gr {
-                        if cloned.fix_atari(&g).len() == 0 {
-                            return Some(m); //if atari can't be fixed this group is captured in a ladder
-                        }
-                    };
-                }
+            if self.next_player() != player {
+                cloned.play_legal_move(Pass(self.next_player()));
             }
             
+            let cap = cloned.try_capture(group, m);
+            if cap.is_some() {
+                return cap;
+            }
+        }
 
+        None
+    }
+    
+    fn try_capture(&mut self, group: &Chain, m: Move) -> Option<Move> {
+        let group_coord = group.coords().iter().next().unwrap();
+
+        if self.is_legal(m).is_ok() {
+            if group.liberties().len() == 2 {
+                self.play_legal_move(m);
+
+                let gr = self.get_chain(*group_coord).cloned();
+
+                if let Some(g) = gr {
+                    if self.fix_atari(&g).len() == 0 {
+                        return Some(m); //if atari can't be fixed this group is captured in a ladder
+                    }
+                }
+            }
         }
         
         None

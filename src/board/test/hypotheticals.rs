@@ -84,7 +84,7 @@ fn removes_two_stones() {
     assert!(removes_stones);
     assert!(board.new_chain_liberties_greater_than_zero(play));
     assert!(board.new_chain_liberties_greater_than_one(play));
-    assert!(!board.new_chain_liberties_greater_than_two(play));
+    assert!(!board.new_chain_liberties_greater_than(play, 2));
 }
 
 #[test]
@@ -98,6 +98,8 @@ fn removes_three_stones() {
     assert!(removes_stone);
     assert!(removes_stones);
     assert!(board.new_chain_liberties_greater_than_zero(play));
+    assert!(board.new_chain_liberties_greater_than(play, 0));
+    assert!(!board.new_chain_liberties_greater_than(play, 1));
     assert!(!board.new_chain_liberties_greater_than_one(play)); //doesn't check for removing stones
 }
 
@@ -113,6 +115,7 @@ fn removes_four_stones() {
     assert!(removes_stones);
     assert!(!board.new_chain_liberties_greater_than_zero(play)); //doesn't check for removing stones
     assert!(!board.new_chain_liberties_greater_than_one(play));
+    assert!(!board.new_chain_liberties_greater_than(play, 0));
 }
 
 #[test]
@@ -146,7 +149,7 @@ fn two_stones_have_six_liberties() {
     let board  = game.board();
     
     let play = Play(Black, 10, 12);
-    assert!(board.new_chain_liberties_greater_than_two(play));
+    assert!(board.new_chain_liberties_greater_than(play, 2));
     assert!(board.new_chain_length_less_than(play, 3));
 }
 

@@ -109,19 +109,22 @@ use smallvec::SmallVec4;
         false
     }
     
-    pub fn new_chain_liberties_greater_than_two(&self, m: Move) -> bool {
+    pub fn new_chain_liberties_greater_than(&self, m: Move, limit: usize) -> bool {
         let liberty_iterator = self.neighbours(m.coord()).iter()
             .filter(|c| self.color(&c) == *m.color())
             .flat_map(|&c| self.get_chain(c).unwrap().liberties())
             .filter(|&liberty| *liberty != m.coord());
          
+         let empty_iterator = self.neighbours(m.coord()).iter()
+            .filter(|c| self.color(&c) == Empty);
+         
          let mut liberties = SmallVec4::new();
-         for liberty in liberty_iterator {
+         for liberty in liberty_iterator.chain(empty_iterator) {
             if !liberties.contains(liberty) {
                 liberties.push(*liberty);
             }
             
-            if liberties.len() > 2 {
+            if liberties.len() > limit {
                 return true;
             }
          }
