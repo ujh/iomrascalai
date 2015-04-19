@@ -73,7 +73,7 @@ pub trait Playout: Sync + Send {
             .filter(|chain| chain.color() == color && chain.coords().len() > 1 && chain.liberties().len() == 1);
    
         if let Some(chain) = in_danger.next() {
-            let solutions = board.fix_atari(chain);
+            let solutions = board.save_group(chain);
             if solutions.len() > 0 { //if we can actually save it
                 let random = rng.gen::<usize>() % solutions.len();
                 return solutions[random];

@@ -25,17 +25,6 @@ use board::{Black, Coord, Play};
 use sgf::Parser;
 
 #[test]
-fn bottom_left_escapes_ladder() {
-    let parser = Parser::from_path(Path::new("fixtures/sgf/ladders.sgf")).unwrap();
-    let game   = parser.game().unwrap();
-    let board  = game.board();
-    let coord = Coord { col: 4, row: 4 };
-    let chain = board.get_chain(coord).unwrap();
-    
-    assert_eq!(1, board.save_group(&chain).len());
-}
-
-#[test]
 fn bottom_left_is_ladder() {
     let parser = Parser::from_path(Path::new("fixtures/sgf/ladders.sgf")).unwrap();
     let game   = parser.game().unwrap();
@@ -44,6 +33,7 @@ fn bottom_left_is_ladder() {
     let chain = board.get_chain(coord).unwrap();
 
     assert_eq!(Play(Black, 4, 5), board.clone().capture_ladder(&chain).unwrap());
+    assert_eq!(2, board.save_group(&chain).len());
 }
 
 #[test]
@@ -55,6 +45,7 @@ fn top_left_is_not_ladder() {
     let chain = board.get_chain(coord).unwrap();
 
     assert_eq!(None, board.clone().capture_ladder(&chain));
+    assert_eq!(0, board.save_group(&chain).len());
 }
 
 #[test]
@@ -66,6 +57,7 @@ fn top_right_is_not_ladder() {
     let chain = board.get_chain(coord).unwrap();
 
     assert_eq!(None, board.clone().capture_ladder(&chain));
+    assert_eq!(0, board.save_group(&chain).len());
 }
 
 #[test]
@@ -73,8 +65,9 @@ fn bottom_right_is_ladder() {
     let parser = Parser::from_path(Path::new("fixtures/sgf/ladders.sgf")).unwrap();
     let game   = parser.game().unwrap();
     let board  = game.board();
-    let coord = Coord { col: 5, row: 16 };
+    let coord = Coord { col: 16, row: 5 };
     let chain = board.get_chain(coord).unwrap();
 
-    assert_eq!(None, board.clone().capture_ladder(&chain));
+    assert_eq!(Play(Black, 17, 5), board.clone().capture_ladder(&chain).unwrap());
+    assert_eq!(2, board.save_group(&chain).len());
 }

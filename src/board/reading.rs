@@ -19,7 +19,7 @@
  *                                                                      *
  ************************************************************************/
 
-use board::{Board, Chain, Move, Play};
+use board::{Board, Chain, Move, Pass, Play};
 
 use smallvec::SmallVec4;
 
@@ -30,14 +30,10 @@ impl Board {
     pub fn save_group(&self, group: &Chain) -> Vec<Move> {
         match group.liberties().len() {
             1 => self.fix_atari(group),
-            2 => {
-                let m = self.escape_ladder(group);
-
-                let mut ms = Vec::new();
-                if let Some(solution) = m {
-                    ms.push(solution); //get one step ahead of the ladder, we could also return the other liberty maybe
-                }
-                ms
+            2 => if let Some(m) = self.escape_ladder(group) {
+                m
+            } else {
+                vec![]
             },
             _ => vec![] //return just the forced moves when we have two liberties
         }
@@ -77,9 +73,7 @@ impl Board {
 
         //escaping
         if let Some(liberty) = group.liberties().iter().next() {
-
             let m = Play(player, liberty.col, liberty.row);
-            
             if self.is_legal(m).is_ok() {
                 if self.new_chain_liberties_greater_than_two(m) {
                     solutions.push(m);
@@ -105,11 +99,26 @@ impl Board {
     pub fn capture_ladder(&self, group: &Chain) -> Option<Move> {
         let player = group.color().opposite();
         let group_coord = group.coords().iter().next().unwrap();
+        
+        if group.liberties().len() > 2 {
+            return None;
+        }
+        
         for liberty in group.liberties().iter() {
             let m = Play(player, liberty.col, liberty.row);
+            
+            if group.liberties().len() == 1 {
+                return Some(m);
+            }
+            
+            let mut cloned = self.clone();
+
+            if self.next_player() != player {
+                cloned.play_legal_move(Pass(self.next_player()));
+            }
+            
             if self.is_legal(m).is_ok() {
                 if group.liberties().len() == 2 {
-                    let mut cloned = self.clone();
                     cloned.play_legal_move(m);
 
                     let gr = cloned.get_chain(*group_coord).cloned();
@@ -120,37 +129,37 @@ impl Board {
                         }
                     };
                 }
-
-                if group.liberties().len() == 1 {
-                    return Some(m);
-                }
             }
+            
+
         }
         
         None
     }
     
     //we should probably return a vec because there could be multiple solutions
-    pub fn escape_ladder(&self, group: &Chain) -> Option<Move> {
-        for liberty in group.liberties().iter() {
-            let player = group.color();
-            let m = Play(player, liberty.col, liberty.row);
+    //return None if can't capture
+    //should probably just move Option the logic into the save_group function
+    pub fn escape_ladder(&self, group: &Chain) -> Option<Vec<Move>> {
+        if self.capture_ladder(group).is_some() {
             
-            if self.is_legal(m).is_ok() {
-                if self.new_chain_liberties_greater_than_one(m) {
-                    return Some(m);
-                }
-
-                let mut cloned = self.clone();
-                cloned.play_legal_move(m);
-                
-                if self.capture_ladder(group).is_none() {
-                    return Some(m);
+            let mut solutions = vec![];
+            
+            for liberty in group.liberties().iter() {
+                let player = group.color();
+                let m = Play(player, liberty.col, liberty.row);
+                    
+                if self.is_legal(m).is_ok() {
+                    if self.new_chain_liberties_greater_than_one(m) {
+                        solutions.push(m);
+                    }
                 }
             }
+            
+            Some(solutions)
+        } else {
+            None
         }
-        
-        None
     }
 
 }
