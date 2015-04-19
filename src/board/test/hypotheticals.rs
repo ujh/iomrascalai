@@ -84,6 +84,7 @@ fn removes_two_stones() {
     assert!(removes_stones);
     assert!(board.new_chain_liberties_greater_than_zero(play));
     assert!(board.new_chain_liberties_greater_than_one(play));
+    assert!(!board.new_chain_liberties_greater_than_two(play));
 }
 
 #[test]
@@ -145,6 +146,7 @@ fn two_stones_have_six_liberties() {
     let board  = game.board();
     
     let play = Play(Black, 10, 12);
+    assert!(board.new_chain_liberties_greater_than_two(play));
     assert!(board.new_chain_length_less_than(play, 3));
 }
 

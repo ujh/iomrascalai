@@ -19,9 +19,9 @@
  *                                                                      *
  ************************************************************************/
 
-use board::{Board, Chain, Coord, Move, Play};
+use board::{Board, Chain, Move, Play};
 
-use std::collections::HashMap;
+use smallvec::SmallVec4;
 
 impl Board {
 
@@ -29,11 +29,10 @@ impl Board {
     ///returns no move if it's not in danger
     pub fn save_group(&self, group: &Chain) -> Vec<Move> {
         match group.liberties().len() {
-            1 => self.clone().fix_atari(group),
+            1 => self.fix_atari(group),
             2 => {
-                let m = self.clone().escape_ladder(group);
+                let m = self.escape_ladder(group);
 
-                //let m = None;
                 let mut ms = Vec::new();
                 if let Some(solution) = m {
                     ms.push(solution); //get one step ahead of the ladder, we could also return the other liberty maybe
@@ -43,11 +42,10 @@ impl Board {
             _ => vec![] //return just the forced moves when we have two liberties
         }
     }
-    
-    
+
     //if one liberty
     //returns no moves if can't fix
-    pub fn fix_atari(&mut self, group: &Chain) -> Vec<Move> {
+    pub fn fix_atari(&self, group: &Chain) -> Vec<Move> {
         //try capturing any neighbouring groups
         let mut solutions = vec![];
         let player = group.color();
@@ -55,17 +53,21 @@ impl Board {
             let enemy = group.color().opposite();
             
             let mut it;
-            let mut one_liberty_enemy_groups: HashMap<usize, Coord> = HashMap::new();
+            let mut ids = SmallVec4::new();
+            let mut one_liberty_enemy_groups = SmallVec4::new();
             for &coord in group.coords().iter() {
                 it = self.neighbours(coord).iter()
                         .filter(|c| self.color(c) == enemy)
                         .map(|c| self.chain_id(c));
                 for id in it {
-                    one_liberty_enemy_groups.insert(id, coord);
+                    if !ids.contains(&id) {
+                        ids.push(id);
+                        one_liberty_enemy_groups.push(coord);
+                    }
                 }
             }
-            
-            for (_, &atari) in one_liberty_enemy_groups.iter() {
+
+            for &atari in one_liberty_enemy_groups.iter() {
                 let m = Play(player, atari.col, atari.row);
                 if self.is_legal(m).is_ok() {
                     solutions.push(m);
@@ -73,36 +75,34 @@ impl Board {
             }
         }
 
-        
         //escaping
         if let Some(liberty) = group.liberties().iter().next() {
 
             let m = Play(player, liberty.col, liberty.row);
-            if self.play(m).is_ok() {
-                
-                let gr = self.get_chain(*liberty).cloned();
-                
-                if let Some(g) = gr {
-                    let liberties = g.liberties().len();
-                    match liberties {
-                        2 => if self.capture_ladder(&g).is_none() {
+            
+            if self.is_legal(m).is_ok() {
+                if self.new_chain_liberties_greater_than_two(m) {
+                    solutions.push(m);
+                } else if self.new_chain_liberties_greater_than_one(m) {
+                    let mut cloned = self.clone();
+                    cloned.play_legal_move(m);
+                    let gr = cloned.get_chain(*liberty).cloned();
+                    
+                    if let Some(g) = gr {
+                        if cloned.capture_ladder(&g).is_none() {
                             solutions.push(m)
-                        } else {
-                        },
-                        1 => {},
-                        _ => { solutions.push(m)},
-                    };
-                };
-            } else {
+                        }
+                    }
+                }
             }
         }
-        
+
         solutions
     }
-    
+
     //if two liberties read ladder
     //returns None if can't capture
-    pub fn capture_ladder(&mut self, group: &Chain) -> Option<Move> {
+    pub fn capture_ladder(&self, group: &Chain) -> Option<Move> {
         let player = group.color().opposite();
         let group_coord = group.coords().iter().next().unwrap();
         for liberty in group.liberties().iter() {
@@ -113,16 +113,14 @@ impl Board {
                     cloned.play_legal_move(m);
 
                     let gr = cloned.get_chain(*group_coord).cloned();
-                    
+
                     if let Some(g) = gr {
                         if cloned.fix_atari(&g).len() == 0 {
-
-                            return Some(m);
+                            return Some(m); //if atari can't be fixed this group is captured in a ladder
                         }
                     };
-                    
                 }
-                
+
                 if group.liberties().len() == 1 {
                     return Some(m);
                 }
@@ -133,12 +131,20 @@ impl Board {
     }
     
     //we should probably return a vec because there could be multiple solutions
-    pub fn escape_ladder(&mut self, group: &Chain) -> Option<Move> {
+    pub fn escape_ladder(&self, group: &Chain) -> Option<Move> {
         for liberty in group.liberties().iter() {
             let player = group.color();
             let m = Play(player, liberty.col, liberty.row);
-            if self.play(m).is_ok() {
-                if group.liberties().len() > 2 || self.capture_ladder(group).is_none() {
+            
+            if self.is_legal(m).is_ok() {
+                if self.new_chain_liberties_greater_than_one(m) {
+                    return Some(m);
+                }
+
+                let mut cloned = self.clone();
+                cloned.play_legal_move(m);
+                
+                if self.capture_ladder(group).is_none() {
                     return Some(m);
                 }
             }

@@ -70,10 +70,10 @@ pub trait Playout: Sync + Send {
         
         //if own group of more than one stone has one or two liberties, check if it can be captured
         let mut in_danger = board.chains().iter()
-            .filter(|chain| chain.color() == color && chain.coords().len() > 1 && chain.liberties().len() <= 2);
+            .filter(|chain| chain.color() == color && chain.coords().len() > 1 && chain.liberties().len() == 1);
    
         if let Some(chain) = in_danger.next() {
-            let solutions = board.save_group(chain);
+            let solutions = board.fix_atari(chain);
             if solutions.len() > 0 { //if we can actually save it
                 let random = rng.gen::<usize>() % solutions.len();
                 return solutions[random];
