@@ -174,14 +174,28 @@ impl Node {
                 node.wins += self.config.uct.priors.capture_many;
             }
         }
+        if self.kills_own_group(board, m) {
+            node.plays += self.config.uct.priors.self_atari;
+            node.wins += 0; // That's a negative prior
+        }
         node
     }
 
     fn captures_opponent_group(&self, board: &Board, m: &Move) -> (bool, usize) {
         let color = m.color().opposite();
+        self.captures_group_of_color(board, m, color)
+    }
+
+    fn kills_own_group(&self, board: &Board, m: &Move) -> bool {
+        let color = *m.color();
+        let (dead, _) = self.captures_group_of_color(board, m, color);
+        dead
+    }
+
+    fn captures_group_of_color(&self, board: &Board, m: &Move, color: Color) -> (bool, usize) {
         let chains: Vec<&Chain> = board.neighbours(m.coord())
             .iter()
-            // Find neighbours of the opponent
+            // Find neighbours of that color
             .filter(|neighbour| board.color(neighbour) == color)
             .map(|&neighbour| board.get_chain(neighbour).unwrap())
             // Find chains with 1 or 2 liberties
