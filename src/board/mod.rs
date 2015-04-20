@@ -501,14 +501,28 @@ impl Board {
             .collect();
         coords_to_remove.sort();
         coords_to_remove.dedup();
-        let mut chains_to_remove: Vec<usize> = self.neighbours(coord)
-            .iter()
-            .filter(|&c| self.color(c) == color)
-            .filter(|&c| self.get_chain(*c).unwrap().is_captured())
-            .map(|c| self.chain_id(c))
-            .collect();
+        
+ 
+        
+        let mut chains_to_remove: SmallVec4<_> = SmallVec4::new();
+        
+        {
+        
+           let it = self.neighbours(coord)
+                .iter()
+                .filter(|&c| self.color(c) == color)
+                .filter(|&c| self.get_chain(*c).unwrap().is_captured())
+                .map(|c| self.chain_id(c));
+        
+            for id in it {
+                if !chains_to_remove.contains(&id) {
+                    chains_to_remove.push(id); //dedup
+                }
+            }
+        }
+        
         chains_to_remove.sort();
-        chains_to_remove.dedup();
+
         let mut nb_of_removed_chains = 0;
         for &id in chains_to_remove.iter() {
             self.remove_chain(id-nb_of_removed_chains);
