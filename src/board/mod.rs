@@ -387,18 +387,15 @@ impl Board {
 
     fn add_removed_adv_stones_as_libs(&mut self, m: &Move) {
         let color = *m.color();
-        let mut libs: HashMap<Coord, Vec<usize>> = HashMap::new();
+        
         for &coord in self.adv_stones_removed.iter() {
-            let chain_ids = self.neighbours(coord)
-                .iter()
+            let chain_ids: SmallVec4<_> = self.neighbours(coord).iter()
                 .filter(|&c| self.color(c) == color)
                 .map(|c| self.chain_id(c))
                 .collect();
-            libs.insert(coord, chain_ids);
-        }
-        for (&coord, chain_ids) in libs.iter() {
+            
             for &chain_id in chain_ids.iter() {
-                self.chains[chain_id].add_liberty(coord);
+                self.chains[chain_id].add_liberty(coord); //it's a hash set so we can add multiple times
             }
         }
     }
