@@ -22,6 +22,7 @@
 use board::Board;
 use board::Chain;
 use board::Color;
+use board::Empty;
 use board::Move;
 use board::NoMove;
 use board::Pass;
@@ -178,6 +179,16 @@ impl Node {
             node.plays += self.config.uct.priors.self_atari;
             node.wins += 0; // That's a negative prior
         }
+        let distance = m.coord().distance_to_border(board.size());
+        if distance <= 2 && self.in_empty_area(board, m) {
+            if distance <= 1 {
+                node.plays += self.config.uct.priors.empty;
+                node.wins += 0; // That's a negative prior
+            } else {
+                node.plays += self.config.uct.priors.empty;
+                node.wins += self.config.uct.priors.empty;
+            }
+        }
         node
     }
 
@@ -190,6 +201,12 @@ impl Node {
         let color = *m.color();
         let (dead, _) = self.captures_group_of_color(board, m, color);
         dead
+    }
+
+    fn in_empty_area(&self, board: &Board, m: &Move) -> bool {
+        m.coord().manhattan_distance_three_neighbours(board.size())
+            .iter()
+            .all(|c| board.color(c) == Empty)
     }
 
     fn captures_group_of_color(&self, board: &Board, m: &Move, color: Color) -> (bool, usize) {
