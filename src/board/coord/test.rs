@@ -104,3 +104,13 @@ fn for_board_size_sets_the_coordinates_correctly() {
     let coords = Coord::for_board_size(1);
     assert_eq!(coords[0], Coord::new(1,1));
 }
+
+#[test]
+fn distance_to_border() {
+    let size = 9;
+    assert_eq!(0, Coord::new(1,5).distance_to_border(size));
+    assert_eq!(0, Coord::new(5,1).distance_to_border(size));
+    assert_eq!(0, Coord::new(9,5).distance_to_border(size));
+    assert_eq!(0, Coord::new(5,9).distance_to_border(size));
+    assert_eq!(1, Coord::new(2,5).distance_to_border(size));
+}

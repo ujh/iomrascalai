@@ -80,6 +80,13 @@ impl Coord {
         1 <= self.col && self.col <= board_size && 1 <= self.row && self.row <= board_size
     }
 
+    pub fn distance_to_border(&self, board_size: u8) -> u8 {
+        *vec!(self.col-1, self.row-1, board_size - self.col, board_size - self.row)
+            .iter()
+            .min()
+            .unwrap()
+    }
+
     // Note: there is no I column.
     pub fn from_gtp(gtp_vertex: &str) -> Coord {
         let col_letter = gtp_vertex.chars().next().unwrap().to_lowercase().next().unwrap();
