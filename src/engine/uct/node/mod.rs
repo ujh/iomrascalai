@@ -20,6 +20,7 @@
  ************************************************************************/
 
 use board::Board;
+use board::Chain;
 use board::Color;
 use board::Move;
 use board::NoMove;
@@ -154,11 +155,44 @@ impl Node {
         if not_terminal && self.plays >= self.config.uct.expand_after {
             self.children = board.legal_moves_without_eyes()
                 .iter()
-                .map(|&m| Node::new(m, self.config))
+                .map(|m| self.new_leaf(board, m))
                 .collect();
             self.descendants = self.children.len();
         }
         not_terminal
+    }
+
+    pub fn new_leaf(&self, board: &Board, m: &Move) -> Node {
+        let mut node = Node::new(*m, self.config);
+        let (capturing, size) =  self.captures_opponent_group(board, m);
+        if capturing {
+            if size == 1 {
+                node.plays += self.config.uct.priors.capture_one;
+                node.wins += self.config.uct.priors.capture_one;
+            } else {
+                node.plays += self.config.uct.priors.capture_many;
+                node.wins += self.config.uct.priors.capture_many;
+            }
+        }
+        node
+    }
+
+    fn captures_opponent_group(&self, board: &Board, m: &Move) -> (bool, usize) {
+        let color = m.color().opposite();
+        let chains: Vec<&Chain> = board.neighbours(m.coord())
+            .iter()
+            // Find neighbours of the opponent
+            .filter(|neighbour| board.color(neighbour) == color)
+            .map(|&neighbour| board.get_chain(neighbour).unwrap())
+            // Find chains with 1 or 2 liberties
+            .filter(|chain| chain.liberties().len() <= 2)
+            // save_group() returns all moves to save a group that has 1
+            // or 2 liberties
+            .filter(|chain| board.save_group(chain).len() == 0)
+            .collect();
+        // We only guarantee the correctness of the count for 0 and 1.
+        let count = chains.iter().map(|c| c.liberties().len()).sum();
+        (chains.len() > 0, count)
     }
 
     pub fn has_no_children(&self) -> bool {
