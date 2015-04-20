@@ -539,10 +539,12 @@ impl Board {
     }
 
     fn remove_chain(&mut self, id: usize) {
-        let coords_to_remove = self.chains[id].coords().clone();
-
-        for &coord in coords_to_remove.iter() {
-            self.remove_stone(coord)
+        {
+            let coords_to_remove = self.chains[id].coords().iter();
+    
+            for &coord in coords_to_remove {
+                self.board[coord.to_index(self.size)].color = Empty; //remove stone
+            }
         }
 
         self.chains.remove(id);
@@ -561,14 +563,6 @@ impl Board {
 
     fn liberties(&self, c: &Coord) -> HashSet<Coord> {
         self.neighbours(*c).iter().filter(|&c| self.color(c) == Empty).cloned().collect()
-    }
-
-    fn remove_stone(&mut self, c: Coord) {
-        // Resetting the chain_id is not strictly necessary, but will
-        // make debugging easier.
-        //self.board[c.to_index(self.size)].chain_id = -1;
-        //removed because compiler error
-        self.board[c.to_index(self.size)].color = Empty;
     }
 
     pub fn score(&self) -> Score {
