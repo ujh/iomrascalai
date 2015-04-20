@@ -28,6 +28,7 @@
 #![plugin(regex_macros)]
 extern crate core;
 extern crate getopts;
+extern crate quicksort;
 extern crate rand;
 extern crate regex;
 #[no_link] extern crate regex_macros;

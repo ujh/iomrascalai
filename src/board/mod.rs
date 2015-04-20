@@ -35,6 +35,7 @@ use ruleset::Ruleset;
 use score::Score;
 use self::point::Point;
 
+use quicksort::quicksort;
 use std::collections::HashSet;
 use std::fmt;
 use std::sync::Arc;
@@ -439,7 +440,7 @@ impl Board {
         // also helps with keeping track of the ids of the chain
         // yet-to-merge as their ids will always decrease by nb of
         // chains merged before them.
-        friend_neigh_chains_id.sort();
+        quicksort(&mut *friend_neigh_chains_id);
         friend_neigh_chains_id.dedup();
         friend_neigh_chains_id
     }
@@ -499,15 +500,14 @@ impl Board {
             .flat_map(|&c| self.get_chain(c).unwrap().coords().iter())
             .cloned()
             .collect();
-        coords_to_remove.sort();
+            
+        quicksort(&mut *coords_to_remove);
         coords_to_remove.dedup();
         
  
         
         let mut chains_to_remove: SmallVec4<_> = SmallVec4::new();
-        
         {
-        
            let it = self.neighbours(coord)
                 .iter()
                 .filter(|&c| self.color(c) == color)
@@ -521,7 +521,7 @@ impl Board {
             }
         }
         
-        chains_to_remove.sort();
+        quicksort(&mut *chains_to_remove);
 
         let mut nb_of_removed_chains = 0;
         for &id in chains_to_remove.iter() {
