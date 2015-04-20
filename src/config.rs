@@ -33,8 +33,9 @@ pub struct UctConfig {
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct UctPriorsConfig {
-    pub capture_one: usize,
     pub capture_many: usize,
+    pub capture_one: usize,
+    pub empty: usize,
     pub neutral_plays: usize,
     pub neutral_wins: usize,
     pub self_atari: usize,
@@ -81,8 +82,9 @@ impl Config {
                 end_of_game_cutoff: 0.01,
                 expand_after: 1,
                 priors: UctPriorsConfig {
-                    capture_one: 15,
                     capture_many: 30,
+                    capture_one: 15,
+                    empty: 10,
                     neutral_plays: 10,
                     neutral_wins: 5,
                     self_atari: 10,
