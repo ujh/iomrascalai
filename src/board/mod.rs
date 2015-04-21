@@ -35,7 +35,7 @@ use ruleset::Ruleset;
 use score::Score;
 use self::point::Point;
 
-use std::collections::HashMap;
+use quicksort::quicksort;
 use std::collections::HashSet;
 use std::fmt;
 use std::sync::Arc;
@@ -387,36 +387,30 @@ impl Board {
 
     fn add_removed_adv_stones_as_libs(&mut self, m: &Move) {
         let color = *m.color();
-        let mut libs: HashMap<Coord, Vec<usize>> = HashMap::new();
+        
         for &coord in self.adv_stones_removed.iter() {
-            let chain_ids = self.neighbours(coord)
-                .iter()
+            let chain_ids: SmallVec4<_> = self.neighbours(coord).iter()
                 .filter(|&c| self.color(c) == color)
                 .map(|c| self.chain_id(c))
                 .collect();
-            libs.insert(coord, chain_ids);
-        }
-        for (&coord, chain_ids) in libs.iter() {
+            
             for &chain_id in chain_ids.iter() {
-                self.chains[chain_id].add_liberty(coord);
+                self.chains[chain_id].add_liberty(coord); //it's a hash set so we can add multiple times
             }
         }
     }
 
     fn add_removed_friendly_stones_as_libs(&mut self, m: &Move) {
         let color = m.color().opposite();
-        let mut libs: HashMap<Coord, Vec<usize>> = HashMap::new();
+        
         for &coord in self.adv_stones_removed.iter() {
-            let chain_ids = self.neighbours(coord)
-                .iter()
+            let chain_ids: SmallVec4<_> = self.neighbours(coord).iter()
                 .filter(|&c| self.color(c) == color)
                 .map(|c| self.chain_id(c))
                 .collect();
-            libs.insert(coord, chain_ids);
-        }
-        for (&coord, chain_ids) in libs.iter() {
+            
             for &chain_id in chain_ids.iter() {
-                self.chains[chain_id].add_liberty(coord);
+                self.chains[chain_id].add_liberty(coord); //it's a hash set so we can add multiple times
             }
         }
     }
@@ -446,7 +440,7 @@ impl Board {
         // also helps with keeping track of the ids of the chain
         // yet-to-merge as their ids will always decrease by nb of
         // chains merged before them.
-        friend_neigh_chains_id.sort();
+        quicksort(&mut *friend_neigh_chains_id);
         friend_neigh_chains_id.dedup();
         friend_neigh_chains_id
     }
@@ -506,16 +500,27 @@ impl Board {
             .flat_map(|&c| self.get_chain(c).unwrap().coords().iter())
             .cloned()
             .collect();
-        coords_to_remove.sort();
+            
+        quicksort(&mut *coords_to_remove);
         coords_to_remove.dedup();
-        let mut chains_to_remove: Vec<usize> = self.neighbours(coord)
-            .iter()
-            .filter(|&c| self.color(c) == color)
-            .filter(|&c| self.get_chain(*c).unwrap().is_captured())
-            .map(|c| self.chain_id(c))
-            .collect();
-        chains_to_remove.sort();
-        chains_to_remove.dedup();
+
+        let mut chains_to_remove: SmallVec4<_> = SmallVec4::new();
+        {
+           let it = self.neighbours(coord)
+                .iter()
+                .filter(|&c| self.color(c) == color)
+                .filter(|&c| self.get_chain(*c).unwrap().is_captured())
+                .map(|c| self.chain_id(c));
+        
+            for id in it {
+                if !chains_to_remove.contains(&id) {
+                    chains_to_remove.push(id); //dedup
+                }
+            }
+        }
+        
+        quicksort(&mut *chains_to_remove);
+
         let mut nb_of_removed_chains = 0;
         for &id in chains_to_remove.iter() {
             self.remove_chain(id-nb_of_removed_chains);
@@ -532,10 +537,12 @@ impl Board {
     }
 
     fn remove_chain(&mut self, id: usize) {
-        let coords_to_remove = self.chains[id].coords().clone();
-
-        for &coord in coords_to_remove.iter() {
-            self.remove_stone(coord)
+        {
+            let coords_to_remove = self.chains[id].coords().iter();
+    
+            for &coord in coords_to_remove {
+                self.board[coord.to_index(self.size)].color = Empty; //remove stone
+            }
         }
 
         self.chains.remove(id);
@@ -554,14 +561,6 @@ impl Board {
 
     fn liberties(&self, c: &Coord) -> HashSet<Coord> {
         self.neighbours(*c).iter().filter(|&c| self.color(c) == Empty).cloned().collect()
-    }
-
-    fn remove_stone(&mut self, c: Coord) {
-        // Resetting the chain_id is not strictly necessary, but will
-        // make debugging easier.
-        //self.board[c.to_index(self.size)].chain_id = -1;
-        //removed because compiler error
-        self.board[c.to_index(self.size)].color = Empty;
     }
 
     pub fn score(&self) -> Score {

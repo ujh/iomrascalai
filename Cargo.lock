@@ -3,6 +3,7 @@ name = "iomrascalai"
 version = "0.2.2-rc1"
 dependencies = [
  "getopts 0.2.9 (registry+https://github.com/rust-lang/crates.io-index)",
+ "quicksort 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.3.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex 0.1.27 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex_macros 0.1.15 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -36,6 +37,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "libc 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
+
+[[package]]
+name = "quicksort"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "rand"
