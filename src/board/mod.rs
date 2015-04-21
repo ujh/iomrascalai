@@ -503,9 +503,7 @@ impl Board {
             
         quicksort(&mut *coords_to_remove);
         coords_to_remove.dedup();
-        
- 
-        
+
         let mut chains_to_remove: SmallVec4<_> = SmallVec4::new();
         {
            let it = self.neighbours(coord)
