@@ -56,7 +56,7 @@ impl UctEngine {
             config: config,
             playout: Arc::new(playout),
             previous_node_count: 0,
-            root: Node::new(NoMove),
+            root: Node::new(NoMove, config),
         }
     }
 
@@ -70,7 +70,7 @@ impl Engine for UctEngine {
 
     fn gen_move(&mut self, color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
         if !self.config.uct.reuse_subtree {
-            self.root = Node::root(game, color);
+            self.root = Node::root(game, color, self.config);
         } else {
             self.previous_node_count = self.root.descendants();
             self.set_new_root(game, color);
@@ -99,7 +99,7 @@ impl Engine for UctEngine {
                 res = receive_result_from_threads.recv() => {
                     let ((path, winner, nodes_added), send_to_thread) = res.unwrap();
                     self.root.record_on_path(&path, winner, nodes_added);
-                    let data = self.root.find_leaf_and_expand(game, self.config.uct.expand_after, self.config.uct.tuned);
+                    let data = self.root.find_leaf_and_expand(game);
                     match send_to_thread.send(data) {
                         Ok(_) => {},
                         Err(e) => {
@@ -119,7 +119,7 @@ impl Engine for UctEngine {
 
     fn reset(&mut self) {
         self.previous_node_count = 0;
-        self.root = Node::new(NoMove);
+        self.root = Node::new(NoMove, self.config);
     }
 
 }

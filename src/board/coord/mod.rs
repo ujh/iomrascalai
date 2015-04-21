@@ -80,6 +80,33 @@ impl Coord {
         1 <= self.col && self.col <= board_size && 1 <= self.row && self.row <= board_size
     }
 
+    pub fn distance_to_border(&self, board_size: u8) -> u8 {
+        *vec!(self.col-1, self.row-1, board_size - self.col, board_size - self.row)
+            .iter()
+            .min()
+            .unwrap()
+    }
+
+    pub fn manhattan_distance_three_neighbours(&self, board_size: u8) -> Vec<Coord> {
+        let offsets = vec!(
+                                      (0, 3),
+                             (-1, 2), (0, 2), (1, 2),
+                    (-2, 1), (-1, 1), (0, 1), (1, 1), (2, 1),
+            (-3,0), (-2, 0), (-1, 0),         (1, 0), (2, 0), (3,0),
+                    (-2,-1), (-1,-1), (0,-1), (1,-1), (2,-1),
+                             (-1,-2), (0,-2), (1,-2),
+                                      (0,-3)
+                );
+        let calc: Vec<(isize, isize)> = offsets.iter()
+            .map(|&(co,ro)| (self.col as isize + co, self.row as isize + ro))
+            .filter(|&(co,ro)| co > 0 && ro > 0)
+            .collect();
+        calc.iter()
+            .map(|&(c,r)| Coord::new(c as u8,r as u8))
+            .filter(|c| c.is_inside(board_size))
+            .collect()
+    }
+
     // Note: there is no I column.
     pub fn from_gtp(gtp_vertex: &str) -> Coord {
         let col_letter = gtp_vertex.chars().next().unwrap().to_lowercase().next().unwrap();
