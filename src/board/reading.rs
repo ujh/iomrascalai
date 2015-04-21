@@ -114,41 +114,37 @@ impl Board {
         let liberty1 = liberties.next().unwrap();
         let liberty2 = liberties.next().unwrap();
         
-        let lib2_move = Play(group.color(), liberty2.col, liberty2.row);
+        //if one move gives more than 3 liberties, forget about reading out the other move, it won't work
         
-        //if lib2 move gives more than 3 liberties, forget about reading out lib1
-        if !self.new_chain_liberties_greater_than(lib2_move, 3) { 
-            let m = Play(player, liberty1.col, liberty1.row);
-            let mut cloned = self.clone();
+        let decide = |liberty: Coord, other_liberty: Coord| -> Option<Move> {
+            let other_liberty_move = Play(group.color(), other_liberty.col, other_liberty.row);
+            if !self.new_chain_liberties_greater_than(other_liberty_move, 3) {
+                let m = Play(player, liberty.col, liberty.row);
+                
+                let mut cloned = self.clone();
 
-            if self.next_player() != player {
-                cloned.play_legal_move(Pass(self.next_player()));
+                if self.next_player() != player {
+                    cloned.play_legal_move(Pass(self.next_player()));
+                }
+                
+                cloned.try_capture(group, m)
+            } else {
+                None
             }
-            
-            let cap = cloned.try_capture(group, m);
-            if cap.is_some() {
-                return cap;
-            }
+        };
+        
+        let cap = decide(*liberty1, *liberty2);
+        if cap.is_some() {
+            return cap;
         }
         
-        let lib1_move = Play(group.color(), liberty1.col, liberty1.row);
+        //do the same test for the other liberty
+        let cap2 = decide(*liberty2, *liberty1);
         
-        //same as above, but reversed
-        if !self.new_chain_liberties_greater_than(lib1_move, 3) {
-        
-            let m = Play(player, liberty2.col, liberty2.row);
-            let mut cloned = self.clone();
-
-            if self.next_player() != player {
-                cloned.play_legal_move(Pass(self.next_player()));
-            }
-            
-            let cap = cloned.try_capture(group, m);
-            if cap.is_some() {
-                return cap;
-            }
+        if cap2.is_some() {
+            return cap2;
         }
-
+        
         None
     }
     
