@@ -158,10 +158,10 @@ impl Node {
                 .iter()
                 .map(|m| self.new_leaf(board, m))
                 .collect();
-            self.descendants = self.children.len();
         }
         self.priors(&mut children, board);
         self.children = children;
+        self.descendants = self.children.len();
         not_terminal
     }
     
