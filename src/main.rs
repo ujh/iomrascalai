@@ -90,7 +90,10 @@ pub fn main() {
 
     let matches = match opts.parse(args.tail()) {
         Ok(m) => m,
-        Err(f) => panic!(f.to_string())
+        Err(f) => {
+            println!("{}", f.to_string());
+            exit(1);
+        }
     };
 
     if matches.opt_present("h") {
