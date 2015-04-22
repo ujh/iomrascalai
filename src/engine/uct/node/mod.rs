@@ -200,14 +200,16 @@ impl Node {
             node.plays += self.config.uct.priors.self_atari;
             node.wins += 0; // That's a negative prior
         }
-        let distance = m.coord().distance_to_border(board.size());
-        if distance <= 2 && self.in_empty_area(board, m) {
-            if distance <= 1 {
-                node.plays += self.config.uct.priors.empty;
-                node.wins += 0; // That's a negative prior
-            } else {
-                node.plays += self.config.uct.priors.empty;
-                node.wins += self.config.uct.priors.empty;
+        if self.config.uct.priors.use_empty {
+            let distance = m.coord().distance_to_border(board.size());
+            if distance <= 2 && self.in_empty_area(board, m) {
+                if distance <= 1 {
+                    node.plays += self.config.uct.priors.empty;
+                    node.wins += 0; // That's a negative prior
+                } else {
+                    node.plays += self.config.uct.priors.empty;
+                    node.wins += self.config.uct.priors.empty;
+                }
             }
         }
         node
