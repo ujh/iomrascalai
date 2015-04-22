@@ -152,29 +152,51 @@ impl Node {
 
     pub fn expand(&mut self, board: &Board) -> bool {
         let not_terminal = !board.is_game_over();
+        let mut children = vec![];
         if not_terminal && self.plays >= self.config.uct.expand_after {
-            self.children = board.legal_moves_without_eyes()
+            children = board.legal_moves_without_eyes()
                 .iter()
                 .map(|m| self.new_leaf(board, m))
                 .collect();
             self.descendants = self.children.len();
         }
+        self.priors(&mut children, board);
+        self.children = children;
         not_terminal
+    }
+    
+    pub fn priors(&self, children: &mut Vec<Node>, board: &Board) {
+            let color = board.next_player().opposite();
+
+            let in_danger = board.chains().iter()
+                .filter(|chain| chain.color() == color && chain.coords().len() == 1 && chain.liberties().len() <= 2);
+                
+            for one_stone in in_danger {
+                if let Some(solution) = board.capture_ladder(one_stone) {
+                    if let Some(node) = children.iter_mut().find(|c| c.m() == solution) {
+                        node.plays += self.config.uct.priors.capture_one;
+                        node.wins += self.config.uct.priors.capture_one;
+                    }
+                }
+            }
+            
+            let in_danger = board.chains().iter()
+                .filter(|chain| chain.color() == color && chain.coords().len() > 1 && chain.liberties().len() <= 2);
+   
+            for many_stones in in_danger {
+                if let Some(solution) = board.capture_ladder(many_stones) {
+                    if let Some(node) = children.iter_mut().find(|c| c.m() == solution) {
+                        node.plays += self.config.uct.priors.capture_many;
+                        node.wins += self.config.uct.priors.capture_many;
+                    }
+                }
+            }
     }
 
     pub fn new_leaf(&self, board: &Board, m: &Move) -> Node {
         let mut node = Node::new(*m, self.config);
-        let (capturing, size) =  self.captures_opponent_group(board, m);
-        if capturing {
-            if size == 1 {
-                node.plays += self.config.uct.priors.capture_one;
-                node.wins += self.config.uct.priors.capture_one;
-            } else {
-                node.plays += self.config.uct.priors.capture_many;
-                node.wins += self.config.uct.priors.capture_many;
-            }
-        }
-        if self.kills_own_group(board, m) {
+
+        if !board.is_not_self_atari(m) {
             node.plays += self.config.uct.priors.self_atari;
             node.wins += 0; // That's a negative prior
         }
@@ -190,34 +212,7 @@ impl Node {
         }
         node
     }
-
-    fn captures_opponent_group(&self, board: &Board, m: &Move) -> (bool, usize) {
-        let color = m.color().opposite();
-        let mut board = board.clone();
-        board.play_legal_move(*m);
-        let chains = board.neighbours(m.coord())
-            .iter()
-            // Find neighbours of that color
-            .filter(|neighbour| board.color(neighbour) == color)
-            .map(|&neighbour| board.get_chain(neighbour).unwrap())
-            // Find chains with 1 or 2 liberties
-            .filter(|chain| chain.liberties().len() <= 2)
-            // save_group() returns all moves to save a group that has 1
-            // or 2 liberties
-            .filter(|chain| board.save_group(chain).len() == 0);
-
-        let count = chains.map(|c| c.coords().len()).sum();
-        (count > 0, count)
-    }
-
-    fn kills_own_group(&self, board: &Board, m: &Move) -> bool {
-        let mut board = board.clone();
-        board.play_legal_move(*m);
-        let chain = board.get_chain(m.coord()).unwrap();
-        
-        board.capture_ladder(chain).is_some()
-    }
-
+    
     fn in_empty_area(&self, board: &Board, m: &Move) -> bool {
         m.coord().manhattan_distance_three_neighbours(board.size())
             .iter()
