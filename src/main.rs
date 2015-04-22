@@ -78,8 +78,9 @@ pub fn main() {
     opts.optflag("s", "simple", "faster playouts (no ladder reading)");
     opts.optflag("v", "version", "print the version number");
 
-    opts.optopt("", "use-empty-area-prior", format!("use a prior for empty areas on the board (defaults to {:?})", config.uct.priors.use_empty).as_ref(), "true|false");
+    opts.optopt("", "empty-area-prior", format!("prior value for empty areas (defaults to {})", config.uct.priors.empty).as_ref(), "NUM");
     opts.optopt("", "reuse-subtree", "reuse the subtree from the previous search (defaults to true)", "true|false");
+    opts.optopt("", "use-empty-area-prior", format!("use a prior for empty areas on the board (defaults to {:?})", config.uct.priors.use_empty).as_ref(), "true|false");
     opts.optopt("P", "policies", "choose which policy to use (defaults to tuned)", "tuned|ucb1");
     opts.optopt("e", "engine", "select an engine (defaults to uct)", "amaf|mc|random|uct");
     opts.optopt("p", "playout", "type of playout to use (defaults to no-self-atari)", "light|no-self-atari");
@@ -100,6 +101,17 @@ pub fn main() {
         println!("Iomrascálaí {}", version::version());
         return;
     }
+    if matches.opt_present("empty-area-prior") {
+        let arg = matches.opt_str("empty-area-prior").unwrap();
+        config.uct.priors.empty = match arg.parse::<usize>() {
+            Ok(v) => v,
+            Err(_) => {
+                println!("Unknown value ({}) as argument to --empty-area-prior", arg);
+                exit(1);
+            }
+        }
+    }
+
     if matches.opt_present("use-empty-area-prior") {
         let arg = matches.opt_str("use-empty-area-prior").map(|s| s.into_ascii_lowercase()).unwrap();
         config.uct.priors.use_empty = match arg.parse::<bool>() {
