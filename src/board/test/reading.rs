@@ -71,14 +71,3 @@ fn bottom_right_is_ladder() {
     assert_eq!(Play(Black, 17, 5), board.clone().capture_ladder(&chain).unwrap());
     assert_eq!(2, board.save_group(&chain).len());
 }
-
-#[test]
-fn save_group() {
-    let parser = Parser::from_path(Path::new("fixtures/sgf/bugs/save_group.sgf")).unwrap();
-    let game   = parser.game().unwrap();
-    let board  = game.board();
-    let coord = Coord { col: 4, row: 4 };
-    let chain = board.get_chain(coord).unwrap();
-
-    assert_eq!(Play(Black, 5, 4), board.save_group(&chain)[0]);
-}
