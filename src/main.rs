@@ -46,6 +46,7 @@ use version::version;
 use getopts::Options;
 use std::ascii::OwnedAsciiExt;
 use std::env::args;
+use std::io::Write;
 use std::process::exit;
 
 macro_rules! log(
@@ -162,5 +163,8 @@ pub fn main() {
     let playout = playout::factory(matches.opt_str("p"), config);
     config.playout.ladder_check = matches.opt_present("s");
     let engine = engine::factory(matches.opt_str("e"), config, playout);
+
+    log!("Current configuration: {:?}", config);
+
     Driver::new(config, engine);
 }
