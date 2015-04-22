@@ -20,7 +20,6 @@
  ************************************************************************/
 
 use board::Board;
-use board::Chain;
 use board::Color;
 use board::Empty;
 use board::Move;
@@ -196,7 +195,7 @@ impl Node {
         let color = m.color().opposite();
         let mut board = board.clone();
         board.play_legal_move(*m);
-        let chains: Vec<&Chain> = board.neighbours(m.coord())
+        let chains = board.neighbours(m.coord())
             .iter()
             // Find neighbours of that color
             .filter(|neighbour| board.color(neighbour) == color)
@@ -205,11 +204,10 @@ impl Node {
             .filter(|chain| chain.liberties().len() <= 2)
             // save_group() returns all moves to save a group that has 1
             // or 2 liberties
-            .filter(|chain| board.save_group(chain).len() == 0)
-            .collect();
-        // We only guarantee the correctness of the count for 0 and 1.
-        let count = chains.iter().map(|c| c.coords().len()).sum();
-        (chains.len() > 0, count)
+            .filter(|chain| board.save_group(chain).len() == 0);
+
+        let count = chains.map(|c| c.coords().len()).sum();
+        (count > 0, count)
     }
 
     fn kills_own_group(&self, board: &Board, m: &Move) -> bool {
