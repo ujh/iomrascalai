@@ -46,6 +46,8 @@ use version::version;
 use getopts::Options;
 use std::ascii::OwnedAsciiExt;
 use std::env::args;
+use std::io::Write;
+use std::process::exit;
 
 macro_rules! log(
     ($($arg:tt)*) => (
@@ -69,13 +71,17 @@ mod timer;
 mod version;
 
 pub fn main() {
+    let mut config = Config::default();
     let mut opts = Options::new();
     let args : Vec<String> = args().collect();
     opts.optflag("h", "help", "print this help menu");
     opts.optflag("l", "log", "log to stderr (defaults to false)");
     opts.optflag("s", "simple", "faster playouts (no ladder reading)");
     opts.optflag("v", "version", "print the version number");
+
+    opts.optopt("", "empty-area-prior", format!("prior value for empty areas (defaults to {})", config.uct.priors.empty).as_ref(), "NUM");
     opts.optopt("", "reuse-subtree", "reuse the subtree from the previous search (defaults to true)", "true|false");
+    opts.optopt("", "use-empty-area-prior", format!("use a prior for empty areas on the board (defaults to {:?})", config.uct.priors.use_empty).as_ref(), "true|false");
     opts.optopt("P", "policies", "choose which policy to use (defaults to tuned)", "tuned|ucb1");
     opts.optopt("e", "engine", "select an engine (defaults to uct)", "amaf|mc|random|uct");
     opts.optopt("p", "playout", "type of playout to use (defaults to no-self-atari)", "light|no-self-atari");
@@ -84,7 +90,10 @@ pub fn main() {
 
     let matches = match opts.parse(args.tail()) {
         Ok(m) => m,
-        Err(f) => panic!(f.to_string())
+        Err(f) => {
+            println!("{}", f.to_string());
+            exit(1);
+        }
     };
 
     if matches.opt_present("h") {
@@ -96,10 +105,32 @@ pub fn main() {
         println!("Iomrascálaí {}", version::version());
         return;
     }
+    if matches.opt_present("empty-area-prior") {
+        let arg = matches.opt_str("empty-area-prior").unwrap();
+        config.uct.priors.empty = match arg.parse() {
+            Ok(v) => v,
+            Err(_) => {
+                println!("Unknown value ({}) as argument to --empty-area-prior", arg);
+                exit(1);
+            }
+        }
+    }
+
+    if matches.opt_present("use-empty-area-prior") {
+        let arg = matches.opt_str("use-empty-area-prior").map(|s| s.into_ascii_lowercase()).unwrap();
+        config.uct.priors.use_empty = match arg.parse() {
+            Ok(v) => v,
+            Err(_) => {
+                println!("Unknown value ({}) as argument to --use-empty-area-prior", arg);
+                exit(1);
+            }
+        }
+    }
+
     let reuse_subtree_arg = matches.opt_str("reuse-subtree").map(|s| s.into_ascii_lowercase());
     let reuse_subtree = match reuse_subtree_arg {
         Some(arg) => {
-            match arg.parse::<bool>() {
+            match arg.parse() {
                 Ok(v) => v,
                 Err(_) => panic!("Unknown value ({}) as argument to --reuse-subtree", arg)
             }
@@ -107,10 +138,10 @@ pub fn main() {
         None => true
     };
     let log = matches.opt_present("l");
-    
+
     let threads = match matches.opt_str("t") {
         Some(s) => {
-            match s.parse::<usize>() {
+            match s.parse() {
                 Ok(n)  => n,
                 Err(_) => 1
             }
@@ -124,7 +155,6 @@ pub fn main() {
     };
 
     let policy = matches.opt_str("P").map(|s| s.into_ascii_lowercase());
-    let mut config = Config::default();
     config.log = log;
     config.ruleset = ruleset;
     config.threads = threads;
@@ -136,5 +166,8 @@ pub fn main() {
     let playout = playout::factory(matches.opt_str("p"), config);
     config.playout.ladder_check = matches.opt_present("s");
     let engine = engine::factory(matches.opt_str("e"), config, playout);
+
+    log!("Current configuration: {:?}", config);
+
     Driver::new(config, engine);
 }

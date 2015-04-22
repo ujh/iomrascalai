@@ -39,6 +39,7 @@ pub struct UctPriorsConfig {
     pub neutral_plays: usize,
     pub neutral_wins: usize,
     pub self_atari: usize,
+    pub use_empty: bool,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -88,6 +89,7 @@ impl Config {
                     neutral_plays: 10,
                     neutral_wins: 5,
                     self_atari: 10,
+                    use_empty: false,
                 },
                 reuse_subtree: true,
                 tuned: true,
