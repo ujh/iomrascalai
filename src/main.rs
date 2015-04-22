@@ -104,7 +104,7 @@ pub fn main() {
     }
     if matches.opt_present("empty-area-prior") {
         let arg = matches.opt_str("empty-area-prior").unwrap();
-        config.uct.priors.empty = match arg.parse::<usize>() {
+        config.uct.priors.empty = match arg.parse() {
             Ok(v) => v,
             Err(_) => {
                 println!("Unknown value ({}) as argument to --empty-area-prior", arg);
@@ -115,7 +115,7 @@ pub fn main() {
 
     if matches.opt_present("use-empty-area-prior") {
         let arg = matches.opt_str("use-empty-area-prior").map(|s| s.into_ascii_lowercase()).unwrap();
-        config.uct.priors.use_empty = match arg.parse::<bool>() {
+        config.uct.priors.use_empty = match arg.parse() {
             Ok(v) => v,
             Err(_) => {
                 println!("Unknown value ({}) as argument to --use-empty-area-prior", arg);
@@ -127,7 +127,7 @@ pub fn main() {
     let reuse_subtree_arg = matches.opt_str("reuse-subtree").map(|s| s.into_ascii_lowercase());
     let reuse_subtree = match reuse_subtree_arg {
         Some(arg) => {
-            match arg.parse::<bool>() {
+            match arg.parse() {
                 Ok(v) => v,
                 Err(_) => panic!("Unknown value ({}) as argument to --reuse-subtree", arg)
             }
@@ -138,7 +138,7 @@ pub fn main() {
 
     let threads = match matches.opt_str("t") {
         Some(s) => {
-            match s.parse::<usize>() {
+            match s.parse() {
                 Ok(n)  => n,
                 Err(_) => 1
             }
