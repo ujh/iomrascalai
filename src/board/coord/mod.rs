@@ -81,7 +81,7 @@ impl Coord {
     }
 
     pub fn distance_to_border(&self, board_size: u8) -> u8 {
-        *vec!(self.col-1, self.row-1, board_size - self.col, board_size - self.row)
+        *[self.col-1, self.row-1, board_size - self.col, board_size - self.row]
             .iter()
             .min()
             .unwrap()
