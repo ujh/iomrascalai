@@ -97,12 +97,10 @@ impl Coord {
                              (-1,-2), (0,-2), (1,-2),
                                       (0,-3)
                 );
-        let calc: Vec<(isize, isize)> = offsets.iter()
+        offsets.iter()
             .map(|&(co,ro)| (self.col as isize + co, self.row as isize + ro))
             .filter(|&(co,ro)| co > 0 && ro > 0)
-            .collect();
-        calc.iter()
-            .map(|&(c,r)| Coord::new(c as u8,r as u8))
+            .map(|(c,r)| Coord::new(c as u8,r as u8))
             .filter(|c| c.is_inside(board_size))
             .collect()
     }
