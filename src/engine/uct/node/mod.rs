@@ -222,7 +222,7 @@ impl Node {
             .filter(|chain| board.save_group(chain).len() == 0)
             .collect();
         // We only guarantee the correctness of the count for 0 and 1.
-        let count = chains.iter().map(|c| c.liberties().len()).sum();
+        let count = chains.iter().map(|c| c.coords().len()).sum();
         (chains.len() > 0, count)
     }
 
