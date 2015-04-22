@@ -213,21 +213,11 @@ impl Node {
     }
 
     fn kills_own_group(&self, board: &Board, m: &Move) -> bool {
-        let color = *m.color();
         let mut board = board.clone();
         board.play_legal_move(*m);
-        let chains: Vec<&Chain> = board.neighbours(m.coord())
-            .iter()
-            // Find neighbours of that color
-            .filter(|neighbour| board.color(neighbour) == color)
-            .map(|&neighbour| board.get_chain(neighbour).unwrap())
-            // Find chains with 1 or 2 liberties
-            .filter(|chain| chain.liberties().len() <= 2)
-            // save_group() returns all moves to save a group that has 1
-            // or 2 liberties
-            .filter(|chain| board.capture_ladder(chain).is_some())
-            .collect();
-        chains.len() > 0
+        let chain = board.get_chain(m.coord()).unwrap();
+        
+        board.capture_ladder(chain).is_some()
     }
 
     fn in_empty_area(&self, board: &Board, m: &Move) -> bool {
