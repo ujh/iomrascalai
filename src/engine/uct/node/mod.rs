@@ -194,22 +194,8 @@ impl Node {
 
     fn captures_opponent_group(&self, board: &Board, m: &Move) -> (bool, usize) {
         let color = m.color().opposite();
-        self.captures_group_of_color(board, m, color)
-    }
-
-    fn kills_own_group(&self, board: &Board, m: &Move) -> bool {
-        let color = *m.color();
-        let (dead, _) = self.captures_group_of_color(board, m, color);
-        dead
-    }
-
-    fn in_empty_area(&self, board: &Board, m: &Move) -> bool {
-        m.coord().manhattan_distance_three_neighbours(board.size())
-            .iter()
-            .all(|c| board.color(c) == Empty)
-    }
-
-    fn captures_group_of_color(&self, board: &Board, m: &Move, color: Color) -> (bool, usize) {
+        let mut board = board.clone();
+        board.play_legal_move(*m);
         let chains: Vec<&Chain> = board.neighbours(m.coord())
             .iter()
             // Find neighbours of that color
@@ -224,6 +210,30 @@ impl Node {
         // We only guarantee the correctness of the count for 0 and 1.
         let count = chains.iter().map(|c| c.coords().len()).sum();
         (chains.len() > 0, count)
+    }
+
+    fn kills_own_group(&self, board: &Board, m: &Move) -> bool {
+        let color = *m.color();
+        let mut board = board.clone();
+        board.play_legal_move(*m);
+        let chains: Vec<&Chain> = board.neighbours(m.coord())
+            .iter()
+            // Find neighbours of that color
+            .filter(|neighbour| board.color(neighbour) == color)
+            .map(|&neighbour| board.get_chain(neighbour).unwrap())
+            // Find chains with 1 or 2 liberties
+            .filter(|chain| chain.liberties().len() <= 2)
+            // save_group() returns all moves to save a group that has 1
+            // or 2 liberties
+            .filter(|chain| board.capture_ladder(chain).is_some())
+            .collect();
+        chains.len() > 0
+    }
+
+    fn in_empty_area(&self, board: &Board, m: &Move) -> bool {
+        m.coord().manhattan_distance_three_neighbours(board.size())
+            .iter()
+            .all(|c| board.color(c) == Empty)
     }
 
     pub fn has_no_children(&self) -> bool {
