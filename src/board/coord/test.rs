@@ -113,6 +113,7 @@ fn distance_to_border() {
     assert_eq!(0, Coord::new(9,5).distance_to_border(size));
     assert_eq!(0, Coord::new(5,9).distance_to_border(size));
     assert_eq!(1, Coord::new(2,5).distance_to_border(size));
+    assert_eq!(1, Coord::new(8,6).distance_to_border(size));
 }
 
 #[test]
