@@ -71,7 +71,7 @@ impl Config {
             debug: true,
             log: false,
             playout: PlayoutConfig {
-                ladder_check: true,
+                ladder_check: false,
                 no_self_atari_cutoff: 7,
             },
             ruleset: Minimal,
