@@ -70,6 +70,21 @@ pub struct Config {
     pub uct: UctConfig,
 }
 
+macro_rules! set_if_present {
+    ($matches:expr, $opt:expr, $key:expr) => {
+        if $matches.opt_present($opt) {
+            let arg = $matches.opt_str($opt).unwrap();
+            $key = match arg.parse() {
+                Ok(v) => v,
+                Err(_) => {
+                    println!("Unknown value ({}) as argument to --{}", arg, $opt);
+                    exit(1);
+                }
+            }
+        }
+    }
+}
+
 impl Config {
 
     pub fn default() -> Config {
@@ -105,60 +120,11 @@ impl Config {
     }
 
     pub fn set_from_opts(&mut self, matches: &Matches) {
-        if matches.opt_present("empty-area-prior") {
-            let arg = matches.opt_str("empty-area-prior").unwrap();
-            self.uct.priors.empty = match arg.parse() {
-                Ok(v) => v,
-                Err(_) => {
-                    println!("Unknown value ({}) as argument to --empty-area-prior", arg);
-                    exit(1);
-                }
-            }
-        }
-
-        if matches.opt_present("use-atari-check-in-playouts") {
-            let arg = matches.opt_str("use-atari-check-in-playouts").map(|s| s.into_ascii_lowercase()).unwrap();
-            config.playout.atari_check = match arg.parse() {
-                Ok(v) => v,
-                Err(_) => {
-                    println!("Unknown value ({}) as argument to --use-atari-check-in-playouts", arg);
-                    exit(1);
-                }
-            }
-        }
-
-        if matches.opt_present("use-empty-area-prior") {
-            let arg = matches.opt_str("use-empty-area-prior").map(|s| s.into_ascii_lowercase()).unwrap();
-            self.uct.priors.use_empty = match arg.parse() {
-                Ok(v) => v,
-                Err(_) => {
-                    println!("Unknown value ({}) as argument to --use-empty-area-prior", arg);
-                    exit(1);
-                }
-            }
-        }
-
-        if matches.opt_present("use-ladder-check-in-playouts") {
-            let arg = matches.opt_str("use-ladder-check-in-playouts").map(|s| s.into_ascii_lowercase()).unwrap();
-            self.playout.ladder_check = match arg.parse() {
-                Ok(v) => v,
-                Err(_) => {
-                    println!("Unknown value ({}) as argument to --use-ladder-check-in-playouts", arg);
-                    exit(1);
-                }
-            }
-        }
-
-        let reuse_subtree_arg = matches.opt_str("reuse-subtree").map(|s| s.into_ascii_lowercase());
-        let reuse_subtree = match reuse_subtree_arg {
-            Some(arg) => {
-                match arg.parse() {
-                    Ok(v) => v,
-                    Err(_) => panic!("Unknown value ({}) as argument to --reuse-subtree", arg)
-                }
-            },
-            None => true
-        };
+        set_if_present!(matches, "empty-area-prior", self.uct.priors.empty);
+        set_if_present!(matches, "use-atari-check-in-playouts", self.playout.atari_check);
+        set_if_present!(matches, "use-empty-area-prior", self.uct.priors.use_empty);
+        set_if_present!(matches, "use-ladder-check-in-playouts", self.playout.ladder_check);
+        set_if_present!(matches, "reuse-subtree", self.uct.reuse_subtree);
         let log = matches.opt_present("l");
 
         let threads = match matches.opt_str("t") {
@@ -184,7 +150,6 @@ impl Config {
             Some(str) => if str == "ucb1" { false } else { true},
             _ => true
         };
-        self.uct.reuse_subtree = reuse_subtree;
     }
 
 }
