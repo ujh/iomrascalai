@@ -41,12 +41,9 @@ extern crate time;
 
 use config::Config;
 use gtp::driver::Driver;
-use ruleset::KgsChinese;
-use ruleset::Ruleset;
 use version::version;
 
 use getopts::Options;
-use std::ascii::OwnedAsciiExt;
 use std::env::args;
 use std::io::Write;
 use std::process::exit;
@@ -98,7 +95,6 @@ pub fn main() {
             exit(1);
         }
     };
-
     if matches.opt_present("h") {
         let brief = format!("Usage: {} [options]", args[0]);
         print!("{}", opts.usage(brief.as_ref()));
@@ -108,86 +104,10 @@ pub fn main() {
         println!("Iomrascálaí {}", version::version());
         return;
     }
-    if matches.opt_present("empty-area-prior") {
-        let arg = matches.opt_str("empty-area-prior").unwrap();
-        config.uct.priors.empty = match arg.parse() {
-            Ok(v) => v,
-            Err(_) => {
-                println!("Unknown value ({}) as argument to --empty-area-prior", arg);
-                exit(1);
-            }
-        }
-    }
-    
-    if matches.opt_present("use-atari-check-in-playouts") {
-        let arg = matches.opt_str("use-atari-check-in-playouts").map(|s| s.into_ascii_lowercase()).unwrap();
-        config.playout.atari_check = match arg.parse() {
-            Ok(v) => v,
-            Err(_) => {
-                println!("Unknown value ({}) as argument to --use-atari-check-in-playouts", arg);
-                exit(1);
-            }
-        }
-    }
 
-    if matches.opt_present("use-empty-area-prior") {
-        let arg = matches.opt_str("use-empty-area-prior").map(|s| s.into_ascii_lowercase()).unwrap();
-        config.uct.priors.use_empty = match arg.parse() {
-            Ok(v) => v,
-            Err(_) => {
-                println!("Unknown value ({}) as argument to --use-empty-area-prior", arg);
-                exit(1);
-            }
-        }
-    }
-    if matches.opt_present("use-ladder-check-in-playouts") {
-        let arg = matches.opt_str("use-ladder-check-in-playouts").map(|s| s.into_ascii_lowercase()).unwrap();
-        config.playout.ladder_check = match arg.parse() {
-            Ok(v) => v,
-            Err(_) => {
-                println!("Unknown value ({}) as argument to --use-ladder-check-in-playouts", arg);
-                exit(1);
-            }
-        }
-    }
-
-    let reuse_subtree_arg = matches.opt_str("reuse-subtree").map(|s| s.into_ascii_lowercase());
-    let reuse_subtree = match reuse_subtree_arg {
-        Some(arg) => {
-            match arg.parse() {
-                Ok(v) => v,
-                Err(_) => panic!("Unknown value ({}) as argument to --reuse-subtree", arg)
-            }
-        },
-        None => true
-    };
-    let log = matches.opt_present("l");
-
-    let threads = match matches.opt_str("t") {
-        Some(s) => {
-            match s.parse() {
-                Ok(n)  => n,
-                Err(_) => 1
-            }
-        },
-        None => 1
-    };
-    let rules_arg = matches.opt_str("r").map(|s| s.into_ascii_lowercase());
-    let ruleset = match rules_arg {
-        Some(r) => Ruleset::from_string(r),
-        None    => KgsChinese
-    };
-
-    let policy = matches.opt_str("P").map(|s| s.into_ascii_lowercase());
-    config.log = log;
-    config.ruleset = ruleset;
-    config.threads = threads;
-    config.uct.tuned = match policy {
-        Some(str) => if str == "ucb1" { false } else { true},
-        _ => true
-    };
-    config.uct.reuse_subtree = reuse_subtree;
+    config.set_from_opts(&matches);
     let playout = playout::factory(matches.opt_str("p"), config);
+
     let engine = engine::factory(matches.opt_str("e"), config, playout);
 
     log!("Current configuration: {:?}", config);
