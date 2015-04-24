@@ -78,12 +78,12 @@ pub fn main() {
     let args : Vec<String> = args().collect();
     opts.optflag("h", "help", "print this help menu");
     opts.optflag("l", "log", "log to stderr (defaults to false)");
-    opts.optflag("s", "simple", "faster playouts (no ladder reading)");
     opts.optflag("v", "version", "print the version number");
 
     opts.optopt("", "empty-area-prior", format!("prior value for empty areas (defaults to {})", config.uct.priors.empty).as_ref(), "NUM");
     opts.optopt("", "reuse-subtree", "reuse the subtree from the previous search (defaults to true)", "true|false");
     opts.optopt("", "use-empty-area-prior", format!("use a prior for empty areas on the board (defaults to {:?})", config.uct.priors.use_empty).as_ref(), "true|false");
+    opts.optopt("", "use-ladder-check-in-playouts", format!("Check for ladders in the playouts (defaults to {}", config.playout.ladder_check).as_ref(), "true|false");
     opts.optopt("P", "policies", "choose which policy to use (defaults to tuned)", "tuned|ucb1");
     opts.optopt("e", "engine", "select an engine (defaults to uct)", "amaf|mc|random|uct");
     opts.optopt("p", "playout", "type of playout to use (defaults to no-self-atari)", "light|no-self-atari");
@@ -128,6 +128,16 @@ pub fn main() {
             }
         }
     }
+    if matches.opt_present("use-ladder-check-in-playouts") {
+        let arg = matches.opt_str("use-ladder-check-in-playouts").map(|s| s.into_ascii_lowercase()).unwrap();
+        config.playout.ladder_check = match arg.parse() {
+            Ok(v) => v,
+            Err(_) => {
+                println!("Unknown value ({}) as argument to --use-ladder-check-in-playouts", arg);
+                exit(1);
+            }
+        }
+    }
 
     let reuse_subtree_arg = matches.opt_str("reuse-subtree").map(|s| s.into_ascii_lowercase());
     let reuse_subtree = match reuse_subtree_arg {
@@ -166,7 +176,6 @@ pub fn main() {
     };
     config.uct.reuse_subtree = reuse_subtree;
     let playout = playout::factory(matches.opt_str("p"), config);
-    config.playout.ladder_check = matches.opt_present("s");
     let engine = engine::factory(matches.opt_str("e"), config, playout);
 
     log!("Current configuration: {:?}", config);
