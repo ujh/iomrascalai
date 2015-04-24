@@ -33,6 +33,7 @@ use sgf::parser::Parser;
 use timer::Timer;
 use strenum::Strenum;
 
+use num::traits::FromPrimitive;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 use std::sync::mpsc::channel;
