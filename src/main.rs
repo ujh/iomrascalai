@@ -27,7 +27,9 @@
 #![feature(test)]
 #![plugin(regex_macros)]
 extern crate core;
+#[macro_use] extern crate enum_primitive;
 extern crate getopts;
+extern crate num;
 extern crate quicksort;
 extern crate rand;
 extern crate regex;
