@@ -1,8 +1,30 @@
+## 0.2.2 [☰](https://github.com/ujh/iomrascalai/compare/0.2.1...master) (unreleased)
+
+* A two liberty solver (can prove if a group with up to two stones is
+  dead)
+* A set of priors for the UCT tree
+  * One that prioritizes killing opponent groups
+  * One that discourages putting one's own groups into danger
+  * One to disourage plays on the first two lines if no other stones
+    are close by
+
+### Performance
+
+After running 100 games on 9x9 with komi 6.5 and a time limit of 5
+minutes (sudden death) the win rate against GnuGo 3.8 level 0 was **X%
+± Y%** for the default engine with 8 threads.
+
 ## 0.2.1 [☰](https://github.com/ujh/iomrascalai/compare/0.2.0...0.2.1)
 
 * New UCT policy UCB1tuned
 * Reuse the subtree from the previous genmove
 * Seki detection in the self atari code in the playouts
+
+### Performance
+
+After running 100 games on 9x9 with komi 6.5 and a time limit of 5
+minutes (sudden death) the win rate against GnuGo 3.8 level 0 was **35%
+± 4.8%** for the default engine with 8 threads.
 
 ## 0.2.0 [☰](https://github.com/ujh/iomrascalai/compare/0.1.7...0.2.0)
 
