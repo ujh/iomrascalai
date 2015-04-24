@@ -20,7 +20,6 @@
  ************************************************************************/
 
 use ruleset::KgsChinese;
-use ruleset::Minimal;
 use ruleset::Ruleset;
 
 use getopts::Matches;
@@ -96,7 +95,7 @@ impl Config {
                 ladder_check: false,
                 no_self_atari_cutoff: 7,
             },
-            ruleset: Minimal,
+            ruleset: KgsChinese,
             threads: 1,
             timer: TimerConfig {
                 c: 0.5
