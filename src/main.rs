@@ -117,6 +117,17 @@ pub fn main() {
             }
         }
     }
+    
+    if matches.opt_present("use-atari-check-in-playouts") {
+        let arg = matches.opt_str("use-atari-check-in-playouts").map(|s| s.into_ascii_lowercase()).unwrap();
+        config.playout.atari_check = match arg.parse() {
+            Ok(v) => v,
+            Err(_) => {
+                println!("Unknown value ({}) as argument to --use-atari-check-in-playouts", arg);
+                exit(1);
+            }
+        }
+    }
 
     if matches.opt_present("use-empty-area-prior") {
         let arg = matches.opt_str("use-empty-area-prior").map(|s| s.into_ascii_lowercase()).unwrap();

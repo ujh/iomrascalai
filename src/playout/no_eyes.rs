@@ -40,6 +40,10 @@ impl Playout for NoEyesPlayout {
     fn check_for_ladders(&self) -> bool {
         false
     }
+    
+    fn check_for_atari(&self) -> bool {
+        false
+    }
 }
 
 //don't self atari strings that will make an eye after dying, which is strings of 7+
@@ -76,4 +80,7 @@ impl Playout for NoSelfAtariPlayout {
         self.config.playout.ladder_check
     }
 
+    fn check_for_atari(&self) -> bool {
+        self.config.playout.atari_check
+    }
 }

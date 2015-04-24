@@ -34,6 +34,7 @@ fn bottom_left_is_ladder() {
 
     assert_eq!(Play(Black, 4, 5), board.clone().capture_ladder(&chain).unwrap());
     assert_eq!(2, board.save_group(&chain).len());
+    assert_eq!(2, board.fix_atari_no_ladder_check(&chain).len()); //it's not in atari technically, but extending works anyway
 }
 
 #[test]
@@ -46,6 +47,7 @@ fn top_left_is_not_ladder() {
 
     assert_eq!(None, board.clone().capture_ladder(&chain));
     assert_eq!(0, board.save_group(&chain).len());
+    assert_eq!(2, board.fix_atari_no_ladder_check(&chain).len()); //it's not in atari technically, but extending works anyway
 }
 
 #[test]
@@ -58,6 +60,7 @@ fn top_right_is_not_ladder() {
 
     assert_eq!(None, board.clone().capture_ladder(&chain));
     assert_eq!(0, board.save_group(&chain).len());
+    assert_eq!(2, board.fix_atari_no_ladder_check(&chain).len()); //it's not in atari technically, but extending works anyway
 }
 
 #[test]
@@ -70,4 +73,5 @@ fn bottom_right_is_ladder() {
 
     assert_eq!(Play(Black, 17, 5), board.clone().capture_ladder(&chain).unwrap());
     assert_eq!(2, board.save_group(&chain).len());
+    assert_eq!(2, board.fix_atari_no_ladder_check(&chain).len()); //it's not in atari technically, but extending works anyway
 }
