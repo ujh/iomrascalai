@@ -146,21 +146,33 @@ impl Node {
                 .iter()
                 .map(|&m| Node::new(m, self.config))
                 .collect();
+            if self.children.len() <= (game.size() * game.size() / 10) as usize {
+                let player = game.last_move().color().opposite();
+                self.children.push(Node::new(Pass(player), self.config));
+            }
+            
             self.descendants = self.children.len();
         }
  }
 
     pub fn expand(&mut self, board: &Board) -> bool {
         let not_terminal = !board.is_game_over();
-        let mut children = vec![];
         if not_terminal && self.plays >= self.config.uct.expand_after {
-            children = board.legal_moves_without_eyes()
+            let mut children = board.legal_moves_without_eyes()
                 .iter()
                 .map(|m| self.new_leaf(board, m))
                 .collect();
+                
+            self.priors(&mut children, board);
+            self.children = children;
+            
+            if self.children.len() <= (board.size() * board.size() / 10) as usize {
+                let player = board.next_player();
+                self.children.push(Node::new(Pass(player), self.config));
+            }
         }
-        self.priors(&mut children, board);
-        self.children = children;
+
+        
         self.descendants = self.children.len();
         not_terminal
     }
