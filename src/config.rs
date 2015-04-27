@@ -49,6 +49,7 @@ pub struct TimerConfig {
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct PlayoutConfig {
+    pub atari_check: bool,
     pub ladder_check: bool,
     pub no_self_atari_cutoff: usize,
 }
@@ -71,6 +72,7 @@ impl Config {
             debug: true,
             log: false,
             playout: PlayoutConfig {
+                atari_check: true,
                 ladder_check: false,
                 no_self_atari_cutoff: 7,
             },

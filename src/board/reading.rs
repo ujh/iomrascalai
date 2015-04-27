@@ -38,38 +38,60 @@ impl Board {
             _ => vec![] //return just the forced moves when we have two liberties
         }
     }
-
-    //if one liberty
-    //returns no moves if can't fix
-    pub fn fix_atari(&self, group: &Chain) -> Vec<Move> {
-        //try capturing any neighbouring groups
-        let mut solutions = vec![];
+    
+    pub fn fix_atari_no_ladder_check(&self, group: &Chain) -> Vec<Move> {
+        let mut solutions = self.fix_atari_by_capturing(group);
         let player = group.color();
-        {
-            let enemy = group.color().opposite();
-            
-            let mut it;
-            let mut one_liberty_enemy_groups: SmallVec4<Coord> = SmallVec4::new();
-            for &coord in group.coords().iter() {
-                it = self.neighbours(coord).iter()
-                    .filter(|c| self.color(c) == enemy)
-                    .map(|&c| self.get_chain(c).unwrap())
-                    .filter(|chain| chain.liberties().len() == 1)
-                    .flat_map(|chain| chain.liberties());
-                for liberty in it {
-                    if !one_liberty_enemy_groups.contains(&liberty) {
-                        one_liberty_enemy_groups.push(*liberty);
-                    }
-                }
-            }
-
-            for atari in one_liberty_enemy_groups.iter() {
-                let m = Play(player, atari.col, atari.row);
-                if self.is_legal(m).is_ok() {
+        
+        //escaping
+        for liberty in group.liberties().iter() {
+            let m = Play(player, liberty.col, liberty.row);
+            if self.is_legal(m).is_ok() {
+                if self.new_chain_liberties_greater_than_one(m) {
                     solutions.push(m);
                 }
             }
         }
+        
+        solutions
+    }
+    
+    fn fix_atari_by_capturing(&self, group: &Chain) -> Vec<Move> {
+        //try capturing any neighbouring groups
+        let mut solutions = vec![];
+        let player = group.color();
+        let enemy = group.color().opposite();
+        
+        let mut it;
+        let mut one_liberty_enemy_groups: SmallVec4<Coord> = SmallVec4::new();
+        for &coord in group.coords().iter() {
+            it = self.neighbours(coord).iter()
+                .filter(|c| self.color(c) == enemy)
+                .map(|&c| self.get_chain(c).unwrap())
+                .filter(|chain| chain.liberties().len() == 1)
+                .flat_map(|chain| chain.liberties());
+            for liberty in it {
+                if !one_liberty_enemy_groups.contains(&liberty) {
+                    one_liberty_enemy_groups.push(*liberty);
+                }
+            }
+        }
+
+        for atari in one_liberty_enemy_groups.iter() {
+            let m = Play(player, atari.col, atari.row);
+            if self.is_legal(m).is_ok() {
+                solutions.push(m);
+            }
+        }
+        
+        solutions
+    }
+
+    //if one liberty
+    //returns no moves if can't fix
+    pub fn fix_atari(&self, group: &Chain) -> Vec<Move> {
+        let mut solutions = self.fix_atari_by_capturing(group);
+        let player = group.color();
 
         //escaping
         if let Some(liberty) = group.liberties().iter().next() {
