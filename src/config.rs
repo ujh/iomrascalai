@@ -70,9 +70,9 @@ pub struct Config {
     pub uct: UctConfig,
 }
 
-macro_rules! set_if_present {
+macro_rules! opt {
     ($matches:expr, $longopt:expr, $key:expr) => {
-        set_if_present!($matches, "", $longopt, $key);
+        opt!($matches, "", $longopt, $key);
     };
     ($matches:expr, $shortopt:expr, $longopt:expr, $key:expr) => {
         if $matches.opt_present($longopt) {
@@ -137,13 +137,13 @@ impl Config {
             return Ok(Some(s));
         }
 
-        set_if_present!(matches, "empty-area-prior", self.uct.priors.empty);
-        set_if_present!(matches, "use-atari-check-in-playouts", self.playout.atari_check);
-        set_if_present!(matches, "use-empty-area-prior", self.uct.priors.use_empty);
-        set_if_present!(matches, "use-ladder-check-in-playouts", self.playout.ladder_check);
-        set_if_present!(matches, "reuse-subtree", self.uct.reuse_subtree);
-        set_if_present!(matches, "t", "threads", self.threads);
-        set_if_present!(matches, "r", "ruleset", self.ruleset);
+        opt!(matches, "empty-area-prior", self.uct.priors.empty);
+        opt!(matches, "use-atari-check-in-playouts", self.playout.atari_check);
+        opt!(matches, "use-empty-area-prior", self.uct.priors.use_empty);
+        opt!(matches, "use-ladder-check-in-playouts", self.playout.ladder_check);
+        opt!(matches, "reuse-subtree", self.uct.reuse_subtree);
+        opt!(matches, "t", "threads", self.threads);
+        opt!(matches, "r", "ruleset", self.ruleset);
 
         let log = matches.opt_present("l");
 
