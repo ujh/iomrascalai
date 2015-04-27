@@ -21,8 +21,10 @@
 
 use ruleset::KgsChinese;
 use ruleset::Ruleset;
+use version;
 
 use getopts::Matches;
+use getopts::Options;
 use std::ascii::OwnedAsciiExt;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -117,7 +119,17 @@ impl Config {
         }
     }
 
-    pub fn set_from_opts(&mut self, matches: &Matches) -> Result<(), String>{
+    pub fn set_from_opts(&mut self, matches: &Matches, opts: &Options, args: &Vec<String>) -> Result<Option<String>, String>{
+        if matches.opt_present("h") {
+            let brief = format!("Usage: {} [options]", args[0]);
+            let s = format!("{}", opts.usage(brief.as_ref()));
+            return Ok(Some(s));
+        }
+        if matches.opt_present("v") {
+            let s = format!("Iomrascálaí {}", version::version());
+            return Ok(Some(s));
+        }
+
         set_if_present!(matches, "empty-area-prior", self.uct.priors.empty);
         set_if_present!(matches, "use-atari-check-in-playouts", self.playout.atari_check);
         set_if_present!(matches, "use-empty-area-prior", self.uct.priors.use_empty);
@@ -148,7 +160,7 @@ impl Config {
             Some(str) => if str == "ucb1" { false } else { true},
             _ => true
         };
-        Ok(())
+        Ok(None)
     }
 
 }

@@ -41,7 +41,6 @@ extern crate time;
 
 use config::Config;
 use gtp::driver::Driver;
-use version::version;
 
 use getopts::Options;
 use std::env::args;
@@ -95,18 +94,17 @@ pub fn main() {
             exit(1);
         }
     };
-    if matches.opt_present("h") {
-        let brief = format!("Usage: {} [options]", args[0]);
-        print!("{}", opts.usage(brief.as_ref()));
-        return;
-    }
-    if matches.opt_present("v") {
-        println!("Iomrascálaí {}", version::version());
-        return;
-    }
 
-    match config.set_from_opts(&matches) {
-        Ok(_) => {},
+    match config.set_from_opts(&matches, &opts, &args) {
+        Ok(opt) => {
+            match opt {
+                Some(s) => {
+                    println!("{}", s);
+                    exit(0);
+                }
+                None => {}
+            }
+        },
         Err(s) => {
             println!("{}", s);
             exit(1);
