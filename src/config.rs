@@ -72,16 +72,7 @@ pub struct Config {
 
 macro_rules! set_if_present {
     ($matches:expr, $longopt:expr, $key:expr) => {
-        if $matches.opt_present($longopt) {
-            let arg = $matches.opt_str($longopt).unwrap();
-            $key = match arg.parse() {
-                Ok(v) => v,
-                Err(_) => {
-                    let s = format!("Unknown value ({}) as argument to --{}", arg, $longopt);
-                    return Err(s);
-                }
-            }
-        }
+        set_if_present!($matches, "", $longopt, $key);
     };
     ($matches:expr, $shortopt:expr, $longopt:expr, $key:expr) => {
         if $matches.opt_present($longopt) {
@@ -89,7 +80,11 @@ macro_rules! set_if_present {
             $key = match arg.parse() {
                 Ok(v) => v,
                 Err(_) => {
-                    let s = format!("Unknown value ({}) as argument to --{} or -{}", arg, $longopt, $shortopt);
+                    let strs: Vec<String> = [format!("--{}", $longopt), format!("-{}", $shortopt)].iter()
+                        .filter(|&s| s != "")
+                        .cloned()
+                        .collect();
+                    let s = format!("Unknown value ({}) as argument to {}", arg, strs.connect(" or "));
                     return Err(s);
                 }
             }
