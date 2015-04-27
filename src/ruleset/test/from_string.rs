@@ -27,28 +27,29 @@ use ruleset::KgsChinese;
 use ruleset::Minimal;
 use ruleset::Ruleset;
 
+use std::str::FromStr;
+
 #[test]
 fn parses_tromp_taylor() {
-    assert_eq!(AnySizeTrompTaylor, Ruleset::from_string(String::from_str("tromp-taylor")));
+    assert_eq!(Ok(AnySizeTrompTaylor), Ruleset::from_str("tromp-taylor"));
 }
 
 #[test]
 fn parses_cgos() {
-    assert_eq!(CGOS, Ruleset::from_string(String::from_str("cgos")));
+    assert_eq!(Ok(CGOS), Ruleset::from_str("cgos"));
 }
 
 #[test]
 fn parses_chinese() {
-    assert_eq!(KgsChinese, Ruleset::from_string(String::from_str("chinese")));
+    assert_eq!(Ok(KgsChinese), Ruleset::from_str("chinese"));
 }
 
 #[test]
 fn parses_minimal() {
-    assert_eq!(Minimal, Ruleset::from_string(String::from_str("minimal")));
+    assert_eq!(Ok(Minimal), Ruleset::from_str("minimal"));
 }
 
 #[test]
-#[should_panic]
-fn fails_with_unknown() {
-    Ruleset::from_string(String::from_str("unknown"));
+fn errors_with_unknown() {
+    assert_eq!(Err(String::from_str("Unknown ruleset 'unknown'")), Ruleset::from_str("unknown"));
 }

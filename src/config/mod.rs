@@ -19,8 +19,14 @@
  *                                                                      *
  ************************************************************************/
 
-use ruleset::Minimal;
+use ruleset::KgsChinese;
 use ruleset::Ruleset;
+use version;
+
+use getopts::Matches;
+use getopts::Options;
+
+mod test;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct UctConfig {
@@ -65,6 +71,40 @@ pub struct Config {
     pub uct: UctConfig,
 }
 
+macro_rules! opt {
+    ($matches:expr, $longopt:expr, $key:expr) => {
+        opt!($matches, "", $longopt, $key);
+    };
+    ($matches:expr, $shortopt:expr, $longopt:expr, $key:expr) => {
+        if $matches.opt_present($longopt) {
+            let arg = $matches.opt_str($longopt).unwrap();
+            $key = match arg.parse() {
+                Ok(v) => v,
+                Err(_) => {
+                    let strs: Vec<String> = [format!("--{}", $longopt), format!("-{}", $shortopt)].iter()
+                        .filter(|&s| s != "")
+                        .cloned()
+                        .collect();
+                    let s = format!("Unknown value ({}) as argument to {}", arg, strs.connect(" or "));
+                    return Err(s);
+                }
+            }
+        }
+    };
+}
+
+macro_rules! flag {
+    ($matches:expr, $longopt:expr, $key:expr) => {
+        flag!($matches, "", $longopt, $key);
+    };
+    ($matches:expr, $shortopt:expr, $longopt:expr, $key:expr) => {
+        // Do it with an if so as to not override the default
+        if $matches.opt_present($longopt) {
+            $key = true;
+        }
+    };
+}
+
 impl Config {
 
     pub fn default() -> Config {
@@ -73,10 +113,10 @@ impl Config {
             log: false,
             playout: PlayoutConfig {
                 atari_check: true,
-                ladder_check: false,
+                ladder_check: true,
                 no_self_atari_cutoff: 7,
             },
-            ruleset: Minimal,
+            ruleset: KgsChinese,
             threads: 1,
             timer: TimerConfig {
                 c: 0.5
@@ -99,4 +139,37 @@ impl Config {
         }
     }
 
+    pub fn set_from_opts(&mut self, matches: &Matches, opts: &Options, args: &Vec<String>) -> Result<Option<String>, String>{
+        if matches.opt_present("h") {
+            let brief = format!("Usage: {} [options]", args[0]);
+            let s = format!("{}", opts.usage(brief.as_ref()));
+            return Ok(Some(s));
+        }
+        if matches.opt_present("v") {
+            let s = format!("Iomrascálaí {}", version::version());
+            return Ok(Some(s));
+        }
+
+        opt!(matches, "empty-area-prior", self.uct.priors.empty);
+        opt!(matches, "r", "ruleset", self.ruleset);
+        opt!(matches, "reuse-subtree", self.uct.reuse_subtree);
+        opt!(matches, "t", "threads", self.threads);
+        opt!(matches, "use-atari-check-in-playouts", self.playout.atari_check);
+        opt!(matches, "use-empty-area-prior", self.uct.priors.use_empty);
+        opt!(matches, "use-ladder-check-in-playouts", self.playout.ladder_check);
+        opt!(matches, "use-ucb1-tuned", self.uct.tuned);
+
+        flag!(matches, "l", "log", self.log);
+
+        self.check()
+    }
+
+    fn check(&self) -> Result<Option<String>, String> {
+        if self.playout.ladder_check && !self.playout.atari_check {
+            let s = String::from_str("'--use-ladder-check-in-playouts true' requires '--use-atari-check-in-playouts true'");
+            Err(s)
+        } else {
+            Ok(None)
+        }
+    }
 }

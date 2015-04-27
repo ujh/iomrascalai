@@ -1,6 +1,5 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2014 Urban Hafner, Thomas Poinsot                          *
  * Copyright 2015 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
@@ -20,60 +19,14 @@
  *                                                                      *
  ************************************************************************/
 
-pub use self::Ruleset::AnySizeTrompTaylor;
-pub use self::Ruleset::CGOS;
-pub use self::Ruleset::KgsChinese;
-pub use self::Ruleset::Minimal;
+#![cfg(test)]
 
-use std::str::FromStr;
+use super::Config;
 
-mod test;
-
-#[derive(Clone, Debug, Eq, PartialEq, Copy)]
-pub enum Ruleset {
-    AnySizeTrompTaylor,
-    CGOS,
-    KgsChinese,
-    Minimal,
-}
-
-impl Ruleset {
-
-    pub fn game_over_play(&self) -> bool {
-        match *self {
-            Minimal => true,
-            _ => false
-        }
-    }
-
-    pub fn same_player(&self) -> bool {
-        match *self {
-            Minimal => true,
-            _ => false
-        }
-    }
-
-    pub fn suicide_allowed(&self) -> bool {
-        match *self {
-            AnySizeTrompTaylor => true,
-            Minimal            => true,
-            _ => false
-        }
-    }
-}
-
-impl FromStr for Ruleset {
-
-    type Err = String;
-
-    fn from_str(s: &str) -> Result<Ruleset, Self::Err> {
-        match s {
-            "tromp-taylor" => Ok(AnySizeTrompTaylor),
-            "cgos"         => Ok(CGOS),
-            "chinese"      => Ok(KgsChinese),
-            "minimal"      => Ok(Minimal),
-            _              => Err(format!("Unknown ruleset '{}'", s)),
-        }
-    }
-
+#[test]
+fn fail_if_ladder_and_atari_are_in_conflict() {
+    let mut config = Config::default();
+    config.playout.atari_check = false;
+    config.playout.ladder_check = true;
+    assert!(config.check().is_err());
 }
