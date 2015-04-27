@@ -23,6 +23,7 @@ use ruleset::KgsChinese;
 use ruleset::Ruleset;
 use version;
 
+use core::fmt::Display;
 use getopts::Matches;
 use getopts::Options;
 
@@ -144,12 +145,12 @@ impl Config {
         opts.optflag("l", "log", "log to stderr (defaults to false)");
         opts.optflag("v", "version", "print the version number");
 
-        opts.optopt("", "empty-area-prior", format!("prior value for empty areas (defaults to {})", self.uct.priors.empty).as_ref(), "NUM");
-        opts.optopt("", "reuse-subtree", "reuse the subtree from the previous search (defaults to true)", "true|false");
-        opts.optopt("", "use-atari-check-in-playouts", format!("Check for atari in the playouts (defaults to {}", self.playout.ladder_check).as_ref(), "true|false");
-        opts.optopt("", "use-empty-area-prior", format!("use a prior for empty areas on the board (defaults to {:?})", self.uct.priors.use_empty).as_ref(), "true|false");
-        opts.optopt("", "use-ladder-check-in-playouts", format!("Check for ladders in the playouts (defaults to {}", self.playout.ladder_check).as_ref(), "true|false");
-        opts.optopt("", "use-ucb1-tuned", format!("Use the UCB1tuned selection strategy (defaults to {})", self.uct.tuned).as_ref(), "true|false");
+        self.opt(opts, "empty-area-prior", "prior value for empty areas", self.uct.priors.empty);
+        self.opt(opts, "reuse-subtree", "reuse the subtree from the previous search", self.uct.reuse_subtree);
+        self.opt(opts, "use-atari-check-in-playouts", "Check for atari in the playouts", self.playout.ladder_check);
+        self.opt(opts, "use-empty-area-prior", "use a prior for empty areas on the board", self.uct.priors.use_empty);
+        self.opt(opts, "use-ladder-check-in-playouts", "Check for ladders in the playouts", self.playout.ladder_check);
+        self.opt(opts, "use-ucb1-tuned", "Use the UCB1tuned selection strategy", self.uct.tuned);
         opts.optopt("r", "ruleset", "select the ruleset (defaults to chinese)", "cgos|chinese|tromp-taylor|minimal");
         opts.optopt("t", "threads", "number of threads to use (defaults to 1)", "NUM");
     }
@@ -187,4 +188,31 @@ impl Config {
             Ok(None)
         }
     }
+
+    fn opt<T: Display + Hint>(&self, opts: &mut Options, name: &'static str, descr: &'static str, default: T) {
+        opts.optopt("", name, format!("{} (defaults to {})", descr, default).as_ref(), default.hint_str());
+    }
+
+}
+
+trait Hint {
+
+    fn hint_str(&self) -> &'static str;
+
+}
+
+impl Hint for bool {
+
+    fn hint_str(&self) -> &'static str {
+        "true|false"
+    }
+}
+
+
+impl Hint for usize {
+
+    fn hint_str(&self) -> &'static str {
+        "NUM"
+    }
+
 }
