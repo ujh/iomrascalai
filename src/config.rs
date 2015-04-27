@@ -92,6 +92,18 @@ macro_rules! opt {
     };
 }
 
+macro_rules! flag {
+    ($matches:expr, $longopt:expr, $key:expr) => {
+        flag!($matches, "", $longopt, $key);
+    };
+    ($matches:expr, $shortopt:expr, $longopt:expr, $key:expr) => {
+        // Do it with an if so as to not override the default
+        if $matches.opt_present($longopt) {
+            $key = true;
+        }
+    };
+}
+
 impl Config {
 
     pub fn default() -> Config {
@@ -145,10 +157,9 @@ impl Config {
         opt!(matches, "t", "threads", self.threads);
         opt!(matches, "r", "ruleset", self.ruleset);
 
-        let log = matches.opt_present("l");
+        flag!(matches, "l", "log", self.log);
 
         let policy = matches.opt_str("P").map(|s| s.into_ascii_lowercase());
-        self.log = log;
         self.uct.tuned = match policy {
             Some(str) => if str == "ucb1" { false } else { true},
             _ => true
