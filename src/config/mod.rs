@@ -142,8 +142,9 @@ impl Config {
 
     pub fn setup(&self, opts: &mut Options) {
         opts.optflag("h", "help", "print this help menu");
-        opts.optflag("l", "log", "log to stderr (defaults to false)");
         opts.optflag("v", "version", "print the version number");
+
+        self.flag(opts, "l", "log", "log to stderr", self.log);
 
         self.opt(opts, "empty-area-prior", "prior value for empty areas", self.uct.priors.empty);
         self.opt(opts, "reuse-subtree", "reuse the subtree from the previous search", self.uct.reuse_subtree);
@@ -197,6 +198,9 @@ impl Config {
         self.optopt(opts, "", name, descr, default);
     }
 
+    fn flag(&self, opts: &mut Options, shortname: &'static str, name: &'static str, descr: &'static str, default: bool) {
+        opts.optflag(shortname, name, format!("{} (defaults to {})", descr, default).as_ref());
+    }
 }
 
 pub trait Hint {
