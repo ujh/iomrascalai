@@ -24,7 +24,6 @@ use ruleset::Ruleset;
 
 use getopts::Matches;
 use std::ascii::OwnedAsciiExt;
-use std::process::exit;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct UctConfig {
@@ -76,8 +75,8 @@ macro_rules! set_if_present {
             $key = match arg.parse() {
                 Ok(v) => v,
                 Err(_) => {
-                    println!("Unknown value ({}) as argument to --{}", arg, $opt);
-                    exit(1);
+                    let s = format!("Unknown value ({}) as argument to --{}", arg, $opt);
+                    return Err(s);
                 }
             }
         }
@@ -118,7 +117,7 @@ impl Config {
         }
     }
 
-    pub fn set_from_opts(&mut self, matches: &Matches) {
+    pub fn set_from_opts(&mut self, matches: &Matches) -> Result<(), String>{
         set_if_present!(matches, "empty-area-prior", self.uct.priors.empty);
         set_if_present!(matches, "use-atari-check-in-playouts", self.playout.atari_check);
         set_if_present!(matches, "use-empty-area-prior", self.uct.priors.use_empty);
@@ -149,6 +148,7 @@ impl Config {
             Some(str) => if str == "ucb1" { false } else { true},
             _ => true
         };
+        Ok(())
     }
 
 }

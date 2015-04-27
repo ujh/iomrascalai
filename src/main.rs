@@ -105,7 +105,14 @@ pub fn main() {
         return;
     }
 
-    config.set_from_opts(&matches);
+    match config.set_from_opts(&matches) {
+        Ok(_) => {},
+        Err(s) => {
+            println!("{}", s);
+            exit(1);
+        }
+    }
+
     let playout = playout::factory(matches.opt_str("p"), config);
 
     let engine = engine::factory(matches.opt_str("e"), config, playout);
