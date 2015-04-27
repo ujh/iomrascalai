@@ -71,9 +71,9 @@ pub struct Config {
     pub uct: UctConfig,
 }
 
-macro_rules! opt {
+macro_rules! set_from_opt {
     ($matches:expr, $longopt:expr, $key:expr) => {
-        opt!($matches, "", $longopt, $key);
+        set_from_opt!($matches, "", $longopt, $key);
     };
     ($matches:expr, $shortopt:expr, $longopt:expr, $key:expr) => {
         if $matches.opt_present($longopt) {
@@ -93,9 +93,9 @@ macro_rules! opt {
     };
 }
 
-macro_rules! flag {
+macro_rules! set_from_flag {
     ($matches:expr, $longopt:expr, $key:expr) => {
-        flag!($matches, "", $longopt, $key);
+        set_from_flag!($matches, "", $longopt, $key);
     };
     ($matches:expr, $shortopt:expr, $longopt:expr, $key:expr) => {
         // Do it with an if so as to not override the default
@@ -165,16 +165,16 @@ impl Config {
             return Ok(Some(s));
         }
 
-        opt!(matches, "empty-area-prior", self.uct.priors.empty);
-        opt!(matches, "r", "ruleset", self.ruleset);
-        opt!(matches, "reuse-subtree", self.uct.reuse_subtree);
-        opt!(matches, "t", "threads", self.threads);
-        opt!(matches, "use-atari-check-in-playouts", self.playout.atari_check);
-        opt!(matches, "use-empty-area-prior", self.uct.priors.use_empty);
-        opt!(matches, "use-ladder-check-in-playouts", self.playout.ladder_check);
-        opt!(matches, "use-ucb1-tuned", self.uct.tuned);
+        set_from_opt!(matches, "empty-area-prior", self.uct.priors.empty);
+        set_from_opt!(matches, "r", "ruleset", self.ruleset);
+        set_from_opt!(matches, "reuse-subtree", self.uct.reuse_subtree);
+        set_from_opt!(matches, "t", "threads", self.threads);
+        set_from_opt!(matches, "use-atari-check-in-playouts", self.playout.atari_check);
+        set_from_opt!(matches, "use-empty-area-prior", self.uct.priors.use_empty);
+        set_from_opt!(matches, "use-ladder-check-in-playouts", self.playout.ladder_check);
+        set_from_opt!(matches, "use-ucb1-tuned", self.uct.tuned);
 
-        flag!(matches, "l", "log", self.log);
+        set_from_flag!(matches, "l", "log", self.log);
 
         self.check()
     }
