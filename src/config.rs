@@ -71,18 +71,30 @@ pub struct Config {
 }
 
 macro_rules! set_if_present {
-    ($matches:expr, $opt:expr, $key:expr) => {
-        if $matches.opt_present($opt) {
-            let arg = $matches.opt_str($opt).unwrap();
+    ($matches:expr, $longopt:expr, $key:expr) => {
+        if $matches.opt_present($longopt) {
+            let arg = $matches.opt_str($longopt).unwrap();
             $key = match arg.parse() {
                 Ok(v) => v,
                 Err(_) => {
-                    let s = format!("Unknown value ({}) as argument to --{}", arg, $opt);
+                    let s = format!("Unknown value ({}) as argument to --{}", arg, $longopt);
                     return Err(s);
                 }
             }
         }
-    }
+    };
+    ($matches:expr, $shortopt:expr, $longopt:expr, $key:expr) => {
+        if $matches.opt_present($longopt) {
+            let arg = $matches.opt_str($longopt).unwrap();
+            $key = match arg.parse() {
+                Ok(v) => v,
+                Err(_) => {
+                    let s = format!("Unknown value ({}) as argument to --{} or -{}", arg, $longopt, $shortopt);
+                    return Err(s);
+                }
+            }
+        }
+    };
 }
 
 impl Config {
@@ -135,17 +147,10 @@ impl Config {
         set_if_present!(matches, "use-empty-area-prior", self.uct.priors.use_empty);
         set_if_present!(matches, "use-ladder-check-in-playouts", self.playout.ladder_check);
         set_if_present!(matches, "reuse-subtree", self.uct.reuse_subtree);
+        set_if_present!(matches, "t", "threads", self.threads);
+
         let log = matches.opt_present("l");
 
-        let threads = match matches.opt_str("t") {
-            Some(s) => {
-                match s.parse() {
-                    Ok(n)  => n,
-                    Err(_) => 1
-                }
-            },
-            None => 1
-        };
         let rules_arg = matches.opt_str("r").map(|s| s.into_ascii_lowercase());
         let ruleset = match rules_arg {
             Some(r) => Ruleset::from_string(r),
@@ -155,7 +160,6 @@ impl Config {
         let policy = matches.opt_str("P").map(|s| s.into_ascii_lowercase());
         self.log = log;
         self.ruleset = ruleset;
-        self.threads = threads;
         self.uct.tuned = match policy {
             Some(str) => if str == "ucb1" { false } else { true},
             _ => true
