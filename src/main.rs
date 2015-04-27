@@ -72,20 +72,11 @@ pub fn main() {
     let mut config = Config::default();
     let mut opts = Options::new();
     let args : Vec<String> = args().collect();
-    opts.optflag("h", "help", "print this help menu");
-    opts.optflag("l", "log", "log to stderr (defaults to false)");
-    opts.optflag("v", "version", "print the version number");
 
-    opts.optopt("", "empty-area-prior", format!("prior value for empty areas (defaults to {})", config.uct.priors.empty).as_ref(), "NUM");
-    opts.optopt("", "reuse-subtree", "reuse the subtree from the previous search (defaults to true)", "true|false");
-    opts.optopt("", "use-atari-check-in-playouts", format!("Check for atari in the playouts (defaults to {}", config.playout.ladder_check).as_ref(), "true|false");
-    opts.optopt("", "use-empty-area-prior", format!("use a prior for empty areas on the board (defaults to {:?})", config.uct.priors.use_empty).as_ref(), "true|false");
-    opts.optopt("", "use-ladder-check-in-playouts", format!("Check for ladders in the playouts (defaults to {}", config.playout.ladder_check).as_ref(), "true|false");
-    opts.optopt("", "use-ucb1-tuned", format!("Use the UCB1tuned selection strategy (defaults to {})", config.uct.tuned).as_ref(), "true|false");
     opts.optopt("e", "engine", "select an engine (defaults to uct)", "amaf|mc|random|uct");
     opts.optopt("p", "playout", "type of playout to use (defaults to no-self-atari)", "light|no-self-atari");
-    opts.optopt("r", "ruleset", "select the ruleset (defaults to chinese)", "cgos|chinese|tromp-taylor|minimal");
-    opts.optopt("t", "threads", "number of threads to use (defaults to 1)", "NUM");
+
+    config.setup(&mut opts);
 
     let matches = match opts.parse(args.tail()) {
         Ok(m) => m,

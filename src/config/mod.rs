@@ -139,6 +139,21 @@ impl Config {
         }
     }
 
+    pub fn setup(&self, opts: &mut Options) {
+        opts.optflag("h", "help", "print this help menu");
+        opts.optflag("l", "log", "log to stderr (defaults to false)");
+        opts.optflag("v", "version", "print the version number");
+
+        opts.optopt("", "empty-area-prior", format!("prior value for empty areas (defaults to {})", self.uct.priors.empty).as_ref(), "NUM");
+        opts.optopt("", "reuse-subtree", "reuse the subtree from the previous search (defaults to true)", "true|false");
+        opts.optopt("", "use-atari-check-in-playouts", format!("Check for atari in the playouts (defaults to {}", self.playout.ladder_check).as_ref(), "true|false");
+        opts.optopt("", "use-empty-area-prior", format!("use a prior for empty areas on the board (defaults to {:?})", self.uct.priors.use_empty).as_ref(), "true|false");
+        opts.optopt("", "use-ladder-check-in-playouts", format!("Check for ladders in the playouts (defaults to {}", self.playout.ladder_check).as_ref(), "true|false");
+        opts.optopt("", "use-ucb1-tuned", format!("Use the UCB1tuned selection strategy (defaults to {})", self.uct.tuned).as_ref(), "true|false");
+        opts.optopt("r", "ruleset", "select the ruleset (defaults to chinese)", "cgos|chinese|tromp-taylor|minimal");
+        opts.optopt("t", "threads", "number of threads to use (defaults to 1)", "NUM");
+    }
+
     pub fn set_from_opts(&mut self, matches: &Matches, opts: &Options, args: &Vec<String>) -> Result<Option<String>, String>{
         if matches.opt_present("h") {
             let brief = format!("Usage: {} [options]", args[0]);
