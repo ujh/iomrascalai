@@ -25,6 +25,8 @@ pub use self::Ruleset::CGOS;
 pub use self::Ruleset::KgsChinese;
 pub use self::Ruleset::Minimal;
 
+use std::str::FromStr;
+
 mod test;
 
 #[derive(Clone, Debug, Eq, PartialEq, Copy)]
@@ -36,16 +38,6 @@ pub enum Ruleset {
 }
 
 impl Ruleset {
-
-    pub fn from_string(s: String) -> Ruleset {
-        match s.as_ref() {
-            "tromp-taylor" => AnySizeTrompTaylor,
-            "cgos"         => CGOS,
-            "chinese"      => KgsChinese,
-            "minimal"      => Minimal,
-            _              => panic!("Unknown ruleset '{}'", s),
-        }
-    }
 
     pub fn game_over_play(&self) -> bool {
         match *self {
@@ -68,4 +60,20 @@ impl Ruleset {
             _ => false
         }
     }
+}
+
+impl FromStr for Ruleset {
+
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Ruleset, Self::Err> {
+        match s {
+            "tromp-taylor" => Ok(AnySizeTrompTaylor),
+            "cgos"         => Ok(CGOS),
+            "chinese"      => Ok(KgsChinese),
+            "minimal"      => Ok(Minimal),
+            _              => Err(format!("Unknown ruleset '{}'", s)),
+        }
+    }
+
 }

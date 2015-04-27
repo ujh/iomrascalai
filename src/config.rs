@@ -143,18 +143,12 @@ impl Config {
         set_if_present!(matches, "use-ladder-check-in-playouts", self.playout.ladder_check);
         set_if_present!(matches, "reuse-subtree", self.uct.reuse_subtree);
         set_if_present!(matches, "t", "threads", self.threads);
+        set_if_present!(matches, "r", "ruleset", self.ruleset);
 
         let log = matches.opt_present("l");
 
-        let rules_arg = matches.opt_str("r").map(|s| s.into_ascii_lowercase());
-        let ruleset = match rules_arg {
-            Some(r) => Ruleset::from_string(r),
-            None    => KgsChinese
-        };
-
         let policy = matches.opt_str("P").map(|s| s.into_ascii_lowercase());
         self.log = log;
-        self.ruleset = ruleset;
         self.uct.tuned = match policy {
             Some(str) => if str == "ucb1" { false } else { true},
             _ => true
