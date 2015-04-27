@@ -81,7 +81,7 @@ pub fn main() {
     opts.optopt("", "use-atari-check-in-playouts", format!("Check for atari in the playouts (defaults to {}", config.playout.ladder_check).as_ref(), "true|false");
     opts.optopt("", "use-empty-area-prior", format!("use a prior for empty areas on the board (defaults to {:?})", config.uct.priors.use_empty).as_ref(), "true|false");
     opts.optopt("", "use-ladder-check-in-playouts", format!("Check for ladders in the playouts (defaults to {}", config.playout.ladder_check).as_ref(), "true|false");
-    opts.optopt("P", "policies", "choose which policy to use (defaults to tuned)", "tuned|ucb1");
+    opts.optopt("", "use-ucb1-tuned", format!("Use the UCB1tuned selection strategy (defaults to {})", config.uct.tuned).as_ref(), "true|false");
     opts.optopt("e", "engine", "select an engine (defaults to uct)", "amaf|mc|random|uct");
     opts.optopt("p", "playout", "type of playout to use (defaults to no-self-atari)", "light|no-self-atari");
     opts.optopt("r", "ruleset", "select the ruleset (defaults to chinese)", "cgos|chinese|tromp-taylor|minimal");

@@ -25,7 +25,6 @@ use version;
 
 use getopts::Matches;
 use getopts::Options;
-use std::ascii::OwnedAsciiExt;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct UctConfig {
@@ -150,20 +149,16 @@ impl Config {
         }
 
         opt!(matches, "empty-area-prior", self.uct.priors.empty);
+        opt!(matches, "r", "ruleset", self.ruleset);
+        opt!(matches, "reuse-subtree", self.uct.reuse_subtree);
+        opt!(matches, "t", "threads", self.threads);
         opt!(matches, "use-atari-check-in-playouts", self.playout.atari_check);
         opt!(matches, "use-empty-area-prior", self.uct.priors.use_empty);
         opt!(matches, "use-ladder-check-in-playouts", self.playout.ladder_check);
-        opt!(matches, "reuse-subtree", self.uct.reuse_subtree);
-        opt!(matches, "t", "threads", self.threads);
-        opt!(matches, "r", "ruleset", self.ruleset);
+        opt!(matches, "use-ucb1-tuned", self.uct.tuned);
 
         flag!(matches, "l", "log", self.log);
 
-        let policy = matches.opt_str("P").map(|s| s.into_ascii_lowercase());
-        self.uct.tuned = match policy {
-            Some(str) => if str == "ucb1" { false } else { true},
-            _ => true
-        };
         Ok(None)
     }
 
