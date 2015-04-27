@@ -83,8 +83,9 @@ pub fn main() {
     opts.optopt("", "empty-area-prior", format!("prior value for empty areas (defaults to {})", config.uct.priors.empty).as_ref(), "NUM");
     opts.optopt("", "reuse-subtree", "reuse the subtree from the previous search (defaults to true)", "true|false");
     opts.optopt("", "use-empty-area-prior", format!("use a prior for empty areas on the board (defaults to {:?})", config.uct.priors.use_empty).as_ref(), "true|false");
-    opts.optopt("", "use-ladder-check-in-playouts", format!("Check for ladders in the playouts (defaults to {}", config.playout.ladder_check).as_ref(), "true|false");
+    opts.optopt("", "use-ladder-check-in-playouts", format!("Check for ladders in the playouts (defaults to {})", config.playout.ladder_check).as_ref(), "true|false");
     opts.optopt("P", "policies", "choose which policy to use (defaults to tuned)", "tuned|ucb1");
+    opts.optopt("", "playout-aftermath", format!("play the game to the end (defaults to {})", config.uct.playout_aftermath).as_ref(), "true|false");
     opts.optopt("e", "engine", "select an engine (defaults to uct)", "amaf|mc|random|uct");
     opts.optopt("p", "playout", "type of playout to use (defaults to no-self-atari)", "light|no-self-atari");
     opts.optopt("r", "ruleset", "select the ruleset (defaults to chinese)", "cgos|chinese|tromp-taylor|minimal");
@@ -118,16 +119,28 @@ pub fn main() {
         }
     }
 
-    if matches.opt_present("use-empty-area-prior") {
-        let arg = matches.opt_str("use-empty-area-prior").map(|s| s.into_ascii_lowercase()).unwrap();
+    if matches.opt_present("playout-aftermath") {
+        let arg = matches.opt_str("playout-aftermath").map(|s| s.into_ascii_lowercase()).unwrap();
         config.uct.priors.use_empty = match arg.parse() {
             Ok(v) => v,
             Err(_) => {
-                println!("Unknown value ({}) as argument to --use-empty-area-prior", arg);
+                println!("Unknown value ({}) as argument to --playout-aftermath", arg);
                 exit(1);
             }
         }
     }
+    
+    if matches.opt_present("empty-area-prior") {
+        let arg = matches.opt_str("empty-area-prior").unwrap();
+        config.uct.priors.empty = match arg.parse() {
+            Ok(v) => v,
+            Err(_) => {
+                println!("Unknown value ({}) as argument to --empty-area-prior", arg);
+                exit(1);
+            }
+        }
+    }
+    
     if matches.opt_present("use-ladder-check-in-playouts") {
         let arg = matches.opt_str("use-ladder-check-in-playouts").map(|s| s.into_ascii_lowercase()).unwrap();
         config.playout.ladder_check = match arg.parse() {

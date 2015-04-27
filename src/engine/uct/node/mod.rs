@@ -148,7 +148,9 @@ impl Node {
                 .collect();
             if self.children.len() <= (game.size() * game.size() / 10) as usize {
                 let player = game.last_move().color().opposite();
-                self.children.push(Node::new(Pass(player), self.config));
+                if game.winner() == player || !self.config.uct.playout_aftermath { //don't pass if we're losing on the board
+                    self.children.push(Node::new(Pass(player), self.config));
+                }
             }
             
             self.descendants = self.children.len();
@@ -168,7 +170,10 @@ impl Node {
             
             if self.children.len() <= (board.size() * board.size() / 10) as usize {
                 let player = board.next_player();
-                self.children.push(Node::new(Pass(player), self.config));
+                if board.winner() == player { //don't pass if we're losing on the board
+                    self.children.push(Node::new(Pass(player), self.config));
+                }
+                
             }
         }
 

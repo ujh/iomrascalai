@@ -26,6 +26,7 @@ use ruleset::Ruleset;
 pub struct UctConfig {
     pub end_of_game_cutoff: f32,
     pub expand_after: usize,
+    pub playout_aftermath: bool,
     pub priors: UctPriorsConfig,
     pub reuse_subtree: bool,
     pub tuned: bool,
@@ -82,6 +83,7 @@ impl Config {
             uct: UctConfig {
                 end_of_game_cutoff: 0.01,
                 expand_after: 1,
+                playout_aftermath: true,
                 priors: UctPriorsConfig {
                     capture_many: 30,
                     capture_one: 15,
