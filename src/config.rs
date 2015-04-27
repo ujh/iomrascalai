@@ -100,7 +100,7 @@ impl Config {
             log: false,
             playout: PlayoutConfig {
                 atari_check: true,
-                ladder_check: false,
+                ladder_check: true,
                 no_self_atari_cutoff: 7,
             },
             ruleset: KgsChinese,
