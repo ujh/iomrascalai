@@ -151,8 +151,8 @@ impl Config {
         self.opt(opts, "use-empty-area-prior", "use a prior for empty areas on the board", self.uct.priors.use_empty);
         self.opt(opts, "use-ladder-check-in-playouts", "Check for ladders in the playouts", self.playout.ladder_check);
         self.opt(opts, "use-ucb1-tuned", "Use the UCB1tuned selection strategy", self.uct.tuned);
-        opts.optopt("r", "ruleset", "select the ruleset (defaults to chinese)", "cgos|chinese|tromp-taylor|minimal");
-        opts.optopt("t", "threads", "number of threads to use (defaults to 1)", "NUM");
+        self.optopt(opts, "r", "ruleset", "select the ruleset", self.ruleset);
+        self.optopt(opts, "t", "threads", "number of threads to use", self.threads);
     }
 
     pub fn set_from_opts(&mut self, matches: &Matches, opts: &Options, args: &Vec<String>) -> Result<Option<String>, String>{
@@ -189,13 +189,17 @@ impl Config {
         }
     }
 
+    fn optopt<T: Display + Hint>(&self, opts: &mut Options, shortname: &'static str, name: &'static str, descr: &'static str, default: T) {
+        opts.optopt(shortname, name, format!("{} (defaults to {})", descr, default).as_ref(), default.hint_str());
+    }
+
     fn opt<T: Display + Hint>(&self, opts: &mut Options, name: &'static str, descr: &'static str, default: T) {
-        opts.optopt("", name, format!("{} (defaults to {})", descr, default).as_ref(), default.hint_str());
+        self.optopt(opts, "", name, descr, default);
     }
 
 }
 
-trait Hint {
+pub trait Hint {
 
     fn hint_str(&self) -> &'static str;
 
