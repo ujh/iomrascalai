@@ -26,6 +26,8 @@ use version;
 use getopts::Matches;
 use getopts::Options;
 
+mod test;
+
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct UctConfig {
     pub end_of_game_cutoff: f32,
@@ -159,7 +161,15 @@ impl Config {
 
         flag!(matches, "l", "log", self.log);
 
-        Ok(None)
+        self.check()
     }
 
+    fn check(&self) -> Result<Option<String>, String> {
+        if self.playout.ladder_check && !self.playout.atari_check {
+            let s = String::from_str("'--use-ladder-check-in-playouts true' requires '--use-atari-check-in-playouts true'");
+            Err(s)
+        } else {
+            Ok(None)
+        }
+    }
 }
