@@ -118,17 +118,6 @@ pub fn main() {
             }
         }
     }
-
-    if matches.opt_present("playout-aftermath") {
-        let arg = matches.opt_str("playout-aftermath").map(|s| s.into_ascii_lowercase()).unwrap();
-        config.uct.priors.use_empty = match arg.parse() {
-            Ok(v) => v,
-            Err(_) => {
-                println!("Unknown value ({}) as argument to --playout-aftermath", arg);
-                exit(1);
-            }
-        }
-    }
     
     if matches.opt_present("empty-area-prior") {
         let arg = matches.opt_str("empty-area-prior").unwrap();
