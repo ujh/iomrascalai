@@ -27,11 +27,14 @@ use board::Play;
 use board::White;
 use config::Config;
 use game::Game;
+use playout;
 use ruleset::KgsChinese;
 use sgf::Parser;
 use super::Node;
 
+use rand::weak_rng;
 use std::path::Path;
+use test::Bencher;
 
 #[test]
 fn root_expands_the_children() {
@@ -181,6 +184,25 @@ fn expand_sets_the_descendant_count_if_the_node_was_expanded() {
     assert_eq!(25, node.descendants);
 }
 
+#[bench]
+fn full_uct_cycle(b: &mut Bencher) {
+    let game = Game::new(13, 6.5, KgsChinese);
+    let mut config = Config::default();
+    config.uct.priors.use_empty = true;
+    let mut root = Node::root(&game, Black, config);
+    let playout = playout::factory(None, config);
+    let mut rng = weak_rng();
+    b.iter(|| {
+        let (path, moves, _, nodes_added) = root.find_leaf_and_expand(&game);
+        let mut b = game.board();
+        for &m in moves.iter() {
+            b.play_legal_move(m);
+        }
+        let playout_result = playout.run(&mut b, None, &mut rng);
+        let winner = playout_result.winner();
+        root.record_on_path(&path, winner, nodes_added);
+    });
+}
 
 // 2. Make sure that terminal nodes are "played", i.e. either a win or
 //    a loss is reported and the wins are recorded in the tree.
