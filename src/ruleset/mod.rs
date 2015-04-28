@@ -20,11 +20,13 @@
  *                                                                      *
  ************************************************************************/
 
+use config::Hint;
 pub use self::Ruleset::AnySizeTrompTaylor;
 pub use self::Ruleset::CGOS;
 pub use self::Ruleset::KgsChinese;
 pub use self::Ruleset::Minimal;
 
+use std::fmt;
 use std::str::FromStr;
 
 mod test;
@@ -74,6 +76,27 @@ impl FromStr for Ruleset {
             "minimal"      => Ok(Minimal),
             _              => Err(format!("Unknown ruleset '{}'", s)),
         }
+    }
+
+}
+
+impl fmt::Display for Ruleset {
+
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let s = match *self {
+            AnySizeTrompTaylor => "tromp-taylor",
+            CGOS => "cgos",
+            KgsChinese => "chinese",
+            Minimal => "minimal"
+        };
+        s.fmt(f)
+    }
+}
+
+impl Hint for Ruleset {
+
+    fn hint_str(&self) -> &'static str {
+        "cgos|chinese|tromp-taylor|minimal"
     }
 
 }

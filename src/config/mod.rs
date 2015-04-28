@@ -23,6 +23,7 @@ use ruleset::KgsChinese;
 use ruleset::Ruleset;
 use version;
 
+use core::fmt::Display;
 use getopts::Matches;
 use getopts::Options;
 
@@ -71,9 +72,9 @@ pub struct Config {
     pub uct: UctConfig,
 }
 
-macro_rules! opt {
+macro_rules! set_from_opt {
     ($matches:expr, $longopt:expr, $key:expr) => {
-        opt!($matches, "", $longopt, $key);
+        set_from_opt!($matches, "", $longopt, $key);
     };
     ($matches:expr, $shortopt:expr, $longopt:expr, $key:expr) => {
         if $matches.opt_present($longopt) {
@@ -93,9 +94,9 @@ macro_rules! opt {
     };
 }
 
-macro_rules! flag {
+macro_rules! set_from_flag {
     ($matches:expr, $longopt:expr, $key:expr) => {
-        flag!($matches, "", $longopt, $key);
+        set_from_flag!($matches, "", $longopt, $key);
     };
     ($matches:expr, $shortopt:expr, $longopt:expr, $key:expr) => {
         // Do it with an if so as to not override the default
@@ -139,6 +140,22 @@ impl Config {
         }
     }
 
+    pub fn setup(&self, opts: &mut Options) {
+        opts.optflag("h", "help", "print this help menu");
+        opts.optflag("v", "version", "print the version number");
+
+        self.flag(opts, "l", "log", "log to stderr", self.log);
+
+        self.opt(opts, "empty-area-prior", "prior value for empty areas", self.uct.priors.empty);
+        self.opt(opts, "reuse-subtree", "reuse the subtree from the previous search", self.uct.reuse_subtree);
+        self.opt(opts, "use-atari-check-in-playouts", "Check for atari in the playouts", self.playout.ladder_check);
+        self.opt(opts, "use-empty-area-prior", "use a prior for empty areas on the board", self.uct.priors.use_empty);
+        self.opt(opts, "use-ladder-check-in-playouts", "Check for ladders in the playouts", self.playout.ladder_check);
+        self.opt(opts, "use-ucb1-tuned", "Use the UCB1tuned selection strategy", self.uct.tuned);
+        self.optopt(opts, "r", "ruleset", "select the ruleset", self.ruleset);
+        self.optopt(opts, "t", "threads", "number of threads to use", self.threads);
+    }
+
     pub fn set_from_opts(&mut self, matches: &Matches, opts: &Options, args: &Vec<String>) -> Result<Option<String>, String>{
         if matches.opt_present("h") {
             let brief = format!("Usage: {} [options]", args[0]);
@@ -150,16 +167,16 @@ impl Config {
             return Ok(Some(s));
         }
 
-        opt!(matches, "empty-area-prior", self.uct.priors.empty);
-        opt!(matches, "r", "ruleset", self.ruleset);
-        opt!(matches, "reuse-subtree", self.uct.reuse_subtree);
-        opt!(matches, "t", "threads", self.threads);
-        opt!(matches, "use-atari-check-in-playouts", self.playout.atari_check);
-        opt!(matches, "use-empty-area-prior", self.uct.priors.use_empty);
-        opt!(matches, "use-ladder-check-in-playouts", self.playout.ladder_check);
-        opt!(matches, "use-ucb1-tuned", self.uct.tuned);
+        set_from_opt!(matches, "empty-area-prior", self.uct.priors.empty);
+        set_from_opt!(matches, "r", "ruleset", self.ruleset);
+        set_from_opt!(matches, "reuse-subtree", self.uct.reuse_subtree);
+        set_from_opt!(matches, "t", "threads", self.threads);
+        set_from_opt!(matches, "use-atari-check-in-playouts", self.playout.atari_check);
+        set_from_opt!(matches, "use-empty-area-prior", self.uct.priors.use_empty);
+        set_from_opt!(matches, "use-ladder-check-in-playouts", self.playout.ladder_check);
+        set_from_opt!(matches, "use-ucb1-tuned", self.uct.tuned);
 
-        flag!(matches, "l", "log", self.log);
+        set_from_flag!(matches, "l", "log", self.log);
 
         self.check()
     }
@@ -172,4 +189,38 @@ impl Config {
             Ok(None)
         }
     }
+
+    fn optopt<T: Display + Hint>(&self, opts: &mut Options, shortname: &'static str, name: &'static str, descr: &'static str, default: T) {
+        opts.optopt(shortname, name, format!("{} (defaults to {})", descr, default).as_ref(), default.hint_str());
+    }
+
+    fn opt<T: Display + Hint>(&self, opts: &mut Options, name: &'static str, descr: &'static str, default: T) {
+        self.optopt(opts, "", name, descr, default);
+    }
+
+    fn flag(&self, opts: &mut Options, shortname: &'static str, name: &'static str, descr: &'static str, default: bool) {
+        opts.optflag(shortname, name, format!("{} (defaults to {})", descr, default).as_ref());
+    }
+}
+
+pub trait Hint {
+
+    fn hint_str(&self) -> &'static str;
+
+}
+
+impl Hint for bool {
+
+    fn hint_str(&self) -> &'static str {
+        "true|false"
+    }
+}
+
+
+impl Hint for usize {
+
+    fn hint_str(&self) -> &'static str {
+        "NUM"
+    }
+
 }
