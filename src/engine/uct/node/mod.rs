@@ -103,7 +103,7 @@ impl Node {
                 Play(..) => if game.play(node.m()).is_err() {
                     to_remove.push(index);
                 },
-                Pass(_) => if self.config.play_out_aftermath || game.winner() != game.last_move().color().opposite() {
+                Pass(_) => if self.config.play_out_aftermath && game.winner() != game.last_move().color().opposite() {
                     to_remove.push(index);
                 },
                 _ => unreachable!()
