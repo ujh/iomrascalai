@@ -185,8 +185,22 @@ fn expand_sets_the_descendant_count_if_the_node_was_expanded() {
 }
 
 #[bench]
-fn full_uct_cycle(b: &mut Bencher) {
-    let game = Game::new(13, 6.5, KgsChinese);
+fn full_uct_cycle_09x09(b: &mut Bencher) {
+    full_uct_cycle(19, b);
+}
+
+#[bench]
+fn full_uct_cycle_13x13(b: &mut Bencher) {
+    full_uct_cycle(13, b);
+}
+
+#[bench]
+fn full_uct_cycle_19x19(b: &mut Bencher) {
+    full_uct_cycle(19, b);
+}
+
+fn full_uct_cycle(size: u8, b: &mut Bencher) {
+    let game = Game::new(size, 6.5, KgsChinese);
     let mut config = Config::default();
     config.uct.priors.use_empty = true;
     let mut root = Node::root(&game, Black, config);
@@ -203,6 +217,7 @@ fn full_uct_cycle(b: &mut Bencher) {
         root.record_on_path(&path, winner, nodes_added);
     });
 }
+
 
 // 2. Make sure that terminal nodes are "played", i.e. either a win or
 //    a loss is reported and the wins are recorded in the tree.
