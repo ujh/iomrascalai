@@ -65,6 +65,7 @@ pub struct PlayoutConfig {
 pub struct Config {
     pub debug: bool,
     pub log: bool,
+    pub play_out_aftermath: bool,
     pub playout: PlayoutConfig,
     pub ruleset: Ruleset,
     pub threads: usize,
@@ -112,6 +113,7 @@ impl Config {
         Config {
             debug: true,
             log: false,
+            play_out_aftermath: false,
             playout: PlayoutConfig {
                 atari_check: true,
                 ladder_check: true,
@@ -147,6 +149,7 @@ impl Config {
         self.flag(opts, "l", "log", "log to stderr", self.log);
 
         self.opt(opts, "empty-area-prior", "prior value for empty areas", self.uct.priors.empty);
+        self.opt(opts, "play-out-aftermath", "keep playing after the result of the game is decided", self.play_out_aftermath);
         self.opt(opts, "reuse-subtree", "reuse the subtree from the previous search", self.uct.reuse_subtree);
         self.opt(opts, "use-atari-check-in-playouts", "Check for atari in the playouts", self.playout.ladder_check);
         self.opt(opts, "use-empty-area-prior", "use a prior for empty areas on the board", self.uct.priors.use_empty);
@@ -168,6 +171,7 @@ impl Config {
         }
 
         set_from_opt!(matches, "empty-area-prior", self.uct.priors.empty);
+        set_from_opt!(matches, "play-out-aftermath", self.play_out_aftermath);
         set_from_opt!(matches, "r", "ruleset", self.ruleset);
         set_from_opt!(matches, "reuse-subtree", self.uct.reuse_subtree);
         set_from_opt!(matches, "t", "threads", self.threads);

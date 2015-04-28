@@ -25,6 +25,7 @@ use board::Empty;
 use board::Move;
 use board::NoMove;
 use board::Pass;
+use board::Play;
 use config::Config;
 use game::Game;
 
@@ -96,9 +97,16 @@ impl Node {
 
     pub fn remove_illegal_children(&mut self, game: &Game) {
         let mut to_remove = vec!();
+
         for (index, node) in self.children.iter().enumerate() {
-            if game.play(node.m()).is_err() {
-                to_remove.push(index);
+            match node.m() {
+                Play(..) => if game.play(node.m()).is_err() {
+                    to_remove.push(index);
+                },
+                Pass(_) => if self.config.play_out_aftermath && game.winner() != game.next_player() {
+                    to_remove.push(index);
+                },
+                _ => unreachable!()
             }
         }
         to_remove.reverse();
@@ -146,21 +154,39 @@ impl Node {
                 .iter()
                 .map(|&m| Node::new(m, self.config))
                 .collect();
+            if self.children.len() <= (game.size() * game.size() / 10) as usize {
+                if !self.config.play_out_aftermath || game.winner() == game.next_player() {
+                    //don't pass if we're losing on the board on CGOS, but otherwise it's OK
+                    self.children.push(Node::new(Pass(game.next_player()), self.config));
+                }
+            }
+            
             self.descendants = self.children.len();
         }
  }
 
     pub fn expand(&mut self, board: &Board) -> bool {
         let not_terminal = !board.is_game_over();
-        let mut children = vec![];
         if not_terminal && self.plays >= self.config.uct.expand_after {
-            children = board.legal_moves_without_eyes()
+            let mut children = board.legal_moves_without_eyes()
                 .iter()
                 .map(|m| self.new_leaf(board, m))
                 .collect();
+                
+            self.priors(&mut children, board);
+            self.children = children;
+            
+            if self.children.len() <= (board.size() * board.size() / 10) as usize {
+                let player = board.next_player();
+                if !self.config.play_out_aftermath || board.winner() == player {
+                    //don't pass if we're losing on the board on CGOS, but otherwise it's OK
+                    self.children.push(Node::new(Pass(player), self.config));
+                }
+                
+            }
         }
-        self.priors(&mut children, board);
-        self.children = children;
+
+        
         self.descendants = self.children.len();
         not_terminal
     }
