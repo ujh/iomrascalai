@@ -157,7 +157,7 @@ impl Node {
             if self.children.len() <= (game.size() * game.size() / 10) as usize {
                 if !self.config.play_out_aftermath || game.winner() == game.next_player() {
                     //don't pass if we're losing on the board on CGOS, but otherwise it's OK
-                    self.children.push(Node::new(Pass(player), self.config));
+                    self.children.push(Node::new(Pass(game.next_player()), self.config));
                 }
             }
             
