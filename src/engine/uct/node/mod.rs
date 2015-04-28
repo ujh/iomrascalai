@@ -103,7 +103,7 @@ impl Node {
                 Play(..) => if game.play(node.m()).is_err() {
                     to_remove.push(index);
                 },
-                Pass(_) => if self.config.play_out_aftermath && game.winner() != game.last_move().color().opposite() {
+                Pass(_) => if self.config.play_out_aftermath && game.winner() != game.next_player() {
                     to_remove.push(index);
                 },
                 _ => unreachable!()
@@ -155,8 +155,7 @@ impl Node {
                 .map(|&m| Node::new(m, self.config))
                 .collect();
             if self.children.len() <= (game.size() * game.size() / 10) as usize {
-                let player = game.last_move().color().opposite();
-                if !self.config.play_out_aftermath || game.winner() == player {
+                if !self.config.play_out_aftermath || game.winner() == game.next_player() {
                     //don't pass if we're losing on the board on CGOS, but otherwise it's OK
                     self.children.push(Node::new(Pass(player), self.config));
                 }
