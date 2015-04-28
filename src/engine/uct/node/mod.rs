@@ -96,6 +96,8 @@ impl Node {
 
     pub fn remove_illegal_children(&mut self, game: &Game) {
         let mut to_remove = vec!();
+        
+
         for (index, node) in self.children.iter().enumerate() {
             if game.play(node.m()).is_err() {
                 to_remove.push(index);
@@ -148,7 +150,8 @@ impl Node {
                 .collect();
             if self.children.len() <= (game.size() * game.size() / 10) as usize {
                 let player = game.last_move().color().opposite();
-                if game.winner() == player || !self.config.uct.playout_aftermath { //don't pass if we're losing on the board
+                if !self.config.uct.playout_aftermath || game.winner() == player {
+                    //don't pass if we're losing on the board on CGOS, but otherwise it's OK
                     self.children.push(Node::new(Pass(player), self.config));
                 }
             }
@@ -170,7 +173,8 @@ impl Node {
             
             if self.children.len() <= (board.size() * board.size() / 10) as usize {
                 let player = board.next_player();
-                if board.winner() == player { //don't pass if we're losing on the board
+                if board.winner() == player {
+                    //don't pass if we're losing on the board on CGOS, but otherwise it's OK
                     self.children.push(Node::new(Pass(player), self.config));
                 }
                 
