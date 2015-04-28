@@ -20,10 +20,14 @@
  *                                                                      *
  ************************************************************************/
 
+use config::Hint;
 pub use self::Ruleset::AnySizeTrompTaylor;
 pub use self::Ruleset::CGOS;
 pub use self::Ruleset::KgsChinese;
 pub use self::Ruleset::Minimal;
+
+use std::fmt;
+use std::str::FromStr;
 
 mod test;
 
@@ -36,16 +40,6 @@ pub enum Ruleset {
 }
 
 impl Ruleset {
-
-    pub fn from_string(s: String) -> Ruleset {
-        match s.as_ref() {
-            "tromp-taylor" => AnySizeTrompTaylor,
-            "cgos"         => CGOS,
-            "chinese"      => KgsChinese,
-            "minimal"      => Minimal,
-            _              => panic!("Unknown ruleset '{}'", s),
-        }
-    }
 
     pub fn game_over_play(&self) -> bool {
         match *self {
@@ -68,4 +62,41 @@ impl Ruleset {
             _ => false
         }
     }
+}
+
+impl FromStr for Ruleset {
+
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Ruleset, Self::Err> {
+        match s {
+            "tromp-taylor" => Ok(AnySizeTrompTaylor),
+            "cgos"         => Ok(CGOS),
+            "chinese"      => Ok(KgsChinese),
+            "minimal"      => Ok(Minimal),
+            _              => Err(format!("Unknown ruleset '{}'", s)),
+        }
+    }
+
+}
+
+impl fmt::Display for Ruleset {
+
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let s = match *self {
+            AnySizeTrompTaylor => "tromp-taylor",
+            CGOS => "cgos",
+            KgsChinese => "chinese",
+            Minimal => "minimal"
+        };
+        s.fmt(f)
+    }
+}
+
+impl Hint for Ruleset {
+
+    fn hint_str(&self) -> &'static str {
+        "cgos|chinese|tromp-taylor|minimal"
+    }
+
 }

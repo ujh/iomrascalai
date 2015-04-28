@@ -21,35 +21,12 @@
 
 #![cfg(test)]
 
-use ruleset::AnySizeTrompTaylor;
-use ruleset::CGOS;
-use ruleset::KgsChinese;
-use ruleset::Minimal;
-use ruleset::Ruleset;
-
-use std::str::FromStr;
+use super::Config;
 
 #[test]
-fn parses_tromp_taylor() {
-    assert_eq!(Ok(AnySizeTrompTaylor), Ruleset::from_str("tromp-taylor"));
-}
-
-#[test]
-fn parses_cgos() {
-    assert_eq!(Ok(CGOS), Ruleset::from_str("cgos"));
-}
-
-#[test]
-fn parses_chinese() {
-    assert_eq!(Ok(KgsChinese), Ruleset::from_str("chinese"));
-}
-
-#[test]
-fn parses_minimal() {
-    assert_eq!(Ok(Minimal), Ruleset::from_str("minimal"));
-}
-
-#[test]
-fn errors_with_unknown() {
-    assert_eq!(Err(String::from_str("Unknown ruleset 'unknown'")), Ruleset::from_str("unknown"));
+fn fail_if_ladder_and_atari_are_in_conflict() {
+    let mut config = Config::default();
+    config.playout.atari_check = false;
+    config.playout.ladder_check = true;
+    assert!(config.check().is_err());
 }
