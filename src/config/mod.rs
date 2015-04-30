@@ -130,11 +130,11 @@ impl Config {
                 priors: UctPriorsConfig {
                     capture_many: 30,
                     capture_one: 15,
-                    empty: 10,
+                    empty: 20,
                     neutral_plays: 10,
                     neutral_wins: 5,
                     self_atari: 10,
-                    use_empty: false,
+                    use_empty: true,
                 },
                 reuse_subtree: true,
                 tuned: true,
