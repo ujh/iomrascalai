@@ -107,7 +107,7 @@ pub trait Playout: Sync + Send {
                     if include_pass == 0 && !board.is_not_self_atari(&m) {
                         include_pass = 1; //try to pass in a seki sometimes
                     } else {
-                        return m;
+                        return board.play_in_middle_of_eye(m).unwrap_or(m);
                     }
                 }
             }
