@@ -186,7 +186,7 @@ fn expand_sets_the_descendant_count_if_the_node_was_expanded() {
 
 #[bench]
 fn full_uct_cycle_09x09(b: &mut Bencher) {
-    full_uct_cycle(19, b);
+    full_uct_cycle(9, b);
 }
 
 #[bench]
