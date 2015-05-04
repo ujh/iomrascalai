@@ -43,6 +43,7 @@ fn root_expands_the_children() {
     assert_eq!(4, root.children.len());
 }
 
+// expand()
 #[test]
 fn expand_doesnt_add_children_to_terminal_nodes() {
     let mut game = Game::new(5, 6.5, KgsChinese);
@@ -71,6 +72,41 @@ fn expand_adds_children_if_threshold_is_met() {
     assert_eq!(4, node.children.len());
 }
 
+#[test]
+fn expand_sets_the_descendant_count_if_the_node_was_expanded() {
+    let game = Game::new(5, 6.5, KgsChinese);
+    let board = game.board();
+    let mut node = Node::new(Pass(Black), Config::default());
+    node.expand(&board);
+    assert_eq!(25, node.descendants);
+}
+
+#[test]
+fn expand_adds_pass_in_the_endgame() {
+    assert!(false);
+}
+
+#[test]
+fn expand_doesnt_add_pass_before_the_endgame() {
+    assert!(false);
+}
+
+#[test]
+fn expand_doesnt_add_pass_if_we_are_loosing_and_we_playout_the_aftermath() {
+    assert!(false);
+}
+
+#[test]
+fn expand_adds_pass_if_we_are_loosing_and_dont_playout_the_aftermath() {
+    assert!(false);
+}
+
+#[test]
+fn expand_adds_pass_if_we_are_winning_and_we_are_playing_out_the_aftermath() {
+    assert!(false);
+}
+
+// find_leaf_and_expand()
 #[test]
 fn find_leaf_and_expand_expands_the_leaves() {
     let game = Game::new(2, 0.5, KgsChinese);
@@ -167,6 +203,7 @@ fn new_sets_the_descendats_to_zero() {
     assert_eq!(0, node.descendants);
 }
 
+// expand_root()
 #[test]
 fn expand_root_sets_the_correct_descendant_count_on_the_root() {
     let game = Game::new(5, 6.5, KgsChinese);
@@ -176,12 +213,49 @@ fn expand_root_sets_the_correct_descendant_count_on_the_root() {
 }
 
 #[test]
-fn expand_sets_the_descendant_count_if_the_node_was_expanded() {
-    let game = Game::new(5, 6.5, KgsChinese);
-    let board = game.board();
-    let mut node = Node::new(Pass(Black), Config::default());
-    node.expand(&board);
-    assert_eq!(25, node.descendants);
+fn expand_root_adds_pass_in_the_endgame() {
+    assert!(false);
+}
+
+#[test]
+fn expand_root_doesnt_add_pass_before_the_endgame() {
+    assert!(false);
+}
+
+#[test]
+fn expand_root_doesnt_add_pass_if_we_are_loosing_and_we_playout_the_aftermath() {
+    assert!(false);
+}
+
+#[test]
+fn expand_root_adds_pass_if_we_are_loosing_and_dont_playout_the_aftermath() {
+    assert!(false);
+}
+
+#[test]
+fn expand_root_adds_pass_if_we_are_winning_and_we_are_playing_out_the_aftermath() {
+    assert!(false);
+}
+
+// remove_illegal_children()
+#[test]
+fn remove_illegal_children_removes_superko_violations() {
+    assert!(false);
+}
+
+#[test]
+fn remove_illegal_children_removes_pass_if_the_other_color_wins_with_aftermath_turned_on() {
+    assert!(false);
+}
+
+#[test]
+fn remove_illegal_children_doesnt_remove_pass_if_we_are_winning() {
+    assert!(false);
+}
+
+#[test]
+fn remove_illegal_children_doesnt_remove_pass_if_we_are_loosing_but_dont_playout_aftermath() {
+    assert!(false);
 }
 
 #[bench]
