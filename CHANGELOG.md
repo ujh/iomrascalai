@@ -10,9 +10,14 @@
 
 ### Performance
 
-After running 100 games on 9x9 with komi 6.5 and a time limit of 5
+After running 200 games on 9x9 with komi 6.5 and a time limit of 5
+minutes (sudden death) the win rate against GnuGo 3.8 level 0 was **70%
+± 3.2%** for the default engine with 8 threads.
+
+After running 200 games on 13x13 with komi 6.5 and a time limit of 10
 minutes (sudden death) the win rate against GnuGo 3.8 level 0 was **X%
 ± Y%** for the default engine with 8 threads.
+
 
 ## 0.2.1 [☰](https://github.com/ujh/iomrascalai/compare/0.2.0...0.2.1)
 
