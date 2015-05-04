@@ -1,3 +1,8 @@
 target/
-*-benchmark*
 .project
+
+# Ignore gogui-twogtp output in the root directory
+/*.sgf
+/*.dat
+/*.html
+/*.lock
