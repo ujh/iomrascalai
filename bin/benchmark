@@ -3,12 +3,11 @@
 DIR=$( cd $(dirname "${BASH_SOURCE[0]}") && pwd )
 cd "$DIR/.."
 
-set -ex
+set -x
 
-FN="gnugo-benchmark"
+SHA=`git rev-parse HEAD`
 
 cargo build --release
-rm -f $FN*
 
 THREADS=8
 
@@ -16,10 +15,26 @@ GNUGO="gnugo --mode gtp --level 0 --chinese-rules --positional-superko --capture
 IOMRASCALAI="./target/release/iomrascalai -r chinese -t $THREADS -l"
 REFEREE="$GNUGO"
 SIZE=9
-GAMES=100
+GAMES=200
 TIME="5m"
+
+FN="$SHA-9x9"
 
 gogui-twogtp -auto -black "$GNUGO" -white "$IOMRASCALAI" \
              -size $SIZE -alternate -games $GAMES -sgffile $FN \
              -time $TIME -referee "$REFEREE" -verbose -debugtocomment
+rm -f $FN.html
+gogui-twogtp -analyze $FN.dat
+
+
+
+
+SIZE=13
+TIME="10m"
+FN="$SHA-13x13"
+
+gogui-twogtp -auto -black "$GNUGO" -white "$IOMRASCALAI" \
+             -size $SIZE -alternate -games $GAMES -sgffile $FN \
+             -time $TIME -referee "$REFEREE" -verbose -debugtocomment
+rm -f $FN.html
 gogui-twogtp -analyze $FN.dat

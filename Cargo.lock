@@ -1,6 +1,6 @@
 [root]
 name = "iomrascalai"
-version = "0.2.2-rc1"
+version = "0.2.2"
 dependencies = [
  "enum_primitive 0.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "getopts 0.2.10 (registry+https://github.com/rust-lang/crates.io-index)",
