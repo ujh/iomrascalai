@@ -19,7 +19,7 @@
  *                                                                      *
  ************************************************************************/
 
-use board::{Board, Chain, Coord, Move, Pass, Play};
+use board::{Board, Chain, Coord, Empty, Move, Pass, Play};
 
 use smallvec::SmallVec4;
 
@@ -213,6 +213,34 @@ impl Board {
         } else {
             None
         }
+    }
+    
+    pub fn play_in_middle_of_eye(&self, m: Move) -> Option<Move> {
+        let mut candidate = None;
+        let mut color = None;
+        for neighbour in self.neighbours(m.coord()) {
+            if self.color(neighbour) == Empty {
+                if candidate.is_some() {
+                    return None; //multiple empty spaces
+                } else {
+                    candidate = Some(Play(*m.color(), neighbour.col, neighbour.row));
+                }
+            } else {
+                if let Some(c) = color {
+                    if self.color(neighbour) != c {
+                        return None; //two different colors
+                    }
+                    
+                    if self.get_chain(*neighbour).unwrap().liberties().len() == 1 {
+                        return None; //stone in atari, we can connect or capture
+                    }
+                } else {
+                    color = Some(self.color(neighbour));
+                }
+            }
+        }
+        
+        candidate //return the open space or None if the conditions don't apply
     }
 
 }
