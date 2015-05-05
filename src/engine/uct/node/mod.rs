@@ -154,13 +154,14 @@ impl Node {
                 .iter()
                 .map(|&m| Node::new(m, self.config))
                 .collect();
-            if self.children.len() <= (game.size() * game.size() / 10) as usize {
+            let size = game.size() as usize;
+            if self.children.len() <= (size * size / 10) {
                 if !self.config.play_out_aftermath || game.winner() == game.next_player() {
                     //don't pass if we're losing on the board on CGOS, but otherwise it's OK
                     self.children.push(Node::new(Pass(game.next_player()), self.config));
                 }
             }
-            
+
             self.descendants = self.children.len();
         }
  }
@@ -172,31 +173,31 @@ impl Node {
                 .iter()
                 .map(|m| self.new_leaf(board, m))
                 .collect();
-                
+
             self.priors(&mut children, board);
             self.children = children;
-            
-            if self.children.len() <= (board.size() * board.size() / 10) as usize {
+            let size = board.size() as usize;
+            if self.children.len() <= (size * size / 10) {
                 let player = board.next_player();
                 if !self.config.play_out_aftermath || board.winner() == player {
                     //don't pass if we're losing on the board on CGOS, but otherwise it's OK
                     self.children.push(Node::new(Pass(player), self.config));
                 }
-                
+
             }
         }
 
-        
+
         self.descendants = self.children.len();
         not_terminal
     }
-    
+
     pub fn priors(&self, children: &mut Vec<Node>, board: &Board) {
             let color = board.next_player().opposite();
 
             let in_danger = board.chains().iter()
                 .filter(|chain| chain.color() == color && chain.coords().len() == 1 && chain.liberties().len() <= 2);
-                
+
             for one_stone in in_danger {
                 if let Some(solution) = board.capture_ladder(one_stone) {
                     if let Some(node) = children.iter_mut().find(|c| c.m() == solution) {
@@ -205,10 +206,10 @@ impl Node {
                     }
                 }
             }
-            
+
             let in_danger = board.chains().iter()
                 .filter(|chain| chain.color() == color && chain.coords().len() > 1 && chain.liberties().len() <= 2);
-   
+
             for many_stones in in_danger {
                 if let Some(solution) = board.capture_ladder(many_stones) {
                     if let Some(node) = children.iter_mut().find(|c| c.m() == solution) {
@@ -240,7 +241,7 @@ impl Node {
         }
         node
     }
-    
+
     fn in_empty_area(&self, board: &Board, m: &Move) -> bool {
         m.coord().manhattan_distance_three_neighbours(board.size())
             .iter()
