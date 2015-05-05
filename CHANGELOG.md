@@ -1,4 +1,4 @@
-## 0.2.2 [☰](https://github.com/ujh/iomrascalai/compare/0.2.1...master) (unreleased)
+## 0.2.2 [☰](https://github.com/ujh/iomrascalai/compare/0.2.1...0.2.2)
 
 * A two liberty solver (can prove if a group with up to two stones is
   dead)
