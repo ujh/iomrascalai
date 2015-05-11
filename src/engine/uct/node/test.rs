@@ -83,27 +83,72 @@ fn expand_sets_the_descendant_count_if_the_node_was_expanded() {
 
 #[test]
 fn expand_adds_pass_in_the_endgame() {
-    assert!(false);
+    let parser = Parser::from_path(Path::new("fixtures/sgf/endgame-black-wins.sgf")).unwrap();
+    let game = parser.game().unwrap();
+    let mut board = game.board();
+    board.set_ruleset(KgsChinese);
+    board.play(Pass(White)).unwrap();
+    assert_eq!(Black, board.next_player());
+    let mut node = Node::new(Pass(Black), Config::default());
+    node.expand(&board);
+    let found_pass = node.children.iter().any(|node| node.m().is_pass());
+    assert!(found_pass);
 }
 
 #[test]
 fn expand_doesnt_add_pass_before_the_endgame() {
-    assert!(false);
+    let game = Game::new(5, 6.5, KgsChinese);
+    let board = game.board();
+    let mut node = Node::new(Pass(Black), Config::default());
+    node.expand(&board);
+    let found_pass = node.children.iter().any(|node| node.m().is_pass());
+    assert!(!found_pass);
 }
 
 #[test]
 fn expand_doesnt_add_pass_if_we_are_loosing_and_we_playout_the_aftermath() {
-    assert!(false);
+    let mut config = Config::default();
+    config.play_out_aftermath = true;
+    let parser = Parser::from_path(Path::new("fixtures/sgf/endgame-black-wins.sgf")).unwrap();
+    let game = parser.game().unwrap();
+    let mut board = game.board();
+    board.set_ruleset(KgsChinese);
+    assert_eq!(White, board.next_player());
+    let mut node = Node::new(Pass(White), config);
+    node.expand(&board);
+    let found_pass = node.children.iter().any(|node| node.m().is_pass());
+    assert!(!found_pass);
 }
 
 #[test]
 fn expand_adds_pass_if_we_are_loosing_and_dont_playout_the_aftermath() {
-    assert!(false);
+    let mut config = Config::default();
+    config.play_out_aftermath = false;
+    let parser = Parser::from_path(Path::new("fixtures/sgf/endgame-black-wins.sgf")).unwrap();
+    let game = parser.game().unwrap();
+    let mut board = game.board();
+    board.set_ruleset(KgsChinese);
+    assert_eq!(White, board.next_player());
+    let mut node = Node::new(Pass(White), config);
+    node.expand(&board);
+    let found_pass = node.children.iter().any(|node| node.m().is_pass());
+    assert!(found_pass);
 }
 
 #[test]
 fn expand_adds_pass_if_we_are_winning_and_we_are_playing_out_the_aftermath() {
-    assert!(false);
+    let mut config = Config::default();
+    config.play_out_aftermath = true;
+    let parser = Parser::from_path(Path::new("fixtures/sgf/endgame-black-wins.sgf")).unwrap();
+    let game = parser.game().unwrap();
+    let mut board = game.board();
+    board.set_ruleset(KgsChinese);
+    board.play(Pass(White)).unwrap();
+    assert_eq!(Black, board.next_player());
+    let mut node = Node::new(Pass(Black), config);
+    node.expand(&board);
+    let found_pass = node.children.iter().any(|node| node.m().is_pass());
+    assert!(found_pass);
 }
 
 // find_leaf_and_expand()

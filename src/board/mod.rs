@@ -222,6 +222,10 @@ impl Board {
         self.komi = komi;
     }
 
+    pub fn set_ruleset(&mut self, ruleset: Ruleset) {
+        self.ruleset = ruleset;
+    }
+
     pub fn next_player(&self) -> Color {
         self.previous_player.opposite()
     }
@@ -387,13 +391,13 @@ impl Board {
 
     fn add_removed_adv_stones_as_libs(&mut self, m: &Move) {
         let color = *m.color();
-        
+
         for &coord in self.adv_stones_removed.iter() {
             let chain_ids: SmallVec4<_> = self.neighbours(coord).iter()
                 .filter(|&c| self.color(c) == color)
                 .map(|c| self.chain_id(c))
                 .collect();
-            
+
             for &chain_id in chain_ids.iter() {
                 self.chains[chain_id].add_liberty(coord); //it's a hash set so we can add multiple times
             }
@@ -402,13 +406,13 @@ impl Board {
 
     fn add_removed_friendly_stones_as_libs(&mut self, m: &Move) {
         let color = m.color().opposite();
-        
+
         for &coord in self.adv_stones_removed.iter() {
             let chain_ids: SmallVec4<_> = self.neighbours(coord).iter()
                 .filter(|&c| self.color(c) == color)
                 .map(|c| self.chain_id(c))
                 .collect();
-            
+
             for &chain_id in chain_ids.iter() {
                 self.chains[chain_id].add_liberty(coord); //it's a hash set so we can add multiple times
             }
@@ -500,7 +504,7 @@ impl Board {
             .flat_map(|&c| self.get_chain(c).unwrap().coords().iter())
             .cloned()
             .collect();
-            
+
         quicksort(&mut *coords_to_remove);
         coords_to_remove.dedup();
 
@@ -511,14 +515,14 @@ impl Board {
                 .filter(|&c| self.color(c) == color)
                 .filter(|&c| self.get_chain(*c).unwrap().is_captured())
                 .map(|c| self.chain_id(c));
-        
+
             for id in it {
                 if !chains_to_remove.contains(&id) {
                     chains_to_remove.push(id); //dedup
                 }
             }
         }
-        
+
         quicksort(&mut *chains_to_remove);
 
         let mut nb_of_removed_chains = 0;
@@ -539,7 +543,7 @@ impl Board {
     fn remove_chain(&mut self, id: usize) {
         {
             let coords_to_remove = self.chains[id].coords().iter();
-    
+
             for &coord in coords_to_remove {
                 self.board[coord.to_index(self.size)].color = Empty; //remove stone
             }
@@ -585,7 +589,7 @@ impl Board {
     pub fn vacant_point_count(&self) -> u16 {
         self.vacant.len() as u16
     }
-    
+
     pub fn chains<'b>(&'b self) -> &'b Vec<Chain> {
         &self.chains
     }
