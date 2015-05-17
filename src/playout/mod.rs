@@ -107,7 +107,11 @@ pub trait Playout: Sync + Send {
                     if include_pass == 0 && !board.is_not_self_atari(&m) {
                         include_pass = 1; //try to pass in a seki sometimes
                     } else {
-                        return board.play_in_middle_of_eye(m).unwrap_or(m);
+                        return if self.play_in_middle_of_eye() {
+                            board.play_in_middle_of_eye(m).unwrap_or(m)
+                        } else {
+                            m
+                        };
                     }
                 }
             }
@@ -121,6 +125,8 @@ pub trait Playout: Sync + Send {
     fn check_for_ladders(&self) -> bool;
     
     fn check_for_atari(&self) -> bool;
+    
+    fn play_in_middle_of_eye(&self) -> bool;
 }
 
 pub struct PlayoutResult {
