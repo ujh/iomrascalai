@@ -44,6 +44,10 @@ impl Playout for NoEyesPlayout {
     fn check_for_atari(&self) -> bool {
         false
     }
+    
+    fn play_in_middle_of_eye(&self) -> bool {
+        false
+    }
 }
 
 //don't self atari strings that will make an eye after dying, which is strings of 7+
@@ -82,5 +86,9 @@ impl Playout for NoSelfAtariPlayout {
 
     fn check_for_atari(&self) -> bool {
         self.config.playout.atari_check
+    }
+    
+    fn play_in_middle_of_eye(&self) -> bool {
+        self.config.playout.play_in_middle_of_eye
     }
 }
