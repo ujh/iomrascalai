@@ -127,7 +127,7 @@ impl Config {
                 c: 0.5
             },
             uct: UctConfig {
-                end_of_game_cutoff: 0.01,
+                end_of_game_cutoff: 0.08,
                 expand_after: 1,
                 priors: UctPriorsConfig {
                     capture_many: 30,
