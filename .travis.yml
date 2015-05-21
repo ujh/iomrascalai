@@ -1,4 +1,5 @@
 language: rust
+rust: nightly
 after_success: |
   sudo apt-get update -qq &&
   sudo apt-get install -y binutils-dev libcurl4-openssl-dev libelf-dev libdw-dev &&
