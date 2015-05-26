@@ -259,27 +259,59 @@ fn expand_root_sets_the_correct_descendant_count_on_the_root() {
 
 #[test]
 fn expand_root_adds_pass_in_the_endgame() {
-    assert!(false);
+    let parser = Parser::from_path(Path::new("fixtures/sgf/endgame-black-wins.sgf")).unwrap();
+    let mut game = parser.game().unwrap();
+    game = game.play(Pass(White)).unwrap();
+    let mut node = Node::new(Pass(Black), Config::default());
+    node.expand_root(&game);
+    let found_pass = node.children.iter().any(|node| node.m().is_pass());
+    assert!(found_pass);
 }
 
 #[test]
 fn expand_root_doesnt_add_pass_before_the_endgame() {
-    assert!(false);
+    let game = Game::new(5, 6.5, KgsChinese);
+    let mut node = Node::new(Pass(Black), Config::default());
+    node.expand_root(&game);
+    let found_pass = node.children.iter().any(|node| node.m().is_pass());
+    assert!(!found_pass);
 }
 
 #[test]
 fn expand_root_doesnt_add_pass_if_we_are_loosing_and_we_playout_the_aftermath() {
-    assert!(false);
+    let mut config = Config::default();
+    config.play_out_aftermath = true;
+    let parser = Parser::from_path(Path::new("fixtures/sgf/endgame-black-wins.sgf")).unwrap();
+    let game = parser.game().unwrap();
+    let mut node = Node::new(Pass(White), config);
+    node.expand_root(&game);
+    let found_pass = node.children.iter().any(|node| node.m().is_pass());
+    assert!(!found_pass);
 }
 
 #[test]
 fn expand_root_adds_pass_if_we_are_loosing_and_dont_playout_the_aftermath() {
-    assert!(false);
+    let mut config = Config::default();
+    config.play_out_aftermath = false;
+    let parser = Parser::from_path(Path::new("fixtures/sgf/endgame-black-wins.sgf")).unwrap();
+    let game = parser.game().unwrap();
+    let mut node = Node::new(Pass(White), config);
+    node.expand_root(&game);
+    let found_pass = node.children.iter().any(|node| node.m().is_pass());
+    assert!(found_pass);
 }
 
 #[test]
 fn expand_root_adds_pass_if_we_are_winning_and_we_are_playing_out_the_aftermath() {
-    assert!(false);
+    let mut config = Config::default();
+    config.play_out_aftermath = true;
+    let parser = Parser::from_path(Path::new("fixtures/sgf/endgame-black-wins.sgf")).unwrap();
+    let mut game = parser.game().unwrap();
+    game = game.play(Pass(White)).unwrap();
+    let mut node = Node::new(Pass(Black), config);
+    node.expand_root(&game);
+    let found_pass = node.children.iter().any(|node| node.m().is_pass());
+    assert!(found_pass);
 }
 
 // remove_illegal_children()
