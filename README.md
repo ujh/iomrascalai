@@ -8,7 +8,7 @@ Iomrascálaí
 Iomrascálaí
 (Gaelic for wrestler, [see here for the pronunciation](https://raw.githubusercontent.com/ujh/iomrascalai/master/pronunciation.mp4))
 is an AI for the game of Go/Weiqi/Baduk written in Rust. Please note
-that we're using the Rust nightly build and not 0.10!
+that we're using the Rust nightly build and not stable!
 
 Development
 ===========
@@ -25,16 +25,16 @@ To play 10 games against GnuGo, install GoGui and run the
 following command in the top level folder:
 
 ``` sh
-BLACK="gnugo --mode gtp --chinese-rules --positional-super-ko --capture-all-dead --score aftermath --play-out-aftermath"
-WHITE="./target/release/iomrascalai -e mc"
+BLACK="gnugo --mode gtp --chinese-rules --positional-superko --capture-all-dead --score aftermath --play-out-aftermath"
+WHITE="./target/release/iomrascalai"
 gogui-twogtp -auto -black "$BLACK" -white "$WHITE" -size 9 -alternate -time 5m -games 100 -sgffile gnugo-test
 ```
 
 To run a game against GnuGo and view it in GoGui in real time use the following command (add `-auto` if a new game should automatically be started when a game is finished):
 
 ``` sh
-BLACK="gnugo --mode gtp --chinese-rules --positional-super-ko --capture-all-dead --score aftermath --play-out-aftermath"
-WHITE="./target/release/iomrascalai -e mc"
+BLACK="gnugo --mode gtp --chinese-rules --positional-superko --capture-all-dead --score aftermath --play-out-aftermath"
+WHITE="./target/release/iomrascalai"
 TWOGTP="gogui-twogtp -black \"$BLACK\" -white \"$WHITE\" -verbose -size 9"
 gogui -computer-both -program "$TWOGTP" -size 9
 ```
