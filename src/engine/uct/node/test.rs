@@ -317,22 +317,53 @@ fn expand_root_adds_pass_if_we_are_winning_and_we_are_playing_out_the_aftermath(
 // remove_illegal_children()
 #[test]
 fn remove_illegal_children_removes_superko_violations() {
-    assert!(false);
+    let parser = Parser::from_path(Path::new("fixtures/sgf/positional-superko.sgf")).unwrap();
+    let game = parser.game().unwrap();
+    let mut node = Node::new(Pass(White), Config::default());
+    // Play(White, 2, 9) is a super ko violation
+    node.children.push(Node::new(Play(White, 2, 9), Config::default()));
+    node.remove_illegal_children(&game);
+    assert!(node.children.iter().all(|n| n.m() != Play(White, 2, 9)));
 }
 
 #[test]
 fn remove_illegal_children_removes_pass_if_the_other_color_wins_with_aftermath_turned_on() {
-    assert!(false);
+    let mut config = Config::default();
+    config.play_out_aftermath = true;
+    let parser = Parser::from_path(Path::new("fixtures/sgf/endgame-black-wins.sgf")).unwrap();
+    let game = parser.game().unwrap();
+    let mut node = Node::new(Pass(Black), config);
+    node.children.push(Node::new(Pass(White), config));
+    node.remove_illegal_children(&game);
+    let found_pass = node.children.iter().any(|node| node.m().is_pass());
+    assert!(!found_pass);
 }
 
 #[test]
 fn remove_illegal_children_doesnt_remove_pass_if_we_are_winning() {
-    assert!(false);
+    let mut config = Config::default();
+    config.play_out_aftermath = true;
+    let parser = Parser::from_path(Path::new("fixtures/sgf/endgame-black-wins.sgf")).unwrap();
+    let mut game = parser.game().unwrap();
+    game = game.play(Pass(White)).unwrap();
+    let mut node = Node::new(Pass(White), config);
+    node.children.push(Node::new(Pass(Black), config));
+    node.remove_illegal_children(&game);
+    let found_pass = node.children.iter().any(|node| node.m().is_pass());
+    assert!(found_pass);
 }
 
 #[test]
 fn remove_illegal_children_doesnt_remove_pass_if_we_are_loosing_but_dont_playout_aftermath() {
-    assert!(false);
+    let mut config = Config::default();
+    config.play_out_aftermath = false;
+    let parser = Parser::from_path(Path::new("fixtures/sgf/endgame-black-wins.sgf")).unwrap();
+    let game = parser.game().unwrap();
+    let mut node = Node::new(Pass(Black), config);
+    node.children.push(Node::new(Pass(White), config));
+    node.remove_illegal_children(&game);
+    let found_pass = node.children.iter().any(|node| node.m().is_pass());
+    assert!(found_pass);
 }
 
 #[bench]
@@ -368,15 +399,3 @@ fn full_uct_cycle(size: u8, b: &mut Bencher) {
         root.record_on_path(&path, winner, nodes_added);
     });
 }
-
-
-// 2. Make sure that terminal nodes are "played", i.e. either a win or
-//    a loss is reported and the wins are recorded in the tree.
-// 3. Check if siblings of a terminal node will ever be explored
-//    (check the uct value of a terminal node)
-// 4. Maybe use the root node's plays and wins to keep track of the
-//    number of playouts and the average win rate.
-// 7. Test the resigning support
-// 8. Make sure everything works fine in the game tree when there are
-//    no moves to simulate anymore.
-// 9. Implement multi threading
