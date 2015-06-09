@@ -106,7 +106,7 @@ fn expand_doesnt_add_pass_before_the_endgame() {
 }
 
 #[test]
-fn expand_doesnt_add_pass_if_we_are_loosing_and_we_playout_the_aftermath() {
+fn expand_doesnt_add_pass_if_we_are_losing_and_we_playout_the_aftermath() {
     let mut config = Config::default();
     config.play_out_aftermath = true;
     let parser = Parser::from_path(Path::new("fixtures/sgf/endgame-black-wins.sgf")).unwrap();
@@ -121,7 +121,7 @@ fn expand_doesnt_add_pass_if_we_are_loosing_and_we_playout_the_aftermath() {
 }
 
 #[test]
-fn expand_adds_pass_if_we_are_loosing_and_dont_playout_the_aftermath() {
+fn expand_adds_pass_if_we_are_losing_and_dont_playout_the_aftermath() {
     let mut config = Config::default();
     config.play_out_aftermath = false;
     let parser = Parser::from_path(Path::new("fixtures/sgf/endgame-black-wins.sgf")).unwrap();
@@ -278,7 +278,7 @@ fn expand_root_doesnt_add_pass_before_the_endgame() {
 }
 
 #[test]
-fn expand_root_doesnt_add_pass_if_we_are_loosing_and_we_playout_the_aftermath() {
+fn expand_root_doesnt_add_pass_if_we_are_losing_and_we_playout_the_aftermath() {
     let mut config = Config::default();
     config.play_out_aftermath = true;
     let parser = Parser::from_path(Path::new("fixtures/sgf/endgame-black-wins.sgf")).unwrap();
@@ -290,7 +290,7 @@ fn expand_root_doesnt_add_pass_if_we_are_loosing_and_we_playout_the_aftermath() 
 }
 
 #[test]
-fn expand_root_adds_pass_if_we_are_loosing_and_dont_playout_the_aftermath() {
+fn expand_root_adds_pass_if_we_are_losing_and_dont_playout_the_aftermath() {
     let mut config = Config::default();
     config.play_out_aftermath = false;
     let parser = Parser::from_path(Path::new("fixtures/sgf/endgame-black-wins.sgf")).unwrap();
@@ -354,7 +354,7 @@ fn remove_illegal_children_doesnt_remove_pass_if_we_are_winning() {
 }
 
 #[test]
-fn remove_illegal_children_doesnt_remove_pass_if_we_are_loosing_but_dont_playout_aftermath() {
+fn remove_illegal_children_doesnt_remove_pass_if_we_are_losing_but_dont_playout_aftermath() {
     let mut config = Config::default();
     config.play_out_aftermath = false;
     let parser = Parser::from_path(Path::new("fixtures/sgf/endgame-black-wins.sgf")).unwrap();
