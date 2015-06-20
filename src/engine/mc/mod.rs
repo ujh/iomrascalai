@@ -94,7 +94,7 @@ fn finish(color: Color, game: &Game, stats: MoveStats, sender: Sender<Move>, hal
         } else {
             sender.send(Resign(color)).unwrap();
         }
-        String::from_str("All simulations were losses")
+        String::from("All simulations were losses")
     } else {
         let (m, s) = stats.best();
         sender.send(m).unwrap();

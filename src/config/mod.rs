@@ -191,7 +191,7 @@ impl Config {
 
     fn check(&self) -> Result<Option<String>, String> {
         if self.playout.ladder_check && !self.playout.atari_check {
-            let s = String::from_str("'--use-ladder-check-in-playouts true' requires '--use-atari-check-in-playouts true'");
+            let s = String::from("'--use-ladder-check-in-playouts true' requires '--use-atari-check-in-playouts true'");
             Err(s)
         } else {
             Ok(None)

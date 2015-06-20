@@ -41,24 +41,24 @@ fn factory_returns_uct_by_default() {
 
 #[test]
 fn factory_returns_random_engine_when_give_random() {
-    let engine = super::factory(Some(String::from_str("random")), config(), playout());
+    let engine = super::factory(Some(String::from("random")), config(), playout());
     assert_eq!("random", engine.engine_type());
 }
 
 #[test]
 fn factory_returns_simple_mc_when_given_mc() {
-    let engine = super::factory(Some(String::from_str("mc")), config(), playout());
+    let engine = super::factory(Some(String::from("mc")), config(), playout());
     assert_eq!("simple-mc", engine.engine_type());
 }
 
 #[test]
 fn factory_returns_amaf_when_given_amaf() {
-    let engine = super::factory(Some(String::from_str("amaf")), config(), playout());
+    let engine = super::factory(Some(String::from("amaf")), config(), playout());
     assert_eq!("amaf", engine.engine_type());
 }
 
 #[test]
 fn factory_returns_uct_for_any_other_string() {
-    let engine = super::factory(Some(String::from_str("foo")), config(), playout());
+    let engine = super::factory(Some(String::from("foo")), config(), playout());
     assert_eq!("uct", engine.engine_type());
 }
