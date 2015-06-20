@@ -19,12 +19,14 @@
  * along with Iomrascálaí.  If not, see <http://www.gnu.org/licenses/>. *
  *                                                                      *
  ************************************************************************/
-#![feature(collections)]
 #![feature(core)]
+#![feature(mpsc_select)]
+#![feature(owned_ascii_ext)]
 #![feature(plugin)]
 #![feature(scoped)]
-#![feature(std_misc)]
+#![feature(slice_extras)]
 #![feature(test)]
+#![feature(vec_push_all)]
 #![plugin(regex_macros)]
 extern crate core;
 #[macro_use] extern crate enum_primitive;
