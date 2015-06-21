@@ -37,12 +37,12 @@ fn factory_returns_no_self_atari_by_default() {
 
 #[test]
 fn factory_returns_no_self_atari_when_given_any_string() {
-    let playout = super::factory(Some(String::from_str("foo")), config());
+    let playout = super::factory(Some(String::from("foo")), config());
     assert_eq!("no-self-atari", playout.playout_type());
 }
 
 #[test]
 fn factory_returns_no_eyes_when_given_light() {
-    let playout = super::factory(Some(String::from_str("light")), config());
+    let playout = super::factory(Some(String::from("light")), config());
     assert_eq!("no-eyes", playout.playout_type());
 }

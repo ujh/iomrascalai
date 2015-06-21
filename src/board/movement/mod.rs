@@ -53,9 +53,9 @@ impl Move {
 
     pub fn to_gtp(&self) -> String {
         match *self {
-            Pass(_)           => String::from_str("pass"),
+            Pass(_)           => String::from("pass"),
             Play(_, col, row) => Coord::new(col, row).to_gtp(),
-            Resign(_)         => String::from_str("resign"),
+            Resign(_)         => String::from("resign"),
             NoMove            => panic!("Can't turn Move::NoMove into a GTP move!"),
         }
     }

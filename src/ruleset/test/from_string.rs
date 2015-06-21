@@ -51,5 +51,5 @@ fn parses_minimal() {
 
 #[test]
 fn errors_with_unknown() {
-    assert_eq!(Err(String::from_str("Unknown ruleset 'unknown'")), Ruleset::from_str("unknown"));
+    assert_eq!(Err(String::from("Unknown ruleset 'unknown'")), Ruleset::from_str("unknown"));
 }

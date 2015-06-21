@@ -281,10 +281,10 @@ impl<'a> GTPInterpreter<'a> {
                                     self.game = g;
                                     Command::LoadSgf
                                 },
-                                Err(_) => Command::ErrorMessage(String::from_str("cannot load file"))
+                                Err(_) => Command::ErrorMessage(String::from("cannot load file"))
                             }
                 		},
-                    	Err(_) => Command::ErrorMessage(String::from_str("cannot load file"))
+                    	Err(_) => Command::ErrorMessage(String::from("cannot load file"))
                 	}
                 },
             	None => Command::Error
