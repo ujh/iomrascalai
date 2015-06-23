@@ -19,6 +19,7 @@
  *                                                                      *
  ************************************************************************/
 
+use ruleset::CGOS;
 use ruleset::KgsChinese;
 use ruleset::Ruleset;
 use version;
@@ -172,11 +173,12 @@ impl Config {
             let s = format!("Iomrascálaí {}", version::version());
             return Ok(Some(s));
         }
+        set_from_opt!(matches, "r", "ruleset", self.ruleset);
+        self.set_ruleset_dependent_defaults();
 
         set_from_opt!(matches, "empty-area-prior", self.uct.priors.empty);
         set_from_opt!(matches, "play-out-aftermath", self.play_out_aftermath);
         set_from_opt!(matches, "play-in-middle-of-eye", self.playout.play_in_middle_of_eye);
-        set_from_opt!(matches, "r", "ruleset", self.ruleset);
         set_from_opt!(matches, "reuse-subtree", self.uct.reuse_subtree);
         set_from_opt!(matches, "t", "threads", self.threads);
         set_from_opt!(matches, "use-atari-check-in-playouts", self.playout.atari_check);
@@ -195,6 +197,15 @@ impl Config {
             Err(s)
         } else {
             Ok(None)
+        }
+    }
+
+    fn set_ruleset_dependent_defaults(&mut self) {
+        match self.ruleset {
+            CGOS => {
+                self.play_out_aftermath = true;
+            }
+            _ => {}
         }
     }
 
