@@ -1,3 +1,19 @@
+## 0.2.3 [☰](https://github.com/ujh/iomrascalai/compare/0.2.2...master)
+
+* Playout the aftermath by default on CGOS
+* Play in the middle of big eyes during playouts
+* Resign lost games faster (to save time)
+
+### Performance
+
+After running 200 games on 9x9 with komi 6.5 and a time limit of 5
+minutes (sudden death) the win rate against GnuGo 3.8 level 0 was **75.5%
+± 3%** for the default engine with 8 threads.
+
+After running 200 games on 13x13 with komi 6.5 and a time limit of 10
+minutes (sudden death) the win rate against GnuGo 3.8 level 0 was **6%
+± 1.7%** for the default engine with 8 threads.
+
 ## 0.2.2 [☰](https://github.com/ujh/iomrascalai/compare/0.2.1...0.2.2)
 
 * A two liberty solver (can prove if a group with up to two stones is
