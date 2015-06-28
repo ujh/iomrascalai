@@ -1,7 +1,6 @@
 ## 0.2.3 [☰](https://github.com/ujh/iomrascalai/compare/0.2.2...master)
 
 * Playout the aftermath by default on CGOS
-* Additional tests for the UCT tree expansion
 * Play in the middle of big eyes during playouts
 * Resign lost games faster (to save time)
 
