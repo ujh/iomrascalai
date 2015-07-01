@@ -45,6 +45,7 @@ use config::Config;
 use gtp::driver::Driver;
 
 use getopts::Options;
+use std::sync::Arc;
 use std::env::args;
 use std::io::Write;
 use std::process::exit;
@@ -104,9 +105,11 @@ pub fn main() {
         }
     }
 
-    let playout = playout::factory(matches.opt_str("p"), config);
+    let config = Arc::new(config);
 
-    let engine = engine::factory(matches.opt_str("e"), config, playout);
+    let playout = playout::factory(matches.opt_str("p"), config.clone());
+
+    let engine = engine::factory(matches.opt_str("e"), config.clone(), playout);
 
     log!("Current configuration: {:?}", config);
 

@@ -43,7 +43,7 @@ use std::thread;
 mod node;
 
 pub struct UctEngine {
-    config: Config,
+    config: Arc<Config>,
     playout: Arc<Box<Playout>>,
     previous_node_count: usize,
     root: Node,
@@ -51,9 +51,9 @@ pub struct UctEngine {
 
 impl UctEngine {
 
-    pub fn new(config: Config, playout: Box<Playout>) -> UctEngine {
+    pub fn new(config: Arc<Config>, playout: Box<Playout>) -> UctEngine {
         UctEngine {
-            config: config,
+            config: config.clone(),
             playout: Arc::new(playout),
             previous_node_count: 0,
             root: Node::new(NoMove, config),
@@ -70,7 +70,7 @@ impl Engine for UctEngine {
 
     fn gen_move(&mut self, color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
         if !self.config.uct.reuse_subtree {
-            self.root = Node::root(game, color, self.config);
+            self.root = Node::root(game, color, self.config.clone());
         } else {
             self.previous_node_count = self.root.descendants();
             self.set_new_root(game, color);
@@ -88,11 +88,11 @@ impl Engine for UctEngine {
             return;
         }
         let (send_result_to_main, receive_result_from_threads) = channel::<((Vec<usize>, Color, usize), Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>();
-        let (_guards, halt_senders) = spin_up(self.config, self.playout.clone(), game, send_result_to_main);
+        let (_guards, halt_senders) = spin_up(self.config.clone(), self.playout.clone(), game, send_result_to_main);
         loop {
             select!(
                 _ = receiver.recv() => {
-                    let m = finish(&self.root, game, color, sender, self.config, halt_senders);
+                    let m = finish(&self.root, game, color, sender, self.config.clone(), halt_senders);
                     self.set_new_root(&game.play(m).unwrap(), color);
                     break;
                 },
@@ -119,25 +119,25 @@ impl Engine for UctEngine {
 
     fn reset(&mut self) {
         self.previous_node_count = 0;
-        self.root = Node::new(NoMove, self.config);
+        self.root = Node::new(NoMove, self.config.clone());
     }
 
 }
 
-fn spin_up<'a>(config: Config, playout: Arc<Box<Playout>>, game: &Game, send_to_main: Sender<((Vec<usize>, Color, usize), Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>) -> (Vec<thread::JoinGuard<'a, ()>>, Vec<Sender<()>>) {
+fn spin_up<'a>(config: Arc<Config>, playout: Arc<Box<Playout>>, game: &Game, send_to_main: Sender<((Vec<usize>, Color, usize), Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>) -> (Vec<thread::JoinGuard<'a, ()>>, Vec<Sender<()>>) {
     let mut guards = Vec::new();
     let mut halt_senders = Vec::new();
     for _ in 0..config.threads {
         let (send_halt, receive_halt) = channel::<()>();
         halt_senders.push(send_halt);
         let send_to_main = send_to_main.clone();
-        let guard = spin_up_worker(config, playout.clone(), game.board(), send_to_main, receive_halt);
+        let guard = spin_up_worker(config.clone(), playout.clone(), game.board(), send_to_main, receive_halt);
         guards.push(guard);
     }
     (guards, halt_senders)
 }
 
-fn spin_up_worker<'a>(config: Config, playout: Arc<Box<Playout>>, board: Board, send_to_main: Sender<((Vec<usize>, Color, usize),Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>, receive_halt: Receiver<()>) -> thread::JoinGuard<'a, ()> {
+fn spin_up_worker<'a>(config: Arc<Config>, playout: Arc<Box<Playout>>, board: Board, send_to_main: Sender<((Vec<usize>, Color, usize),Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>, receive_halt: Receiver<()>) -> thread::JoinGuard<'a, ()> {
     thread::scoped(move || {
         let mut rng = weak_rng();
         let (send_to_self, receive_from_main) = channel::<(Vec<usize>, Vec<Move>, bool, usize)>();
@@ -171,7 +171,7 @@ fn spin_up_worker<'a>(config: Config, playout: Arc<Box<Playout>>, board: Board, 
     })
 }
 
-fn finish(root: &Node, game: &Game, color: Color, sender: Sender<Move>, config: Config, halt_senders: Vec<Sender<()>>) -> Move {
+fn finish(root: &Node, game: &Game, color: Color, sender: Sender<Move>, config: Arc<Config>, halt_senders: Vec<Sender<()>>) -> Move {
     for halt_sender in halt_senders.iter() {
         halt_sender.send(()).unwrap();
     }

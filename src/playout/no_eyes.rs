@@ -24,6 +24,8 @@ use board::Move;
 use config::Config;
 use super::Playout;
 
+use std::sync::Arc;
+
 #[derive(Debug)]
 pub struct NoEyesPlayout;
 
@@ -36,15 +38,15 @@ impl Playout for NoEyesPlayout {
     fn playout_type(&self) -> &'static str {
         "no-eyes"
     }
-    
+
     fn check_for_ladders(&self) -> bool {
         false
     }
-    
+
     fn check_for_atari(&self) -> bool {
         false
     }
-    
+
     fn play_in_middle_of_eye(&self) -> bool {
         false
     }
@@ -53,12 +55,12 @@ impl Playout for NoEyesPlayout {
 //don't self atari strings that will make an eye after dying, which is strings of 7+
 #[derive(Debug)]
 pub struct NoSelfAtariPlayout {
-    config: Config
+    config: Arc<Config>
 }
 
 impl NoSelfAtariPlayout {
 
-    pub fn new(config: Config) -> NoSelfAtariPlayout {
+    pub fn new(config: Arc<Config>) -> NoSelfAtariPlayout {
         NoSelfAtariPlayout { config: config }
     }
 
@@ -79,7 +81,7 @@ impl Playout for NoSelfAtariPlayout {
     fn playout_type(&self) -> &'static str {
         "no-self-atari"
     }
-    
+
     fn check_for_ladders(&self) -> bool {
         self.config.playout.ladder_check
     }
@@ -87,7 +89,7 @@ impl Playout for NoSelfAtariPlayout {
     fn check_for_atari(&self) -> bool {
         self.config.playout.atari_check
     }
-    
+
     fn play_in_middle_of_eye(&self) -> bool {
         self.config.playout.play_in_middle_of_eye
     }
