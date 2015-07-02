@@ -21,12 +21,14 @@
 
 #![cfg(test)]
 
+use std::sync::Arc;
+
 use config::Config;
 
 mod no_eyes;
 
-fn config() -> Config {
-    Config::default()
+fn config() -> Arc<Config> {
+    Arc::new(Config::default())
 }
 
 #[test]

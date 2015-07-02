@@ -21,12 +21,14 @@
 
 #![cfg(test)]
 
+use std::sync::Arc;
+
 use config::Config;
 use playout::Playout;
 use playout;
 
-fn config() -> Config {
-    Config::default()
+fn config() -> Arc<Config> {
+    Arc::new(Config::default())
 }
 
 fn playout() -> Box<Playout> {

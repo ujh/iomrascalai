@@ -222,7 +222,6 @@ impl Board {
         self.komi = komi;
     }
 
-    #[test]
     pub fn set_ruleset(&mut self, ruleset: Ruleset) {
         self.ruleset = ruleset;
     }

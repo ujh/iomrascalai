@@ -21,6 +21,8 @@
 
 #![cfg(test)]
 
+use std::sync::Arc;
+
 use board::Black;
 use board::Board;
 use board::Play;
@@ -32,6 +34,10 @@ use ruleset::KgsChinese;
 
 use rand::weak_rng;
 use test::Bencher;
+
+fn config() -> Arc<Config> {
+    Arc::new(Config::default())
+}
 
 #[test]
 fn should_add_the_passed_moves_as_the_first_move() {
@@ -84,7 +90,7 @@ fn no_eyes_19x19(b: &mut Bencher) {
 #[bench]
 fn no_self_atari_09x09(b: &mut Bencher) {
     let board = Board::new(9, 6.5, KgsChinese);
-    let playout = NoSelfAtariPlayout::new(Config::default());
+    let playout = NoSelfAtariPlayout::new(config());
     let mut rng = weak_rng();
     b.iter(|| {
         let mut b = board.clone();
@@ -95,7 +101,7 @@ fn no_self_atari_09x09(b: &mut Bencher) {
 #[bench]
 fn no_self_atari_13x13(b: &mut Bencher) {
     let board = Board::new(13, 6.5, KgsChinese);
-    let playout = NoSelfAtariPlayout::new(Config::default());
+    let playout = NoSelfAtariPlayout::new(config());
     let mut rng = weak_rng();
     b.iter(|| {
         let mut b = board.clone();
@@ -106,7 +112,7 @@ fn no_self_atari_13x13(b: &mut Bencher) {
 #[bench]
 fn no_self_atari_19x19(b: &mut Bencher) {
     let board = Board::new(19, 6.5, KgsChinese);
-    let playout = NoSelfAtariPlayout::new(Config::default());
+    let playout = NoSelfAtariPlayout::new(config());
     let mut rng = weak_rng();
     b.iter(|| {
         let mut b = board.clone();
