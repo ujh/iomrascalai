@@ -43,7 +43,9 @@ fn config() -> Arc<Config> {
 }
 
 fn play_out_aftermath(play_out_aftermath: bool) -> Arc<Config> {
-    Arc::new(Config::play_out_aftermath(play_out_aftermath))
+    let mut config = Config::default();
+    config.play_out_aftermath = play_out_aftermath;
+    Arc::new(config)
 }
 
 #[test]

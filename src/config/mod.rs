@@ -111,11 +111,11 @@ macro_rules! set_from_flag {
 
 impl Config {
 
-    pub fn play_out_aftermath(play_out_aftermath: bool) -> Config {
+    pub fn default() -> Config {
         Config {
             debug: true,
             log: false,
-            play_out_aftermath: play_out_aftermath,
+            play_out_aftermath: false,
             playout: PlayoutConfig {
                 atari_check: true,
                 ladder_check: true,
@@ -143,10 +143,6 @@ impl Config {
                 tuned: true,
             },
         }
-    }
-
-    pub fn default() -> Config {
-        Self::play_out_aftermath(false)
     }
 
     pub fn setup(&self, opts: &mut Options) {
