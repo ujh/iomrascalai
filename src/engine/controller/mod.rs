@@ -27,6 +27,7 @@ use game::Game;
 use timer::Timer;
 use std::io::Write;
 
+use std::sync::Arc;
 use std::sync::mpsc::channel;
 use std::sync::mpsc::Sender;
 use std::thread;
@@ -35,13 +36,13 @@ use std::thread::sleep_ms;
 mod test;
 
 pub struct EngineController<'a> {
-    config: Config,
+    config: Arc<Config>,
     engine: Box<Engine + 'a>,
 }
 
 impl<'a> EngineController<'a> {
 
-    pub fn new<'b>(config: Config, engine: Box<Engine + 'b>) -> EngineController<'b> {
+    pub fn new<'b>(config: Arc<Config>, engine: Box<Engine + 'b>) -> EngineController<'b> {
         EngineController {
             config: config,
             engine: engine,

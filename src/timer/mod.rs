@@ -24,6 +24,8 @@ use game::Info;
 
 use time::precise_time_ns;
 
+use std::sync::Arc;
+
 mod test;
 
 #[derive(Clone)]
@@ -73,12 +75,12 @@ pub struct Timer {
     pub main_time: u32, // main time in ms
     main_time_left: u32,
     clock: Clock,
-    config: Config,
+    config: Arc<Config>,
 }
 
 impl Timer {
 
-    pub fn new(config: Config) -> Timer {
+    pub fn new(config: Arc<Config>) -> Timer {
         Timer {
             byo_stones: 0,
             byo_stones_left: 0,

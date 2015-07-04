@@ -34,6 +34,7 @@ use timer::Timer;
 use strenum::Strenum;
 
 use num::traits::FromPrimitive;
+use std::sync::Arc;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 use std::sync::mpsc::channel;
@@ -94,7 +95,7 @@ pub enum ControllerCommand {
 
 pub struct GTPInterpreter<'a> {
     _guard: thread::JoinGuard<'a, ()>,
-    config: Config,
+    config: Arc<Config>,
     game: Game,
     receive_move_from_controller: Receiver<Move>,
     send_command_to_controller: Sender<ControllerCommand>,
@@ -102,12 +103,12 @@ pub struct GTPInterpreter<'a> {
 }
 
 impl<'a> GTPInterpreter<'a> {
-    pub fn new(config: Config, engine: Box<Engine>) -> GTPInterpreter<'a> {
+    pub fn new(config: Arc<Config>, engine: Box<Engine>) -> GTPInterpreter<'a> {
         let komi      = 6.5;
         let boardsize = 19;
         let (send_command_to_controller, receive_command_from_interpreter) = channel::<ControllerCommand>();
         let (send_move_to_interpreter, receive_move_from_controller) = channel::<Move>();
-        let controller_config = config;
+        let controller_config = config.clone();
         let guard = thread::scoped(move || {
             let mut controller = EngineController::new(controller_config, engine);
             loop {
@@ -129,7 +130,7 @@ impl<'a> GTPInterpreter<'a> {
         });
         GTPInterpreter {
             _guard: guard,
-            config: config,
+            config: config.clone(),
             game: Game::new(boardsize, komi, config.ruleset),
             receive_move_from_controller: receive_move_from_controller,
             send_command_to_controller: send_command_to_controller,

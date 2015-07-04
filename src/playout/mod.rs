@@ -30,10 +30,12 @@ use config::Config;
 
 use rand::{Rng, XorShiftRng};
 
+use std::sync::Arc;
+
 mod no_eyes;
 mod test;
 
-pub fn factory(opt: Option<String>, config: Config) -> Box<Playout> {
+pub fn factory(opt: Option<String>, config: Arc<Config>) -> Box<Playout> {
     match opt.as_ref().map(::std::ops::Deref::deref) {
         Some("light") => Box::new(NoEyesPlayout),
         _             => Box::new(NoSelfAtariPlayout::new(config)),
@@ -67,19 +69,19 @@ pub trait Playout: Sync + Send {
 
     fn select_move(&self, board: &Board, rng: &mut XorShiftRng) -> Move {
         let color = board.next_player();
-        
+
         //if own group of more than one stone has one liberty, check if it can be captured
         if self.check_for_atari() {
             let mut in_danger = board.chains().iter()
                 .filter(|chain| chain.color() == color && chain.coords().len() > 1 && chain.liberties().len() == 1);
-   
+
             if let Some(chain) = in_danger.next() {
                 let solutions =  if self.check_for_ladders() {
                     board.save_group(chain)
                 } else {
                     board.fix_atari_no_ladder_check(chain)
                 };
-                
+
                 if solutions.len() > 0 { //if we can actually save it
                     let random = rng.gen::<usize>() % solutions.len();
                     return solutions[random];
@@ -87,7 +89,7 @@ pub trait Playout: Sync + Send {
             }
         }
 
-        
+
         let vacant = board.vacant();
         let playable_move = vacant
             .iter()
@@ -97,7 +99,7 @@ pub trait Playout: Sync + Send {
             let mut include_pass = 0;
             loop {
                 let r = first + rng.gen::<usize>() % (vacant.len() - first + include_pass);
-                
+
                 if r == vacant.len() {
                     return Pass(color);
                 }
@@ -121,11 +123,11 @@ pub trait Playout: Sync + Send {
     }
 
     fn playout_type(&self) -> &'static str;
-    
+
     fn check_for_ladders(&self) -> bool;
-    
+
     fn check_for_atari(&self) -> bool;
-    
+
     fn play_in_middle_of_eye(&self) -> bool;
 }
 

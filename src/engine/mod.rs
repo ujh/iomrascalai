@@ -32,6 +32,7 @@ use game::Game;
 use playout::Playout;
 
 use std::ascii::OwnedAsciiExt;
+use std::sync::Arc;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 
@@ -42,7 +43,7 @@ mod random;
 mod test;
 mod uct;
 
-pub fn factory(opt: Option<String>, config: Config, playout: Box<Playout>) -> Box<Engine> {
+pub fn factory(opt: Option<String>, config: Arc<Config>, playout: Box<Playout>) -> Box<Engine> {
     let engine_arg = opt.map(|s| s.into_ascii_lowercase());
     match engine_arg {
         Some(s) => {

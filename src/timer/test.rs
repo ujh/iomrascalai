@@ -21,14 +21,16 @@
 
 #![cfg(test)]
 
+use std::sync::Arc;
+
 use config::Config;
 use game::Info;
 use super::Timer;
 
 use std::thread::sleep_ms;
 
-fn config() -> Config {
-    Config::default()
+fn config() -> Arc<Config> {
+    Arc::new(Config::default())
 }
 
 #[test]

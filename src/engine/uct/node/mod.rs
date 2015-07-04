@@ -29,6 +29,7 @@ use board::Play;
 use config::Config;
 use game::Game;
 
+use std::sync::Arc;
 use std::f32;
 use std::usize;
 
@@ -37,7 +38,7 @@ mod test;
 #[derive(Clone, Debug, PartialEq)]
 pub struct Node {
     children: Vec<Node>,
-    config: Config,
+    config: Arc<Config>,
     descendants: usize,
     m: Move,
     plays: usize,
@@ -46,18 +47,18 @@ pub struct Node {
 
 impl Node {
 
-    pub fn new(m: Move, config: Config) -> Node {
+    pub fn new(m: Move, config: Arc<Config>) -> Node {
         Node {
+            plays: config.uct.priors.neutral_plays,
+            wins: config.uct.priors.neutral_wins,
             children: vec!(),
             config: config,
             descendants: 0,
             m: m,
-            plays: config.uct.priors.neutral_plays,
-            wins: config.uct.priors.neutral_wins,
         }
     }
 
-    pub fn root(game: &Game, color: Color, config: Config) -> Node {
+    pub fn root(game: &Game, color: Color, config: Arc<Config>) -> Node {
         let mut root = Node::new(Pass(color), config);
         // So that we don't get NaN on the first UCT calculation
         root.plays = 1;
@@ -77,7 +78,7 @@ impl Node {
         // pass move separately. This branch also handles the
         // first move where we don't have a tree, yet.
         if new_root.has_no_children() {
-            Node::root(game, color, self.config)
+            Node::root(game, color, self.config.clone())
         } else {
             new_root
         }
@@ -152,13 +153,13 @@ impl Node {
         if !game.is_over() {
             self.children = game.legal_moves_without_eyes()
                 .iter()
-                .map(|&m| Node::new(m, self.config))
+                .map(|&m| Node::new(m, self.config.clone()))
                 .collect();
             let size = game.size() as usize;
             if self.children.len() <= (size * size / 10) {
                 if !self.config.play_out_aftermath || game.winner() == game.next_player() {
                     //don't pass if we're losing on the board on CGOS, but otherwise it's OK
-                    self.children.push(Node::new(Pass(game.next_player()), self.config));
+                    self.children.push(Node::new(Pass(game.next_player()), self.config.clone()));
                 }
             }
 
@@ -181,7 +182,7 @@ impl Node {
                 let player = board.next_player();
                 if !self.config.play_out_aftermath || board.winner() == player {
                     //don't pass if we're losing on the board on CGOS, but otherwise it's OK
-                    self.children.push(Node::new(Pass(player), self.config));
+                    self.children.push(Node::new(Pass(player), self.config.clone()));
                 }
 
             }
@@ -221,7 +222,7 @@ impl Node {
     }
 
     pub fn new_leaf(&self, board: &Board, m: &Move) -> Node {
-        let mut node = Node::new(*m, self.config);
+        let mut node = Node::new(*m, self.config.clone());
 
         if !board.is_not_self_atari(m) {
             node.plays += self.config.uct.priors.self_atari;
@@ -312,7 +313,7 @@ impl Node {
     pub fn find_child(&self, m: Move) -> Node {
         match self.children.iter().find(|c| c.m() == m) {
             Some(node) => node.clone(),
-            None => Node::new(NoMove, self.config),
+            None => Node::new(NoMove, self.config.clone()),
         }
     }
 
