@@ -89,7 +89,7 @@ macro_rules! set_from_opt {
                         .filter(|&s| s != "")
                         .cloned()
                         .collect();
-                    let s = format!("Unknown value ({}) as argument to {}", arg, strs.connect(" or "));
+                    let s = format!("Unknown value ({}) as argument to {}", arg, strs.join(" or "));
                     return Err(s);
                 }
             }
