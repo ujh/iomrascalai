@@ -24,7 +24,7 @@
 #![feature(owned_ascii_ext)]
 #![feature(plugin)]
 #![feature(scoped)]
-#![feature(slice_extras)]
+#![feature(slice_splits)]
 #![feature(test)]
 #![feature(vec_push_all)]
 #![plugin(regex_macros)]
@@ -81,7 +81,8 @@ pub fn main() {
 
     config.setup(&mut opts);
 
-    let matches = match opts.parse(args.tail()) {
+    let (_, tail) = args.split_first().unwrap();
+    let matches = match opts.parse(tail) {
         Ok(m) => m,
         Err(f) => {
             println!("{}", f.to_string());
