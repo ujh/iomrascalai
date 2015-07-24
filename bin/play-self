@@ -7,8 +7,8 @@ set -ex
 
 cargo build --release
 
-IOMRASCALAIMC="./target/release/iomrascalai -e mc -t 8 -l"
-IOMRASCALAIAMAF="./target/release/iomrascalai -e amaf -t 8 -l"
+IOMRASCALAIMC="./target/release/iomrascalai -t 8 -l"
+IOMRASCALAIAMAF="./target/release/iomrascalai -e random -t 8 -l"
 SIZE=9
 TIME="5m"
 
