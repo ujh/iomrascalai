@@ -1,6 +1,6 @@
 @echo off
 REM configuration
-set threads=1
+set threads=8
 set size=13
 
 REM set up the engines, use random for the fastest possible test
