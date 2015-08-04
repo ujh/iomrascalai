@@ -46,8 +46,10 @@ pub struct UctPriorsConfig {
     pub empty: usize,
     pub neutral_plays: usize,
     pub neutral_wins: usize,
+    pub patterns: usize,
     pub self_atari: usize,
     pub use_empty: bool,
+    pub use_patterns: bool,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -136,8 +138,10 @@ impl Config {
                     empty: 20,
                     neutral_plays: 10,
                     neutral_wins: 5,
+                    patterns: 10,
                     self_atari: 10,
                     use_empty: true,
+                    use_patterns: false,
                 },
                 reuse_subtree: true,
                 tuned: true,
@@ -158,6 +162,7 @@ impl Config {
         self.opt(opts, "use-atari-check-in-playouts", "Check for atari in the playouts", self.playout.ladder_check);
         self.opt(opts, "use-empty-area-prior", "use a prior for empty areas on the board", self.uct.priors.use_empty);
         self.opt(opts, "use-ladder-check-in-playouts", "Check for ladders in the playouts", self.playout.ladder_check);
+        self.opt(opts, "use-patterns-prior", "Use a prior to prioritize 3x3 patterns", self.uct.priors.use_patterns);
         self.opt(opts, "use-ucb1-tuned", "Use the UCB1tuned selection strategy", self.uct.tuned);
         self.optopt(opts, "r", "ruleset", "select the ruleset", self.ruleset);
         self.optopt(opts, "t", "threads", "number of threads to use", self.threads);
