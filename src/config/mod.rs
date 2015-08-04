@@ -33,10 +33,10 @@ mod test;
 #[derive(Debug, Clone, PartialEq)]
 pub struct UctConfig {
     pub end_of_game_cutoff: f32,
-    pub reuse_subtree: bool,
-    pub tuned: bool,
     pub expand_after: usize,
     pub priors: UctPriorsConfig,
+    pub reuse_subtree: bool,
+    pub tuned: bool,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -59,8 +59,8 @@ pub struct TimerConfig {
 pub struct PlayoutConfig {
     pub atari_check: bool,
     pub ladder_check: bool,
-    pub play_in_middle_of_eye: bool,
     pub no_self_atari_cutoff: usize,
+    pub play_in_middle_of_eye: bool,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -68,10 +68,10 @@ pub struct Config {
     pub debug: bool,
     pub log: bool,
     pub play_out_aftermath: bool,
-    pub ruleset: Ruleset,
-    pub timer: TimerConfig,
     pub playout: PlayoutConfig,
+    pub ruleset: Ruleset,
     pub threads: usize,
+    pub timer: TimerConfig,
     pub uct: UctConfig,
 }
 
