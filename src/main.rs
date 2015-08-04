@@ -76,8 +76,8 @@ pub fn main() {
     let mut opts = Options::new();
     let args : Vec<String> = args().collect();
 
-    opts.optopt("e", "engine", "select an engine (defaults to uct)", "amaf|mc|random|uct");
-    opts.optopt("p", "playout", "type of playout to use (defaults to no-self-atari)", "light|no-self-atari");
+    opts.optopt("e", "engine", "Select an engine (defaults to uct)", "amaf|mc|random|uct");
+    opts.optopt("p", "playout", "Type of playout to use (defaults to no-self-atari)", "light|no-self-atari");
 
     config.setup(&mut opts);
 
