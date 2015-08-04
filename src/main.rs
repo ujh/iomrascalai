@@ -43,6 +43,7 @@ extern crate time;
 
 use config::Config;
 use gtp::driver::Driver;
+use patterns::Matcher;
 
 use getopts::Options;
 use std::sync::Arc;
@@ -64,6 +65,7 @@ mod config;
 mod engine;
 mod game;
 mod gtp;
+mod patterns;
 mod playout;
 mod ruleset;
 mod score;
@@ -107,10 +109,12 @@ pub fn main() {
     }
 
     let config = Arc::new(config);
-
+    // Instantiate only one matcher as it does a lot of computation
+    // during setup.
+    let matcher = Arc::new(Matcher::new());
     let playout = playout::factory(matches.opt_str("p"), config.clone());
 
-    let engine = engine::factory(matches.opt_str("e"), config.clone(), playout);
+    let engine = engine::factory(matches.opt_str("e"), config.clone(), playout, matcher);
 
     log!("Current configuration: {:?}", config);
 
