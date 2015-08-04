@@ -24,11 +24,16 @@
 use std::sync::Arc;
 
 use config::Config;
+use patterns::Matcher;
 use playout::Playout;
 use playout;
 
 fn config() -> Arc<Config> {
     Arc::new(Config::default())
+}
+
+fn matcher() -> Arc<Matcher> {
+    Arc::new(Matcher::new())
 }
 
 fn playout() -> Box<Playout> {
@@ -37,30 +42,30 @@ fn playout() -> Box<Playout> {
 
 #[test]
 fn factory_returns_uct_by_default() {
-    let engine = super::factory(None, config(), playout());
+    let engine = super::factory(None, config(), playout(), matcher());
     assert_eq!("uct", engine.engine_type());
 }
 
 #[test]
 fn factory_returns_random_engine_when_give_random() {
-    let engine = super::factory(Some(String::from("random")), config(), playout());
+    let engine = super::factory(Some(String::from("random")), config(), playout(), matcher());
     assert_eq!("random", engine.engine_type());
 }
 
 #[test]
 fn factory_returns_simple_mc_when_given_mc() {
-    let engine = super::factory(Some(String::from("mc")), config(), playout());
+    let engine = super::factory(Some(String::from("mc")), config(), playout(), matcher());
     assert_eq!("simple-mc", engine.engine_type());
 }
 
 #[test]
 fn factory_returns_amaf_when_given_amaf() {
-    let engine = super::factory(Some(String::from("amaf")), config(), playout());
+    let engine = super::factory(Some(String::from("amaf")), config(), playout(), matcher());
     assert_eq!("amaf", engine.engine_type());
 }
 
 #[test]
 fn factory_returns_uct_for_any_other_string() {
-    let engine = super::factory(Some(String::from("foo")), config(), playout());
+    let engine = super::factory(Some(String::from("foo")), config(), playout(), matcher());
     assert_eq!("uct", engine.engine_type());
 }
