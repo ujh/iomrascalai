@@ -1,6 +1,6 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2014-2015 Thomas Poinsot, Urban Hafner                     *
+ * Copyright 2015 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -19,52 +19,21 @@
  *                                                                      *
  ************************************************************************/
 
-pub use self::controller::EngineController;
-pub use self::mc::AmafMcEngine;
-pub use self::mc::SimpleMcEngine;
-pub use self::move_stats::MoveStats;
-pub use self::random::RandomEngine;
-pub use self::uct::UctEngine;
-use board::Color;
+use board::Board;
 use board::Move;
-use config::Config;
-use game::Game;
-use patterns::Matcher;
-use playout::Playout;
 
-use std::ascii::AsciiExt;
-use std::sync::Arc;
-use std::sync::mpsc::Receiver;
-use std::sync::mpsc::Sender;
-
-mod controller;
-mod mc;
-mod move_stats;
-mod random;
 mod test;
-mod uct;
 
-pub fn factory(opt: Option<String>, config: Arc<Config>, playout: Box<Playout>, matcher: Arc<Matcher>) -> Box<Engine> {
-    let engine_arg = opt.map(|s| s.to_ascii_lowercase());
-    match engine_arg {
-        Some(s) => {
-            match s.as_ref() {
-                "random" => Box::new(RandomEngine::new()),
-                "mc"     => Box::new(SimpleMcEngine::new(config, playout)),
-                "amaf"   => Box::new(AmafMcEngine::new(config, playout)),
-                _        => Box::new(UctEngine::new(config, playout, matcher)),
-            }
-        },
-        None => Box::new(UctEngine::new(config, playout, matcher))
+pub struct Matcher;
+
+impl Matcher {
+
+    pub fn new() -> Matcher {
+        Matcher
     }
-}
 
-pub trait Engine: Send + Sync {
-
-    fn gen_move(&mut self, Color, &Game, sender: Sender<Move>, receiver: Receiver<()>);
-    fn engine_type(&self) -> &'static str {
-        ""
+    pub fn pattern_count(&self, _: &Board, _: &Move) -> usize {
+        0
     }
-    fn reset(&mut self) {}
 
 }
