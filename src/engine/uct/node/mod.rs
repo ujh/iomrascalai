@@ -240,7 +240,17 @@ impl Node {
                 }
             }
         }
+        if self.config.uct.priors.use_patterns {
+            let count = self.matching_patterns_count(board, m);
+            let prior = count * self.config.uct.priors.patterns;
+            node.plays += prior;
+            node.wins += prior;
+        }
         node
+    }
+
+    fn matching_patterns_count(&self, board: &Board, m: &Move) -> usize {
+        0
     }
 
     fn in_empty_area(&self, board: &Board, m: &Move) -> bool {
