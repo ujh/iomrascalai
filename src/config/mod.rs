@@ -150,22 +150,22 @@ impl Config {
     }
 
     pub fn setup(&self, opts: &mut Options) {
-        opts.optflag("h", "help", "print this help menu");
-        opts.optflag("v", "version", "print the version number");
+        opts.optflag("h", "help", "Print this help menu");
+        opts.optflag("v", "version", "Print the version number");
 
-        self.flag(opts, "l", "log", "log to stderr", self.log);
+        self.flag(opts, "l", "log", "Log to stderr", self.log);
 
-        self.opt(opts, "empty-area-prior", "prior value for empty areas", self.uct.priors.empty);
-        self.opt(opts, "play-out-aftermath", "keep playing after the result of the game is decided", self.play_out_aftermath);
-        self.opt(opts, "play-in-middle-of-eye", "try playing in the middle of a large eye", self.playout.play_in_middle_of_eye);
-        self.opt(opts, "reuse-subtree", "reuse the subtree from the previous search", self.uct.reuse_subtree);
+        self.opt(opts, "empty-area-prior", "Prior value for empty areas", self.uct.priors.empty);
+        self.opt(opts, "play-out-aftermath", "Keep playing after the result of the game is decided", self.play_out_aftermath);
+        self.opt(opts, "play-in-middle-of-eye", "Try playing in the middle of a large eye", self.playout.play_in_middle_of_eye);
+        self.opt(opts, "reuse-subtree", "Reuse the subtree from the previous search", self.uct.reuse_subtree);
         self.opt(opts, "use-atari-check-in-playouts", "Check for atari in the playouts", self.playout.ladder_check);
-        self.opt(opts, "use-empty-area-prior", "use a prior for empty areas on the board", self.uct.priors.use_empty);
+        self.opt(opts, "use-empty-area-prior", "Use a prior for empty areas on the board", self.uct.priors.use_empty);
         self.opt(opts, "use-ladder-check-in-playouts", "Check for ladders in the playouts", self.playout.ladder_check);
         self.opt(opts, "use-patterns-prior", "Use a prior to prioritize 3x3 patterns", self.uct.priors.use_patterns);
         self.opt(opts, "use-ucb1-tuned", "Use the UCB1tuned selection strategy", self.uct.tuned);
-        self.optopt(opts, "r", "ruleset", "select the ruleset", self.ruleset);
-        self.optopt(opts, "t", "threads", "number of threads to use", self.threads);
+        self.optopt(opts, "r", "ruleset", "Select the ruleset", self.ruleset);
+        self.optopt(opts, "t", "threads", "Number of threads to use", self.threads);
     }
 
     pub fn set_from_opts(&mut self, matches: &Matches, opts: &Options, args: &Vec<String>) -> Result<Option<String>, String>{
