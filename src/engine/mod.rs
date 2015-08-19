@@ -31,7 +31,7 @@ use config::Config;
 use game::Game;
 use playout::Playout;
 
-use std::ascii::OwnedAsciiExt;
+use std::ascii::AsciiExt;
 use std::sync::Arc;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
@@ -44,7 +44,7 @@ mod test;
 mod uct;
 
 pub fn factory(opt: Option<String>, config: Arc<Config>, playout: Box<Playout>) -> Box<Engine> {
-    let engine_arg = opt.map(|s| s.into_ascii_lowercase());
+    let engine_arg = opt.map(|s| s.to_ascii_lowercase());
     match engine_arg {
         Some(s) => {
             match s.as_ref() {

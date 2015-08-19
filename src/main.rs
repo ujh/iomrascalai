@@ -21,13 +21,12 @@
  ************************************************************************/
 #![feature(core)]
 #![feature(mpsc_select)]
-#![feature(owned_ascii_ext)]
 #![feature(plugin)]
-#![feature(scoped)]
 #![feature(slice_splits)]
 #![feature(test)]
 #![feature(vec_push_all)]
 #![plugin(regex_macros)]
+
 extern crate core;
 #[macro_use] extern crate enum_primitive;
 extern crate getopts;
@@ -38,6 +37,7 @@ extern crate regex;
 #[no_link] extern crate regex_macros;
 extern crate smallvec;
 extern crate test;
+extern crate thread_scoped;
 extern crate time;
 #[macro_use(strenum)] extern crate strenum;
 

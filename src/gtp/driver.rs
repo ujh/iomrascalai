@@ -38,7 +38,7 @@ impl Driver {
         let protocol_version = "2";
 
         let mut interpreter = GTPInterpreter::new(config, engine);
-        let mut reader = stdin();
+        let reader = stdin();
         let mut command = String::new();
 
         loop {

@@ -25,13 +25,14 @@ use config::Config;
 use engine::Engine;
 use game::Game;
 use timer::Timer;
-use std::io::Write;
 
+use std::io::Write;
 use std::sync::Arc;
 use std::sync::mpsc::channel;
 use std::sync::mpsc::Sender;
 use std::thread;
 use std::thread::sleep_ms;
+use thread_scoped::scoped;
 
 mod test;
 
@@ -59,9 +60,11 @@ impl<'a> EngineController<'a> {
         let (send_signal_to_engine, receive_signal_from_controller) = channel::<()>();
         // Saving the guard into a variable is necessary. Otherwise
         // the code blocks right here.
-        let _guard = thread::scoped(|| {
-            self.engine.gen_move(color, game, send_move_to_controller, receive_signal_from_controller);
-        });
+        unsafe {
+            let _guard = scoped(|| {
+                self.engine.gen_move(color, game, send_move_to_controller, receive_signal_from_controller);
+            });
+        }
         let (send_time_up_to_controller, receive_time_up) = channel();
         thread::spawn(move || {
             sleep_ms(budget);

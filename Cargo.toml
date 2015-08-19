@@ -21,6 +21,7 @@ strenum         = "*"
 time            = "*"
 smallvec        = "*"
 quicksort       = "*"
+thread-scoped   = "*"
 
 [profile.release]
 opt-level = 3

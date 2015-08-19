@@ -93,6 +93,7 @@ fn update_sets_the_byo_time() {
     assert_eq!(1, timer.byo_stones_left);
 }
 
+
 #[test]
 fn update_starts_the_clock() {
     let mut timer = Timer::new(config());
