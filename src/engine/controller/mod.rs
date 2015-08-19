@@ -64,22 +64,23 @@ impl<'a> EngineController<'a> {
             let _guard = scoped(|| {
                 self.engine.gen_move(color, game, send_move_to_controller, receive_signal_from_controller);
             });
+        
+            let (send_time_up_to_controller, receive_time_up) = channel();
+            thread::spawn(move || {
+                sleep_ms(budget);
+                send_time_up_to_controller.send(()).unwrap();
+            });
+            select!(
+                r = receive_move_from_engine.recv() => {
+                    send_move.send(r.unwrap()).unwrap();
+                },
+                _ = receive_time_up.recv() => {
+                    send_signal_to_engine.send(()).unwrap();
+                    let m = receive_move_from_engine.recv().unwrap();
+                    send_move.send(m).unwrap();
+                }
+            )
         }
-        let (send_time_up_to_controller, receive_time_up) = channel();
-        thread::spawn(move || {
-            sleep_ms(budget);
-            send_time_up_to_controller.send(()).unwrap();
-        });
-        select!(
-            r = receive_move_from_engine.recv() => {
-                send_move.send(r.unwrap()).unwrap();
-            },
-            _ = receive_time_up.recv() => {
-                send_signal_to_engine.send(()).unwrap();
-                let m = receive_move_from_engine.recv().unwrap();
-                send_move.send(m).unwrap();
-            }
-        )
     }
 
     fn budget(&self, timer: &Timer, game: &Game) -> u32 {
