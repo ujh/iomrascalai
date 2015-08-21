@@ -38,7 +38,8 @@ use std::sync::Arc;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 use std::sync::mpsc::channel;
-use std::thread;
+use thread_scoped::JoinGuard;
+use thread_scoped::scoped;
 
 pub mod driver;
 mod test;
@@ -94,7 +95,7 @@ pub enum ControllerCommand {
 }
 
 pub struct GTPInterpreter<'a> {
-    _guard: thread::JoinGuard<'a, ()>,
+    _guard: JoinGuard<'a, ()>,
     config: Arc<Config>,
     game: Game,
     receive_move_from_controller: Receiver<Move>,
@@ -109,32 +110,34 @@ impl<'a> GTPInterpreter<'a> {
         let (send_command_to_controller, receive_command_from_interpreter) = channel::<ControllerCommand>();
         let (send_move_to_interpreter, receive_move_from_controller) = channel::<Move>();
         let controller_config = config.clone();
-        let guard = thread::scoped(move || {
-            let mut controller = EngineController::new(controller_config, engine);
-            loop {
-                match receive_command_from_interpreter.recv() {
-                    Ok(command) => {
-                        match command {
-                            ControllerCommand::GenMove(game, color, timer) => {
-                                controller.run_and_return_move(color, &game, &timer, send_move_to_interpreter.clone());
-                            },
-                            ControllerCommand::Reset => {
-                                controller.reset();
+        unsafe { 
+            let guard = scoped(move || {
+                let mut controller = EngineController::new(controller_config, engine);
+                loop {
+                    match receive_command_from_interpreter.recv() {
+                        Ok(command) => {
+                            match command {
+                                ControllerCommand::GenMove(game, color, timer) => {
+                                    controller.run_and_return_move(color, &game, &timer, send_move_to_interpreter.clone());
+                                },
+                                ControllerCommand::Reset => {
+                                    controller.reset();
+                                }
+                                ControllerCommand::ShutDown => { break; },
                             }
-                            ControllerCommand::ShutDown => { break; },
-                        }
-                    },
-                    Err(_) => { break; }
+                        },
+                        Err(_) => { break; }
+                    }
                 }
+            });
+            GTPInterpreter {
+                _guard: guard,
+                config: config.clone(),
+                game: Game::new(boardsize, komi, config.ruleset),
+                receive_move_from_controller: receive_move_from_controller,
+                send_command_to_controller: send_command_to_controller,
+                timer: Timer::new(config),
             }
-        });
-        GTPInterpreter {
-            _guard: guard,
-            config: config.clone(),
-            game: Game::new(boardsize, komi, config.ruleset),
-            receive_move_from_controller: receive_move_from_controller,
-            send_command_to_controller: send_command_to_controller,
-            timer: Timer::new(config),
         }
     }
 
