@@ -20,3 +20,24 @@
  ************************************************************************/
 
 #![cfg(test)]
+
+use super::Matcher;
+use super::Pattern;
+
+fn pattern() -> Pattern {
+    Pattern::new(vec!("XO.",
+                      "xo?",
+                      "   "))
+}
+
+fn patterns() -> Vec<Pattern> {
+    vec!(pattern())
+}
+
+// expand_patterns
+
+#[test]
+fn expand_patterns_includes_the_original_pattern() {
+    let expanded = Matcher::expand_patterns(patterns());
+    assert!(expanded.iter().any(|pat| *pat == pattern()));
+}
