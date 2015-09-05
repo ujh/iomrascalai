@@ -24,6 +24,22 @@ use board::Move;
 
 mod test;
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Pattern {
+    vec: Vec<&'static str>
+}
+
+impl Pattern {
+
+    pub fn new(vec: Vec<&'static str>) -> Pattern {
+        Pattern { vec: vec }
+    }
+
+    pub fn expand(&self) -> Vec<Pattern> {
+        vec!(Pattern::new(self.vec.clone()))
+    }
+}
+
 pub struct Matcher;
 
 impl Matcher {
@@ -32,66 +48,71 @@ impl Matcher {
         Matcher
     }
 
+    fn expand_patterns(patterns: Vec<Pattern>) -> Vec<Pattern> {
+        patterns.iter().flat_map(|pattern| pattern.expand()).collect()
+    }
+
+
     // Patterns liften from michi.py
     // * X, O are colors
     // * . is an empty intersection
     // * x, o are the opposites of X,O (i.e. other color or empty)
     // * SPACE is off board
     // * ? is any color, empty intersection, or off board
-    fn patterns() -> Vec<Vec<&'static str>> {
+    fn patterns() -> Vec<Pattern> {
         vec!(
             // hane pattern - enclosing hane
-            vec!("XOX",
-                 "...",
-                 "???"),
+            Pattern::new(vec!("XOX",
+                              "...",
+                              "???")),
             // hane pattern - non-cutting hane
-            vec!("XO.",
-                 "...",
-                 "?.?"),
+            Pattern::new(vec!("XO.",
+                              "...",
+                              "?.?")),
             // hane pattern - magari
-            vec!("XO?",
-                 "X..",
-                 "x.?"),
+            Pattern::new(vec!("XO?",
+                              "X..",
+                              "x.?")),
             // generic pattern - katatsuke or diagonal attachment; similar to magari
-            vec!(".O.",
-                 "X..",
-                 "..."),
+            Pattern::new(vec!(".O.",
+                              "X..",
+                              "...")),
             // cut1 pattern (kiri] - unprotected cut
-            vec!("XO?",
-                 "O.o",
-                 "?o?"),
+            Pattern::new(vec!("XO?",
+                              "O.o",
+                              "?o?")),
             // cut1 pattern (kiri] - peeped cut
-            vec!("XO?",
-                 "O.X",
-                 "???"),
+            Pattern::new(vec!("XO?",
+                              "O.X",
+                              "???")),
             // cut2 pattern (de]
-            vec!("?X?",
-                 "O.O",
-                 "ooo"),
+            Pattern::new(vec!("?X?",
+                              "O.O",
+                              "ooo")),
             // cut keima
-            vec!("OX?",
-                 "o.O",
-                 "???"),
+            Pattern::new(vec!("OX?",
+                              "o.O",
+                              "???")),
             // side pattern - chase
-            vec!("X.?",
-                 "O.?",
-                 "  ?"),
+            Pattern::new(vec!("X.?",
+                              "O.?",
+                              "  ?")),
             // side pattern - block side cut
-            vec!("OX?",
-                 "X.O",
-                 "   "),
+            Pattern::new(vec!("OX?",
+                              "X.O",
+                              "   ")),
             // side pattern - block side connection
-            vec!("?X?",
-                 "x.O",
-                 "   "),
+            Pattern::new(vec!("?X?",
+                              "x.O",
+                              "   ")),
             // side pattern - sagari
-            vec!("?XO",
-                 "x.x",
-                 "   "),
+            Pattern::new(vec!("?XO",
+                              "x.x",
+                              "   ")),
             // side pattern - cut
-            vec!("?OX",
-                 "X.O",
-                 "   "),
+            Pattern::new(vec!("?OX",
+                              "X.O",
+                              "   ")),
             )
     }
 
