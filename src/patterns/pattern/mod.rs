@@ -23,16 +23,26 @@ mod test;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Pattern {
-    vec: Vec<&'static str>
+    vec: Vec<Vec<char>>
 }
 
 impl Pattern {
 
-    pub fn new(vec: Vec<&'static str>) -> Pattern {
+    pub fn new(vec: Vec<Vec<char>>) -> Pattern {
         Pattern { vec: vec }
     }
 
     pub fn expand(&self) -> Vec<Pattern> {
-        vec!(Pattern::new(self.vec.clone()))
+        vec!(
+            self.clone(),
+            self.rotated()
+            )
+    }
+
+    fn rotated(&self) -> Pattern {
+        let line1 = vec!(self.vec[2][0], self.vec[1][0], self.vec[0][0]);
+        let line2 = vec!(self.vec[2][1], self.vec[1][1], self.vec[0][1]);
+        let line3 = vec!(self.vec[2][2], self.vec[1][2], self.vec[0][2]);
+        Pattern::new(vec!(line1, line2, line3))
     }
 }

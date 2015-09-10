@@ -22,3 +22,35 @@
 #![cfg(test)]
 
 use super::Pattern;
+
+fn pattern() -> Pattern {
+    Pattern::new(vec!(
+        vec!('X', 'O', '.'),
+        vec!('x', 'o', '?'),
+        vec!(' ', ' ', ' ')))
+}
+
+fn expanded() -> Vec<Pattern> {
+    pattern().expand()
+}
+
+// expand
+
+#[test]
+fn expand_includes_all_variations() {
+    assert_eq!(expanded().len(), 8);
+}
+
+#[test]
+fn expand_includes_the_original_pattern() {
+    assert!(expanded().iter().any(|pat| *pat == pattern()));
+}
+
+#[test]
+fn expand_includes_the_90deg_rotated_pattern() {
+    let pattern = Pattern::new(vec!(
+        vec!(' ', 'x', 'X'),
+        vec!(' ', 'o', 'O'),
+        vec!(' ', '?', '.')));
+    assert!(expanded().iter().any(|pat| *pat == pattern));
+}

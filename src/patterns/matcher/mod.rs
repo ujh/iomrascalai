@@ -47,57 +47,70 @@ impl Matcher {
     fn patterns() -> Vec<Pattern> {
         vec!(
             // hane pattern - enclosing hane
-            Pattern::new(vec!("XOX",
-                              "...",
-                              "???")),
+            Pattern::new(vec!(
+                vec!('X', 'O', 'X'),
+                vec!('.', '.', '.'),
+                vec!('?', '?', '?'))),
             // hane pattern - non-cutting hane
-            Pattern::new(vec!("XO.",
-                              "...",
-                              "?.?")),
+            Pattern::new(vec!(
+                vec!('X', 'O', '.'),
+                vec!('.', '.', '.'),
+                vec!('?', '.', '?'))),
             // hane pattern - magari
-            Pattern::new(vec!("XO?",
-                              "X..",
-                              "x.?")),
+            Pattern::new(vec!(
+                vec!('X', 'O', '?'),
+                vec!('X', '.', '.'),
+                vec!('x', '.', '?'))),
             // generic pattern - katatsuke or diagonal attachment; similar to magari
-            Pattern::new(vec!(".O.",
-                              "X..",
-                              "...")),
+            Pattern::new(vec!(
+                vec!('.', 'O', '.'),
+                vec!('X', '.', '.'),
+                vec!('.', '.', '.'))),
             // cut1 pattern (kiri] - unprotected cut
-            Pattern::new(vec!("XO?",
-                              "O.o",
-                              "?o?")),
+            Pattern::new(vec!(
+                vec!('X', 'O', '?'),
+                vec!('O', '.', 'o'),
+                vec!('?', 'o', '?'))),
             // cut1 pattern (kiri] - peeped cut
-            Pattern::new(vec!("XO?",
-                              "O.X",
-                              "???")),
+            Pattern::new(vec!(
+                vec!('X', 'O', '?'),
+                vec!('O', '.', 'X'),
+                vec!('?', '?', '?'))),
             // cut2 pattern (de]
-            Pattern::new(vec!("?X?",
-                              "O.O",
-                              "ooo")),
+            Pattern::new(vec!(
+                vec!('?', 'X', '?'),
+                vec!('O', '.', 'O'),
+                vec!('o', 'o', 'o'))),
             // cut keima
-            Pattern::new(vec!("OX?",
-                              "o.O",
-                              "???")),
+            Pattern::new(vec!(
+                vec!('O', 'X', '?'),
+                vec!('o', '.', 'O'),
+                vec!('?', '?', '?'))),
             // side pattern - chase
-            Pattern::new(vec!("X.?",
-                              "O.?",
-                              "  ?")),
+            Pattern::new(vec!(
+                vec!('X', '.', '?'),
+                vec!('O', '.', '?'),
+                vec!(' ', ' ', '?'))),
             // side pattern - block side cut
-            Pattern::new(vec!("OX?",
-                              "X.O",
-                              "   ")),
+            Pattern::new(vec!(
+                vec!('O', 'X', '?'),
+                vec!('X', '.', 'O'),
+                vec!(' ', ' ', ' '))),
             // side pattern - block side connection
-            Pattern::new(vec!("?X?",
-                              "x.O",
-                              "   ")),
+            Pattern::new(vec!(
+                vec!('?', 'X', '?'),
+                vec!('x', '.', 'O'),
+                vec!(' ', ' ', ' '))),
             // side pattern - sagari
-            Pattern::new(vec!("?XO",
-                              "x.x",
-                              "   ")),
+            Pattern::new(vec!(
+                vec!('?', 'X', 'O'),
+                vec!('x', '.', 'x'),
+                vec!(' ', ' ', ' '))),
             // side pattern - cut
-            Pattern::new(vec!("?OX",
-                              "X.O",
-                              "   ")),
+            Pattern::new(vec!(
+                vec!('?', 'O', 'X'),
+                vec!('X', '.', 'O'),
+                vec!(' ', ' ', ' '))),
             )
     }
 

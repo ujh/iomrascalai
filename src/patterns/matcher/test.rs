@@ -25,9 +25,10 @@ use super::Matcher;
 use super::Pattern;
 
 fn pattern() -> Pattern {
-    Pattern::new(vec!("XO.",
-                      "xo?",
-                      "   "))
+    Pattern::new(vec!(
+        vec!('X', 'O', '.'),
+        vec!('x', 'o', '?'),
+        vec!(' ', ' ', ' ')))
 }
 
 fn patterns() -> Vec<Pattern> {
@@ -37,7 +38,7 @@ fn patterns() -> Vec<Pattern> {
 // expand_patterns
 
 #[test]
-fn expand_patterns_includes_the_original_pattern() {
+fn expand_patterns_includes_all_variations() {
     let expanded = Matcher::expand_patterns(patterns());
-    assert!(expanded.iter().any(|pat| *pat == pattern()));
+    assert_eq!(expanded.len(), 8);
 }
