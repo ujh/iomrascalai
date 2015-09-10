@@ -19,8 +19,20 @@
  *                                                                      *
  ************************************************************************/
 
-pub use self::matcher::Matcher;
-pub use self::pattern::Pattern;
+mod test;
 
-mod matcher;
-mod pattern;
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Pattern {
+    vec: Vec<&'static str>
+}
+
+impl Pattern {
+
+    pub fn new(vec: Vec<&'static str>) -> Pattern {
+        Pattern { vec: vec }
+    }
+
+    pub fn expand(&self) -> Vec<Pattern> {
+        vec!(Pattern::new(self.vec.clone()))
+    }
+}

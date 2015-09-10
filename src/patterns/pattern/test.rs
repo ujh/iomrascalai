@@ -19,8 +19,6 @@
  *                                                                      *
  ************************************************************************/
 
-pub use self::matcher::Matcher;
-pub use self::pattern::Pattern;
+#![cfg(test)]
 
-mod matcher;
-mod pattern;
+use super::Pattern;
