@@ -33,14 +33,47 @@ impl Pattern {
     }
 
     pub fn expand(&self) -> Vec<Pattern> {
+        self.rotated()
+            .iter()
+            .chain(self.swapped().iter())
+            .cloned()
+            .collect()
+    }
+
+    fn rotated(&self) -> Vec<Pattern> {
         vec!(
             self.clone(),
             self.rotated90(),
             self.rotated180(),
             self.rotated270(),
             self.horizontally_flipped(),
-            self.vertically_flipped()
-            )
+            self.vertically_flipped())
+    }
+
+    fn swapped(&self) -> Vec<Pattern> {
+        self.rotated()
+            .iter()
+            .map(|pat| pat.swap())
+            .collect()
+    }
+
+    fn swap(&self) -> Pattern {
+        let swapped_vec = self.vec
+            .iter()
+            .map(|subvec|
+                 subvec.iter().map(|&c| self.swap_char(c)).collect())
+            .collect();
+        Pattern::new(swapped_vec)
+    }
+
+    fn swap_char(&self, c: char) -> char {
+        match c {
+            'x' => 'o',
+            'X' => 'O',
+            'o' => 'x',
+            'O' => 'X',
+            _   => c
+        }
     }
 
     fn rotated90(&self) -> Pattern {
