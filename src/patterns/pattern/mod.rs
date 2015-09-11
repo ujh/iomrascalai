@@ -35,14 +35,46 @@ impl Pattern {
     pub fn expand(&self) -> Vec<Pattern> {
         vec!(
             self.clone(),
-            self.rotated()
+            self.rotated90(),
+            self.rotated180(),
+            self.rotated270(),
+            self.horizontally_flipped(),
+            self.vertically_flipped()
             )
     }
 
-    fn rotated(&self) -> Pattern {
+    fn rotated90(&self) -> Pattern {
         let line1 = vec!(self.vec[2][0], self.vec[1][0], self.vec[0][0]);
         let line2 = vec!(self.vec[2][1], self.vec[1][1], self.vec[0][1]);
         let line3 = vec!(self.vec[2][2], self.vec[1][2], self.vec[0][2]);
+        Pattern::new(vec!(line1, line2, line3))
+    }
+
+    fn rotated180(&self) -> Pattern {
+        let line1 = vec!(self.vec[2][2], self.vec[2][1], self.vec[2][0]);
+        let line2 = vec!(self.vec[1][2], self.vec[1][1], self.vec[1][0]);
+        let line3 = vec!(self.vec[0][2], self.vec[0][1], self.vec[0][0]);
+        Pattern::new(vec!(line1, line2, line3))
+    }
+
+    fn rotated270(&self) -> Pattern {
+        let line1 = vec!(self.vec[0][2], self.vec[1][2], self.vec[2][2]);
+        let line2 = vec!(self.vec[0][1], self.vec[1][1], self.vec[2][1]);
+        let line3 = vec!(self.vec[0][0], self.vec[1][0], self.vec[2][0]);
+        Pattern::new(vec!(line1, line2, line3))
+    }
+
+    fn horizontally_flipped(&self) -> Pattern {
+        let line1 = vec!(self.vec[2][0], self.vec[2][1], self.vec[2][2]);
+        let line2 = vec!(self.vec[1][0], self.vec[1][1], self.vec[1][2]);
+        let line3 = vec!(self.vec[0][0], self.vec[0][1], self.vec[0][2]);
+        Pattern::new(vec!(line1, line2, line3))
+    }
+
+    fn vertically_flipped(&self) -> Pattern {
+        let line1 = vec!(self.vec[0][2], self.vec[0][1], self.vec[0][0]);
+        let line2 = vec!(self.vec[1][2], self.vec[1][1], self.vec[1][0]);
+        let line3 = vec!(self.vec[2][2], self.vec[2][1], self.vec[2][0]);
         Pattern::new(vec!(line1, line2, line3))
     }
 }

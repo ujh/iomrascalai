@@ -40,5 +40,5 @@ fn patterns() -> Vec<Pattern> {
 #[test]
 fn expand_patterns_includes_all_variations() {
     let expanded = Matcher::expand_patterns(patterns());
-    assert_eq!(expanded.len(), 8);
+    assert_eq!(expanded.len(), 12);
 }
