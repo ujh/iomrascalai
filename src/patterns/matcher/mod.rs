@@ -21,7 +21,7 @@
 
 pub use super::Pattern;
 use board::Board;
-use board::Move;
+use board::Coord;
 
 mod test;
 
@@ -35,7 +35,7 @@ impl Matcher {
         Matcher { patterns: Self::expand_patterns(Self::patterns()) }
     }
 
-    pub fn pattern_count(&self, _: &Board, _: &Move) -> usize {
+    pub fn pattern_count(&self, _: &Board, _: &Coord) -> usize {
         0
     }
 
