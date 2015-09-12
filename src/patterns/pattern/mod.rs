@@ -19,6 +19,9 @@
  *                                                                      *
  ************************************************************************/
 
+use board::Board;
+use board::Coord;
+
 mod test;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -30,6 +33,10 @@ impl Pattern {
 
     pub fn new(vec: Vec<Vec<char>>) -> Pattern {
         Pattern { vec: vec }
+    }
+
+    pub fn matches(&self, _: &Board, _: &Coord) -> bool {
+        false
     }
 
     pub fn expand(&self) -> Vec<Pattern> {
