@@ -251,7 +251,7 @@ impl Node {
     }
 
     fn matching_patterns_count(&self, board: &Board, m: &Move, matcher: Arc<Matcher>) -> usize {
-        matcher.pattern_count(board, m)
+        matcher.pattern_count(board, &m.coord())
     }
 
     fn in_empty_area(&self, board: &Board, m: &Move) -> bool {
