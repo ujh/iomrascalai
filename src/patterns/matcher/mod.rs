@@ -35,8 +35,11 @@ impl Matcher {
         Matcher { patterns: Self::expand_patterns(Self::patterns()) }
     }
 
-    pub fn pattern_count(&self, _: &Board, _: &Coord) -> usize {
-        0
+    pub fn pattern_count(&self, board: &Board, coord: &Coord) -> usize {
+        self.patterns
+            .iter()
+            .filter(|pattern| pattern.matches(board, coord))
+            .count()
     }
 
     fn expand_patterns(patterns: Vec<Pattern>) -> Vec<Pattern> {
