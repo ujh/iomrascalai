@@ -25,18 +25,23 @@ use board::Move;
 
 mod test;
 
-pub struct Matcher;
+pub struct Matcher {
+    patterns: Vec<Pattern>
+}
 
 impl Matcher {
 
     pub fn new() -> Matcher {
-        Matcher
+        Matcher { patterns: Self::expand_patterns(Self::patterns()) }
+    }
+
+    pub fn pattern_count(&self, _: &Board, _: &Move) -> usize {
+        0
     }
 
     fn expand_patterns(patterns: Vec<Pattern>) -> Vec<Pattern> {
         patterns.iter().flat_map(|pattern| pattern.expand()).collect()
     }
-
 
     // Patterns liften from michi.py
     // * X, O are colors
@@ -112,10 +117,6 @@ impl Matcher {
                 vec!('X', '.', 'O'),
                 vec!(' ', ' ', ' '))),
             )
-    }
-
-    pub fn pattern_count(&self, _: &Board, _: &Move) -> usize {
-        0
     }
 
 }
