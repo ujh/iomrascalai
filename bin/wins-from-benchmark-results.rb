@@ -13,5 +13,6 @@ def wins(file)
 end
 
 Dir["*.dat"].each do |fn|
+  next if fn =~ /summary\.dat/
   puts "#{fn}: #{wins(fn)}"
 end
