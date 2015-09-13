@@ -1,4 +1,4 @@
-## 0.2.3 [☰](https://github.com/ujh/iomrascalai/compare/0.2.2...master)
+## 0.2.3 [☰](https://github.com/ujh/iomrascalai/compare/0.2.2...0.2.3)
 
 * Playout the aftermath by default on CGOS
 * Play in the middle of big eyes during playouts
