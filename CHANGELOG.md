@@ -1,3 +1,20 @@
+## 0.2.4 [☰](https://github.com/ujh/iomrascalai/compare/0.2.3...0.2.4)
+
+This release doesn't contain any new features. But as the last release
+happened quite a long time ago and there were some (small) internal
+changes a new release seems to be in order. Also the Rust compiler
+changed a lot in between and changed the performace.
+
+### Performance
+
+After running 200 games on 9x9 with komi 6.5 and a time limit of 5
+minutes (sudden death) the win rate against GnuGo 3.8 level 0 was
+**65.5% ± 3.4** for the default engine with 8 threads.
+
+After running 200 games on 13x13 with komi 6.5 and a time limit of 10
+minutes (sudden death) the win rate against GnuGo 3.8 level 0 was
+**10% ± 2.1** for the default engine with 8 threads.
+
 ## 0.2.3 [☰](https://github.com/ujh/iomrascalai/compare/0.2.2...0.2.3)
 
 * Playout the aftermath by default on CGOS
