@@ -26,7 +26,7 @@ time            = "*"
 [dev-dependencies.hamcrest]
 git = "https://github.com/carllerche/hamcrest-rust.git"
 
-[dev-dependencies.stainless]
+[dependencies.stainless]
 git = "https://github.com/reem/stainless.git"
 
 [profile.release]
