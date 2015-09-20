@@ -14,14 +14,14 @@ license = "GPL-3.0+"
 enum_primitive  = "*"
 getopts         = "*"
 num             = "*"
+quicksort       = "*"
 rand            = "*"
 regex           = "*"
 regex_macros    = "*"
-strenum         = "*"
-time            = "*"
 smallvec        = "*"
-quicksort       = "*"
+strenum         = "*"
 thread-scoped   = "*"
+time            = "*"
 
 [profile.release]
 opt-level = 3
