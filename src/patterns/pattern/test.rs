@@ -21,127 +21,119 @@
 
 #![cfg(test)]
 
-use super::Pattern;
+pub use super::Pattern;
 
-fn pattern() -> Pattern {
-    Pattern::new(vec!(
-        vec!('X', 'O', '.'),
-        vec!('x', 'o', '?'),
-        vec!(' ', ' ', ' ')))
-}
+describe! pattern {
 
-fn expanded() -> Vec<Pattern> {
-    pattern().expand()
-}
+    before_each {
+        let pattern = Pattern::new(vec!(
+            vec!('X', 'O', '.'),
+            vec!('x', 'o', '?'),
+            vec!(' ', ' ', ' ')));
+    }
 
-// expand
+    describe! expand {
 
-#[test]
-fn expand_includes_all_variations() {
-    assert_eq!(expanded().len(), 12);
-}
+        before_each {
+            let expanded = pattern.expand();
+        }
 
-#[test]
-fn expand_includes_the_original_pattern() {
-    assert!(expanded().iter().any(|pat| *pat == pattern()));
-}
+        it "includes all variations" {
+            assert_eq!(expanded.len(), 12);
+        }
 
-#[test]
-fn expand_includes_the_original_pattern_swapped() {
-    let pattern = Pattern::new(vec!(
-        vec!('O', 'X', '.'),
-        vec!('o', 'x', '?'),
-        vec!(' ', ' ', ' ')));
-    assert!(expanded().iter().any(|pat| *pat == pattern));
-}
+        it "includes the original pattern" {
+            assert!(expanded.iter().any(|pat| *pat == pattern));
+        }
 
+        it "includes the orginal pattern swapped" {
+            let pattern = Pattern::new(vec!(
+                vec!('O', 'X', '.'),
+                vec!('o', 'x', '?'),
+                vec!(' ', ' ', ' ')));
+            assert!(expanded.iter().any(|pat| *pat == pattern));
+        }
 
-#[test]
-fn expand_includes_the_90_deg_rotated_pattern() {
-    let pattern = Pattern::new(vec!(
-        vec!(' ', 'x', 'X'),
-        vec!(' ', 'o', 'O'),
-        vec!(' ', '?', '.')));
-    assert!(expanded().iter().any(|pat| *pat == pattern));
-}
+        it "includes the 90deg rotated pattern" {
+            let pattern = Pattern::new(vec!(
+                vec!(' ', 'x', 'X'),
+                vec!(' ', 'o', 'O'),
+                vec!(' ', '?', '.')));
+            assert!(expanded.iter().any(|pat| *pat == pattern));
+        }
 
-#[test]
-fn expand_includes_the_90_deg_rotated_pattern_swapped() {
-    let pattern = Pattern::new(vec!(
-        vec!(' ', 'o', 'O'),
-        vec!(' ', 'x', 'X'),
-        vec!(' ', '?', '.')));
-    assert!(expanded().iter().any(|pat| *pat == pattern));
-}
+        it "includes the 90deg rotated pattern swapped" {
+            let pattern = Pattern::new(vec!(
+                vec!(' ', 'o', 'O'),
+                vec!(' ', 'x', 'X'),
+                vec!(' ', '?', '.')));
+            assert!(expanded.iter().any(|pat| *pat == pattern));
+        }
 
-#[test]
-fn expand_includes_the_180_deg_rotated_pattern() {
-    let pattern = Pattern::new(vec!(
-        vec!(' ', ' ', ' '),
-        vec!('?', 'o', 'x'),
-        vec!('.', 'O', 'X')));
-    assert!(expanded().iter().any(|pat| *pat == pattern));
-}
+        it "includes the 180deg rotated pattern" {
+            let pattern = Pattern::new(vec!(
+                vec!(' ', ' ', ' '),
+                vec!('?', 'o', 'x'),
+                vec!('.', 'O', 'X')));
+            assert!(expanded.iter().any(|pat| *pat == pattern));
+        }
 
-#[test]
-fn expand_includes_the_180_deg_rotated_pattern_swapped() {
-    let pattern = Pattern::new(vec!(
-        vec!(' ', ' ', ' '),
-        vec!('?', 'x', 'o'),
-        vec!('.', 'X', 'O')));
-    assert!(expanded().iter().any(|pat| *pat == pattern));
-}
+        it "includes the 180deg rotated pattern swapped" {
+            let pattern = Pattern::new(vec!(
+                vec!(' ', ' ', ' '),
+                vec!('?', 'x', 'o'),
+                vec!('.', 'X', 'O')));
+            assert!(expanded.iter().any(|pat| *pat == pattern));
+        }
 
-#[test]
-fn expand_includes_the_270_deg_rotated_pattern() {
-    let pattern = Pattern::new(vec!(
-        vec!('.', '?', ' '),
-        vec!('O', 'o', ' '),
-        vec!('X', 'x', ' ')));
-    assert!(expanded().iter().any(|pat| *pat == pattern));
-}
+        it "includes the 270deg rotated pattern" {
+            let pattern = Pattern::new(vec!(
+                vec!('.', '?', ' '),
+                vec!('O', 'o', ' '),
+                vec!('X', 'x', ' ')));
+            assert!(expanded.iter().any(|pat| *pat == pattern));
+        }
 
-#[test]
-fn expand_includes_the_270_deg_rotated_pattern_swapped() {
-    let pattern = Pattern::new(vec!(
-        vec!('.', '?', ' '),
-        vec!('X', 'x', ' '),
-        vec!('O', 'o', ' ')));
-    assert!(expanded().iter().any(|pat| *pat == pattern));
-}
+        it "includes the 270deg rotated pattern swapped" {
+            let pattern = Pattern::new(vec!(
+                vec!('.', '?', ' '),
+                vec!('X', 'x', ' '),
+                vec!('O', 'o', ' ')));
+            assert!(expanded.iter().any(|pat| *pat == pattern));
+        }
 
-#[test]
-fn expand_includes_the_horizontally_flipped_pattern() {
-    let pattern = Pattern::new(vec!(
-        vec!(' ', ' ', ' '),
-        vec!('x', 'o', '?'),
-        vec!('X', 'O', '.')));
-    assert!(expanded().iter().any(|pat| *pat == pattern));
-}
+        it "includes the horizontally flipped pattern" {
+            let pattern = Pattern::new(vec!(
+                vec!(' ', ' ', ' '),
+                vec!('x', 'o', '?'),
+                vec!('X', 'O', '.')));
+            assert!(expanded.iter().any(|pat| *pat == pattern));
+        }
 
-#[test]
-fn expand_includes_the_horizontally_flipped_pattern_swapped() {
-    let pattern = Pattern::new(vec!(
-        vec!(' ', ' ', ' '),
-        vec!('o', 'x', '?'),
-        vec!('O', 'X', '.')));
-    assert!(expanded().iter().any(|pat| *pat == pattern));
-}
+        it "includes the horizontally flipped pattern swapped" {
+            let pattern = Pattern::new(vec!(
+                vec!(' ', ' ', ' '),
+                vec!('o', 'x', '?'),
+                vec!('O', 'X', '.')));
+            assert!(expanded.iter().any(|pat| *pat == pattern));
+        }
 
-#[test]
-fn expand_includes_the_vertically_flipped_pattern() {
-    let pattern = Pattern::new(vec!(
-        vec!('.', 'O', 'X'),
-        vec!('?', 'o', 'x'),
-        vec!(' ', ' ', ' ')));
-    assert!(expanded().iter().any(|pat| *pat == pattern));
-}
+        it "includes the vertially flipped pattern" {
+            let pattern = Pattern::new(vec!(
+                vec!('.', 'O', 'X'),
+                vec!('?', 'o', 'x'),
+                vec!(' ', ' ', ' ')));
+            assert!(expanded.iter().any(|pat| *pat == pattern));
+        }
 
-#[test]
-fn expand_includes_the_vertically_flipped_pattern_swapped() {
-    let pattern = Pattern::new(vec!(
-        vec!('.', 'X', 'O'),
-        vec!('?', 'x', 'o'),
-        vec!(' ', ' ', ' ')));
-    assert!(expanded().iter().any(|pat| *pat == pattern));
+        it "includes the vertically flipped pattern swapped" {
+            let pattern = Pattern::new(vec!(
+                vec!('.', 'X', 'O'),
+                vec!('?', 'x', 'o'),
+                vec!(' ', ' ', ' ')));
+            assert!(expanded.iter().any(|pat| *pat == pattern));
+        }
+
+    }
+
 }

@@ -25,6 +25,7 @@
 #![feature(slice_splits)]
 #![feature(test)]
 #![feature(vec_push_all)]
+#![plugin(stainless)]
 #![plugin(regex_macros)]
 
 extern crate core;
