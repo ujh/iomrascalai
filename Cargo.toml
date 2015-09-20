@@ -23,6 +23,9 @@ strenum         = "*"
 thread-scoped   = "*"
 time            = "*"
 
+[dependencies.stainless]
+git = "https://github.com/reem/stainless.git"
+
 [profile.release]
 opt-level = 3
 debug = false
