@@ -23,6 +23,11 @@
 
 pub use super::Pattern;
 
+pub use hamcrest::assert_that;
+pub use hamcrest::contains;
+pub use hamcrest::equal_to;
+pub use hamcrest::is;
+
 describe! expand {
 
     before_each {
@@ -34,11 +39,11 @@ describe! expand {
     }
 
     it "includes all variations" {
-        assert_eq!(expanded.len(), 12);
+        assert_that(expanded.len(), is(equal_to(12)));
     }
 
     it "includes the original pattern" {
-        assert!(expanded.iter().any(|pat| *pat == pattern));
+        assert_that(&expanded, contains(vec!(pattern)));
     }
 
     it "includes the orginal pattern swapped" {
@@ -46,7 +51,7 @@ describe! expand {
             vec!('O', 'X', '.'),
             vec!('o', 'x', '?'),
             vec!(' ', ' ', ' ')));
-        assert!(expanded.iter().any(|pat| *pat == pattern));
+        assert_that(&expanded, contains(vec!(pattern)));
     }
 
     it "includes the 90deg rotated pattern" {
@@ -54,7 +59,7 @@ describe! expand {
             vec!(' ', 'x', 'X'),
             vec!(' ', 'o', 'O'),
             vec!(' ', '?', '.')));
-        assert!(expanded.iter().any(|pat| *pat == pattern));
+        assert_that(&expanded, contains(vec!(pattern)));
     }
 
     it "includes the 90deg rotated pattern swapped" {
@@ -62,7 +67,7 @@ describe! expand {
             vec!(' ', 'o', 'O'),
             vec!(' ', 'x', 'X'),
             vec!(' ', '?', '.')));
-        assert!(expanded.iter().any(|pat| *pat == pattern));
+        assert_that(&expanded, contains(vec!(pattern)));
     }
 
     it "includes the 180deg rotated pattern" {
@@ -70,7 +75,7 @@ describe! expand {
             vec!(' ', ' ', ' '),
             vec!('?', 'o', 'x'),
             vec!('.', 'O', 'X')));
-        assert!(expanded.iter().any(|pat| *pat == pattern));
+        assert_that(&expanded, contains(vec!(pattern)));
     }
 
     it "includes the 180deg rotated pattern swapped" {
@@ -78,7 +83,7 @@ describe! expand {
             vec!(' ', ' ', ' '),
             vec!('?', 'x', 'o'),
             vec!('.', 'X', 'O')));
-        assert!(expanded.iter().any(|pat| *pat == pattern));
+        assert_that(&expanded, contains(vec!(pattern)));
     }
 
     it "includes the 270deg rotated pattern" {
@@ -86,7 +91,7 @@ describe! expand {
             vec!('.', '?', ' '),
             vec!('O', 'o', ' '),
             vec!('X', 'x', ' ')));
-        assert!(expanded.iter().any(|pat| *pat == pattern));
+        assert_that(&expanded, contains(vec!(pattern)));
     }
 
     it "includes the 270deg rotated pattern swapped" {
@@ -94,7 +99,7 @@ describe! expand {
             vec!('.', '?', ' '),
             vec!('X', 'x', ' '),
             vec!('O', 'o', ' ')));
-        assert!(expanded.iter().any(|pat| *pat == pattern));
+        assert_that(&expanded, contains(vec!(pattern)));
     }
 
     it "includes the horizontally flipped pattern" {
@@ -102,7 +107,7 @@ describe! expand {
             vec!(' ', ' ', ' '),
             vec!('x', 'o', '?'),
             vec!('X', 'O', '.')));
-        assert!(expanded.iter().any(|pat| *pat == pattern));
+        assert_that(&expanded, contains(vec!(pattern)));
     }
 
     it "includes the horizontally flipped pattern swapped" {
@@ -110,7 +115,7 @@ describe! expand {
             vec!(' ', ' ', ' '),
             vec!('o', 'x', '?'),
             vec!('O', 'X', '.')));
-        assert!(expanded.iter().any(|pat| *pat == pattern));
+        assert_that(&expanded, contains(vec!(pattern)));
     }
 
     it "includes the vertially flipped pattern" {
@@ -118,7 +123,7 @@ describe! expand {
             vec!('.', 'O', 'X'),
             vec!('?', 'o', 'x'),
             vec!(' ', ' ', ' ')));
-        assert!(expanded.iter().any(|pat| *pat == pattern));
+        assert_that(&expanded, contains(vec!(pattern)));
     }
 
     it "includes the vertically flipped pattern swapped" {
@@ -126,7 +131,7 @@ describe! expand {
             vec!('.', 'X', 'O'),
             vec!('?', 'x', 'o'),
             vec!(' ', ' ', ' ')));
-        assert!(expanded.iter().any(|pat| *pat == pattern));
+        assert_that(&expanded, contains(vec!(pattern)));
     }
 
 }

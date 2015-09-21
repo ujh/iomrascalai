@@ -25,8 +25,11 @@
 #![feature(slice_splits)]
 #![feature(test)]
 #![feature(vec_push_all)]
-#![plugin(stainless)]
 #![plugin(regex_macros)]
+#![plugin(stainless)]
+
+#[cfg(test)]
+extern crate hamcrest;
 
 extern crate core;
 #[macro_use] extern crate enum_primitive;
