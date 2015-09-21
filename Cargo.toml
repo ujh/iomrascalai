@@ -23,7 +23,7 @@ strenum         = "*"
 thread-scoped   = "*"
 time            = "*"
 
-[dev-dependencies.hamcrest]
+[dependencies.hamcrest]
 git = "https://github.com/carllerche/hamcrest-rust.git"
 
 [dependencies.stainless]
