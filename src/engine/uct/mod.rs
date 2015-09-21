@@ -29,6 +29,7 @@ use board::Resign;
 use config::Config;
 use engine::Engine;
 use game::Game;
+use patterns::Matcher;
 use playout::Playout;
 use self::node::Node;
 
@@ -45,6 +46,7 @@ mod node;
 
 pub struct UctEngine {
     config: Arc<Config>,
+    matcher: Arc<Matcher>,
     playout: Arc<Box<Playout>>,
     previous_node_count: usize,
     root: Node,
@@ -52,9 +54,10 @@ pub struct UctEngine {
 
 impl UctEngine {
 
-    pub fn new(config: Arc<Config>, playout: Box<Playout>) -> UctEngine {
+    pub fn new(config: Arc<Config>, playout: Box<Playout>, matcher: Arc<Matcher>) -> UctEngine {
         UctEngine {
             config: config.clone(),
+            matcher: matcher,
             playout: Arc::new(playout),
             previous_node_count: 0,
             root: Node::new(NoMove, config),
@@ -100,7 +103,7 @@ impl Engine for UctEngine {
                 res = receive_result_from_threads.recv() => {
                     let ((path, winner, nodes_added), send_to_thread) = res.unwrap();
                     self.root.record_on_path(&path, winner, nodes_added);
-                    let data = self.root.find_leaf_and_expand(game);
+                    let data = self.root.find_leaf_and_expand(game, self.matcher.clone());
                     match send_to_thread.send(data) {
                         Ok(_) => {},
                         Err(e) => {

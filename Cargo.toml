@@ -23,6 +23,12 @@ strenum         = "*"
 thread-scoped   = "*"
 time            = "*"
 
+[dependencies.hamcrest]
+git = "https://github.com/carllerche/hamcrest-rust.git"
+
+[dependencies.stainless]
+git = "https://github.com/reem/stainless.git"
+
 [profile.release]
 opt-level = 3
 debug = false

@@ -29,6 +29,7 @@ use board::Color;
 use board::Move;
 use config::Config;
 use game::Game;
+use patterns::Matcher;
 use playout::Playout;
 
 use std::ascii::AsciiExt;
@@ -43,7 +44,7 @@ mod random;
 mod test;
 mod uct;
 
-pub fn factory(opt: Option<String>, config: Arc<Config>, playout: Box<Playout>) -> Box<Engine> {
+pub fn factory(opt: Option<String>, config: Arc<Config>, playout: Box<Playout>, matcher: Arc<Matcher>) -> Box<Engine> {
     let engine_arg = opt.map(|s| s.to_ascii_lowercase());
     match engine_arg {
         Some(s) => {
@@ -51,10 +52,10 @@ pub fn factory(opt: Option<String>, config: Arc<Config>, playout: Box<Playout>) 
                 "random" => Box::new(RandomEngine::new()),
                 "mc"     => Box::new(SimpleMcEngine::new(config, playout)),
                 "amaf"   => Box::new(AmafMcEngine::new(config, playout)),
-                _        => Box::new(UctEngine::new(config, playout)),
+                _        => Box::new(UctEngine::new(config, playout, matcher)),
             }
         },
-        None => Box::new(UctEngine::new(config, playout))
+        None => Box::new(UctEngine::new(config, playout, matcher))
     }
 }
 

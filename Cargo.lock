@@ -4,12 +4,14 @@ version = "0.2.4"
 dependencies = [
  "enum_primitive 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "getopts 0.2.14 (registry+https://github.com/rust-lang/crates.io-index)",
+ "hamcrest 0.1.0 (git+https://github.com/carllerche/hamcrest-rust.git)",
  "num 0.1.27 (registry+https://github.com/rust-lang/crates.io-index)",
  "quicksort 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.3.11 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex 0.1.41 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex_macros 0.1.21 (registry+https://github.com/rust-lang/crates.io-index)",
  "smallvec 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "stainless 0.0.18 (git+https://github.com/reem/stainless.git)",
  "strenum 0.0.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "thread-scoped 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "time 0.1.32 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -44,6 +46,14 @@ dependencies = [
 name = "getopts"
 version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "hamcrest"
+version = "0.1.0"
+source = "git+https://github.com/carllerche/hamcrest-rust.git#a9f18681c64e3126ef6ccbd68ec2a5b39fe5b58b"
+dependencies = [
+ "num 0.1.27 (registry+https://github.com/rust-lang/crates.io-index)",
+]
 
 [[package]]
 name = "kernel32-sys"
@@ -123,6 +133,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "smallvec"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "stainless"
+version = "0.0.18"
+source = "git+https://github.com/reem/stainless.git#507f1612a88f18ce585560dd7477f1276be43e18"
 
 [[package]]
 name = "strenum"
