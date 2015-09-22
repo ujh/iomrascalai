@@ -20,21 +20,22 @@ TIME="5m"
 
 FN="$SHA-9x9"
 
-gogui-twogtp -auto -black "$GNUGO" -white "$IOMRASCALAI" \
-             -size $SIZE -alternate -games $GAMES -sgffile $FN \
-             -time $TIME -referee "$REFEREE" -verbose -debugtocomment
-rm -f $FN.html
-gogui-twogtp -analyze $FN.dat
-
-
-
+if [ ! -f "${FN}.html" ]; then
+    gogui-twogtp -auto -black "$GNUGO" -white "$IOMRASCALAI" \
+                 -size $SIZE -alternate -games $GAMES -sgffile $FN \
+                 -time $TIME -referee "$REFEREE" -verbose -debugtocomment
+    rm -f $FN.html
+    gogui-twogtp -analyze $FN.dat
+fi
 
 SIZE=13
 TIME="10m"
 FN="$SHA-13x13"
 
-gogui-twogtp -auto -black "$GNUGO" -white "$IOMRASCALAI" \
-             -size $SIZE -alternate -games $GAMES -sgffile $FN \
-             -time $TIME -referee "$REFEREE" -verbose -debugtocomment
-rm -f $FN.html
-gogui-twogtp -analyze $FN.dat
+if [ ! -f "${FN}.html" ]; then
+    gogui-twogtp -auto -black "$GNUGO" -white "$IOMRASCALAI" \
+                 -size $SIZE -alternate -games $GAMES -sgffile $FN \
+                 -time $TIME -referee "$REFEREE" -verbose -debugtocomment
+    rm -f $FN.html
+    gogui-twogtp -analyze $FN.dat
+fi
