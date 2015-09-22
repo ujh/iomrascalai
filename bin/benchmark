@@ -5,7 +5,11 @@ cd "$DIR/.."
 
 set -x
 
-SHA=`git rev-parse HEAD`
+if [ -z "$1" ]; then
+    PREFIX=`git rev-parse --short HEAD`
+else
+    PREFIX=$1
+fi
 
 cargo build --release
 
@@ -18,24 +22,24 @@ SIZE=9
 GAMES=200
 TIME="5m"
 
-FN="$SHA-9x9"
+FN9="$PREFIX-9x9"
 
-if [ ! -f "${FN}.html" ]; then
+if [ ! -f "${FN9}.html" ]; then
     gogui-twogtp -auto -black "$GNUGO" -white "$IOMRASCALAI" \
-                 -size $SIZE -alternate -games $GAMES -sgffile $FN \
+                 -size $SIZE -alternate -games $GAMES -sgffile $FN9 \
                  -time $TIME -referee "$REFEREE" -verbose -debugtocomment
-    rm -f $FN.html
-    gogui-twogtp -analyze $FN.dat
+    rm -f $FN9.html
+    gogui-twogtp -analyze $FN9.dat
 fi
 
 SIZE=13
 TIME="10m"
-FN="$SHA-13x13"
+FN13="$PREFIX-13x13"
 
-if [ ! -f "${FN}.html" ]; then
+if [ ! -f "${FN13}.html" ]; then
     gogui-twogtp -auto -black "$GNUGO" -white "$IOMRASCALAI" \
-                 -size $SIZE -alternate -games $GAMES -sgffile $FN \
+                 -size $SIZE -alternate -games $GAMES -sgffile $FN13 \
                  -time $TIME -referee "$REFEREE" -verbose -debugtocomment
-    rm -f $FN.html
-    gogui-twogtp -analyze $FN.dat
+    rm -f $FN13.html
+    gogui-twogtp -analyze $FN13.dat
 fi
