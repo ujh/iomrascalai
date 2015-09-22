@@ -22,6 +22,7 @@
 use board::Black;
 use board::Board;
 use board::Coord;
+use board::White;
 
 mod test;
 
@@ -59,6 +60,7 @@ impl Pattern {
         let color = board.color(nb_coord);
         match point_pattern {
             'X' => { color == Black }
+            'O' => { color == White }
              _  => { true }
         }
     }

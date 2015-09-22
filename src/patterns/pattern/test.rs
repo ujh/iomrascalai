@@ -234,4 +234,14 @@ describe! matches {
         assert_that(pattern.matches(board, off_center), is(equal_to(false)));
     }
 
+    it "matches a single white stone W" {
+        let pattern = Pattern::new(vec!(
+            vec!('.', '.', '.'),
+            vec!('O', '.', '.'),
+            vec!('.', '.', '.')));
+        let board = &board_from_sgf("3x3/one-white-w.sgf");
+        assert_that(pattern.matches(board, center), is(equal_to(true)));
+        assert_that(pattern.matches(board, off_center), is(equal_to(false)));
+    }
+
 }
