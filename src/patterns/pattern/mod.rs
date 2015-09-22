@@ -22,6 +22,7 @@
 use board::Black;
 use board::Board;
 use board::Coord;
+use board::Empty;
 use board::White;
 
 mod test;
@@ -51,18 +52,32 @@ impl Pattern {
             .collect()
     }
 
-    fn matches_at(&self, board: &Board, coord: &Coord, nb_coord: &Coord) -> bool {
-        let offset_col = coord.col as isize - nb_coord.col as isize;
-        let offset_row = coord.row as isize - nb_coord.row as isize;
+    fn matches_at(&self, board: &Board, coord: &Coord, neighbour: &Coord) -> bool {
+        let point_pattern = self.point_pattern_for(coord, neighbour);
+        let is_inside = neighbour.is_inside(board.size());
+        if is_inside {
+            let color = board.color(neighbour);
+            match point_pattern {
+                'X' => { color == Black }
+                'O' => { color == White }
+                '?' => { true }
+                'x' => { color != Black }
+                'o' => { color != White }
+                '.' => { color == Empty }
+                ' ' => { false }
+                _  => { panic!("Unknown pattern {:?}", point_pattern) }
+            }
+        } else {
+            point_pattern == ' '
+        }
+    }
+
+    fn point_pattern_for(&self, coord: &Coord, neighbour: &Coord) -> char {
+        let offset_col = coord.col as isize - neighbour.col as isize;
+        let offset_row = coord.row as isize - neighbour.row as isize;
         let col = (1 - offset_col) as usize;
         let row = (1 + offset_row) as usize;
-        let point_pattern = self.vec[row][col];
-        let color = board.color(nb_coord);
-        match point_pattern {
-            'X' => { color == Black }
-            'O' => { color == White }
-             _  => { true }
-        }
+        self.vec[row][col]
     }
 
     fn rotated(&self) -> Vec<Pattern> {

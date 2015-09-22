@@ -244,4 +244,65 @@ describe! matches {
         assert_that(pattern.matches(board, off_center), is(equal_to(false)));
     }
 
+    it "matches wild cards" {
+        let pattern = Pattern::new(vec!(
+            vec!('.', '.', '.'),
+            vec!('?', '.', '.'),
+            vec!('.', '.', '.')));
+        let board = &board_from_sgf("3x3/one-white-w.sgf");
+        assert_that(pattern.matches(board, center), is(equal_to(true)));
+        assert_that(pattern.matches(board, off_center), is(equal_to(false)));
+    }
+
+    it "matches the not black pattern" {
+        let pattern = Pattern::new(vec!(
+            vec!('.', '.', '.'),
+            vec!('x', '.', '.'),
+            vec!('.', '.', '.')));
+        let board = &board_from_sgf("3x3/one-white-w.sgf");
+        assert_that(pattern.matches(board, center), is(equal_to(true)));
+        assert_that(pattern.matches(board, off_center), is(equal_to(false)));
+    }
+
+    it "doesn't match the not black pattern" {
+        let pattern = Pattern::new(vec!(
+            vec!('.', '.', '.'),
+            vec!('x', '.', '.'),
+            vec!('.', '.', '.')));
+        let board = &board_from_sgf("3x3/one-black-w.sgf");
+        assert_that(pattern.matches(board, center), is(equal_to(false)));
+        assert_that(pattern.matches(board, off_center), is(equal_to(false)));
+    }
+
+    it "matches the not white pattern" {
+        let pattern = Pattern::new(vec!(
+            vec!('.', '.', '.'),
+            vec!('o', '.', '.'),
+            vec!('.', '.', '.')));
+        let board = &board_from_sgf("3x3/one-black-w.sgf");
+        assert_that(pattern.matches(board, center), is(equal_to(true)));
+        assert_that(pattern.matches(board, off_center), is(equal_to(false)));
+    }
+
+    it "doesn't match the not white pattern" {
+        let pattern = Pattern::new(vec!(
+            vec!('.', '.', '.'),
+            vec!('o', '.', '.'),
+            vec!('.', '.', '.')));
+        let board = &board_from_sgf("3x3/one-white-w.sgf");
+        assert_that(pattern.matches(board, center), is(equal_to(false)));
+        assert_that(pattern.matches(board, off_center), is(equal_to(false)));
+    }
+
+    it "matches off board" {
+        let pattern = Pattern::new(vec!(
+            vec!(' ', '.', '.'),
+            vec!(' ', '.', '.'),
+            vec!(' ', ' ', ' ')));
+        let board = &board_from_sgf("empty.sgf");
+        assert_that(pattern.matches(board, &Coord::new(1,1)), is(equal_to(true)));
+        assert_that(pattern.matches(board, &Coord::new(2,1)), is(equal_to(false)));
+        assert_that(pattern.matches(board, &Coord::new(1,2)), is(equal_to(false)));
+    }
+
 }
