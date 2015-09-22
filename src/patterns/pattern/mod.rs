@@ -19,6 +19,7 @@
  *                                                                      *
  ************************************************************************/
 
+use board::Black;
 use board::Board;
 use board::Coord;
 
@@ -35,8 +36,10 @@ impl Pattern {
         Pattern { vec: vec }
     }
 
-    pub fn matches(&self, _: &Board, _: &Coord) -> bool {
-        false
+    pub fn matches(&self, board: &Board, coord: &Coord) -> bool {
+        coord.neighbours8_unchecked()
+            .iter()
+            .all(|nc| self.matches_at(board, coord, nc))
     }
 
     pub fn expand(&self) -> Vec<Pattern> {
@@ -45,6 +48,19 @@ impl Pattern {
             .chain(self.swapped().iter())
             .cloned()
             .collect()
+    }
+
+    fn matches_at(&self, board: &Board, coord: &Coord, nb_coord: &Coord) -> bool {
+        let offset_col = coord.col as isize - nb_coord.col as isize;
+        let offset_row = coord.row as isize - nb_coord.row as isize;
+        let col = (1 - offset_col) as usize;
+        let row = (1 + offset_row) as usize;
+        let point_pattern = self.vec[row][col];
+        let color = board.color(nb_coord);
+        match point_pattern {
+            'X' => { color == Black }
+             _  => { true }
+        }
     }
 
     fn rotated(&self) -> Vec<Pattern> {

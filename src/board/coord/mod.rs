@@ -72,6 +72,19 @@ impl Coord {
             .collect()
     }
 
+    pub fn neighbours8_unchecked(&self) -> Vec<Coord> {
+        // This works as we never use row or column 0.
+        vec!(
+            Coord::new(self.col-1, self.row-1), // SW
+            Coord::new(self.col,   self.row-1), // S
+            Coord::new(self.col+1, self.row-1), // SE
+            Coord::new(self.col+1, self.row),   // E
+            Coord::new(self.col+1, self.row+1), // NE
+            Coord::new(self.col,   self.row+1), // N
+            Coord::new(self.col-1, self.row+1), // NW
+            Coord::new(self.col-1, self.row))   // W
+    }
+
     pub fn to_index(&self, board_size: u8) -> usize {
         (self.col as usize-1 + (self.row as usize-1)*board_size as usize)
     }

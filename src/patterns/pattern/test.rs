@@ -21,12 +21,17 @@
 
 #![cfg(test)]
 
-pub use super::Pattern;
-
 pub use hamcrest::assert_that;
 pub use hamcrest::contains;
 pub use hamcrest::equal_to;
 pub use hamcrest::is;
+pub use std::path::Path;
+
+pub use board::Board;
+pub use board::Coord;
+pub use sgf::Parser;
+
+pub use super::Pattern;
 
 describe! expand {
 
@@ -132,6 +137,101 @@ describe! expand {
             vec!('?', 'x', 'o'),
             vec!(' ', ' ', ' ')));
         assert_that(&expanded, contains(vec!(pattern)));
+    }
+
+}
+
+pub fn board_from_sgf(s: &str) -> Board {
+    let parser = Parser::from_path(Path::new(&format!("fixtures/sgf/{}", s))).unwrap();
+    let game = parser.game().unwrap();
+    game.board()
+}
+
+describe! matches {
+
+    before_each {
+        let center = &Coord::new(5, 5);
+        let off_center = &Coord::new(4, 4);
+    }
+
+    it "matches a single black stone NW" {
+        let pattern = Pattern::new(vec!(
+            vec!('X', '.', '.'),
+            vec!('.', '.', '.'),
+            vec!('.', '.', '.')));
+        let board = &board_from_sgf("3x3/one-black-nw.sgf");
+        assert_that(pattern.matches(board, center), is(equal_to(true)));
+        assert_that(pattern.matches(board, off_center), is(equal_to(false)));
+    }
+
+    it "matches a single black stone N" {
+        let pattern = Pattern::new(vec!(
+            vec!('.', 'X', '.'),
+            vec!('.', '.', '.'),
+            vec!('.', '.', '.')));
+        let board = &board_from_sgf("3x3/one-black-n.sgf");
+        assert_that(pattern.matches(board, center), is(equal_to(true)));
+        assert_that(pattern.matches(board, off_center), is(equal_to(false)));
+    }
+
+    it "matches a single black stone NE" {
+        let pattern = Pattern::new(vec!(
+            vec!('.', '.', 'X'),
+            vec!('.', '.', '.'),
+            vec!('.', '.', '.')));
+        let board = &board_from_sgf("3x3/one-black-ne.sgf");
+        assert_that(pattern.matches(board, center), is(equal_to(true)));
+        assert_that(pattern.matches(board, off_center), is(equal_to(false)));
+    }
+
+    it "matches a single black stone E" {
+        let pattern = Pattern::new(vec!(
+            vec!('.', '.', '.'),
+            vec!('.', '.', 'X'),
+            vec!('.', '.', '.')));
+        let board = &board_from_sgf("3x3/one-black-e.sgf");
+        assert_that(pattern.matches(board, center), is(equal_to(true)));
+        assert_that(pattern.matches(board, off_center), is(equal_to(false)));
+    }
+
+    it "matches a single black stone SE" {
+        let pattern = Pattern::new(vec!(
+            vec!('.', '.', '.'),
+            vec!('.', '.', '.'),
+            vec!('.', '.', 'X')));
+        let board = &board_from_sgf("3x3/one-black-se.sgf");
+        assert_that(pattern.matches(board, center), is(equal_to(true)));
+        assert_that(pattern.matches(board, off_center), is(equal_to(false)));
+    }
+
+    it "matches a single black stone S" {
+        let pattern = Pattern::new(vec!(
+            vec!('.', '.', '.'),
+            vec!('.', '.', '.'),
+            vec!('.', 'X', '.')));
+        let board = &board_from_sgf("3x3/one-black-s.sgf");
+        assert_that(pattern.matches(board, center), is(equal_to(true)));
+        assert_that(pattern.matches(board, off_center), is(equal_to(false)));
+    }
+
+    it "matches a single black stone SW" {
+        let pattern = Pattern::new(vec!(
+            vec!('.', '.', '.'),
+            vec!('.', '.', '.'),
+            vec!('X', '.', '.')));
+        let board = &board_from_sgf("3x3/one-black-sw.sgf");
+        assert_that(pattern.matches(board, center), is(equal_to(true)));
+        assert_that(pattern.matches(board, off_center), is(equal_to(false)));
+    }
+
+    it "matches a single black stone W" {
+        let pattern = Pattern::new(vec!(
+            vec!('.', '.', '.'),
+            vec!('X', '.', '.'),
+            vec!('.', '.', '.')));
+        let board = &board_from_sgf("3x3/one-black-w.sgf");
+        assert_that(pattern.matches(board, center), is(equal_to(true)));
+        assert_that(pattern.matches(board, off_center), is(equal_to(false)));
     }
 
 }
