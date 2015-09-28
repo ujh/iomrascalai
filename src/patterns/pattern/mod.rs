@@ -39,7 +39,7 @@ impl Pattern {
     }
 
     pub fn matches(&self, board: &Board, coord: &Coord) -> bool {
-        coord.neighbours8_unchecked()
+        board.neighbours8_unchecked(*coord)
             .iter()
             .all(|nc| self.matches_at(board, coord, nc))
     }

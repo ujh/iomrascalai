@@ -96,15 +96,17 @@ impl Color {
 
 #[derive(Debug)]
 struct Cache {
-	diagonals: Vec<Vec<Coord>>,
-	neighbours: Vec<Vec<Coord>>,
+    diagonals: Vec<Vec<Coord>>,
+    neighbours: Vec<Vec<Coord>>,
+    neighbours8_unchecked: Vec<Vec<Coord>>
 }
 
 impl Cache {
     pub fn new(size: u8) -> Cache {
         Cache {
-            diagonals:             Cache::setup_diagonals(size),
-            neighbours:            Cache::setup_neighbours(size),
+            diagonals: Self::setup_diagonals(size),
+            neighbours: Self::setup_neighbours(size),
+            neighbours8_unchecked: Self::setup_neighbours8_unchecked(size),
         }
     }
 
@@ -122,6 +124,14 @@ impl Cache {
             diagonals.push(coord.diagonals(size));
         }
         diagonals
+    }
+
+    fn setup_neighbours8_unchecked(size: u8) -> Vec<Vec<Coord>> {
+        let mut neighbours8 = Vec::new();
+        for coord in Coord::for_board_size(size).iter() {
+            neighbours8.push(coord.neighbours8_unchecked());
+        }
+        neighbours8
     }
 }
 
@@ -187,6 +197,10 @@ impl Board {
 
     pub fn diagonals(&self, c: Coord) -> &Vec<Coord> {
         &self.cache.diagonals[c.to_index(self.size)]
+    }
+
+    pub fn neighbours8_unchecked(&self, c: Coord) -> &Vec<Coord> {
+        &self.cache.neighbours8_unchecked[c.to_index(self.size)]
     }
 
     pub fn points(&self) -> &Vec<Point> {
