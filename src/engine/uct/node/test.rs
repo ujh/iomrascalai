@@ -21,14 +21,13 @@
 
 #![cfg(test)]
 
-use std::sync::Arc;
-
 use board::Black;
 use board::Pass;
 use board::Play;
 use board::White;
 use config::Config;
 use game::Game;
+use patterns::Matcher;
 use playout;
 use ruleset::KgsChinese;
 use sgf::Parser;
@@ -36,10 +35,15 @@ use super::Node;
 
 use rand::weak_rng;
 use std::path::Path;
+use std::sync::Arc;
 use test::Bencher;
 
 fn config() -> Arc<Config> {
     Arc::new(Config::default())
+}
+
+fn matcher() -> Arc<Matcher> {
+    Arc::new(Matcher::new())
 }
 
 fn play_out_aftermath(play_out_aftermath: bool) -> Arc<Config> {
@@ -62,7 +66,7 @@ fn expand_doesnt_add_children_to_terminal_nodes() {
     game = game.play(Pass(Black)).unwrap();
     game = game.play(Pass(White)).unwrap();
     let mut node = Node::new(Pass(Black), config());
-    node.expand(&game.board());
+    node.expand(&game.board(), matcher());
     assert_eq!(0, node.children.len());
 }
 
@@ -71,7 +75,7 @@ fn expand_doesnt_add_children_if_threshold_not_met() {
     let game = Game::new(2, 0.5, KgsChinese);
     let mut node = Node::new(Pass(Black), config());
     node.plays = 0;
-    node.expand(&game.board());
+    node.expand(&game.board(), matcher());
     assert_eq!(0, node.children.len());
 }
 
@@ -80,7 +84,7 @@ fn expand_adds_children_if_threshold_is_met() {
     let game = Game::new(2, 0.5, KgsChinese);
     let mut node = Node::new(Pass(Black), config());
     node.plays = 2;
-    node.expand(&game.board());
+    node.expand(&game.board(), matcher());
     assert_eq!(4, node.children.len());
 }
 
@@ -89,7 +93,7 @@ fn expand_sets_the_descendant_count_if_the_node_was_expanded() {
     let game = Game::new(5, 6.5, KgsChinese);
     let board = game.board();
     let mut node = Node::new(Pass(Black), config());
-    node.expand(&board);
+    node.expand(&board,matcher());
     assert_eq!(25, node.descendants);
 }
 
@@ -102,7 +106,7 @@ fn expand_adds_pass_in_the_endgame() {
     board.play(Pass(White)).unwrap();
     assert_eq!(Black, board.next_player());
     let mut node = Node::new(Pass(Black), config());
-    node.expand(&board);
+    node.expand(&board, matcher());
     let found_pass = node.children.iter().any(|node| node.m().is_pass());
     assert!(found_pass);
 }
@@ -112,7 +116,7 @@ fn expand_doesnt_add_pass_before_the_endgame() {
     let game = Game::new(5, 6.5, KgsChinese);
     let board = game.board();
     let mut node = Node::new(Pass(Black), config());
-    node.expand(&board);
+    node.expand(&board, matcher());
     let found_pass = node.children.iter().any(|node| node.m().is_pass());
     assert!(!found_pass);
 }
@@ -126,7 +130,7 @@ fn expand_doesnt_add_pass_if_we_are_losing_and_we_playout_the_aftermath() {
     board.set_ruleset(KgsChinese);
     assert_eq!(White, board.next_player());
     let mut node = Node::new(Pass(White), config);
-    node.expand(&board);
+    node.expand(&board, matcher());
     let found_pass = node.children.iter().any(|node| node.m().is_pass());
     assert!(!found_pass);
 }
@@ -140,7 +144,7 @@ fn expand_adds_pass_if_we_are_losing_and_dont_playout_the_aftermath() {
     board.set_ruleset(KgsChinese);
     assert_eq!(White, board.next_player());
     let mut node = Node::new(Pass(White), config);
-    node.expand(&board);
+    node.expand(&board, matcher());
     let found_pass = node.children.iter().any(|node| node.m().is_pass());
     assert!(found_pass);
 }
@@ -155,7 +159,7 @@ fn expand_adds_pass_if_we_are_winning_and_we_are_playing_out_the_aftermath() {
     board.play(Pass(White)).unwrap();
     assert_eq!(Black, board.next_player());
     let mut node = Node::new(Pass(Black), config);
-    node.expand(&board);
+    node.expand(&board, matcher());
     let found_pass = node.children.iter().any(|node| node.m().is_pass());
     assert!(found_pass);
 }
@@ -166,7 +170,7 @@ fn find_leaf_and_expand_expands_the_leaves() {
     let game = Game::new(2, 0.5, KgsChinese);
     let mut root = Node::root(&game, Black, config());
     for _ in 0..4 {
-        root.find_leaf_and_expand(&game);
+        root.find_leaf_and_expand(&game, matcher());
     }
     assert_eq!(4, root.children.len());
     assert!(root.children.iter().all(|n| n.children.len() == 3));
@@ -176,7 +180,7 @@ fn find_leaf_and_expand_expands_the_leaves() {
 fn find_leaf_and_expand_sets_play_on_the_root() {
     let game = Game::new(2, 0.5, KgsChinese);
     let mut root = Node::root(&game, Black, config());
-    root.find_leaf_and_expand(&game);
+    root.find_leaf_and_expand(&game, matcher());
     assert_eq!(2, root.plays);
 }
 
@@ -184,7 +188,7 @@ fn find_leaf_and_expand_sets_play_on_the_root() {
 fn find_leaf_and_expand_returns_the_number_of_nodes_added() {
     let game = Game::new(2, 0.5, KgsChinese);
     let mut root = Node::root(&game, Black, config());
-    let (_,_,_,count) = root.find_leaf_and_expand(&game);
+    let (_,_,_,count) = root.find_leaf_and_expand(&game, matcher());
     assert_eq!(3, count);
 }
 
@@ -391,7 +395,7 @@ fn full_uct_cycle(size: u8, b: &mut Bencher) {
     let playout = playout::factory(None, config.clone());
     let mut rng = weak_rng();
     b.iter(|| {
-        let (path, moves, _, nodes_added) = root.find_leaf_and_expand(&game);
+        let (path, moves, _, nodes_added) = root.find_leaf_and_expand(&game, matcher());
         let mut b = game.board();
         for &m in moves.iter() {
             b.play_legal_move(m);

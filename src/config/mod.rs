@@ -33,10 +33,10 @@ mod test;
 #[derive(Debug, Clone, PartialEq)]
 pub struct UctConfig {
     pub end_of_game_cutoff: f32,
-    pub reuse_subtree: bool,
-    pub tuned: bool,
     pub expand_after: usize,
     pub priors: UctPriorsConfig,
+    pub reuse_subtree: bool,
+    pub tuned: bool,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -46,8 +46,10 @@ pub struct UctPriorsConfig {
     pub empty: usize,
     pub neutral_plays: usize,
     pub neutral_wins: usize,
+    pub patterns: usize,
     pub self_atari: usize,
     pub use_empty: bool,
+    pub use_patterns: bool,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -59,8 +61,8 @@ pub struct TimerConfig {
 pub struct PlayoutConfig {
     pub atari_check: bool,
     pub ladder_check: bool,
-    pub play_in_middle_of_eye: bool,
     pub no_self_atari_cutoff: usize,
+    pub play_in_middle_of_eye: bool,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -68,10 +70,10 @@ pub struct Config {
     pub debug: bool,
     pub log: bool,
     pub play_out_aftermath: bool,
-    pub ruleset: Ruleset,
-    pub timer: TimerConfig,
     pub playout: PlayoutConfig,
+    pub ruleset: Ruleset,
     pub threads: usize,
+    pub timer: TimerConfig,
     pub uct: UctConfig,
 }
 
@@ -136,8 +138,10 @@ impl Config {
                     empty: 20,
                     neutral_plays: 10,
                     neutral_wins: 5,
+                    patterns: 10,
                     self_atari: 10,
                     use_empty: true,
+                    use_patterns: false,
                 },
                 reuse_subtree: true,
                 tuned: true,
@@ -146,21 +150,22 @@ impl Config {
     }
 
     pub fn setup(&self, opts: &mut Options) {
-        opts.optflag("h", "help", "print this help menu");
-        opts.optflag("v", "version", "print the version number");
+        opts.optflag("h", "help", "Print this help menu");
+        opts.optflag("v", "version", "Print the version number");
 
-        self.flag(opts, "l", "log", "log to stderr", self.log);
+        self.flag(opts, "l", "log", "Log to stderr", self.log);
 
-        self.opt(opts, "empty-area-prior", "prior value for empty areas", self.uct.priors.empty);
-        self.opt(opts, "play-out-aftermath", "keep playing after the result of the game is decided", self.play_out_aftermath);
-        self.opt(opts, "play-in-middle-of-eye", "try playing in the middle of a large eye", self.playout.play_in_middle_of_eye);
-        self.opt(opts, "reuse-subtree", "reuse the subtree from the previous search", self.uct.reuse_subtree);
+        self.opt(opts, "empty-area-prior", "Prior value for empty areas", self.uct.priors.empty);
+        self.opt(opts, "play-out-aftermath", "Keep playing after the result of the game is decided", self.play_out_aftermath);
+        self.opt(opts, "play-in-middle-of-eye", "Try playing in the middle of a large eye", self.playout.play_in_middle_of_eye);
+        self.opt(opts, "reuse-subtree", "Reuse the subtree from the previous search", self.uct.reuse_subtree);
         self.opt(opts, "use-atari-check-in-playouts", "Check for atari in the playouts", self.playout.ladder_check);
-        self.opt(opts, "use-empty-area-prior", "use a prior for empty areas on the board", self.uct.priors.use_empty);
+        self.opt(opts, "use-empty-area-prior", "Use a prior for empty areas on the board", self.uct.priors.use_empty);
         self.opt(opts, "use-ladder-check-in-playouts", "Check for ladders in the playouts", self.playout.ladder_check);
+        self.opt(opts, "use-patterns-prior", "Use a prior to prioritize 3x3 patterns", self.uct.priors.use_patterns);
         self.opt(opts, "use-ucb1-tuned", "Use the UCB1tuned selection strategy", self.uct.tuned);
-        self.optopt(opts, "r", "ruleset", "select the ruleset", self.ruleset);
-        self.optopt(opts, "t", "threads", "number of threads to use", self.threads);
+        self.optopt(opts, "r", "ruleset", "Select the ruleset", self.ruleset);
+        self.optopt(opts, "t", "threads", "Number of threads to use", self.threads);
     }
 
     pub fn set_from_opts(&mut self, matches: &Matches, opts: &Options, args: &Vec<String>) -> Result<Option<String>, String>{

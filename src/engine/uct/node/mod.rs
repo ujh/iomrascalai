@@ -28,6 +28,7 @@ use board::Pass;
 use board::Play;
 use config::Config;
 use game::Game;
+use patterns::Matcher;
 
 use std::sync::Arc;
 use std::f32;
@@ -117,14 +118,14 @@ impl Node {
         }
     }
 
-    pub fn find_leaf_and_expand(&mut self, game: &Game) -> (Vec<usize>, Vec<Move>, bool, usize) {
+    pub fn find_leaf_and_expand(&mut self, game: &Game, matcher: Arc<Matcher>) -> (Vec<usize>, Vec<Move>, bool, usize) {
         let (path, moves, leaf) = self.find_leaf_and_mark(vec!(), vec!());
         let mut board = game.board();
         for &m in moves.iter() {
             board.play_legal_move(m);
         }
         let previous_desc = leaf.descendants;
-        let not_terminal = leaf.expand(&board);
+        let not_terminal = leaf.expand(&board, matcher);
         if !not_terminal {
             let is_win = board.winner() == leaf.color();
             leaf.mark_as_terminal(is_win);
@@ -167,12 +168,12 @@ impl Node {
         }
  }
 
-    pub fn expand(&mut self, board: &Board) -> bool {
+    pub fn expand(&mut self, board: &Board, matcher: Arc<Matcher>) -> bool {
         let not_terminal = !board.is_game_over();
         if not_terminal && self.plays >= self.config.uct.expand_after {
             let mut children = board.legal_moves_without_eyes()
                 .iter()
-                .map(|m| self.new_leaf(board, m))
+                .map(|m| self.new_leaf(board, m, matcher.clone()))
                 .collect();
 
             self.priors(&mut children, board);
@@ -221,7 +222,7 @@ impl Node {
             }
     }
 
-    pub fn new_leaf(&self, board: &Board, m: &Move) -> Node {
+    pub fn new_leaf(&self, board: &Board, m: &Move, matcher: Arc<Matcher>) -> Node {
         let mut node = Node::new(*m, self.config.clone());
 
         if !board.is_not_self_atari(m) {
@@ -240,7 +241,17 @@ impl Node {
                 }
             }
         }
+        if self.config.uct.priors.use_patterns {
+            let count = self.matching_patterns_count(board, m, matcher);
+            let prior = count * self.config.uct.priors.patterns;
+            node.plays += prior;
+            node.wins += prior;
+        }
         node
+    }
+
+    fn matching_patterns_count(&self, board: &Board, m: &Move, matcher: Arc<Matcher>) -> usize {
+        matcher.pattern_count(board, &m.coord())
     }
 
     fn in_empty_area(&self, board: &Board, m: &Move) -> bool {

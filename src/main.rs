@@ -26,6 +26,10 @@
 #![feature(test)]
 #![feature(vec_push_all)]
 #![plugin(regex_macros)]
+#![plugin(stainless)]
+
+#[cfg(test)]
+extern crate hamcrest;
 
 extern crate core;
 #[macro_use] extern crate enum_primitive;
@@ -43,6 +47,7 @@ extern crate time;
 
 use config::Config;
 use gtp::driver::Driver;
+use patterns::Matcher;
 
 use getopts::Options;
 use std::sync::Arc;
@@ -64,6 +69,7 @@ mod config;
 mod engine;
 mod game;
 mod gtp;
+mod patterns;
 mod playout;
 mod ruleset;
 mod score;
@@ -76,8 +82,8 @@ pub fn main() {
     let mut opts = Options::new();
     let args : Vec<String> = args().collect();
 
-    opts.optopt("e", "engine", "select an engine (defaults to uct)", "amaf|mc|random|uct");
-    opts.optopt("p", "playout", "type of playout to use (defaults to no-self-atari)", "light|no-self-atari");
+    opts.optopt("e", "engine", "Select an engine (defaults to uct)", "amaf|mc|random|uct");
+    opts.optopt("p", "playout", "Type of playout to use (defaults to no-self-atari)", "light|no-self-atari");
 
     config.setup(&mut opts);
 
@@ -107,10 +113,12 @@ pub fn main() {
     }
 
     let config = Arc::new(config);
-
+    // Instantiate only one matcher as it does a lot of computation
+    // during setup.
+    let matcher = Arc::new(Matcher::new());
     let playout = playout::factory(matches.opt_str("p"), config.clone());
 
-    let engine = engine::factory(matches.opt_str("e"), config.clone(), playout);
+    let engine = engine::factory(matches.opt_str("e"), config.clone(), playout, matcher);
 
     log!("Current configuration: {:?}", config);
 
