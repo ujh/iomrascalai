@@ -21,24 +21,26 @@
 
 #![cfg(test)]
 
-use super::Matcher;
-use super::Pattern;
+pub use hamcrest::assert_that;
+pub use hamcrest::equal_to;
+pub use hamcrest::is;
 
-fn pattern() -> Pattern {
-    Pattern::new(vec!(
-        vec!('X', 'O', '.'),
-        vec!('x', 'o', '?'),
-        vec!(' ', ' ', ' ')))
-}
+pub use super::Matcher;
+pub use super::Pattern;
 
-fn patterns() -> Vec<Pattern> {
-    vec!(pattern())
-}
+describe! expand_patterns {
 
-// expand_patterns
+    before_each {
+        let pattern = Pattern::new(vec!(
+            vec!('X', 'O', '.'),
+            vec!('x', 'o', '?'),
+            vec!(' ', ' ', ' ')));
+        let patterns = vec!(pattern);
+    }
 
-#[test]
-fn expand_patterns_includes_all_variations() {
-    let expanded = Matcher::expand_patterns(patterns());
-    assert_eq!(expanded.len(), 12);
+    it "includes all variations" {
+        let expanded = Matcher::expand_patterns(patterns);
+        assert_that(expanded.len(), is(equal_to(12)));
+    }
+
 }
