@@ -24,6 +24,11 @@
 pub use hamcrest::assert_that;
 pub use hamcrest::equal_to;
 pub use hamcrest::is;
+pub use std::path::Path;
+
+pub use board::Board;
+pub use board::Coord;
+pub use sgf::Parser;
 
 pub use super::Matcher;
 pub use super::Pattern;
@@ -43,4 +48,91 @@ describe! expand_patterns {
         assert_that(expanded.len(), is(equal_to(12)));
     }
 
+}
+
+pub fn board_from_sgf(s: &str) -> Board {
+    let parser = Parser::from_path(Path::new(&format!("fixtures/sgf/{}", s))).unwrap();
+    let game = parser.game().unwrap();
+    game.board()
+}
+
+describe! pattern_count {
+
+    before_each {
+        let center = &Coord::new(5, 5);
+        let off_center = &Coord::new(4, 4);
+    }
+
+    it "matches patterns with black stones" {
+        let pattern = Pattern::new(vec!(
+            vec!('.', '.', '.'),
+            vec!('X', '.', '.'),
+            vec!('.', '.', '.')));
+        let matcher = Matcher::with_patterns(vec!(pattern));
+        let board = &board_from_sgf("3x3/one-black-w.sgf");
+        assert_that(matcher.pattern_count(board, center), is(equal_to(1)));
+        assert_that(matcher.pattern_count(board, off_center), is(equal_to(0)));
+    }
+
+    it "matches patterns with white stones" {
+        let pattern = Pattern::new(vec!(
+            vec!('.', '.', '.'),
+            vec!('O', '.', '.'),
+            vec!('.', '.', '.')));
+        let matcher = Matcher::with_patterns(vec!(pattern));
+        let board = &board_from_sgf("3x3/one-white-w.sgf");
+        assert_that(matcher.pattern_count(board, center), is(equal_to(1)));
+        assert_that(matcher.pattern_count(board, off_center), is(equal_to(0)));
+    }
+
+    it "matches patterns with non-black stones" {
+        let pattern = Pattern::new(vec!(
+            vec!('.', '.', '.'),
+            vec!('x', '.', '.'),
+            vec!('.', '.', '.')));
+        let matcher = Matcher::with_patterns(vec!(pattern));
+        let board = &board_from_sgf("3x3/one-white-w.sgf");
+        assert_that(matcher.pattern_count(board, center), is(equal_to(1)));
+        assert_that(matcher.pattern_count(board, off_center), is(equal_to(0)));
+    }
+
+    it "matches patterns with non-white stones" {
+        let pattern = Pattern::new(vec!(
+            vec!('.', '.', '.'),
+            vec!('o', '.', '.'),
+            vec!('.', '.', '.')));
+        let matcher = Matcher::with_patterns(vec!(pattern));
+        let board = &board_from_sgf("3x3/one-black-w.sgf");
+        assert_that(matcher.pattern_count(board, center), is(equal_to(1)));
+        assert_that(matcher.pattern_count(board, off_center), is(equal_to(0)));
+    }
+
+    it "matches patterns with wildcards" {
+        let pattern = Pattern::new(vec!(
+            vec!('.', '.', '.'),
+            vec!('?', '.', '.'),
+            vec!('.', '.', '.')));
+        let matcher = Matcher::with_patterns(vec!(pattern));
+        let black_board = &board_from_sgf("3x3/one-black-w.sgf");
+        assert_that(matcher.pattern_count(black_board, center), is(equal_to(1)));
+        assert_that(matcher.pattern_count(black_board, off_center), is(equal_to(0)));
+        let white_board = &board_from_sgf("3x3/one-white-w.sgf");
+        assert_that(matcher.pattern_count(white_board, center), is(equal_to(1)));
+        assert_that(matcher.pattern_count(white_board, off_center), is(equal_to(0)));
+        let empty_board = &board_from_sgf("empty.sgf");
+        assert_that(matcher.pattern_count(empty_board, center), is(equal_to(1)));
+        assert_that(matcher.pattern_count(empty_board, off_center), is(equal_to(1)));
+    }
+
+    it "matches off board patterns" {
+        let pattern = Pattern::new(vec!(
+            vec!(' ', '.', '.'),
+            vec!(' ', '.', '.'),
+            vec!(' ', ' ', ' ')));
+        let matcher = Matcher::with_patterns(vec!(pattern));
+        let board = &board_from_sgf("empty.sgf");
+        assert_that(matcher.pattern_count(board, &Coord::new(1,1)), is(equal_to(1)));
+        assert_that(matcher.pattern_count(board, center), is(equal_to(0)));
+        assert_that(matcher.pattern_count(board, off_center), is(equal_to(0)));
+    }
 }

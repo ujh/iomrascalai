@@ -32,7 +32,11 @@ pub struct Matcher {
 impl Matcher {
 
     pub fn new() -> Matcher {
-        Matcher { patterns: Self::expand_patterns(Self::patterns()) }
+        Self::with_patterns(Self::expand_patterns(Self::patterns()))
+    }
+
+    fn with_patterns(patterns: Vec<Pattern>) -> Matcher {
+        Matcher { patterns: patterns }
     }
 
     pub fn pattern_count(&self, board: &Board, coord: &Coord) -> usize {
