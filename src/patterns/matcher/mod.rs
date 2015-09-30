@@ -24,6 +24,7 @@ use board::Board;
 use board::Coord;
 
 mod test;
+mod tree;
 
 pub struct Matcher {
     patterns: Vec<Pattern>
