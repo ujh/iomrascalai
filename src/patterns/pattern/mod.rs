@@ -27,19 +27,58 @@ use board::White;
 
 mod test;
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum PointPattern {
+    Black,
+    NotBlack,
+    White,
+    NotWhite,
+    All,
+    Empty,
+    OffBoard
+}
+
+impl PointPattern {
+
+    pub fn from_char(c: &char) -> PointPattern {
+        match *c {
+            'X' => PointPattern::Black,
+            'O' => PointPattern::White,
+            '?' => PointPattern::All,
+            'x' => PointPattern::NotBlack,
+            'o' => PointPattern::NotWhite,
+            '.' => PointPattern::Empty,
+            ' ' => PointPattern::OffBoard,
+            _   => panic!("Can't convert {:?} to PointPattern", c)
+        }
+    }
+
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Pattern {
-    vec: Vec<Vec<char>>
+    vec: Vec<PointPattern>
 }
 
 impl Pattern {
 
     pub fn new(vec: Vec<Vec<char>>) -> Pattern {
+        let mut v = vec!();
+        // Can be done with flat_map, I think.
+        for sv in vec.iter() {
+            for c in sv.iter() {
+                v.push(PointPattern::from_char(c));
+            }
+        }
+        Pattern { vec: v }
+    }
+
+    fn raw(vec: Vec<PointPattern>) -> Pattern {
         Pattern { vec: vec }
     }
 
     pub fn matches(&self, board: &Board, coord: &Coord) -> bool {
-        coord.neighbours8_unchecked()
+        board.neighbours8_unchecked(*coord)
             .iter()
             .all(|nc| self.matches_at(board, coord, nc))
     }
@@ -58,26 +97,25 @@ impl Pattern {
         if is_inside {
             let color = board.color(neighbour);
             match point_pattern {
-                'X' => { color == Black }
-                'O' => { color == White }
-                '?' => { true }
-                'x' => { color != Black }
-                'o' => { color != White }
-                '.' => { color == Empty }
-                ' ' => { false }
-                _  => { panic!("Unknown pattern {:?}", point_pattern) }
+                PointPattern::Black => { color == Black }
+                PointPattern::White => { color == White }
+                PointPattern::All => { true }
+                PointPattern::NotBlack => { color != Black }
+                PointPattern::NotWhite => { color != White }
+                PointPattern::Empty => { color == Empty }
+                PointPattern::OffBoard => { false }
             }
         } else {
-            point_pattern == ' '
+            point_pattern == PointPattern::OffBoard
         }
     }
 
-    fn point_pattern_for(&self, coord: &Coord, neighbour: &Coord) -> char {
+    fn point_pattern_for(&self, coord: &Coord, neighbour: &Coord) -> PointPattern {
         let offset_col = coord.col as isize - neighbour.col as isize;
         let offset_row = coord.row as isize - neighbour.row as isize;
         let col = (1 - offset_col) as usize;
         let row = (1 + offset_row) as usize;
-        self.vec[row][col]
+        self.at(row, col)
     }
 
     fn rotated(&self) -> Vec<Pattern> {
@@ -100,54 +138,59 @@ impl Pattern {
     fn swap(&self) -> Pattern {
         let swapped_vec = self.vec
             .iter()
-            .map(|subvec|
-                 subvec.iter().map(|&c| self.swap_char(c)).collect())
+            .map(|pp| self.swap_point_pattern(pp))
             .collect();
-        Pattern::new(swapped_vec)
+        Pattern::raw(swapped_vec)
     }
 
-    fn swap_char(&self, c: char) -> char {
-        match c {
-            'x' => 'o',
-            'X' => 'O',
-            'o' => 'x',
-            'O' => 'X',
-            _   => c
+    fn swap_point_pattern(&self, p: &PointPattern) -> PointPattern {
+        match *p {
+            PointPattern::NotBlack => PointPattern::NotWhite,
+            PointPattern::Black => PointPattern::White,
+            PointPattern::NotWhite => PointPattern::NotBlack,
+            PointPattern::White => PointPattern::Black,
+            PointPattern::All => PointPattern::All,
+            PointPattern::Empty => PointPattern::Empty,
+            PointPattern::OffBoard => PointPattern::OffBoard
         }
     }
 
     fn rotated90(&self) -> Pattern {
-        let line1 = vec!(self.vec[2][0], self.vec[1][0], self.vec[0][0]);
-        let line2 = vec!(self.vec[2][1], self.vec[1][1], self.vec[0][1]);
-        let line3 = vec!(self.vec[2][2], self.vec[1][2], self.vec[0][2]);
-        Pattern::new(vec!(line1, line2, line3))
+        Pattern::raw(vec!(
+            self.at(2,0), self.at(1,0), self.at(0,0),
+            self.at(2,1), self.at(1,1), self.at(0,1),
+            self.at(2,2), self.at(1,2), self.at(0,2)))
     }
 
     fn rotated180(&self) -> Pattern {
-        let line1 = vec!(self.vec[2][2], self.vec[2][1], self.vec[2][0]);
-        let line2 = vec!(self.vec[1][2], self.vec[1][1], self.vec[1][0]);
-        let line3 = vec!(self.vec[0][2], self.vec[0][1], self.vec[0][0]);
-        Pattern::new(vec!(line1, line2, line3))
+        Pattern::raw(vec!(
+            self.at(2,2), self.at(2,1), self.at(2,0),
+            self.at(1,2), self.at(1,1), self.at(1,0),
+            self.at(0,2), self.at(0,1), self.at(0,0)))
     }
 
     fn rotated270(&self) -> Pattern {
-        let line1 = vec!(self.vec[0][2], self.vec[1][2], self.vec[2][2]);
-        let line2 = vec!(self.vec[0][1], self.vec[1][1], self.vec[2][1]);
-        let line3 = vec!(self.vec[0][0], self.vec[1][0], self.vec[2][0]);
-        Pattern::new(vec!(line1, line2, line3))
+        Pattern::raw(vec!(
+            self.at(0,2), self.at(1,2), self.at(2,2),
+            self.at(0,1), self.at(1,1), self.at(2,1),
+            self.at(0,0), self.at(1,0), self.at(2,0)))
     }
 
     fn horizontally_flipped(&self) -> Pattern {
-        let line1 = vec!(self.vec[2][0], self.vec[2][1], self.vec[2][2]);
-        let line2 = vec!(self.vec[1][0], self.vec[1][1], self.vec[1][2]);
-        let line3 = vec!(self.vec[0][0], self.vec[0][1], self.vec[0][2]);
-        Pattern::new(vec!(line1, line2, line3))
+        Pattern::raw(vec!(
+            self.at(2,0), self.at(2,1), self.at(2,2),
+            self.at(1,0), self.at(1,1), self.at(1,2),
+            self.at(0,0), self.at(0,1), self.at(0,2)))
     }
 
     fn vertically_flipped(&self) -> Pattern {
-        let line1 = vec!(self.vec[0][2], self.vec[0][1], self.vec[0][0]);
-        let line2 = vec!(self.vec[1][2], self.vec[1][1], self.vec[1][0]);
-        let line3 = vec!(self.vec[2][2], self.vec[2][1], self.vec[2][0]);
-        Pattern::new(vec!(line1, line2, line3))
+        Pattern::raw(vec!(
+            self.at(0,2), self.at(0,1), self.at(0,0),
+            self.at(1,2), self.at(1,1), self.at(1,0),
+            self.at(2,2), self.at(2,1), self.at(2,0)))
+    }
+
+    fn at(&self, row: usize, col: usize) -> PointPattern {
+        self.vec[(row * 3) + col]
     }
 }
