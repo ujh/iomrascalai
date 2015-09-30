@@ -24,40 +24,13 @@ use board::Board;
 use board::Coord;
 use board::Empty;
 use board::White;
+use patterns::point::Point;
 
 mod test;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-enum PointPattern {
-    Black,
-    NotBlack,
-    White,
-    NotWhite,
-    All,
-    Empty,
-    OffBoard
-}
-
-impl PointPattern {
-
-    pub fn from_char(c: &char) -> PointPattern {
-        match *c {
-            'X' => PointPattern::Black,
-            'O' => PointPattern::White,
-            '?' => PointPattern::All,
-            'x' => PointPattern::NotBlack,
-            'o' => PointPattern::NotWhite,
-            '.' => PointPattern::Empty,
-            ' ' => PointPattern::OffBoard,
-            _   => panic!("Can't convert {:?} to PointPattern", c)
-        }
-    }
-
-}
-
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Pattern {
-    vec: Vec<PointPattern>
+    vec: Vec<Point>
 }
 
 impl Pattern {
@@ -67,13 +40,13 @@ impl Pattern {
         // Can be done with flat_map, I think.
         for sv in vec.iter() {
             for c in sv.iter() {
-                v.push(PointPattern::from_char(c));
+                v.push(Point::from_char(c));
             }
         }
         Pattern { vec: v }
     }
 
-    fn raw(vec: Vec<PointPattern>) -> Pattern {
+    fn raw(vec: Vec<Point>) -> Pattern {
         Pattern { vec: vec }
     }
 
@@ -97,20 +70,20 @@ impl Pattern {
         if is_inside {
             let color = board.color(neighbour);
             match point_pattern {
-                PointPattern::Black => { color == Black }
-                PointPattern::White => { color == White }
-                PointPattern::All => { true }
-                PointPattern::NotBlack => { color != Black }
-                PointPattern::NotWhite => { color != White }
-                PointPattern::Empty => { color == Empty }
-                PointPattern::OffBoard => { false }
+                Point::Black => { color == Black }
+                Point::White => { color == White }
+                Point::All => { true }
+                Point::NotBlack => { color != Black }
+                Point::NotWhite => { color != White }
+                Point::Empty => { color == Empty }
+                Point::OffBoard => { false }
             }
         } else {
-            point_pattern == PointPattern::OffBoard
+            point_pattern == Point::OffBoard
         }
     }
 
-    fn point_pattern_for(&self, coord: &Coord, neighbour: &Coord) -> PointPattern {
+    fn point_pattern_for(&self, coord: &Coord, neighbour: &Coord) -> Point {
         let offset_col = coord.col as isize - neighbour.col as isize;
         let offset_row = coord.row as isize - neighbour.row as isize;
         let col = (1 - offset_col) as usize;
@@ -143,15 +116,15 @@ impl Pattern {
         Pattern::raw(swapped_vec)
     }
 
-    fn swap_point_pattern(&self, p: &PointPattern) -> PointPattern {
+    fn swap_point_pattern(&self, p: &Point) -> Point {
         match *p {
-            PointPattern::NotBlack => PointPattern::NotWhite,
-            PointPattern::Black => PointPattern::White,
-            PointPattern::NotWhite => PointPattern::NotBlack,
-            PointPattern::White => PointPattern::Black,
-            PointPattern::All => PointPattern::All,
-            PointPattern::Empty => PointPattern::Empty,
-            PointPattern::OffBoard => PointPattern::OffBoard
+            Point::NotBlack => Point::NotWhite,
+            Point::Black => Point::White,
+            Point::NotWhite => Point::NotBlack,
+            Point::White => Point::Black,
+            Point::All => Point::All,
+            Point::Empty => Point::Empty,
+            Point::OffBoard => Point::OffBoard
         }
     }
 
@@ -190,7 +163,7 @@ impl Pattern {
             self.at(2,2), self.at(2,1), self.at(2,0)))
     }
 
-    fn at(&self, row: usize, col: usize) -> PointPattern {
+    fn at(&self, row: usize, col: usize) -> Point {
         self.vec[(row * 3) + col]
     }
 }

@@ -19,9 +19,4 @@
  *                                                                      *
  ************************************************************************/
 
-pub use self::matcher::Matcher;
-pub use self::pattern::Pattern;
-
-mod matcher;
-mod pattern;
-mod point;
+#![cfg(test)]

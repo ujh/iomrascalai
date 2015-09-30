@@ -19,9 +19,32 @@
  *                                                                      *
  ************************************************************************/
 
-pub use self::matcher::Matcher;
-pub use self::pattern::Pattern;
+mod test;
 
-mod matcher;
-mod pattern;
-mod point;
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum Point {
+    Black,
+    NotBlack,
+    White,
+    NotWhite,
+    All,
+    Empty,
+    OffBoard
+}
+
+impl Point {
+
+    pub fn from_char(c: &char) -> Point {
+        match *c {
+            'X' => Point::Black,
+            'O' => Point::White,
+            '?' => Point::All,
+            'x' => Point::NotBlack,
+            'o' => Point::NotWhite,
+            '.' => Point::Empty,
+            ' ' => Point::OffBoard,
+            _   => panic!("Can't convert {:?} to PointPattern", c)
+        }
+    }
+
+}
