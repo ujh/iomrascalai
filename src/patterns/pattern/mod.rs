@@ -21,6 +21,7 @@
 
 use board::Black;
 use board::Board;
+use board::Color;
 use board::Coord;
 use board::Empty;
 use board::White;
@@ -34,6 +35,10 @@ pub struct Pattern {
 }
 
 impl Pattern {
+
+    pub fn size() -> usize {
+        8
+    }
 
     pub fn new(vec: Vec<Vec<char>>) -> Pattern {
         let mut v = vec!();
@@ -62,6 +67,14 @@ impl Pattern {
             .chain(self.swapped().iter())
             .cloned()
             .collect()
+    }
+
+    pub fn matches_color_at(&self, color: Option<Color>, level: usize) -> bool {
+        if level >= self.vec.len() {
+            false
+        } else {
+            self.vec[level].matches(color)
+        }
     }
 
     fn matches_at(&self, board: &Board, coord: &Coord, neighbour: &Coord) -> bool {

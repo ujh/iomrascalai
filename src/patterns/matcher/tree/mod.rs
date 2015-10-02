@@ -19,8 +19,13 @@
  *                                                                      *
  ************************************************************************/
 
-use core::fmt;
 pub use super::Pattern;
+use board::Black;
+use board::Color;
+use board::Empty;
+use board::White;
+
+use core::fmt;
 
 mod test;
 
@@ -36,7 +41,7 @@ pub struct Tree {
 
 impl Tree {
 
-    pub fn from_patterns(patterns: Vec<Pattern>) -> Tree {
+    pub fn empty() -> Tree {
         Tree {
             count: 0,
             black: None,
@@ -44,6 +49,48 @@ impl Tree {
             empty: None,
             off_board: None
         }
+    }
+
+    pub fn from_patterns(patterns: Vec<Pattern>) -> Tree {
+        match Self::build(&patterns, 0) {
+            Some(tree) => *tree,
+            None => Tree::empty()
+        }
+    }
+
+    fn build(patterns: &Vec<Pattern>, level: usize) -> Option<Box<Tree>> {
+        let count = patterns.len();
+        if count == 0 || level > Pattern::size() {
+            None
+        } else {
+            let bn = Self::build(
+                &Self::filter_patterns(patterns, Some(Black), level),
+                level + 1);
+            let wn = Self::build(
+                &Self::filter_patterns(patterns, Some(White), level),
+                level + 1);
+            let en = Self::build(
+                &Self::filter_patterns(patterns, Some(Empty), level),
+                level + 1);
+            let obn = Self::build(
+                &Self::filter_patterns(patterns, None, level),
+                level + 1);
+            let node = Tree {
+                count: count,
+                black: bn,
+                white: wn,
+                empty: en,
+                off_board: obn
+            };
+            Some(Box::new(node))
+        }
+    }
+
+    fn filter_patterns(patterns: &Vec<Pattern>, color: Option<Color>, level: usize) -> Vec<Pattern> {
+        patterns.iter()
+            .filter(|p| p.matches_color_at(color, level))
+            .cloned()
+            .collect()
     }
 
     fn as_string(&self, level: usize) -> String {
