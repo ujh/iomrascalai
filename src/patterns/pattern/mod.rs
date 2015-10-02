@@ -65,25 +65,17 @@ impl Pattern {
     }
 
     fn matches_at(&self, board: &Board, coord: &Coord, neighbour: &Coord) -> bool {
-        let point_pattern = self.point_pattern_for(coord, neighbour);
+        let point = self.point_for(coord, neighbour);
         let is_inside = neighbour.is_inside(board.size());
         if is_inside {
             let color = board.color(neighbour);
-            match point_pattern {
-                Point::Black => { color == Black }
-                Point::White => { color == White }
-                Point::All => { true }
-                Point::NotBlack => { color != Black }
-                Point::NotWhite => { color != White }
-                Point::Empty => { color == Empty }
-                Point::OffBoard => { false }
-            }
+            point.matches(Some(color))
         } else {
-            point_pattern == Point::OffBoard
+            point.matches(None)
         }
     }
 
-    fn point_pattern_for(&self, coord: &Coord, neighbour: &Coord) -> Point {
+    fn point_for(&self, coord: &Coord, neighbour: &Coord) -> Point {
         let offset_col = coord.col as isize - neighbour.col as isize;
         let offset_row = coord.row as isize - neighbour.row as isize;
         let col = (1 - offset_col) as usize;

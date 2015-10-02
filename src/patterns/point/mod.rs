@@ -19,6 +19,11 @@
  *                                                                      *
  ************************************************************************/
 
+use board::Black;
+use board::Color;
+use board::Empty;
+use board::White;
+
 mod test;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -47,4 +52,20 @@ impl Point {
         }
     }
 
+    pub fn matches(&self, opt_color: Option<Color>) -> bool {
+        match opt_color {
+            Some(color) => {
+                match *self {
+                    Point::Black => { color == Black }
+                    Point::White => { color == White }
+                    Point::All => { true }
+                    Point::NotBlack => { color != Black }
+                    Point::NotWhite => { color != White }
+                    Point::Empty => { color == Empty }
+                    Point::OffBoard => { false }
+                }
+            },
+            None => *self == Point::OffBoard
+        }
+    }
 }
