@@ -97,21 +97,9 @@ impl Pattern {
     fn swap(&self) -> Pattern {
         let swapped_vec = self.vec
             .iter()
-            .map(|pp| self.swap_point_pattern(pp))
+            .map(|pp| pp.swap())
             .collect();
         Pattern { vec: swapped_vec }
-    }
-
-    fn swap_point_pattern(&self, p: &Point) -> Point {
-        match *p {
-            Point::NotBlack => Point::NotWhite,
-            Point::Black => Point::White,
-            Point::NotWhite => Point::NotBlack,
-            Point::White => Point::Black,
-            Point::All => Point::All,
-            Point::Empty => Point::Empty,
-            Point::OffBoard => Point::OffBoard
-        }
     }
 
     fn rotated90(&self) -> Pattern {

@@ -68,4 +68,16 @@ impl Point {
             None => *self == Point::OffBoard
         }
     }
+
+    pub fn swap(&self) -> Point {
+        match *self {
+            Point::NotBlack => Point::NotWhite,
+            Point::Black => Point::White,
+            Point::NotWhite => Point::NotBlack,
+            Point::White => Point::Black,
+            Point::All => Point::All,
+            Point::Empty => Point::Empty,
+            Point::OffBoard => Point::OffBoard
+        }
+    }
 }
