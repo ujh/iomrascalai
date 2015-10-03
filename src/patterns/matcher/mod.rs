@@ -19,11 +19,13 @@
  *                                                                      *
  ************************************************************************/
 
-pub use super::Pattern;
+pub use self::pattern::Pattern;
 use board::Board;
 use board::Coord;
 use self::tree::Tree;
 
+mod pattern;
+mod point;
 mod test;
 mod tree;
 

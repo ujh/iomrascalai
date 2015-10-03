@@ -20,8 +20,5 @@
  ************************************************************************/
 
 pub use self::matcher::Matcher;
-pub use self::pattern::Pattern;
 
 mod matcher;
-mod pattern;
-mod point; // TODO: Move it into matcher

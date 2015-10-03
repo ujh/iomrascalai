@@ -25,7 +25,7 @@ use board::Color;
 use board::Coord;
 use board::Empty;
 use board::White;
-use patterns::point::Point;
+use super::point::Point;
 
 mod test;
 
