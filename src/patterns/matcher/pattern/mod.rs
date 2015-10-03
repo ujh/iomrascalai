@@ -19,12 +19,7 @@
  *                                                                      *
  ************************************************************************/
 
-use board::Black;
-use board::Board;
 use board::Color;
-use board::Coord;
-use board::Empty;
-use board::White;
 use super::point::Point;
 
 mod test;
@@ -66,12 +61,6 @@ impl Pattern {
         Pattern { vec: v }
     }
 
-    pub fn matches(&self, board: &Board, coord: &Coord) -> bool {
-        board.neighbours8_unchecked(*coord)
-            .iter()
-            .all(|nc| self.matches_at(board, coord, nc))
-    }
-
     pub fn expand(&self) -> Vec<Pattern> {
         self.rotated()
             .iter()
@@ -86,29 +75,6 @@ impl Pattern {
         } else {
             self.vec[level].matches(color)
         }
-    }
-
-    pub fn vec(&self) -> &Vec<Point> {
-        &self.vec
-    }
-
-    fn matches_at(&self, board: &Board, coord: &Coord, neighbour: &Coord) -> bool {
-        let point = self.point_for(coord, neighbour);
-        let is_inside = neighbour.is_inside(board.size());
-        if is_inside {
-            let color = board.color(neighbour);
-            point.matches(Some(color))
-        } else {
-            point.matches(None)
-        }
-    }
-
-    fn point_for(&self, coord: &Coord, neighbour: &Coord) -> Point {
-        let offset_col = coord.col as isize - neighbour.col as isize;
-        let offset_row = coord.row as isize - neighbour.row as isize;
-        let col = (1 - offset_col) as usize;
-        let row = (1 + offset_row) as usize;
-        self.at(row, col)
     }
 
     fn rotated(&self) -> Vec<Pattern> {
