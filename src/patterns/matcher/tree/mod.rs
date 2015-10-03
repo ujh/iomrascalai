@@ -21,7 +21,9 @@
 
 pub use super::Pattern;
 use board::Black;
+use board::Board;
 use board::Color;
+use board::Coord;
 use board::Empty;
 use board::White;
 
@@ -55,6 +57,39 @@ impl Tree {
         match Self::build(&patterns, 0) {
             Some(tree) => *tree,
             None => Tree::empty()
+        }
+    }
+
+    //
+    // ADD TESTS !!!
+    //
+    pub fn pattern_count(&self, board: &Board, coord: &Coord) -> usize {
+        let colors = board.neighbours8_checked(*coord);
+        println!("{:?}", colors);
+        self.walk(colors, 0, &self)
+    }
+    //
+    // ADD TESTS !!!
+    //
+
+
+    fn walk(&self, colors: Vec<Option<Color>>, i: usize, subtree: &Tree) -> usize {
+        if colors.len() == i {
+            return subtree.count;
+        }
+        let child = match colors[i] {
+            Some(color) => {
+                match color {
+                    Black => &subtree.black,
+                    White => &subtree.white,
+                    Empty => &subtree.empty,
+                }
+            },
+            None => &subtree.off_board
+        };
+        match child {
+            &Some(ref c) => self.walk(colors, i + 1, c),
+            &None => 0
         }
     }
 

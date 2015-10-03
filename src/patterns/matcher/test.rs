@@ -68,7 +68,9 @@ describe! pattern_count {
             vec!('.', '.', '.'),
             vec!('X', '.', '.'),
             vec!('.', '.', '.')));
+        println!("{:?}", pattern.vec());
         let matcher = Matcher::with_patterns(vec!(pattern));
+        println!("{:?}", matcher.tree);
         let board = &board_from_sgf("3x3/one-black-w.sgf");
         assert_that(matcher.pattern_count(board, center), is(equal_to(1)));
         assert_that(matcher.pattern_count(board, off_center), is(equal_to(0)));

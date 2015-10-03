@@ -22,12 +22,13 @@
 pub use super::Pattern;
 use board::Board;
 use board::Coord;
+use self::tree::Tree;
 
 mod test;
 mod tree;
 
 pub struct Matcher {
-    patterns: Vec<Pattern>
+    tree: Tree
 }
 
 impl Matcher {
@@ -37,14 +38,11 @@ impl Matcher {
     }
 
     fn with_patterns(patterns: Vec<Pattern>) -> Matcher {
-        Matcher { patterns: patterns }
+        Matcher { tree: Tree::from_patterns(patterns) }
     }
 
     pub fn pattern_count(&self, board: &Board, coord: &Coord) -> usize {
-        self.patterns
-            .iter()
-            .filter(|pattern| pattern.matches(board, coord))
-            .count()
+        self.tree.pattern_count(board, coord)
     }
 
     fn expand_patterns(patterns: Vec<Pattern>) -> Vec<Pattern> {

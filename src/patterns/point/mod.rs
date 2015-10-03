@@ -39,8 +39,8 @@ pub enum Point {
 
 impl Point {
 
-    pub fn from_char(c: &char) -> Point {
-        match *c {
+    pub fn from_char(c: char) -> Point {
+        match c {
             'X' => Point::Black,
             'O' => Point::White,
             '?' => Point::All,

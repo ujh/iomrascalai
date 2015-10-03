@@ -41,18 +41,29 @@ impl Pattern {
     }
 
     pub fn new(vec: Vec<Vec<char>>) -> Pattern {
-        let mut v = vec!();
-        // Can be done with flat_map, I think.
-        for sv in vec.iter() {
-            for c in sv.iter() {
-                v.push(Point::from_char(c));
-            }
-        }
+        let v = vec!(
+            Point::from_char(vec[0][0]),  // NW
+            Point::from_char(vec[0][1]),  // N
+            Point::from_char(vec[0][2]),  // NE
+            Point::from_char(vec[1][2]),  // E
+            Point::from_char(vec[2][2]),  // SE
+            Point::from_char(vec[2][1]),  // S
+            Point::from_char(vec[2][0]),  // SW
+            Point::from_char(vec[1][0])); // W
         Pattern { vec: v }
     }
 
-    fn raw(vec: Vec<Point>) -> Pattern {
-        Pattern { vec: vec }
+    pub fn raw(vec: Vec<Vec<Point>>) -> Pattern {
+        let v = vec!(
+            vec[0][0],  // NW
+            vec[0][1],  // N
+            vec[0][2],  // NE
+            vec[1][2],  // E
+            vec[2][2],  // SE
+            vec[2][1],  // S
+            vec[2][0],  // SW
+            vec[1][0]); // W
+        Pattern { vec: v }
     }
 
     pub fn matches(&self, board: &Board, coord: &Coord) -> bool {
@@ -75,6 +86,10 @@ impl Pattern {
         } else {
             self.vec[level].matches(color)
         }
+    }
+
+    pub fn vec(&self) -> &Vec<Point> {
+        &self.vec
     }
 
     fn matches_at(&self, board: &Board, coord: &Coord, neighbour: &Coord) -> bool {
@@ -118,7 +133,7 @@ impl Pattern {
             .iter()
             .map(|pp| self.swap_point_pattern(pp))
             .collect();
-        Pattern::raw(swapped_vec)
+        Pattern { vec: swapped_vec }
     }
 
     fn swap_point_pattern(&self, p: &Point) -> Point {
@@ -135,40 +150,48 @@ impl Pattern {
 
     fn rotated90(&self) -> Pattern {
         Pattern::raw(vec!(
-            self.at(2,0), self.at(1,0), self.at(0,0),
-            self.at(2,1), self.at(1,1), self.at(0,1),
-            self.at(2,2), self.at(1,2), self.at(0,2)))
+            vec!(self.at(2,0), self.at(1,0), self.at(0,0)),
+            vec!(self.at(2,1), self.at(1,1), self.at(0,1)),
+            vec!(self.at(2,2), self.at(1,2), self.at(0,2))))
     }
 
     fn rotated180(&self) -> Pattern {
         Pattern::raw(vec!(
-            self.at(2,2), self.at(2,1), self.at(2,0),
-            self.at(1,2), self.at(1,1), self.at(1,0),
-            self.at(0,2), self.at(0,1), self.at(0,0)))
+            vec!(self.at(2,2), self.at(2,1), self.at(2,0)),
+            vec!(self.at(1,2), self.at(1,1), self.at(1,0)),
+            vec!(self.at(0,2), self.at(0,1), self.at(0,0))))
     }
 
     fn rotated270(&self) -> Pattern {
         Pattern::raw(vec!(
-            self.at(0,2), self.at(1,2), self.at(2,2),
-            self.at(0,1), self.at(1,1), self.at(2,1),
-            self.at(0,0), self.at(1,0), self.at(2,0)))
+            vec!(self.at(0,2), self.at(1,2), self.at(2,2)),
+            vec!(self.at(0,1), self.at(1,1), self.at(2,1)),
+            vec!(self.at(0,0), self.at(1,0), self.at(2,0))))
     }
 
     fn horizontally_flipped(&self) -> Pattern {
         Pattern::raw(vec!(
-            self.at(2,0), self.at(2,1), self.at(2,2),
-            self.at(1,0), self.at(1,1), self.at(1,2),
-            self.at(0,0), self.at(0,1), self.at(0,2)))
+            vec!(self.at(2,0), self.at(2,1), self.at(2,2)),
+            vec!(self.at(1,0), self.at(1,1), self.at(1,2)),
+            vec!(self.at(0,0), self.at(0,1), self.at(0,2))))
     }
 
     fn vertically_flipped(&self) -> Pattern {
         Pattern::raw(vec!(
-            self.at(0,2), self.at(0,1), self.at(0,0),
-            self.at(1,2), self.at(1,1), self.at(1,0),
-            self.at(2,2), self.at(2,1), self.at(2,0)))
+            vec!(self.at(0,2), self.at(0,1), self.at(0,0)),
+            vec!(self.at(1,2), self.at(1,1), self.at(1,0)),
+            vec!(self.at(2,2), self.at(2,1), self.at(2,0))))
     }
 
     fn at(&self, row: usize, col: usize) -> Point {
-        self.vec[(row * 3) + col]
+        self.as_point_array()[row][col]
     }
+
+    fn as_point_array(&self) -> Vec<Vec<Point>> {
+        vec!(
+            vec!(self.vec[0], self.vec[1], self.vec[2]),
+            vec!(self.vec[7], Point::OffBoard, self.vec[3]),
+            vec!(self.vec[6], self.vec[5], self.vec[4]))
+    }
+
 }

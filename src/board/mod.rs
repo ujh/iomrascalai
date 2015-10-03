@@ -203,6 +203,16 @@ impl Board {
         &self.cache.neighbours8_unchecked[c.to_index(self.size)]
     }
 
+    pub fn neighbours8_checked(&self, c: Coord) -> Vec<Option<Color>> {
+        self.neighbours8_unchecked(c).iter().map(|c| {
+            if c.is_inside(self.size) {
+                Some(self.color(c))
+            } else {
+                None
+            }
+        }).collect()
+    }
+
     pub fn points(&self) -> &Vec<Point> {
         &self.board
     }
