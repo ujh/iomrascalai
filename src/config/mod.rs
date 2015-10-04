@@ -190,6 +190,7 @@ impl Config {
         set_from_opt!(matches, "use-empty-area-prior", self.uct.priors.use_empty);
         set_from_opt!(matches, "use-ladder-check-in-playouts", self.playout.ladder_check);
         set_from_opt!(matches, "use-ucb1-tuned", self.uct.tuned);
+        set_from_opt!(matches, "use-patterns-prior", self.uct.priors.use_patterns);
 
         set_from_flag!(matches, "l", "log", self.log);
 
