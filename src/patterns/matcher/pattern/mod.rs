@@ -26,13 +26,13 @@ mod test;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Pattern {
-    vec: Vec<Point>
+    points: [Point; 8]
 }
 
 impl Pattern {
 
     pub fn new(vec: [[char; 3]; 3]) -> Pattern {
-        let v = vec!(
+        let points = [
             Point::from_char(vec[0][0]),  // NW
             Point::from_char(vec[0][1]),  // N
             Point::from_char(vec[0][2]),  // NE
@@ -40,12 +40,12 @@ impl Pattern {
             Point::from_char(vec[2][2]),  // SE
             Point::from_char(vec[2][1]),  // S
             Point::from_char(vec[2][0]),  // SW
-            Point::from_char(vec[1][0])); // W
-        Pattern { vec: v }
+            Point::from_char(vec[1][0])]; // W
+        Pattern { points: points }
     }
 
     pub fn raw(vec: [[Point; 3]; 3]) -> Pattern {
-        let v = vec!(
+        let points = [
             vec[0][0],  // NW
             vec[0][1],  // N
             vec[0][2],  // NE
@@ -53,8 +53,8 @@ impl Pattern {
             vec[2][2],  // SE
             vec[2][1],  // S
             vec[2][0],  // SW
-            vec[1][0]); // W
-        Pattern { vec: v }
+            vec[1][0]]; // W
+        Pattern { points: points }
     }
 
     pub fn expand(&self) -> Vec<Pattern> {
@@ -66,10 +66,10 @@ impl Pattern {
     }
 
     pub fn matches_color_at(&self, color: Option<Color>, level: usize) -> bool {
-        if level >= self.vec.len() {
+        if level >= self.points.len() {
             false
         } else {
-            self.vec[level].matches(color)
+            self.points[level].matches(color)
         }
     }
 
@@ -91,11 +91,11 @@ impl Pattern {
     }
 
     fn swap(&self) -> Pattern {
-        let swapped_vec = self.vec
-            .iter()
-            .map(|pp| pp.swap())
-            .collect();
-        Pattern { vec: swapped_vec }
+        let mut swapped = [Point::Empty; 8];
+        for i in 0..self.points.len() {
+            swapped[i] = self.points[i].swap();
+        }
+        Pattern { points: swapped }
     }
 
     fn rotated90(&self) -> Pattern {
@@ -139,9 +139,9 @@ impl Pattern {
 
     fn as_point_array(&self) -> Vec<Vec<Point>> {
         vec!(
-            vec!(self.vec[0], self.vec[1], self.vec[2]),
-            vec!(self.vec[7], Point::OffBoard, self.vec[3]),
-            vec!(self.vec[6], self.vec[5], self.vec[4]))
+            vec!(self.points[0], self.points[1],  self.points[2]),
+            vec!(self.points[7], Point::OffBoard, self.points[3]),
+            vec!(self.points[6], self.points[5],  self.points[4]))
     }
 
 }
