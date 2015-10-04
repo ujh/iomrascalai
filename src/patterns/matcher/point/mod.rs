@@ -65,7 +65,18 @@ impl Point {
                     Point::OffBoard => { false }
                 }
             },
-            None => *self == Point::OffBoard
+            None => {
+                match *self {
+                    Point::Black => false,
+                    Point::White => false,
+                    Point::All => true,
+                    Point::NotBlack => true,
+                    Point::NotWhite => true,
+                    Point::Empty => false,
+                    Point::OffBoard => true,
+                }
+
+            }
         }
     }
 
