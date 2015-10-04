@@ -25,6 +25,7 @@ pub use hamcrest::assert_that;
 pub use hamcrest::equal_to;
 pub use hamcrest::is;
 pub use hamcrest::is_not;
+pub use hamcrest::none;
 pub use std::path::Path;
 
 pub use board::Black;
@@ -40,7 +41,7 @@ pub fn black_tree() -> Tree {
     Tree {
         // root
         count: 1,
-        black: Some(Box::new(Tree {
+        empty: Some(Box::new(Tree {
             // ply 1
             count: 1,
             black: None,
@@ -79,10 +80,10 @@ pub fn black_tree() -> Tree {
                                 empty: Some(Box::new(Tree {
                                     // ply 7
                                     count: 1,
-                                    black: None,
+                                    empty: None,
                                     white: None,
                                     off_board: None,
-                                    empty: Some(Box::new(Tree {
+                                    black: Some(Box::new(Tree {
                                         // ply 8
                                         count: 1,
                                         black: None,
@@ -98,7 +99,7 @@ pub fn black_tree() -> Tree {
             }))
         })),
         white: None,
-        empty: None,
+        black: None,
         off_board: None
     }
 }
@@ -107,12 +108,85 @@ describe! from_patterns {
 
     it "builds the correct tree for a pattern with a single black stone" {
         let pattern = Pattern::new([
-            ['X', '.', '.'],
             ['.', '.', '.'],
+            ['X', '.', '.'],
             ['.', '.', '.']]);
         let tree = Tree::from_patterns(vec!(pattern));
         assert_that(tree, is(equal_to(black_tree())));
     }
+
+    it "builds the correct tree for a wildcard pattern" {
+        let pattern = Pattern::new([
+            ['?', '.', '.'],
+            ['.', '.', '.'],
+            ['.', '.', '.']]);
+        let tree = Tree::from_patterns(vec!(pattern));
+        assert_that(tree.black, is_not(none()));
+        assert_that(tree.white, is_not(none()));
+        assert_that(tree.empty, is_not(none()));
+        assert_that(tree.off_board, is_not(none()));
+    }
+
+    it "builds the correct tree for a white pattern" {
+        let pattern = Pattern::new([
+            ['O', '.', '.'],
+            ['.', '.', '.'],
+            ['.', '.', '.']]);
+        let tree = Tree::from_patterns(vec!(pattern));
+        assert_that(tree.black, is(none()));
+        assert_that(tree.white, is_not(none()));
+        assert_that(tree.empty, is(none()));
+        assert_that(tree.off_board, is(none()));
+    }
+
+    it "builds the correct tree for an empty pattern" {
+        let pattern = Pattern::new([
+            ['.', '.', '.'],
+            ['.', '.', '.'],
+            ['.', '.', '.']]);
+        let tree = Tree::from_patterns(vec!(pattern));
+        assert_that(tree.black, is(none()));
+        assert_that(tree.white, is(none()));
+        assert_that(tree.empty, is_not(none()));
+        assert_that(tree.off_board, is(none()));
+    }
+
+    it "builds the correct tree for an off board pattern" {
+        let pattern = Pattern::new([
+            [' ', '.', '.'],
+            ['.', '.', '.'],
+            ['.', '.', '.']]);
+        let tree = Tree::from_patterns(vec!(pattern));
+        assert_that(tree.black, is(none()));
+        assert_that(tree.white, is(none()));
+        assert_that(tree.empty, is(none()));
+        assert_that(tree.off_board, is_not(none()));
+    }
+
+    it "builds the correct tree for a not-white pattern" {
+        let pattern = Pattern::new([
+            ['o', '.', '.'],
+            ['.', '.', '.'],
+            ['.', '.', '.']]);
+        let tree = Tree::from_patterns(vec!(pattern));
+        assert_that(tree.black, is_not(none()));
+        assert_that(tree.white, is(none()));
+        assert_that(tree.empty, is_not(none()));
+        assert_that(tree.off_board, is_not(none()));
+    }
+
+    it "builds the correct tree for a not-black pattern" {
+        let pattern = Pattern::new([
+            ['x', '.', '.'],
+            ['.', '.', '.'],
+            ['.', '.', '.']]);
+        let tree = Tree::from_patterns(vec!(pattern));
+        assert_that(tree.black, is(none()));
+        assert_that(tree.white, is_not(none()));
+        assert_that(tree.empty, is_not(none()));
+        assert_that(tree.off_board, is_not(none()));
+    }
+
 }
 
 pub fn board_from_sgf(s: &str) -> Board {
@@ -128,7 +202,7 @@ describe! pattern_count {
     }
 
     it "matches one pattern" {
-        let board = &board_from_sgf("3x3/one-black-nw.sgf");
+        let board = &board_from_sgf("3x3/one-black-w.sgf");
         assert_that(black_tree().pattern_count(board, center), is(equal_to(1)));
     }
 
@@ -138,14 +212,14 @@ describe! walk {
 
     it "finds one pattern" {
         let colors = vec!(
-            Some(Black),
             Some(Empty),
             Some(Empty),
             Some(Empty),
             Some(Empty),
             Some(Empty),
             Some(Empty),
-            Some(Empty));
+            Some(Empty),
+            Some(Black));
         assert_that(black_tree().walk(colors, 0, &black_tree()), is(equal_to(1)));
     }
 }
