@@ -36,10 +36,10 @@ pub use super::Pattern;
 describe! expand_patterns {
 
     before_each {
-        let pattern = Pattern::new(vec!(
-            vec!('X', 'O', '.'),
-            vec!('x', 'o', '?'),
-            vec!(' ', ' ', ' ')));
+        let pattern = Pattern::new([
+            ['X', 'O', '.'],
+            ['x', 'o', '?'],
+            [' ', ' ', ' ']]);
         let patterns = vec!(pattern);
     }
 
@@ -64,10 +64,10 @@ describe! pattern_count {
     }
 
     it "matches patterns with black stones" {
-        let pattern = Pattern::new(vec!(
-            vec!('.', '.', '.'),
-            vec!('X', '.', '.'),
-            vec!('.', '.', '.')));
+        let pattern = Pattern::new([
+            ['.', '.', '.'],
+            ['X', '.', '.'],
+            ['.', '.', '.']]);
         let matcher = Matcher::with_patterns(vec!(pattern));
         let board = &board_from_sgf("3x3/one-black-w.sgf");
         assert_that(matcher.pattern_count(board, center), is(equal_to(1)));
@@ -75,10 +75,10 @@ describe! pattern_count {
     }
 
     it "matches patterns with white stones" {
-        let pattern = Pattern::new(vec!(
-            vec!('.', '.', '.'),
-            vec!('O', '.', '.'),
-            vec!('.', '.', '.')));
+        let pattern = Pattern::new([
+            ['.', '.', '.'],
+            ['O', '.', '.'],
+            ['.', '.', '.']]);
         let matcher = Matcher::with_patterns(vec!(pattern));
         let board = &board_from_sgf("3x3/one-white-w.sgf");
         assert_that(matcher.pattern_count(board, center), is(equal_to(1)));
@@ -86,10 +86,10 @@ describe! pattern_count {
     }
 
     it "matches patterns with non-black stones" {
-        let pattern = Pattern::new(vec!(
-            vec!('.', '.', '.'),
-            vec!('x', '.', '.'),
-            vec!('.', '.', '.')));
+        let pattern = Pattern::new([
+            ['.', '.', '.'],
+            ['x', '.', '.'],
+            ['.', '.', '.']]);
         let matcher = Matcher::with_patterns(vec!(pattern));
         let board = &board_from_sgf("3x3/one-white-w.sgf");
         assert_that(matcher.pattern_count(board, center), is(equal_to(1)));
@@ -97,10 +97,10 @@ describe! pattern_count {
     }
 
     it "matches patterns with non-white stones" {
-        let pattern = Pattern::new(vec!(
-            vec!('.', '.', '.'),
-            vec!('o', '.', '.'),
-            vec!('.', '.', '.')));
+        let pattern = Pattern::new([
+            ['.', '.', '.'],
+            ['o', '.', '.'],
+            ['.', '.', '.']]);
         let matcher = Matcher::with_patterns(vec!(pattern));
         let board = &board_from_sgf("3x3/one-black-w.sgf");
         assert_that(matcher.pattern_count(board, center), is(equal_to(1)));
@@ -108,10 +108,10 @@ describe! pattern_count {
     }
 
     it "matches patterns with wildcards" {
-        let pattern = Pattern::new(vec!(
-            vec!('.', '.', '.'),
-            vec!('?', '.', '.'),
-            vec!('.', '.', '.')));
+        let pattern = Pattern::new([
+            ['.', '.', '.'],
+            ['?', '.', '.'],
+            ['.', '.', '.']]);
         let matcher = Matcher::with_patterns(vec!(pattern));
         let black_board = &board_from_sgf("3x3/one-black-w.sgf");
         assert_that(matcher.pattern_count(black_board, center), is(equal_to(1)));
@@ -125,10 +125,10 @@ describe! pattern_count {
     }
 
     it "matches off board patterns" {
-        let pattern = Pattern::new(vec!(
-            vec!(' ', '.', '.'),
-            vec!(' ', '.', '.'),
-            vec!(' ', ' ', ' ')));
+        let pattern = Pattern::new([
+            [' ', '.', '.'],
+            [' ', '.', '.'],
+            [' ', ' ', ' ']]);
         let matcher = Matcher::with_patterns(vec!(pattern));
         let board = &board_from_sgf("empty.sgf");
         assert_that(matcher.pattern_count(board, &Coord::new(1,1)), is(equal_to(1)));

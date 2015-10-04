@@ -36,10 +36,10 @@ pub use super::Pattern;
 describe! expand {
 
     before_each {
-        let pattern = Pattern::new(vec!(
-            vec!('X', 'O', '.'),
-            vec!('x', 'o', '?'),
-            vec!(' ', ' ', ' ')));
+        let pattern = Pattern::new([
+            ['X', 'O', '.'],
+            ['x', 'o', '?'],
+            [' ', ' ', ' ']]);
         let expanded = pattern.expand();
     }
 
@@ -52,90 +52,90 @@ describe! expand {
     }
 
     it "includes the orginal pattern swapped" {
-        let pattern = Pattern::new(vec!(
-            vec!('O', 'X', '.'),
-            vec!('o', 'x', '?'),
-            vec!(' ', ' ', ' ')));
+        let pattern = Pattern::new([
+            ['O', 'X', '.'],
+            ['o', 'x', '?'],
+            [' ', ' ', ' ']]);
         assert_that(&expanded, contains(vec!(pattern)));
     }
 
     it "includes the 90deg rotated pattern" {
-        let pattern = Pattern::new(vec!(
-            vec!(' ', 'x', 'X'),
-            vec!(' ', 'o', 'O'),
-            vec!(' ', '?', '.')));
+        let pattern = Pattern::new([
+            [' ', 'x', 'X'],
+            [' ', 'o', 'O'],
+            [' ', '?', '.']]);
         assert_that(&expanded, contains(vec!(pattern)));
     }
 
     it "includes the 90deg rotated pattern swapped" {
-        let pattern = Pattern::new(vec!(
-            vec!(' ', 'o', 'O'),
-            vec!(' ', 'x', 'X'),
-            vec!(' ', '?', '.')));
+        let pattern = Pattern::new([
+            [' ', 'o', 'O'],
+            [' ', 'x', 'X'],
+            [' ', '?', '.']]);
         assert_that(&expanded, contains(vec!(pattern)));
     }
 
     it "includes the 180deg rotated pattern" {
-        let pattern = Pattern::new(vec!(
-            vec!(' ', ' ', ' '),
-            vec!('?', 'o', 'x'),
-            vec!('.', 'O', 'X')));
+        let pattern = Pattern::new([
+            [' ', ' ', ' '],
+            ['?', 'o', 'x'],
+            ['.', 'O', 'X']]);
         assert_that(&expanded, contains(vec!(pattern)));
     }
 
     it "includes the 180deg rotated pattern swapped" {
-        let pattern = Pattern::new(vec!(
-            vec!(' ', ' ', ' '),
-            vec!('?', 'x', 'o'),
-            vec!('.', 'X', 'O')));
+        let pattern = Pattern::new([
+            [' ', ' ', ' '],
+            ['?', 'x', 'o'],
+            ['.', 'X', 'O']]);
         assert_that(&expanded, contains(vec!(pattern)));
     }
 
     it "includes the 270deg rotated pattern" {
-        let pattern = Pattern::new(vec!(
-            vec!('.', '?', ' '),
-            vec!('O', 'o', ' '),
-            vec!('X', 'x', ' ')));
+        let pattern = Pattern::new([
+            ['.', '?', ' '],
+            ['O', 'o', ' '],
+            ['X', 'x', ' ']]);
         assert_that(&expanded, contains(vec!(pattern)));
     }
 
     it "includes the 270deg rotated pattern swapped" {
-        let pattern = Pattern::new(vec!(
-            vec!('.', '?', ' '),
-            vec!('X', 'x', ' '),
-            vec!('O', 'o', ' ')));
+        let pattern = Pattern::new([
+            ['.', '?', ' '],
+            ['X', 'x', ' '],
+            ['O', 'o', ' ']]);
         assert_that(&expanded, contains(vec!(pattern)));
     }
 
     it "includes the horizontally flipped pattern" {
-        let pattern = Pattern::new(vec!(
-            vec!(' ', ' ', ' '),
-            vec!('x', 'o', '?'),
-            vec!('X', 'O', '.')));
+        let pattern = Pattern::new([
+            [' ', ' ', ' '],
+            ['x', 'o', '?'],
+            ['X', 'O', '.']]);
         assert_that(&expanded, contains(vec!(pattern)));
     }
 
     it "includes the horizontally flipped pattern swapped" {
-        let pattern = Pattern::new(vec!(
-            vec!(' ', ' ', ' '),
-            vec!('o', 'x', '?'),
-            vec!('O', 'X', '.')));
+        let pattern = Pattern::new([
+            [' ', ' ', ' '],
+            ['o', 'x', '?'],
+            ['O', 'X', '.']]);
         assert_that(&expanded, contains(vec!(pattern)));
     }
 
     it "includes the vertially flipped pattern" {
-        let pattern = Pattern::new(vec!(
-            vec!('.', 'O', 'X'),
-            vec!('?', 'o', 'x'),
-            vec!(' ', ' ', ' ')));
+        let pattern = Pattern::new([
+            ['.', 'O', 'X'],
+            ['?', 'o', 'x'],
+            [' ', ' ', ' ']]);
         assert_that(&expanded, contains(vec!(pattern)));
     }
 
     it "includes the vertically flipped pattern swapped" {
-        let pattern = Pattern::new(vec!(
-            vec!('.', 'X', 'O'),
-            vec!('?', 'x', 'o'),
-            vec!(' ', ' ', ' ')));
+        let pattern = Pattern::new([
+            ['.', 'X', 'O'],
+            ['?', 'x', 'o'],
+            [' ', ' ', ' ']]);
         assert_that(&expanded, contains(vec!(pattern)));
     }
 

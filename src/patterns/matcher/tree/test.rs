@@ -106,10 +106,10 @@ pub fn black_tree() -> Tree {
 describe! from_patterns {
 
     it "builds the correct tree for a pattern with a single black stone" {
-        let pattern = Pattern::new(vec!(
-            vec!('X', '.', '.'),
-            vec!('.', '.', '.'),
-            vec!('.', '.', '.')));
+        let pattern = Pattern::new([
+            ['X', '.', '.'],
+            ['.', '.', '.'],
+            ['.', '.', '.']]);
         let tree = Tree::from_patterns(vec!(pattern));
         assert_that(tree, is(equal_to(black_tree())));
     }

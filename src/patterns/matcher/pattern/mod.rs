@@ -31,7 +31,7 @@ pub struct Pattern {
 
 impl Pattern {
 
-    pub fn new(vec: Vec<Vec<char>>) -> Pattern {
+    pub fn new(vec: [[char; 3]; 3]) -> Pattern {
         let v = vec!(
             Point::from_char(vec[0][0]),  // NW
             Point::from_char(vec[0][1]),  // N
