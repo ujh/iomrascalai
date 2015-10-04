@@ -31,10 +31,6 @@ pub struct Pattern {
 
 impl Pattern {
 
-    pub fn size() -> usize {
-        8
-    }
-
     pub fn new(vec: Vec<Vec<char>>) -> Pattern {
         let v = vec!(
             Point::from_char(vec[0][0]),  // NW

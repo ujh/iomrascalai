@@ -87,7 +87,7 @@ impl Tree {
 
     fn build(patterns: &Vec<Pattern>, level: usize) -> Option<Box<Tree>> {
         let count = patterns.len();
-        if count == 0 || level > Pattern::size() {
+        if count == 0  {
             None
         } else {
             let bn = Self::build(
