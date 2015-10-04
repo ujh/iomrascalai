@@ -137,11 +137,11 @@ impl Pattern {
         self.as_point_array()[row][col]
     }
 
-    fn as_point_array(&self) -> Vec<Vec<Point>> {
-        vec!(
-            vec!(self.points[0], self.points[1],  self.points[2]),
-            vec!(self.points[7], Point::OffBoard, self.points[3]),
-            vec!(self.points[6], self.points[5],  self.points[4]))
+    fn as_point_array(&self) -> [[Point; 3]; 3] {
+        [
+            [self.points[0], self.points[1],  self.points[2]],
+            [self.points[7], Point::OffBoard, self.points[3]],
+            [self.points[6], self.points[5],  self.points[4]]]
     }
 
 }
