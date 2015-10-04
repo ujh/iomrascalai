@@ -44,7 +44,7 @@ impl Pattern {
         Pattern { vec: v }
     }
 
-    pub fn raw(vec: Vec<Vec<Point>>) -> Pattern {
+    pub fn raw(vec: [[Point; 3]; 3]) -> Pattern {
         let v = vec!(
             vec[0][0],  // NW
             vec[0][1],  // N
@@ -99,38 +99,38 @@ impl Pattern {
     }
 
     fn rotated90(&self) -> Pattern {
-        Pattern::raw(vec!(
-            vec!(self.at(2,0), self.at(1,0), self.at(0,0)),
-            vec!(self.at(2,1), self.at(1,1), self.at(0,1)),
-            vec!(self.at(2,2), self.at(1,2), self.at(0,2))))
+        Pattern::raw([
+            [self.at(2,0), self.at(1,0), self.at(0,0)],
+            [self.at(2,1), self.at(1,1), self.at(0,1)],
+            [self.at(2,2), self.at(1,2), self.at(0,2)]])
     }
 
     fn rotated180(&self) -> Pattern {
-        Pattern::raw(vec!(
-            vec!(self.at(2,2), self.at(2,1), self.at(2,0)),
-            vec!(self.at(1,2), self.at(1,1), self.at(1,0)),
-            vec!(self.at(0,2), self.at(0,1), self.at(0,0))))
+        Pattern::raw([
+            [self.at(2,2), self.at(2,1), self.at(2,0)],
+            [self.at(1,2), self.at(1,1), self.at(1,0)],
+            [self.at(0,2), self.at(0,1), self.at(0,0)]])
     }
 
     fn rotated270(&self) -> Pattern {
-        Pattern::raw(vec!(
-            vec!(self.at(0,2), self.at(1,2), self.at(2,2)),
-            vec!(self.at(0,1), self.at(1,1), self.at(2,1)),
-            vec!(self.at(0,0), self.at(1,0), self.at(2,0))))
+        Pattern::raw([
+            [self.at(0,2), self.at(1,2), self.at(2,2)],
+            [self.at(0,1), self.at(1,1), self.at(2,1)],
+            [self.at(0,0), self.at(1,0), self.at(2,0)]])
     }
 
     fn horizontally_flipped(&self) -> Pattern {
-        Pattern::raw(vec!(
-            vec!(self.at(2,0), self.at(2,1), self.at(2,2)),
-            vec!(self.at(1,0), self.at(1,1), self.at(1,2)),
-            vec!(self.at(0,0), self.at(0,1), self.at(0,2))))
+        Pattern::raw([
+            [self.at(2,0), self.at(2,1), self.at(2,2)],
+            [self.at(1,0), self.at(1,1), self.at(1,2)],
+            [self.at(0,0), self.at(0,1), self.at(0,2)]])
     }
 
     fn vertically_flipped(&self) -> Pattern {
-        Pattern::raw(vec!(
-            vec!(self.at(0,2), self.at(0,1), self.at(0,0)),
-            vec!(self.at(1,2), self.at(1,1), self.at(1,0)),
-            vec!(self.at(2,2), self.at(2,1), self.at(2,0))))
+        Pattern::raw([
+            [self.at(0,2), self.at(0,1), self.at(0,0)],
+            [self.at(1,2), self.at(1,1), self.at(1,0)],
+            [self.at(2,2), self.at(2,1), self.at(2,0)]])
     }
 
     fn at(&self, row: usize, col: usize) -> Point {
