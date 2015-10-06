@@ -83,7 +83,6 @@ pub fn main() {
     let args : Vec<String> = args().collect();
 
     opts.optopt("e", "engine", "Select an engine (defaults to uct)", "amaf|mc|random|uct");
-    opts.optopt("p", "playout", "Type of playout to use (defaults to no-self-atari)", "light|no-self-atari");
 
     config.setup(&mut opts);
 
@@ -116,9 +115,8 @@ pub fn main() {
     // Instantiate only one matcher as it does a lot of computation
     // during setup.
     let matcher = Arc::new(Matcher::new());
-    let playout = playout::factory(matches.opt_str("p"), config.clone());
 
-    let engine = engine::factory(matches.opt_str("e"), config.clone(), playout, matcher);
+    let engine = engine::factory(matches.opt_str("e"), config.clone(), matcher);
 
     log!("Current configuration: {:#?}", config);
 

@@ -30,7 +30,6 @@ use board::Move;
 use config::Config;
 use game::Game;
 use patterns::Matcher;
-use playout::Playout;
 
 use std::ascii::AsciiExt;
 use std::sync::Arc;
@@ -44,18 +43,18 @@ mod random;
 mod test;
 mod uct;
 
-pub fn factory(opt: Option<String>, config: Arc<Config>, playout: Box<Playout>, matcher: Arc<Matcher>) -> Box<Engine> {
+pub fn factory(opt: Option<String>, config: Arc<Config>, matcher: Arc<Matcher>) -> Box<Engine> {
     let engine_arg = opt.map(|s| s.to_ascii_lowercase());
     match engine_arg {
         Some(s) => {
             match s.as_ref() {
                 "random" => Box::new(RandomEngine::new()),
-                "mc"     => Box::new(SimpleMcEngine::new(config, playout)),
-                "amaf"   => Box::new(AmafMcEngine::new(config, playout)),
-                _        => Box::new(UctEngine::new(config, playout, matcher)),
+                "mc"     => Box::new(SimpleMcEngine::new(config)),
+                "amaf"   => Box::new(AmafMcEngine::new(config)),
+                _        => Box::new(UctEngine::new(config, matcher)),
             }
         },
-        None => Box::new(UctEngine::new(config, playout, matcher))
+        None => Box::new(UctEngine::new(config, matcher))
     }
 }
 

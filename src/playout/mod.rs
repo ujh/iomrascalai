@@ -19,8 +19,6 @@
  *                                                                      *
  ************************************************************************/
 
-pub use self::no_eyes::NoEyesPlayout;
-pub use self::no_eyes::NoSelfAtariPlayout;
 use board::Board;
 use board::Color;
 use board::Move;
@@ -32,19 +30,20 @@ use rand::{Rng, XorShiftRng};
 
 use std::sync::Arc;
 
-mod no_eyes;
 mod test;
 
-pub fn factory(opt: Option<String>, config: Arc<Config>) -> Box<Playout> {
-    match opt.as_ref().map(::std::ops::Deref::deref) {
-        Some("light") => Box::new(NoEyesPlayout),
-        _             => Box::new(NoSelfAtariPlayout::new(config)),
-    }
+#[derive(Debug)]
+pub struct Playout {
+    config: Arc<Config>
 }
 
-pub trait Playout: Sync + Send {
+impl Playout {
 
-    fn run(&self, board: &mut Board, initial_move: Option<&Move>, rng: &mut XorShiftRng) -> PlayoutResult {
+    pub fn new(config: Arc<Config>) -> Playout {
+        Playout { config: config }
+    }
+
+    pub fn run(&self, board: &mut Board, initial_move: Option<&Move>, rng: &mut XorShiftRng) -> PlayoutResult {
         let mut played_moves = Vec::new();
 
         initial_move.map(|&m| {
@@ -61,7 +60,12 @@ pub trait Playout: Sync + Send {
         PlayoutResult::new(played_moves, board.winner())
     }
 
-    fn is_playable(&self, board: &Board, m: &Move) -> bool;
+    //don't self atari strings that will make an eye after dying, which is strings of 7+
+    fn is_playable(&self, board: &Board, m: &Move) -> bool {
+        !board.is_eye(&m.coord(), *m.color()) &&
+            (board.is_not_self_atari(m) ||
+             board.new_chain_length_less_than(*m, self.cutoff())) //suicide for smaller groups is ok
+    }
 
     fn max_moves(&self, size: u8) -> usize {
         size as usize * size as usize * 3
@@ -122,13 +126,22 @@ pub trait Playout: Sync + Send {
         }
     }
 
-    fn playout_type(&self) -> &'static str;
+    fn check_for_ladders(&self) -> bool {
+        self.config.playout.ladder_check
+    }
 
-    fn check_for_ladders(&self) -> bool;
+    fn check_for_atari(&self) -> bool {
+        self.config.playout.atari_check
+    }
 
-    fn check_for_atari(&self) -> bool;
+    fn play_in_middle_of_eye(&self) -> bool {
+        self.config.playout.play_in_middle_of_eye
+    }
 
-    fn play_in_middle_of_eye(&self) -> bool;
+    fn cutoff(&self) -> usize {
+        self.config.playout.no_self_atari_cutoff
+    }
+
 }
 
 pub struct PlayoutResult {

@@ -1,6 +1,6 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2015 Thomas Poinsot, Urban Hafner                          *
+ * Copyright 2015 Thomas Poinsot, Igor Polyakov, Urban Hafner           *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -21,30 +21,68 @@
 
 #![cfg(test)]
 
-use std::sync::Arc;
-
+use board::Black;
+use board::Board;
+use board::Play;
 use config::Config;
+use ruleset::KgsChinese;
+use super::Playout;
 
-mod no_eyes;
+use rand::weak_rng;
+use std::sync::Arc;
+use test::Bencher;
 
 fn config() -> Arc<Config> {
     Arc::new(Config::default())
 }
 
-#[test]
-fn factory_returns_no_self_atari_by_default() {
-    let playout = super::factory(None, config());
-    assert_eq!("no-self-atari", playout.playout_type());
+fn playout() -> Playout {
+    Playout::new(config())
 }
 
 #[test]
-fn factory_returns_no_self_atari_when_given_any_string() {
-    let playout = super::factory(Some(String::from("foo")), config());
-    assert_eq!("no-self-atari", playout.playout_type());
+fn should_add_the_passed_moves_as_the_first_move() {
+    let mut board = Board::new(9, 6.5, KgsChinese);
+    let playout = playout();
+    let mut rng = weak_rng();
+    let result = playout.run(&mut board, Some(&Play(Black, 1, 1)), &mut rng);
+    assert_eq!(Play(Black, 1, 1), result.moves()[0]);
 }
 
 #[test]
-fn factory_returns_no_eyes_when_given_light() {
-    let playout = super::factory(Some(String::from("light")), config());
-    assert_eq!("no-eyes", playout.playout_type());
+fn max_moves() {
+    assert_eq!(1083, playout().max_moves(19));
+}
+
+#[bench]
+fn playout_09x09(b: &mut Bencher) {
+    let board = Board::new(9, 6.5, KgsChinese);
+    let playout = playout();
+    let mut rng = weak_rng();
+    b.iter(|| {
+        let mut b = board.clone();
+        playout.run(&mut b, Some(&Play(Black, 1, 1)), &mut rng)
+    });
+}
+
+#[bench]
+fn playout_13x13(b: &mut Bencher) {
+    let board = Board::new(13, 6.5, KgsChinese);
+    let playout = playout();
+    let mut rng = weak_rng();
+    b.iter(|| {
+        let mut b = board.clone();
+        playout.run(&mut b, Some(&Play(Black, 1, 1)), &mut rng)
+    });
+}
+
+#[bench]
+fn playout_19x19(b: &mut Bencher) {
+    let board = Board::new(19, 6.5, KgsChinese);
+    let playout = playout();
+    let mut rng = weak_rng();
+    b.iter(|| {
+        let mut b = board.clone();
+        playout.run(&mut b, Some(&Play(Black, 1, 1)), &mut rng)
+    });
 }

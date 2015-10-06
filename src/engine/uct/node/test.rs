@@ -28,7 +28,7 @@ use board::White;
 use config::Config;
 use game::Game;
 use patterns::Matcher;
-use playout;
+use playout::Playout;
 use ruleset::KgsChinese;
 use sgf::Parser;
 use super::Node;
@@ -396,7 +396,7 @@ fn full_uct_cycle(size: u8, b: &mut Bencher) {
     cfg.uct.priors.use_patterns = true;
     let config = Arc::new(cfg);
     let mut root = Node::root(&game, Black, config.clone());
-    let playout = playout::factory(None, config.clone());
+    let playout = Playout::new(config.clone());
     let mut rng = weak_rng();
     b.iter(|| {
         let (path, moves, _, nodes_added) = root.find_leaf_and_expand(&game, matcher.clone());

@@ -36,13 +36,16 @@ use std::sync::mpsc::Sender;
 
 pub struct AmafMcEngine {
     config: Arc<Config>,
-    playout: Arc<Box<Playout>>,
+    playout: Arc<Playout>,
 }
 
 impl AmafMcEngine {
 
-    pub fn new(config: Arc<Config>, playout: Box<Playout>) -> AmafMcEngine {
-        AmafMcEngine { config: config, playout: Arc::new(playout) }
+    pub fn new(config: Arc<Config>) -> AmafMcEngine {
+        AmafMcEngine {
+            config: config.clone(),
+            playout: Arc::new(Playout::new(config.clone()))
+        }
     }
 
 }
