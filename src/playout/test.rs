@@ -25,6 +25,7 @@ use board::Black;
 use board::Board;
 use board::Play;
 use config::Config;
+use patterns::Matcher;
 use ruleset::KgsChinese;
 use super::Playout;
 
@@ -36,14 +37,14 @@ fn config() -> Arc<Config> {
     Arc::new(Config::default())
 }
 
-fn playout() -> Playout {
-    Playout::new(config())
+fn playout(matcher: Arc<Matcher>) -> Playout {
+    Playout::new(config(), matcher)
 }
 
 #[test]
 fn should_add_the_passed_moves_as_the_first_move() {
     let mut board = Board::new(9, 6.5, KgsChinese);
-    let playout = playout();
+    let playout = playout(Arc::new(Matcher::new()));
     let mut rng = weak_rng();
     let result = playout.run(&mut board, Some(&Play(Black, 1, 1)), &mut rng);
     assert_eq!(Play(Black, 1, 1), result.moves()[0]);
@@ -51,13 +52,14 @@ fn should_add_the_passed_moves_as_the_first_move() {
 
 #[test]
 fn max_moves() {
-    assert_eq!(1083, playout().max_moves(19));
+    assert_eq!(1083, playout(Arc::new(Matcher::new())).max_moves(19));
 }
 
 #[bench]
 fn playout_09x09(b: &mut Bencher) {
     let board = Board::new(9, 6.5, KgsChinese);
-    let playout = playout();
+    let matcher = Arc::new(Matcher::new());
+    let playout = playout(matcher);
     let mut rng = weak_rng();
     b.iter(|| {
         let mut b = board.clone();
@@ -68,7 +70,8 @@ fn playout_09x09(b: &mut Bencher) {
 #[bench]
 fn playout_13x13(b: &mut Bencher) {
     let board = Board::new(13, 6.5, KgsChinese);
-    let playout = playout();
+    let matcher = Arc::new(Matcher::new());
+    let playout = playout(matcher);
     let mut rng = weak_rng();
     b.iter(|| {
         let mut b = board.clone();
@@ -79,7 +82,8 @@ fn playout_13x13(b: &mut Bencher) {
 #[bench]
 fn playout_19x19(b: &mut Bencher) {
     let board = Board::new(19, 6.5, KgsChinese);
-    let playout = playout();
+    let matcher = Arc::new(Matcher::new());
+    let playout = playout(matcher);
     let mut rng = weak_rng();
     b.iter(|| {
         let mut b = board.clone();

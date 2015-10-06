@@ -24,6 +24,7 @@ use board::Color;
 use board::Move;
 use config::Config;
 use game::Game;
+use patterns::Matcher;
 use playout::Playout;
 use playout::PlayoutResult;
 use super::Engine;
@@ -41,10 +42,10 @@ pub struct AmafMcEngine {
 
 impl AmafMcEngine {
 
-    pub fn new(config: Arc<Config>) -> AmafMcEngine {
+    pub fn new(config: Arc<Config>, matcher: Arc<Matcher>) -> AmafMcEngine {
         AmafMcEngine {
             config: config.clone(),
-            playout: Arc::new(Playout::new(config.clone()))
+            playout: Arc::new(Playout::new(config.clone(), matcher))
         }
     }
 

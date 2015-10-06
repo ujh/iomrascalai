@@ -25,22 +25,23 @@ use board::Move;
 use board::Pass;
 use board::Play;
 use config::Config;
+use patterns::Matcher;
 
-use rand::{Rng, XorShiftRng};
-
+use rand::Rng;
+use rand::XorShiftRng;
 use std::sync::Arc;
 
 mod test;
 
-#[derive(Debug)]
 pub struct Playout {
-    config: Arc<Config>
+    config: Arc<Config>,
+    matcher: Arc<Matcher>
 }
 
 impl Playout {
 
-    pub fn new(config: Arc<Config>) -> Playout {
-        Playout { config: config }
+    pub fn new(config: Arc<Config>, matcher: Arc<Matcher>) -> Playout {
+        Playout { config: config, matcher: matcher }
     }
 
     pub fn run(&self, board: &mut Board, initial_move: Option<&Move>, rng: &mut XorShiftRng) -> PlayoutResult {
@@ -79,6 +80,12 @@ impl Playout {
             if possible_move.is_some() {
                 return possible_move.unwrap();
             }
+        }
+        if self.use_patterns(rng) {
+            // let possible_move = self.pattern_move(color, board, rng);
+            // if possible_move.is_some() {
+            //     return possible_move.unwrap();
+            // }
         }
         self.random_move(color, board, rng)
     }
@@ -146,6 +153,14 @@ impl Playout {
 
     fn check_for_atari(&self) -> bool {
         self.config.playout.atari_check
+    }
+
+    fn use_patterns(&self, rng: &mut XorShiftRng) -> bool {
+        if self.config.playout.use_patterns {
+            rng.gen_range(0f32, 1f32) < self.config.playout.pattern_probability
+        } else {
+            false
+        }
     }
 
     fn play_in_middle_of_eye(&self) -> bool {

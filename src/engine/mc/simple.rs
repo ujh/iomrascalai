@@ -24,6 +24,7 @@ use board::Color;
 use board::Move;
 use config::Config;
 use game::Game;
+use patterns::Matcher;
 use playout::Playout;
 use playout::PlayoutResult;
 use super::Engine;
@@ -41,10 +42,10 @@ pub struct SimpleMcEngine {
 
 impl SimpleMcEngine {
 
-    pub fn new(config: Arc<Config>) -> SimpleMcEngine {
+    pub fn new(config: Arc<Config>, matcher: Arc<Matcher>) -> SimpleMcEngine {
         SimpleMcEngine {
             config: config.clone(),
-            playout: Arc::new(Playout::new(config.clone()))
+            playout: Arc::new(Playout::new(config.clone(), matcher))
         }
     }
 

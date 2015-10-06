@@ -57,8 +57,8 @@ impl UctEngine {
     pub fn new(config: Arc<Config>, matcher: Arc<Matcher>) -> UctEngine {
         UctEngine {
             config: config.clone(),
-            matcher: matcher,
-            playout: Arc::new(Playout::new(config.clone())),
+            matcher: matcher.clone(),
+            playout: Arc::new(Playout::new(config.clone(), matcher.clone())),
             previous_node_count: 0,
             root: Node::new(NoMove, config),
         }

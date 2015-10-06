@@ -49,8 +49,8 @@ pub fn factory(opt: Option<String>, config: Arc<Config>, matcher: Arc<Matcher>) 
         Some(s) => {
             match s.as_ref() {
                 "random" => Box::new(RandomEngine::new()),
-                "mc"     => Box::new(SimpleMcEngine::new(config)),
-                "amaf"   => Box::new(AmafMcEngine::new(config)),
+                "mc"     => Box::new(SimpleMcEngine::new(config, matcher)),
+                "amaf"   => Box::new(AmafMcEngine::new(config, matcher)),
                 _        => Box::new(UctEngine::new(config, matcher)),
             }
         },
