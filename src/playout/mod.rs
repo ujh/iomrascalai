@@ -74,26 +74,40 @@ impl Playout {
     fn select_move(&self, board: &Board, rng: &mut XorShiftRng) -> Move {
         let color = board.next_player();
 
-        //if own group of more than one stone has one liberty, check if it can be captured
         if self.check_for_atari() {
-            let mut in_danger = board.chains().iter()
-                .filter(|chain| chain.color() == color && chain.coords().len() > 1 && chain.liberties().len() == 1);
+            let possible_move = self.atari_move(color, board, rng);
+            if possible_move.is_some() {
+                return possible_move.unwrap();
+            }
+        }
+        self.random_move(color, board, rng)
+    }
 
-            if let Some(chain) = in_danger.next() {
-                let solutions =  if self.check_for_ladders() {
+    // If own group of more than one stone has one liberty, check if it can be captured
+    fn atari_move(&self, color: Color, board: &Board, rng: &mut XorShiftRng) -> Option<Move> {
+        let mut in_danger = board.chains().iter()
+            .filter(|chain| {
+                chain.color() == color && chain.coords().len() > 1 && chain.liberties().len() == 1
+            });
+        match in_danger.next() {
+            Some(chain) => {
+                let solutions = if self.check_for_ladders() {
                     board.save_group(chain)
                 } else {
                     board.fix_atari_no_ladder_check(chain)
                 };
-
                 if solutions.len() > 0 { //if we can actually save it
                     let random = rng.gen::<usize>() % solutions.len();
-                    return solutions[random];
+                    Some(solutions[random])
+                } else {
+                    None
                 }
-            }
+            },
+            None => None
         }
+    }
 
-
+    fn random_move(&self, color: Color, board: &Board, rng: &mut XorShiftRng) -> Move {
         let vacant = board.vacant();
         let playable_move = vacant
             .iter()
