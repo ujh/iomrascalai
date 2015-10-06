@@ -120,7 +120,7 @@ pub fn main() {
 
     let engine = engine::factory(matches.opt_str("e"), config.clone(), playout, matcher);
 
-    log!("Current configuration: {:?}", config);
+    log!("Current configuration: {:#?}", config);
 
     Driver::new(config, engine);
 }
