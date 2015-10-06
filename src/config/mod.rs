@@ -62,6 +62,7 @@ pub struct PlayoutConfig {
     pub atari_check: bool,
     pub ladder_check: bool,
     pub no_self_atari_cutoff: usize,
+    pub pattern_probability: f32,
     pub play_in_middle_of_eye: bool,
     pub use_patterns: bool,
 }
@@ -123,6 +124,7 @@ impl Config {
                 atari_check: true,
                 ladder_check: true,
                 no_self_atari_cutoff: 7,
+                pattern_probability: 0.9,
                 play_in_middle_of_eye: true,
                 use_patterns: false,
             },
