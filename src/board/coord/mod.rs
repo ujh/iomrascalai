@@ -75,13 +75,13 @@ impl Coord {
     pub fn neighbours8_unchecked(&self) -> Vec<Coord> {
         // This works as we never use row or column 0.
         vec!(
-            Coord::new(self.col-1, self.row-1), // SW
-            Coord::new(self.col,   self.row-1), // S
-            Coord::new(self.col+1, self.row-1), // SE
-            Coord::new(self.col+1, self.row),   // E
-            Coord::new(self.col+1, self.row+1), // NE
-            Coord::new(self.col,   self.row+1), // N
             Coord::new(self.col-1, self.row+1), // NW
+            Coord::new(self.col,   self.row+1), // N
+            Coord::new(self.col+1, self.row+1), // NE
+            Coord::new(self.col+1, self.row),   // E
+            Coord::new(self.col+1, self.row-1), // SE
+            Coord::new(self.col,   self.row-1), // S
+            Coord::new(self.col-1, self.row-1), // SW
             Coord::new(self.col-1, self.row))   // W
     }
 

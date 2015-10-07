@@ -391,6 +391,7 @@ fn full_uct_cycle_19x19(b: &mut Bencher) {
 fn full_uct_cycle(size: u8, b: &mut Bencher) {
     let game = Game::new(size, 6.5, KgsChinese);
     let mut cfg = Config::default();
+    let matcher = matcher();
     cfg.play_out_aftermath = true;
     cfg.uct.priors.use_patterns = true;
     let config = Arc::new(cfg);
@@ -398,7 +399,7 @@ fn full_uct_cycle(size: u8, b: &mut Bencher) {
     let playout = playout::factory(None, config.clone());
     let mut rng = weak_rng();
     b.iter(|| {
-        let (path, moves, _, nodes_added) = root.find_leaf_and_expand(&game, matcher());
+        let (path, moves, _, nodes_added) = root.find_leaf_and_expand(&game, matcher.clone());
         let mut b = game.board();
         for &m in moves.iter() {
             b.play_legal_move(m);

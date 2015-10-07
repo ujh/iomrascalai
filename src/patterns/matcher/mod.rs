@@ -19,27 +19,32 @@
  *                                                                      *
  ************************************************************************/
 
-pub use super::Pattern;
+pub use self::pattern::Pattern;
 use board::Board;
 use board::Coord;
+use self::tree::Tree;
 
+mod pattern;
+mod point;
 mod test;
+mod tree;
 
 pub struct Matcher {
-    patterns: Vec<Pattern>
+    tree: Tree
 }
 
 impl Matcher {
 
     pub fn new() -> Matcher {
-        Matcher { patterns: Self::expand_patterns(Self::patterns()) }
+        Self::with_patterns(Self::expand_patterns(Self::patterns()))
+    }
+
+    fn with_patterns(patterns: Vec<Pattern>) -> Matcher {
+        Matcher { tree: Tree::from_patterns(patterns) }
     }
 
     pub fn pattern_count(&self, board: &Board, coord: &Coord) -> usize {
-        self.patterns
-            .iter()
-            .filter(|pattern| pattern.matches(board, coord))
-            .count()
+        self.tree.pattern_count(board, coord)
     }
 
     fn expand_patterns(patterns: Vec<Pattern>) -> Vec<Pattern> {
@@ -55,71 +60,70 @@ impl Matcher {
     fn patterns() -> Vec<Pattern> {
         vec!(
             // hane pattern - enclosing hane
-            Pattern::new(vec!(
-                vec!('X', 'O', 'X'),
-                vec!('.', '.', '.'),
-                vec!('?', '?', '?'))),
+            Pattern::new([
+                ['X', 'O', 'X'],
+                ['.', '.', '.'],
+                ['?', '?', '?']]),
             // hane pattern - non-cutting hane
-            Pattern::new(vec!(
-                vec!('X', 'O', '.'),
-                vec!('.', '.', '.'),
-                vec!('?', '.', '?'))),
+            Pattern::new([
+                ['X', 'O', '.'],
+                ['.', '.', '.'],
+                ['?', '.', '?']]),
             // hane pattern - magari
-            Pattern::new(vec!(
-                vec!('X', 'O', '?'),
-                vec!('X', '.', '.'),
-                vec!('x', '.', '?'))),
+            Pattern::new([
+                ['X', 'O', '?'],
+                ['X', '.', '.'],
+                ['x', '.', '?']]),
             // generic pattern - katatsuke or diagonal attachment; similar to magari
-            Pattern::new(vec!(
-                vec!('.', 'O', '.'),
-                vec!('X', '.', '.'),
-                vec!('.', '.', '.'))),
+            Pattern::new([
+                ['.', 'O', '.'],
+                ['X', '.', '.'],
+                ['.', '.', '.']]),
             // cut1 pattern (kiri] - unprotected cut
-            Pattern::new(vec!(
-                vec!('X', 'O', '?'),
-                vec!('O', '.', 'o'),
-                vec!('?', 'o', '?'))),
+            Pattern::new([
+                ['X', 'O', '?'],
+                ['O', '.', 'o'],
+                ['?', 'o', '?']]),
             // cut1 pattern (kiri] - peeped cut
-            Pattern::new(vec!(
-                vec!('X', 'O', '?'),
-                vec!('O', '.', 'X'),
-                vec!('?', '?', '?'))),
+            Pattern::new([
+                ['X', 'O', '?'],
+                ['O', '.', 'X'],
+                ['?', '?', '?']]),
             // cut2 pattern (de]
-            Pattern::new(vec!(
-                vec!('?', 'X', '?'),
-                vec!('O', '.', 'O'),
-                vec!('o', 'o', 'o'))),
+            Pattern::new([
+                ['?', 'X', '?'],
+                ['O', '.', 'O'],
+                ['o', 'o', 'o']]),
             // cut keima
-            Pattern::new(vec!(
-                vec!('O', 'X', '?'),
-                vec!('o', '.', 'O'),
-                vec!('?', '?', '?'))),
+            Pattern::new([
+                ['O', 'X', '?'],
+                ['o', '.', 'O'],
+                ['?', '?', '?']]),
             // side pattern - chase
-            Pattern::new(vec!(
-                vec!('X', '.', '?'),
-                vec!('O', '.', '?'),
-                vec!(' ', ' ', '?'))),
+            Pattern::new([
+                ['X', '.', '?'],
+                ['O', '.', '?'],
+                [' ', ' ', '?']]),
             // side pattern - block side cut
-            Pattern::new(vec!(
-                vec!('O', 'X', '?'),
-                vec!('X', '.', 'O'),
-                vec!(' ', ' ', ' '))),
+            Pattern::new([
+                ['O', 'X', '?'],
+                ['X', '.', 'O'],
+                [' ', ' ', ' ']]),
             // side pattern - block side connection
-            Pattern::new(vec!(
-                vec!('?', 'X', '?'),
-                vec!('x', '.', 'O'),
-                vec!(' ', ' ', ' '))),
+            Pattern::new([
+                ['?', 'X', '?'],
+                ['x', '.', 'O'],
+                [' ', ' ', ' ']]),
             // side pattern - sagari
-            Pattern::new(vec!(
-                vec!('?', 'X', 'O'),
-                vec!('x', '.', 'x'),
-                vec!(' ', ' ', ' '))),
+            Pattern::new([
+                ['?', 'X', 'O'],
+                ['x', '.', 'x'],
+                [' ', ' ', ' ']]),
             // side pattern - cut
-            Pattern::new(vec!(
-                vec!('?', 'O', 'X'),
-                vec!('X', '.', 'O'),
-                vec!(' ', ' ', ' '))),
-            )
+            Pattern::new([
+                ['?', 'O', 'X'],
+                ['X', '.', 'O'],
+                [' ', ' ', ' ']]))
     }
 
 }
