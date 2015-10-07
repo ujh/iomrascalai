@@ -136,3 +136,17 @@ describe! pattern_count {
         assert_that(matcher.pattern_count(board, off_center), is(equal_to(0)));
     }
 }
+
+describe! matching_coords {
+
+    it "returns the correct coords" {
+        let pattern = Pattern::new([
+            ['.', '.', '.'],
+            ['X', '.', '.'],
+            ['.', '.', '.']]);
+        let matcher = Matcher::with_patterns(vec!(pattern));
+        let board = &board_from_sgf("3x3/one-black-w.sgf");
+        let coords = matcher.matching_coords(board);
+        assert_that(coords, is(equal_to(vec!(Coord::new(5,5)))));
+    }
+}

@@ -47,6 +47,14 @@ impl Matcher {
         self.tree.pattern_count(board, coord)
     }
 
+    pub fn matching_coords(&self, board: &Board) -> Vec<Coord> {
+        board.vacant()
+            .iter()
+            .filter(|c| self.pattern_count(board, c) > 0)
+            .cloned()
+            .collect()
+    }
+
     fn expand_patterns(patterns: Vec<Pattern>) -> Vec<Pattern> {
         patterns.iter().flat_map(|pattern| pattern.expand()).collect()
     }

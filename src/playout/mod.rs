@@ -82,10 +82,10 @@ impl Playout {
             }
         }
         if self.use_patterns(rng) {
-            // let possible_move = self.pattern_move(color, board, rng);
-            // if possible_move.is_some() {
-            //     return possible_move.unwrap();
-            // }
+            let possible_move = self.pattern_move(color, board, rng);
+            if possible_move.is_some() {
+                return possible_move.unwrap();
+            }
         }
         self.random_move(color, board, rng)
     }
@@ -111,6 +111,16 @@ impl Playout {
                 }
             },
             None => None
+        }
+    }
+
+    fn pattern_move(&self, color: Color, board: &Board, rng: &mut XorShiftRng) -> Option<Move> {
+        let coords = self.matcher.matching_coords(board);
+        if coords.len() > 0 {
+            let c = coords[rng.gen_range(0, coords.len())];
+            Some(Play(color, c.col, c.row))
+        } else {
+            None
         }
     }
 
