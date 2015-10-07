@@ -126,7 +126,7 @@ impl Config {
                 no_self_atari_cutoff: 7,
                 pattern_probability: 0.9,
                 play_in_middle_of_eye: true,
-                use_patterns: false,
+                use_patterns: true,
             },
             ruleset: KgsChinese,
             threads: 1,
