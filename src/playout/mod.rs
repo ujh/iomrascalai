@@ -115,7 +115,15 @@ impl Playout {
     }
 
     fn pattern_move(&self, color: Color, board: &Board, rng: &mut XorShiftRng) -> Option<Move> {
-        let coords = self.matcher.matching_coords(board);
+        let playable = board.vacant()
+            .iter()
+            .filter(|c| {
+                let m = Play(color, c.col, c.row);
+                board.is_legal(m).is_ok() && self.is_playable(board, &m)
+            })
+            .cloned()
+            .collect();
+        let coords = self.matcher.matching_coords(board, playable);
         if coords.len() > 0 {
             let c = coords[rng.gen_range(0, coords.len())];
             Some(Play(color, c.col, c.row))

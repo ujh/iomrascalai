@@ -146,7 +146,8 @@ describe! matching_coords {
             ['.', '.', '.']]);
         let matcher = Matcher::with_patterns(vec!(pattern));
         let board = &board_from_sgf("3x3/one-black-w.sgf");
-        let coords = matcher.matching_coords(board);
+        let cs = vec!(Coord::new(5,5), Coord::new(4,5), Coord::new(5,4));
+        let coords = matcher.matching_coords(board, cs);
         assert_that(coords, is(equal_to(vec!(Coord::new(5,5)))));
     }
 }
