@@ -120,15 +120,14 @@ impl Playout {
             .iter()
             .map(|c| Play(color, c.col, c.row))
             .position(|m| {
-                board.is_legal(m).is_ok() && self.is_playable(board, &m) &&
-                    self.matches(board, &m)
+                board.is_legal(m).is_ok() && self.matches(board, &m)
             });
         if let Some(first) = playable {
             loop {
                 let r = first + (rng.gen::<usize>() % (vacant.len() - first));
                 let coord = vacant[r];
                 let m = Play(color, coord.col, coord.row);
-                if board.is_legal(m).is_ok() && self.is_playable(board, &m) && self.matches(board, &m) {
+                if board.is_legal(m).is_ok() && self.matches(board, &m) {
                     return Some(m);
                 }
             }
