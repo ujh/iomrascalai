@@ -115,21 +115,30 @@ impl Playout {
     }
 
     fn pattern_move(&self, color: Color, board: &Board, rng: &mut XorShiftRng) -> Option<Move> {
-        let playable = board.vacant()
+        let vacant = board.vacant();
+        let playable = vacant
             .iter()
-            .filter(|c| {
-                let m = Play(color, c.col, c.row);
-                board.is_legal(m).is_ok() && self.is_playable(board, &m)
-            })
-            .cloned()
-            .collect();
-        let coords = self.matcher.matching_coords(board, playable);
-        if coords.len() > 0 {
-            let c = coords[rng.gen_range(0, coords.len())];
-            Some(Play(color, c.col, c.row))
+            .map(|c| Play(color, c.col, c.row))
+            .position(|m| {
+                board.is_legal(m).is_ok() && self.is_playable(board, &m) &&
+                    self.matches(board, &m)
+            });
+        if let Some(first) = playable {
+            loop {
+                let r = first + (rng.gen::<usize>() % (vacant.len() - first));
+                let coord = vacant[r];
+                let m = Play(color, coord.col, coord.row);
+                if board.is_legal(m).is_ok() && self.is_playable(board, &m) && self.matches(board, &m) {
+                    return Some(m);
+                }
+            }
         } else {
             None
         }
+    }
+
+    fn matches(&self, board: &Board, m: &Move) -> bool {
+        self.matcher.pattern_count(board, &m.coord()) > 0
     }
 
     fn random_move(&self, color: Color, board: &Board, rng: &mut XorShiftRng) -> Move {
