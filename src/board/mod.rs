@@ -628,7 +628,7 @@ impl Board {
             s.push_str(format!("{:2} ", row).as_ref());
 
             // Prints the actual row
-            for col in (1u8..self.size()+1) {
+            for col in 1u8..self.size()+1 {
                 let current_coords = Coord::new(col, row);
 
                 match self.color(&current_coords) {
