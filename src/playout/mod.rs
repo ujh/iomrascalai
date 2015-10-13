@@ -19,32 +19,32 @@
  *                                                                      *
  ************************************************************************/
 
-pub use self::no_eyes::NoEyesPlayout;
-pub use self::no_eyes::NoSelfAtariPlayout;
 use board::Board;
 use board::Color;
 use board::Move;
 use board::Pass;
 use board::Play;
 use config::Config;
+use patterns::Matcher;
 
-use rand::{Rng, XorShiftRng};
-
+use rand::Rng;
+use rand::XorShiftRng;
 use std::sync::Arc;
 
-mod no_eyes;
 mod test;
 
-pub fn factory(opt: Option<String>, config: Arc<Config>) -> Box<Playout> {
-    match opt.as_ref().map(::std::ops::Deref::deref) {
-        Some("light") => Box::new(NoEyesPlayout),
-        _             => Box::new(NoSelfAtariPlayout::new(config)),
-    }
+pub struct Playout {
+    config: Arc<Config>,
+    matcher: Arc<Matcher>
 }
 
-pub trait Playout: Sync + Send {
+impl Playout {
 
-    fn run(&self, board: &mut Board, initial_move: Option<&Move>, rng: &mut XorShiftRng) -> PlayoutResult {
+    pub fn new(config: Arc<Config>, matcher: Arc<Matcher>) -> Playout {
+        Playout { config: config, matcher: matcher }
+    }
+
+    pub fn run(&self, board: &mut Board, initial_move: Option<&Move>, rng: &mut XorShiftRng) -> PlayoutResult {
         let mut played_moves = Vec::new();
 
         initial_move.map(|&m| {
@@ -61,7 +61,12 @@ pub trait Playout: Sync + Send {
         PlayoutResult::new(played_moves, board.winner())
     }
 
-    fn is_playable(&self, board: &Board, m: &Move) -> bool;
+    //don't self atari strings that will make an eye after dying, which is strings of 7+
+    fn is_playable(&self, board: &Board, m: &Move) -> bool {
+        !board.is_eye(&m.coord(), *m.color()) &&
+            (board.is_not_self_atari(m) ||
+             board.new_chain_length_less_than(*m, self.cutoff())) //suicide for smaller groups is ok
+    }
 
     fn max_moves(&self, size: u8) -> usize {
         size as usize * size as usize * 3
@@ -70,26 +75,72 @@ pub trait Playout: Sync + Send {
     fn select_move(&self, board: &Board, rng: &mut XorShiftRng) -> Move {
         let color = board.next_player();
 
-        //if own group of more than one stone has one liberty, check if it can be captured
         if self.check_for_atari() {
-            let mut in_danger = board.chains().iter()
-                .filter(|chain| chain.color() == color && chain.coords().len() > 1 && chain.liberties().len() == 1);
+            let possible_move = self.atari_move(color, board, rng);
+            if possible_move.is_some() {
+                return possible_move.unwrap();
+            }
+        }
+        if self.use_patterns(rng) {
+            let possible_move = self.pattern_move(color, board, rng);
+            if possible_move.is_some() {
+                return possible_move.unwrap();
+            }
+        }
+        self.random_move(color, board, rng)
+    }
 
-            if let Some(chain) = in_danger.next() {
-                let solutions =  if self.check_for_ladders() {
+    // If own group of more than one stone has one liberty, check if it can be captured
+    fn atari_move(&self, color: Color, board: &Board, rng: &mut XorShiftRng) -> Option<Move> {
+        let mut in_danger = board.chains().iter()
+            .filter(|chain| {
+                chain.color() == color && chain.coords().len() > 1 && chain.liberties().len() == 1
+            });
+        match in_danger.next() {
+            Some(chain) => {
+                let solutions = if self.check_for_ladders() {
                     board.save_group(chain)
                 } else {
                     board.fix_atari_no_ladder_check(chain)
                 };
-
                 if solutions.len() > 0 { //if we can actually save it
                     let random = rng.gen::<usize>() % solutions.len();
-                    return solutions[random];
+                    Some(solutions[random])
+                } else {
+                    None
+                }
+            },
+            None => None
+        }
+    }
+
+    fn pattern_move(&self, color: Color, board: &Board, rng: &mut XorShiftRng) -> Option<Move> {
+        let vacant = board.vacant();
+        let playable = vacant
+            .iter()
+            .map(|c| Play(color, c.col, c.row))
+            .position(|m| {
+                board.is_legal(m).is_ok() && self.matches(board, &m)
+            });
+        if let Some(first) = playable {
+            loop {
+                let r = first + (rng.gen::<usize>() % (vacant.len() - first));
+                let coord = vacant[r];
+                let m = Play(color, coord.col, coord.row);
+                if board.is_legal(m).is_ok() && self.matches(board, &m) {
+                    return Some(m);
                 }
             }
+        } else {
+            None
         }
+    }
 
+    fn matches(&self, board: &Board, m: &Move) -> bool {
+        self.matcher.pattern_count(board, &m.coord()) > 0
+    }
 
+    fn random_move(&self, color: Color, board: &Board, rng: &mut XorShiftRng) -> Move {
         let vacant = board.vacant();
         let playable_move = vacant
             .iter()
@@ -122,13 +173,30 @@ pub trait Playout: Sync + Send {
         }
     }
 
-    fn playout_type(&self) -> &'static str;
+    fn check_for_ladders(&self) -> bool {
+        self.config.playout.ladder_check
+    }
 
-    fn check_for_ladders(&self) -> bool;
+    fn check_for_atari(&self) -> bool {
+        self.config.playout.atari_check
+    }
 
-    fn check_for_atari(&self) -> bool;
+    fn use_patterns(&self, rng: &mut XorShiftRng) -> bool {
+        if self.config.playout.use_patterns {
+            rng.gen_range(0f32, 1f32) < self.config.playout.pattern_probability
+        } else {
+            false
+        }
+    }
 
-    fn play_in_middle_of_eye(&self) -> bool;
+    fn play_in_middle_of_eye(&self) -> bool {
+        self.config.playout.play_in_middle_of_eye
+    }
+
+    fn cutoff(&self) -> usize {
+        self.config.playout.no_self_atari_cutoff
+    }
+
 }
 
 pub struct PlayoutResult {

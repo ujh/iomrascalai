@@ -21,28 +21,30 @@
 
 #![cfg(test)]
 
-use std::sync::Arc;
-
 use board::Black;
 use board::Board;
 use board::Play;
 use config::Config;
-use playout::NoEyesPlayout;
-use playout::NoSelfAtariPlayout;
-use playout::Playout;
+use patterns::Matcher;
 use ruleset::KgsChinese;
+use super::Playout;
 
 use rand::weak_rng;
+use std::sync::Arc;
 use test::Bencher;
 
 fn config() -> Arc<Config> {
     Arc::new(Config::default())
 }
 
+fn playout(matcher: Arc<Matcher>) -> Playout {
+    Playout::new(config(), matcher)
+}
+
 #[test]
 fn should_add_the_passed_moves_as_the_first_move() {
     let mut board = Board::new(9, 6.5, KgsChinese);
-    let playout = NoEyesPlayout;
+    let playout = playout(Arc::new(Matcher::new()));
     let mut rng = weak_rng();
     let result = playout.run(&mut board, Some(&Play(Black, 1, 1)), &mut rng);
     assert_eq!(Play(Black, 1, 1), result.moves()[0]);
@@ -50,14 +52,14 @@ fn should_add_the_passed_moves_as_the_first_move() {
 
 #[test]
 fn max_moves() {
-    let playout = NoEyesPlayout;
-    assert_eq!(1083, playout.max_moves(19));
+    assert_eq!(1083, playout(Arc::new(Matcher::new())).max_moves(19));
 }
 
 #[bench]
-fn no_eyes_09x09(b: &mut Bencher) {
+fn playout_09x09(b: &mut Bencher) {
     let board = Board::new(9, 6.5, KgsChinese);
-    let playout = NoEyesPlayout;
+    let matcher = Arc::new(Matcher::new());
+    let playout = playout(matcher);
     let mut rng = weak_rng();
     b.iter(|| {
         let mut b = board.clone();
@@ -66,9 +68,10 @@ fn no_eyes_09x09(b: &mut Bencher) {
 }
 
 #[bench]
-fn no_eyes_13x13(b: &mut Bencher) {
+fn playout_13x13(b: &mut Bencher) {
     let board = Board::new(13, 6.5, KgsChinese);
-    let playout = NoEyesPlayout;
+    let matcher = Arc::new(Matcher::new());
+    let playout = playout(matcher);
     let mut rng = weak_rng();
     b.iter(|| {
         let mut b = board.clone();
@@ -77,42 +80,10 @@ fn no_eyes_13x13(b: &mut Bencher) {
 }
 
 #[bench]
-fn no_eyes_19x19(b: &mut Bencher) {
+fn playout_19x19(b: &mut Bencher) {
     let board = Board::new(19, 6.5, KgsChinese);
-    let playout = NoEyesPlayout;
-    let mut rng = weak_rng();
-    b.iter(|| {
-        let mut b = board.clone();
-        playout.run(&mut b, Some(&Play(Black, 1, 1)), &mut rng)
-    });
-}
-
-#[bench]
-fn no_self_atari_09x09(b: &mut Bencher) {
-    let board = Board::new(9, 6.5, KgsChinese);
-    let playout = NoSelfAtariPlayout::new(config());
-    let mut rng = weak_rng();
-    b.iter(|| {
-        let mut b = board.clone();
-        playout.run(&mut b, Some(&Play(Black, 1, 1)), &mut rng)
-    });
-}
-
-#[bench]
-fn no_self_atari_13x13(b: &mut Bencher) {
-    let board = Board::new(13, 6.5, KgsChinese);
-    let playout = NoSelfAtariPlayout::new(config());
-    let mut rng = weak_rng();
-    b.iter(|| {
-        let mut b = board.clone();
-        playout.run(&mut b, Some(&Play(Black, 1, 1)), &mut rng)
-    });
-}
-
-#[bench]
-fn no_self_atari_19x19(b: &mut Bencher) {
-    let board = Board::new(19, 6.5, KgsChinese);
-    let playout = NoSelfAtariPlayout::new(config());
+    let matcher = Arc::new(Matcher::new());
+    let playout = playout(matcher);
     let mut rng = weak_rng();
     b.iter(|| {
         let mut b = board.clone();

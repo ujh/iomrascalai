@@ -47,18 +47,18 @@ mod node;
 pub struct UctEngine {
     config: Arc<Config>,
     matcher: Arc<Matcher>,
-    playout: Arc<Box<Playout>>,
+    playout: Arc<Playout>,
     previous_node_count: usize,
     root: Node,
 }
 
 impl UctEngine {
 
-    pub fn new(config: Arc<Config>, playout: Box<Playout>, matcher: Arc<Matcher>) -> UctEngine {
+    pub fn new(config: Arc<Config>, matcher: Arc<Matcher>) -> UctEngine {
         UctEngine {
             config: config.clone(),
-            matcher: matcher,
-            playout: Arc::new(playout),
+            matcher: matcher.clone(),
+            playout: Arc::new(Playout::new(config.clone(), matcher.clone())),
             previous_node_count: 0,
             root: Node::new(NoMove, config),
         }
@@ -128,7 +128,7 @@ impl Engine for UctEngine {
 
 }
 
-fn spin_up<'a>(config: Arc<Config>, playout: Arc<Box<Playout>>, game: &Game, send_to_main: Sender<((Vec<usize>, Color, usize), Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>) -> (Vec<JoinGuard<'a, ()>>, Vec<Sender<()>>) {
+fn spin_up<'a>(config: Arc<Config>, playout: Arc<Playout>, game: &Game, send_to_main: Sender<((Vec<usize>, Color, usize), Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>) -> (Vec<JoinGuard<'a, ()>>, Vec<Sender<()>>) {
     let mut guards = Vec::new();
     let mut halt_senders = Vec::new();
     for _ in 0..config.threads {
@@ -141,7 +141,7 @@ fn spin_up<'a>(config: Arc<Config>, playout: Arc<Box<Playout>>, game: &Game, sen
     (guards, halt_senders)
 }
 
-fn spin_up_worker<'a>(config: Arc<Config>, playout: Arc<Box<Playout>>, board: Board, send_to_main: Sender<((Vec<usize>, Color, usize),Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>, receive_halt: Receiver<()>) -> JoinGuard<'a, ()> {
+fn spin_up_worker<'a>(config: Arc<Config>, playout: Arc<Playout>, board: Board, send_to_main: Sender<((Vec<usize>, Color, usize),Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>, receive_halt: Receiver<()>) -> JoinGuard<'a, ()> {
     unsafe { scoped(move || {
         let mut rng = weak_rng();
         let (send_to_self, receive_from_main) = channel::<(Vec<usize>, Vec<Move>, bool, usize)>();

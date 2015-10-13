@@ -13,6 +13,7 @@ else
     PREFIX=$1
 fi
 
+cargo clean
 cargo build --release
 
 THREADS=8

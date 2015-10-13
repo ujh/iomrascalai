@@ -24,6 +24,7 @@ use board::Color;
 use board::Move;
 use config::Config;
 use game::Game;
+use patterns::Matcher;
 use playout::Playout;
 use playout::PlayoutResult;
 use super::Engine;
@@ -36,13 +37,16 @@ use std::sync::mpsc::Sender;
 
 pub struct SimpleMcEngine {
     config: Arc<Config>,
-    playout: Arc<Box<Playout>>,
+    playout: Arc<Playout>,
 }
 
 impl SimpleMcEngine {
 
-    pub fn new(config: Arc<Config>, playout: Box<Playout>) -> SimpleMcEngine {
-        SimpleMcEngine { config: config, playout: Arc::new(playout) }
+    pub fn new(config: Arc<Config>, matcher: Arc<Matcher>) -> SimpleMcEngine {
+        SimpleMcEngine {
+            config: config.clone(),
+            playout: Arc::new(Playout::new(config.clone(), matcher))
+        }
     }
 
 }

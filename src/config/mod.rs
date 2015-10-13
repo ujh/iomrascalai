@@ -62,7 +62,9 @@ pub struct PlayoutConfig {
     pub atari_check: bool,
     pub ladder_check: bool,
     pub no_self_atari_cutoff: usize,
+    pub pattern_probability: f32,
     pub play_in_middle_of_eye: bool,
+    pub use_patterns: bool,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -122,7 +124,9 @@ impl Config {
                 atari_check: true,
                 ladder_check: true,
                 no_self_atari_cutoff: 7,
+                pattern_probability: 0.9,
                 play_in_middle_of_eye: true,
+                use_patterns: true,
             },
             ruleset: KgsChinese,
             threads: 1,
@@ -163,6 +167,7 @@ impl Config {
         self.opt(opts, "use-empty-area-prior", "Use a prior for empty areas on the board", self.uct.priors.use_empty);
         self.opt(opts, "use-ladder-check-in-playouts", "Check for ladders in the playouts", self.playout.ladder_check);
         self.opt(opts, "use-patterns-prior", "Use a prior to prioritize 3x3 patterns", self.uct.priors.use_patterns);
+        self.opt(opts, "use-patterns-in-playouts", "Use 3x3 patterns in the playouts", self.playout.use_patterns);
         self.opt(opts, "use-ucb1-tuned", "Use the UCB1tuned selection strategy", self.uct.tuned);
         self.optopt(opts, "r", "ruleset", "Select the ruleset", self.ruleset);
         self.optopt(opts, "t", "threads", "Number of threads to use", self.threads);
@@ -191,6 +196,7 @@ impl Config {
         set_from_opt!(matches, "use-ladder-check-in-playouts", self.playout.ladder_check);
         set_from_opt!(matches, "use-ucb1-tuned", self.uct.tuned);
         set_from_opt!(matches, "use-patterns-prior", self.uct.priors.use_patterns);
+        set_from_opt!(matches, "use-patterns-in-playouts", self.playout.use_patterns);
 
         set_from_flag!(matches, "l", "log", self.log);
 
