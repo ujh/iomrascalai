@@ -116,7 +116,7 @@ pub fn main() {
     // during setup.
     let matcher = Arc::new(Matcher::new());
 
-    let engine = engine::factory(matches.opt_str("e"), config.clone(), matcher);
+    let engine = engine::factory(config.clone(), matcher);
 
     log!("Current configuration: {:#?}", config);
 

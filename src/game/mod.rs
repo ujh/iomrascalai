@@ -93,7 +93,7 @@ impl Game {
     pub fn last_move(&self) -> Move {
         self.last_move
     }
-    
+
     pub fn next_player(&self) -> Color {
         self.board.next_player()
     }
@@ -124,14 +124,6 @@ impl Game {
 
     pub fn board(&self) -> Board {
         self.board.clone()
-    }
-
-    pub fn legal_moves(&self) -> Vec<Move> {
-        self.board
-            .legal_moves_without_superko_check()
-            .into_iter()
-            .filter(|&m| self.play(m).is_ok())
-            .collect()
     }
 
     pub fn legal_moves_without_eyes(&self) -> Vec<Move> {

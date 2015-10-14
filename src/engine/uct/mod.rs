@@ -117,10 +117,6 @@ impl Engine for UctEngine {
         }
     }
 
-    fn engine_type(&self) -> &'static str {
-        "uct"
-    }
-
     fn reset(&mut self) {
         self.previous_node_count = 0;
         self.root = Node::new(NoMove, self.config.clone());

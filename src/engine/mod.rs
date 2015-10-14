@@ -20,10 +20,6 @@
  ************************************************************************/
 
 pub use self::controller::EngineController;
-pub use self::mc::AmafMcEngine;
-pub use self::mc::SimpleMcEngine;
-pub use self::move_stats::MoveStats;
-pub use self::random::RandomEngine;
 pub use self::uct::UctEngine;
 use board::Color;
 use board::Move;
@@ -31,39 +27,21 @@ use config::Config;
 use game::Game;
 use patterns::Matcher;
 
-use std::ascii::AsciiExt;
 use std::sync::Arc;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 
 mod controller;
-mod mc;
-mod move_stats;
-mod random;
 mod test;
 mod uct;
 
-pub fn factory(opt: Option<String>, config: Arc<Config>, matcher: Arc<Matcher>) -> Box<Engine> {
-    let engine_arg = opt.map(|s| s.to_ascii_lowercase());
-    match engine_arg {
-        Some(s) => {
-            match s.as_ref() {
-                "random" => Box::new(RandomEngine::new()),
-                "mc"     => Box::new(SimpleMcEngine::new(config, matcher)),
-                "amaf"   => Box::new(AmafMcEngine::new(config, matcher)),
-                _        => Box::new(UctEngine::new(config, matcher)),
-            }
-        },
-        None => Box::new(UctEngine::new(config, matcher))
-    }
+pub fn factory(config: Arc<Config>, matcher: Arc<Matcher>) -> Box<Engine> {
+    Box::new(UctEngine::new(config, matcher))
 }
 
 pub trait Engine: Send + Sync {
 
     fn gen_move(&mut self, Color, &Game, sender: Sender<Move>, receiver: Receiver<()>);
-    fn engine_type(&self) -> &'static str {
-        ""
-    }
     fn reset(&mut self) {}
 
 }
