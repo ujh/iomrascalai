@@ -72,7 +72,7 @@ impl UctEngine {
 
 impl Engine for UctEngine {
 
-    fn gen_move(&mut self, color: Color, game: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
+    fn gen_move(&mut self, color: Color, game: &Game, sender: Sender<(Move,usize)>, receiver: Receiver<()>) {
         if !self.config.uct.reuse_subtree {
             self.root = Node::root(game, color, self.config.clone());
         } else {
@@ -88,7 +88,7 @@ impl Engine for UctEngine {
             if self.config.log {
                 log!("No moves to simulate!");
             }
-            sender.send(Pass(color)).unwrap();
+            sender.send((Pass(color), self.root.plays())).unwrap();
             return;
         }
         let (send_result_to_main, receive_result_from_threads) = channel::<((Vec<usize>, Color, usize), Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>();
@@ -171,7 +171,7 @@ fn spin_up_worker<'a>(config: Arc<Config>, playout: Arc<Playout>, board: Board, 
     })}
 }
 
-fn finish(root: &Node, game: &Game, color: Color, sender: Sender<Move>, config: Arc<Config>, halt_senders: Vec<Sender<()>>) -> Move {
+fn finish(root: &Node, game: &Game, color: Color, sender: Sender<(Move,usize)>, config: Arc<Config>, halt_senders: Vec<Sender<()>>) -> Move {
     for halt_sender in halt_senders.iter() {
         halt_sender.send(()).unwrap();
     }
@@ -182,7 +182,7 @@ fn finish(root: &Node, game: &Game, color: Color, sender: Sender<Move>, config: 
         } else {
             Resign(color)
         };
-        sender.send(m).unwrap();
+        sender.send((m, root.plays())).unwrap();
         if config.log {
             log!("Almost all simulations were losses");
         }
@@ -193,7 +193,7 @@ fn finish(root: &Node, game: &Game, color: Color, sender: Sender<Move>, config: 
             log!("{} simulations ({}% wins on average, {} nodes)", root.plays()-1, root.win_ratio()*100.0, root.descendants());
             log!("Returning the best move ({}% wins)", best_node.win_ratio()*100.0);
         }
-        sender.send(best_node.m()).unwrap();
+        sender.send((best_node.m(), root.plays())).unwrap();
         best_node.m()
     }
 }
