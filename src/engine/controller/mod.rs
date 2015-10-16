@@ -54,7 +54,7 @@ impl<'a> EngineController<'a> {
         self.engine.reset();
     }
 
-    pub fn run_and_return_move(&mut self, color: Color, game: &Game, timer: &Timer, send_move: Sender<Move>) {
+    pub fn run_and_return_move(&mut self, color: Color, game: &Game, timer: &Timer, send_move: Sender<Move>) -> usize {
         let budget = self.budget(timer, game);
         let (send_move_to_controller, receive_move_from_engine) = channel();
         let (send_signal_to_engine, receive_signal_from_controller) = channel::<()>();
@@ -64,7 +64,7 @@ impl<'a> EngineController<'a> {
             let _guard = scoped(|| {
                 self.engine.gen_move(color, game, send_move_to_controller, receive_signal_from_controller);
             });
-        
+
             let (send_time_up_to_controller, receive_time_up) = channel();
             thread::spawn(move || {
                 sleep_ms(budget);
@@ -72,12 +72,15 @@ impl<'a> EngineController<'a> {
             });
             select!(
                 r = receive_move_from_engine.recv() => {
-                    send_move.send(r.unwrap()).unwrap();
+                    let (m, playouts) = r.unwrap();
+                    send_move.send(m).unwrap();
+                    playouts
                 },
                 _ = receive_time_up.recv() => {
                     send_signal_to_engine.send(()).unwrap();
-                    let m = receive_move_from_engine.recv().unwrap();
+                    let (m, playouts) = receive_move_from_engine.recv().unwrap();
                     send_move.send(m).unwrap();
+                    playouts
                 }
             )
         }

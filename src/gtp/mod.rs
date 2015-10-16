@@ -34,12 +34,14 @@ use timer::Timer;
 use strenum::Strenum;
 
 use num::traits::FromPrimitive;
+use std::io::Write;
 use std::sync::Arc;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 use std::sync::mpsc::channel;
 use thread_scoped::JoinGuard;
 use thread_scoped::scoped;
+use time::precise_time_ns;
 
 pub mod driver;
 mod test;
@@ -110,7 +112,8 @@ impl<'a> GTPInterpreter<'a> {
         let (send_command_to_controller, receive_command_from_interpreter) = channel::<ControllerCommand>();
         let (send_move_to_interpreter, receive_move_from_controller) = channel::<Move>();
         let controller_config = config.clone();
-        unsafe { 
+        let genmove_config = config.clone();
+        unsafe {
             let guard = scoped(move || {
                 let mut controller = EngineController::new(controller_config, engine);
                 loop {
@@ -118,7 +121,9 @@ impl<'a> GTPInterpreter<'a> {
                         Ok(command) => {
                             match command {
                                 ControllerCommand::GenMove(game, color, timer) => {
-                                    controller.run_and_return_move(color, &game, &timer, send_move_to_interpreter.clone());
+                                    let started_at = precise_time_ns();
+                                    let playouts = controller.run_and_return_move(color, &game, &timer, send_move_to_interpreter.clone());
+                                    Self::measure_playout_speed(started_at, playouts, &genmove_config);
                                 },
                                 ControllerCommand::Reset => {
                                     controller.reset();
@@ -293,6 +298,18 @@ impl<'a> GTPInterpreter<'a> {
                 },
             	None => Command::Error
         	}
+        }
+    }
+
+    fn measure_playout_speed(started_at: u64, playouts: usize, config: &Arc<Config>) {
+        let finished_at = precise_time_ns();
+        let duration_ns = finished_at - started_at;
+        let duration_s = (duration_ns as f64) / 1000000000.0;
+        let pps = (playouts as f64) / duration_s;
+        let threads = config.threads;
+        let ptps = pps / (threads as f64);
+        if config.log {
+            log!("{}pps ({}pps per thread)", pps.round() as usize, ptps.round() as usize);
         }
     }
 

@@ -55,8 +55,8 @@ impl EarlyReturnEngine {
 
 impl Engine for EarlyReturnEngine {
 
-    fn gen_move(&mut self, c: Color, _: &Game, sender: Sender<Move>, _: Receiver<()>) {
-        sender.send(Pass(c));
+    fn gen_move(&mut self, c: Color, _: &Game, sender: Sender<(Move,usize)>, _: Receiver<()>) {
+        sender.send((Pass(c),0));
     }
 
 }
@@ -90,9 +90,9 @@ impl WaitingEngine {
 
 impl Engine for WaitingEngine {
 
-    fn gen_move(&mut self, c: Color, _: &Game, sender: Sender<Move>, receiver: Receiver<()>) {
+    fn gen_move(&mut self, c: Color, _: &Game, sender: Sender<(Move,usize)>, receiver: Receiver<()>) {
         select!(
-            _ = receiver.recv() => { sender.send(Pass(c)); }
+            _ = receiver.recv() => { sender.send((Pass(c),0)); }
         )
     }
 

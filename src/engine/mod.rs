@@ -41,7 +41,7 @@ pub fn factory(config: Arc<Config>, matcher: Arc<Matcher>) -> Box<Engine> {
 
 pub trait Engine: Send + Sync {
 
-    fn gen_move(&mut self, Color, &Game, sender: Sender<Move>, receiver: Receiver<()>);
+    fn gen_move(&mut self, Color, &Game, sender: Sender<(Move,usize)>, receiver: Receiver<()>);
     fn reset(&mut self) {}
 
 }
