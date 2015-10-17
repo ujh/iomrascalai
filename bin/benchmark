@@ -5,44 +5,42 @@ set -e
 DIR=$( cd $(dirname "${BASH_SOURCE[0]}") && pwd )
 cd "$DIR/.."
 
-set -x
+THREADS=8
+GAMES=200
 
-if [ -z "$1" ]; then
+if [ $1 == "9" ]; then
+    TIME="5m"
+elif [ $1 == "13" ]; then
+    TIME="10m"
+elif [ $1 == "19" ]; then
+    TIME="20m"
+else
+    echo "Size '$1' isn't supported!"
+    exit 1
+fi
+
+SIZE=$1
+
+if [ -z "$2" ]; then
     PREFIX=`git rev-parse --short HEAD`
 else
     PREFIX=$1
 fi
 
+set -x
+
 cargo clean
 cargo build --release
-
-THREADS=8
 
 GNUGO="gnugo --mode gtp --level 0 --chinese-rules --positional-superko --capture-all-dead --score aftermath --play-out-aftermath"
 IOMRASCALAI="./target/release/iomrascalai -r chinese -t $THREADS -l"
 REFEREE="$GNUGO"
-SIZE=9
-GAMES=200
-TIME="5m"
+FN="$PREFIX-${SIZE}x${SIZE}"
 
-FN9="$PREFIX-9x9"
-
-if [ ! -f "${FN9}.html" ]; then
+if [ ! -f "${FN}.html" ]; then
     gogui-twogtp -auto -black "$GNUGO" -white "$IOMRASCALAI" \
-                 -size $SIZE -alternate -games $GAMES -sgffile $FN9 \
+                 -size $SIZE -alternate -games $GAMES -sgffile $FN \
                  -time $TIME -referee "$REFEREE" -verbose -debugtocomment
-    rm -f $FN9.html
-    gogui-twogtp -analyze $FN9.dat
-fi
-
-SIZE=13
-TIME="10m"
-FN13="$PREFIX-13x13"
-
-if [ ! -f "${FN13}.html" ]; then
-    gogui-twogtp -auto -black "$GNUGO" -white "$IOMRASCALAI" \
-                 -size $SIZE -alternate -games $GAMES -sgffile $FN13 \
-                 -time $TIME -referee "$REFEREE" -verbose -debugtocomment
-    rm -f $FN13.html
-    gogui-twogtp -analyze $FN13.dat
+    rm -f $FN.html
+    gogui-twogtp -analyze $FN.dat
 fi
