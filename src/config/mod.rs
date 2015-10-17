@@ -61,6 +61,7 @@ pub struct TimerConfig {
 pub struct PlayoutConfig {
     pub atari_check: bool,
     pub ladder_check: bool,
+    pub last_moves_for_heuristics: usize,
     pub no_self_atari_cutoff: usize,
     pub pattern_probability: f32,
     pub play_in_middle_of_eye: bool,
@@ -123,6 +124,7 @@ impl Config {
             playout: PlayoutConfig {
                 atari_check: true,
                 ladder_check: true,
+                last_moves_for_heuristics: 2,
                 no_self_atari_cutoff: 7,
                 pattern_probability: 0.9,
                 play_in_middle_of_eye: true,

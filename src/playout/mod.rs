@@ -76,12 +76,13 @@ impl Playout {
     }
 
     fn heuristic_set(&self, played_moves: &Vec<Move>, board: &Board, rng: &mut XorShiftRng) -> Vec<Coord> {
-        let moves_to_consider = 2;
+        let moves_to_consider = self.config.playout.last_moves_for_heuristics as isize;
         let idx = cmp::max(played_moves.len() as isize - moves_to_consider,0) as usize;
         let moves = &played_moves[idx..played_moves.len()];
         let mut coords = vec!();
-        // The coords of the last move take precedence of the one
-        // before that.
+        // The neighbours of the latest move should come first as we
+        // select a matching move from the start of the vector and
+        // these should take precedence.
         for i in (0..moves.len()).rev() {
             if !moves[i].is_pass() {
                 let mut candidates : Vec<Coord> = board.neighbours(moves[i].coord()).iter().chain(board.diagonals(moves[i].coord())).cloned().collect();
