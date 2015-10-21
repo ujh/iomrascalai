@@ -34,7 +34,6 @@ use playout::Playout;
 use self::node::Node;
 
 use rand::weak_rng;
-use std::io::Write;
 use std::sync::Arc;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
@@ -79,15 +78,14 @@ impl Engine for UctEngine {
             self.previous_node_count = self.root.descendants();
             self.set_new_root(game, color);
             let reused_node_count = self.root.descendants();
-            if self.config.log && self.previous_node_count > 0 {
+            if self.previous_node_count > 0 {
                 let percentage = reused_node_count as f32 / self.previous_node_count as f32;
-                log!("Reusing {} nodes ({}%)", reused_node_count, percentage*100.0)
+                let msg = format!("Reusing {} nodes ({}%)", reused_node_count, percentage*100.0);
+                self.config.log(msg);
             }
         }
         if self.root.has_no_children() {
-            if self.config.log {
-                log!("No moves to simulate!");
-            }
+            self.config.log(format!("No moves to simulate!"));
             sender.send((Pass(color), self.root.plays())).unwrap();
             return;
         }
@@ -107,9 +105,7 @@ impl Engine for UctEngine {
                     match send_to_thread.send(data) {
                         Ok(_) => {},
                         Err(e) => {
-                            if self.config.debug {
-                                log!("[DEBUG] send_to_thread failed with {:?}", e);
-                            }
+                            self.config.log(format!("[DEBUG] send_to_thread failed with {:?}", e));
                         }
                     }
                 }
@@ -160,9 +156,7 @@ fn spin_up_worker<'a>(config: Arc<Config>, playout: Arc<Playout>, board: Board, 
                     match send_to_main.send(((path, winner, nodes_added), send_to_self)) {
                         Ok(_) => {},
                         Err(e) => {
-                            if config.debug {
-                                log!("[DEBUG] send_to_main failed with {:?}", e);
-                            }
+                            config.log(format!("send_to_main failed with {:?}", e));
                         }
                     }
                 }
@@ -183,16 +177,13 @@ fn finish(root: &Node, game: &Game, color: Color, sender: Sender<(Move,usize)>, 
             Resign(color)
         };
         sender.send((m, root.plays())).unwrap();
-        if config.log {
-            log!("Almost all simulations were losses");
-        }
+        config.log(format!("Almost all simulations were losses"));
         m
     } else {
         let best_node = root.best();
-        if config.log {
-            log!("{} simulations ({}% wins on average, {} nodes)", root.plays()-1, root.win_ratio()*100.0, root.descendants());
-            log!("Returning the best move ({}% wins)", best_node.win_ratio()*100.0);
-        }
+        let msg = format!("{} simulations ({}% wins on average, {} nodes)", root.plays()-1, root.win_ratio()*100.0, root.descendants());
+        config.log(msg);
+        config.log(format!("Returning the best move ({}% wins)", best_node.win_ratio()*100.0));
         sender.send((best_node.m(), root.plays())).unwrap();
         best_node.m()
     }
