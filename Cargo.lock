@@ -14,7 +14,7 @@ dependencies = [
  "stainless 0.1.0 (git+https://github.com/reem/stainless.git)",
  "strenum 0.0.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "thread-scoped 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "time 0.1.32 (registry+https://github.com/rust-lang/crates.io-index)",
+ "time 0.1.33 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -28,7 +28,7 @@ dependencies = [
 
 [[package]]
 name = "aho-corasick"
-version = "0.3.2"
+version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "memchr 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -106,7 +106,7 @@ name = "regex"
 version = "0.1.41"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "aho-corasick 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "aho-corasick 0.3.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "memchr 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex-syntax 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -155,7 +155,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "time"
-version = "0.1.32"
+version = "0.1.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "kernel32-sys 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
