@@ -21,6 +21,7 @@
 
 use board::Board;
 use board::Color;
+use board::Coord;
 use board::Move;
 use board::Pass;
 use board::Play;
@@ -29,6 +30,7 @@ use patterns::Matcher;
 
 use rand::Rng;
 use rand::XorShiftRng;
+use std::cmp;
 use std::sync::Arc;
 
 mod test;
@@ -54,7 +56,8 @@ impl Playout {
 
         let max_moves = self.max_moves(board.size());
         while !board.is_game_over() && played_moves.len() < max_moves {
-            let m = self.select_move(board, rng);
+            let heuristic_set = self.heuristic_set(&played_moves, board, rng);
+            let m = self.select_move(board, heuristic_set, rng);
             board.play_legal_move(m);
             played_moves.push(m);
         }
@@ -72,7 +75,29 @@ impl Playout {
         size as usize * size as usize * 3
     }
 
-    fn select_move(&self, board: &Board, rng: &mut XorShiftRng) -> Move {
+    fn heuristic_set(&self, played_moves: &Vec<Move>, board: &Board, rng: &mut XorShiftRng) -> Vec<Coord> {
+        let moves_to_consider = self.config.playout.last_moves_for_heuristics as isize;
+        let idx = cmp::max(played_moves.len() as isize - moves_to_consider,0) as usize;
+        let moves = &played_moves[idx..played_moves.len()];
+        let mut coords = vec!();
+        // The neighbours of the latest move should come first as we
+        // select a matching move from the start of the vector and
+        // these should take precedence.
+        for i in (0..moves.len()).rev() {
+            if !moves[i].is_pass() {
+                let mut candidates : Vec<Coord> = board.neighbours(moves[i].coord()).iter().chain(board.diagonals(moves[i].coord())).cloned().collect();
+                rng.shuffle(&mut candidates);
+                for c in candidates {
+                    if !coords.contains(&c) {
+                        coords.push(c);
+                    }
+                }
+            }
+        }
+        coords
+    }
+
+    fn select_move(&self, board: &Board, heuristic_set: Vec<Coord>, rng: &mut XorShiftRng) -> Move {
         let color = board.next_player();
 
         if self.check_for_atari() {
@@ -82,7 +107,7 @@ impl Playout {
             }
         }
         if self.use_patterns(rng) {
-            let possible_move = self.pattern_move(color, board, rng);
+            let possible_move = self.pattern_move(color, heuristic_set, board);
             if possible_move.is_some() {
                 return possible_move.unwrap();
             }
@@ -114,26 +139,14 @@ impl Playout {
         }
     }
 
-    fn pattern_move(&self, color: Color, board: &Board, rng: &mut XorShiftRng) -> Option<Move> {
-        let vacant = board.vacant();
-        let playable = vacant
-            .iter()
+    fn pattern_move(&self, color: Color, coords: Vec<Coord>, board: &Board) -> Option<Move> {
+        // This works as coords is randomly ordered, so taking the
+        // first we find is OK.
+        coords.iter()
             .map(|c| Play(color, c.col, c.row))
-            .position(|m| {
+            .find(|&m| {
                 board.is_legal(m).is_ok() && self.matches(board, &m)
-            });
-        if let Some(first) = playable {
-            loop {
-                let r = first + (rng.gen::<usize>() % (vacant.len() - first));
-                let coord = vacant[r];
-                let m = Play(color, coord.col, coord.row);
-                if board.is_legal(m).is_ok() && self.matches(board, &m) {
-                    return Some(m);
-                }
-            }
-        } else {
-            None
-        }
+            })
     }
 
     fn matches(&self, board: &Board, m: &Move) -> bool {
