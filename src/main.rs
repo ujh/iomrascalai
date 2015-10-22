@@ -82,8 +82,6 @@ pub fn main() {
     let mut opts = Options::new();
     let args : Vec<String> = args().collect();
 
-    opts.optopt("e", "engine", "Select an engine (defaults to uct)", "amaf|mc|random|uct");
-
     config.setup(&mut opts);
 
     let (_, tail) = args.split_first().unwrap();
