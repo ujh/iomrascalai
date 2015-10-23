@@ -34,7 +34,6 @@ use timer::Timer;
 use strenum::Strenum;
 
 use num::traits::FromPrimitive;
-use std::io::Write;
 use std::sync::Arc;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
@@ -308,9 +307,7 @@ impl<'a> GTPInterpreter<'a> {
         let pps = (playouts as f64) / duration_s;
         let threads = config.threads;
         let ptps = pps / (threads as f64);
-        if config.log {
-            log!("{}pps ({}pps per thread)", pps.round() as usize, ptps.round() as usize);
-        }
+        config.log(format!("{}pps ({}pps per thread)", pps.round() as usize, ptps.round() as usize));
     }
 
     fn preprocess(&self, input: &str) -> String {

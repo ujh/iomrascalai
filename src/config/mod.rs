@@ -27,6 +27,8 @@ use version;
 use core::fmt::Display;
 use getopts::Matches;
 use getopts::Options;
+use std::io::Write;
+use std::io::stderr;
 
 mod test;
 
@@ -70,7 +72,6 @@ pub struct PlayoutConfig {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Config {
-    pub debug: bool,
     pub log: bool,
     pub play_out_aftermath: bool,
     pub playout: PlayoutConfig,
@@ -118,7 +119,6 @@ impl Config {
 
     pub fn default() -> Config {
         Config {
-            debug: true,
             log: false,
             play_out_aftermath: false,
             playout: PlayoutConfig {
@@ -203,6 +203,15 @@ impl Config {
         set_from_flag!(matches, "l", "log", self.log);
 
         self.check()
+    }
+
+    pub fn log(&self, s: String) {
+        if self.log {
+            match stderr().write(format!("{}\n", s).as_bytes()) {
+                Ok(_) => {},
+                Err(x) => panic!("Unable to write to stderr: {}", x)
+            }
+        }
     }
 
     fn check(&self) -> Result<Option<String>, String> {

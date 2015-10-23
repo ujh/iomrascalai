@@ -26,7 +26,6 @@ use engine::Engine;
 use game::Game;
 use timer::Timer;
 
-use std::io::Write;
 use std::sync::Arc;
 use std::sync::mpsc::channel;
 use std::sync::mpsc::Sender;
@@ -88,9 +87,8 @@ impl<'a> EngineController<'a> {
 
     fn budget(&self, timer: &Timer, game: &Game) -> u32 {
         let budget = timer.budget(game);
-        if self.config.log {
-            log!("Thinking for {}ms ({}ms time left)", budget, timer.main_time_left());
-        }
+        self.config.log(
+            format!("Thinking for {}ms ({}ms time left)", budget, timer.main_time_left()));
         budget
     }
 

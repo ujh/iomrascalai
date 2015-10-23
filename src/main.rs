@@ -52,17 +52,7 @@ use patterns::Matcher;
 use getopts::Options;
 use std::sync::Arc;
 use std::env::args;
-use std::io::Write;
 use std::process::exit;
-
-macro_rules! log(
-    ($($arg:tt)*) => (
-        match writeln!(&mut ::std::io::stderr(), $($arg)* ) {
-            Ok(_) => {},
-            Err(x) => panic!("Unable to write to stderr: {}", x),
-        }
-    )
-);
 
 mod board;
 mod config;
@@ -118,7 +108,7 @@ pub fn main() {
 
     let engine = engine::factory(config.clone(), matcher);
 
-    log!("Current configuration: {:#?}", config);
+    config.log(format!("Current configuration: {:#?}", config));
 
     Driver::new(config, engine);
 }
