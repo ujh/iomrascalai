@@ -147,7 +147,7 @@ impl Config {
                     patterns: 10,
                     self_atari: 10,
                     use_empty: true,
-                    use_patterns: false,
+                    use_patterns: true,
                 },
                 reuse_subtree: true,
                 tuned: true,
