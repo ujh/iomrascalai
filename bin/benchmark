@@ -24,7 +24,7 @@ SIZE=$1
 if [ -z "$2" ]; then
     PREFIX=`git rev-parse --short HEAD`
 else
-    PREFIX=$1
+    PREFIX=$2
 fi
 
 set -x
