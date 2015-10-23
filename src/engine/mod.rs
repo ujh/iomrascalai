@@ -20,7 +20,7 @@
  ************************************************************************/
 
 pub use self::controller::EngineController;
-pub use self::uct::UctEngine;
+pub use self::rave::RaveEngine;
 use board::Color;
 use board::Move;
 use config::Config;
@@ -32,11 +32,11 @@ use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 
 mod controller;
+mod rave;
 mod test;
-mod uct;
 
 pub fn factory(config: Arc<Config>, matcher: Arc<Matcher>) -> Box<Engine> {
-    Box::new(UctEngine::new(config, matcher))
+    Box::new(RaveEngine::new(config, matcher))
 }
 
 pub trait Engine: Send + Sync {
