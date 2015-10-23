@@ -134,6 +134,10 @@ impl Node {
         (path, moves, not_terminal, new_desc)
     }
 
+    /// Finds the next leave to simulate. To make sure that different
+    /// paths are taken through the tree (as we execute the
+    /// simulations in parallel) we already increase the play count
+    /// here instead of when recording the wins in the tree.
     pub fn find_leaf_and_mark(&mut self, mut path: Vec<usize>, mut moves: Vec<Move>) -> (Vec<usize>, Vec<Move>, &mut Node) {
         self.record_play();
         if self.is_leaf() {
