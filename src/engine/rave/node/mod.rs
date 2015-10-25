@@ -21,6 +21,7 @@
 
 use board::Board;
 use board::Color;
+use board::Coord;
 use board::Empty;
 use board::Move;
 use board::NoMove;
@@ -30,8 +31,9 @@ use config::Config;
 use game::Game;
 use patterns::Matcher;
 
-use std::sync::Arc;
+use std::collections::HashMap;
 use std::f32;
+use std::sync::Arc;
 use std::usize;
 
 mod test;
@@ -285,13 +287,29 @@ impl Node {
         }
     }
 
-    pub fn record_on_path(&mut self, path: &[usize], winner: Color, new_nodes: usize) {
+    pub fn record_on_path(&mut self, path: &[usize], winner: Color, new_nodes: usize, amaf: &HashMap<Coord, Color>) {
         if self.color() == winner {
             self.record_win();
         }
+        // We need to switch the color as we see things from the
+        // opponent's point of view now.
+        let color = self.color().opposite();
+        for child in self.children.iter_mut() {
+            if !child.m.is_pass() {
+                match amaf.get(&child.m.coord()) {
+                    Some(&c) if c == color => {
+                        child.record_amaf_play();
+                        if color == winner {
+                            child.record_amaf_win();
+                        }
+                    }
+                    _ => {}
+                }
+            }
+        }
         if path.len() > 0 {
             self.descendants += new_nodes;
-            self.children[path[0]].record_on_path(&path[1..], winner, new_nodes);
+            self.children[path[0]].record_on_path(&path[1..], winner, new_nodes, amaf);
         }
     }
 
@@ -313,8 +331,16 @@ impl Node {
         self.wins += 1;
     }
 
+    pub fn record_amaf_win(&mut self) {
+        self.amaf_wins += 1;
+    }
+
     pub fn record_play(&mut self) {
         self.plays += 1;
+    }
+
+    pub fn record_amaf_play(&mut self) {
+        self.amaf_plays += 1;
     }
 
     pub fn m(&self) -> Move {

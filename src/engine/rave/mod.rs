@@ -21,6 +21,7 @@
 
 use board::Board;
 use board::Color;
+use board::Coord;
 use board::Empty;
 use board::Move;
 use board::NoMove;
@@ -34,6 +35,7 @@ use playout::Playout;
 use self::node::Node;
 
 use rand::weak_rng;
+use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
@@ -89,7 +91,7 @@ impl Engine for RaveEngine {
             sender.send((Pass(color), self.root.plays())).unwrap();
             return;
         }
-        let (send_result_to_main, receive_result_from_threads) = channel::<((Vec<usize>, Color, usize), Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>();
+        let (send_result_to_main, receive_result_from_threads) = channel::<((Vec<usize>, Color, usize, HashMap<Coord,Color>), Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>();
         let (_guards, halt_senders) = spin_up(self.config.clone(), self.playout.clone(), game, send_result_to_main);
         loop {
             select!(
@@ -99,8 +101,8 @@ impl Engine for RaveEngine {
                     break;
                 },
                 res = receive_result_from_threads.recv() => {
-                    let ((path, winner, nodes_added), send_to_thread) = res.unwrap();
-                    self.root.record_on_path(&path, winner, nodes_added);
+                    let ((path, winner, nodes_added, amaf), send_to_thread) = res.unwrap();
+                    self.root.record_on_path(&path, winner, nodes_added, &amaf);
                     let data = self.root.find_leaf_and_expand(game, self.matcher.clone());
                     match send_to_thread.send(data) {
                         Ok(_) => {},
@@ -120,7 +122,7 @@ impl Engine for RaveEngine {
 
 }
 
-fn spin_up<'a>(config: Arc<Config>, playout: Arc<Playout>, game: &Game, send_to_main: Sender<((Vec<usize>, Color, usize), Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>) -> (Vec<JoinGuard<'a, ()>>, Vec<Sender<()>>) {
+fn spin_up<'a>(config: Arc<Config>, playout: Arc<Playout>, game: &Game, send_to_main: Sender<((Vec<usize>, Color, usize, HashMap<Coord,Color>), Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>) -> (Vec<JoinGuard<'a, ()>>, Vec<Sender<()>>) {
     let mut guards = Vec::new();
     let mut halt_senders = Vec::new();
     for _ in 0..config.threads {
@@ -133,12 +135,12 @@ fn spin_up<'a>(config: Arc<Config>, playout: Arc<Playout>, game: &Game, send_to_
     (guards, halt_senders)
 }
 
-fn spin_up_worker<'a>(config: Arc<Config>, playout: Arc<Playout>, board: Board, send_to_main: Sender<((Vec<usize>, Color, usize),Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>, receive_halt: Receiver<()>) -> JoinGuard<'a, ()> {
+fn spin_up_worker<'a>(config: Arc<Config>, playout: Arc<Playout>, board: Board, send_to_main: Sender<((Vec<usize>, Color, usize, HashMap<Coord,Color>),Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>, receive_halt: Receiver<()>) -> JoinGuard<'a, ()> {
     unsafe { scoped(move || {
         let mut rng = weak_rng();
         let (send_to_self, receive_from_main) = channel::<(Vec<usize>, Vec<Move>, bool, usize)>();
         // Send this empty message to get everything started
-        send_to_main.send(((vec!(), Empty, 0), send_to_self.clone())).unwrap();
+        send_to_main.send(((vec!(), Empty, 0, HashMap::new()), send_to_self.clone())).unwrap();
         loop {
             select!(
                 _ = receive_halt.recv() => { break; },
@@ -152,8 +154,9 @@ fn spin_up_worker<'a>(config: Arc<Config>, playout: Arc<Playout>, board: Board, 
                     // case where the game is already over.
                     let playout_result = playout.run(&mut b, None, &mut rng);
                     let winner = playout_result.winner();
+                    let amaf = playout_result.amaf().clone();
                     let send_to_self = send_to_self.clone();
-                    match send_to_main.send(((path, winner, nodes_added), send_to_self)) {
+                    match send_to_main.send(((path, winner, nodes_added, amaf), send_to_self)) {
                         Ok(_) => {},
                         Err(e) => {
                             config.log(format!("send_to_main failed with {:?}", e));

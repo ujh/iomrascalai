@@ -31,6 +31,7 @@ use patterns::Matcher;
 use rand::Rng;
 use rand::XorShiftRng;
 use std::cmp;
+use std::collections::HashMap;
 use std::sync::Arc;
 
 mod test;
@@ -48,10 +49,13 @@ impl Playout {
 
     pub fn run(&self, board: &mut Board, initial_move: Option<&Move>, rng: &mut XorShiftRng) -> PlayoutResult {
         let mut played_moves = Vec::new();
-
+        let mut amaf = HashMap::new();
         initial_move.map(|&m| {
             board.play_legal_move(m);
             played_moves.push(m);
+            if !m.is_pass() && !amaf.contains_key(&m.coord()) {
+                amaf.insert(m.coord(), *m.color());
+            }
         });
 
         let max_moves = self.max_moves(board.size());
@@ -60,8 +64,11 @@ impl Playout {
             let m = self.select_move(board, heuristic_set, rng);
             board.play_legal_move(m);
             played_moves.push(m);
+            if !m.is_pass() && !amaf.contains_key(&m.coord()) {
+                amaf.insert(m.coord(), *m.color());
+            }
         }
-        PlayoutResult::new(played_moves, board.winner())
+        PlayoutResult::new(played_moves, board.winner(), amaf)
     }
 
     //don't self atari strings that will make an eye after dying, which is strings of 7+
@@ -213,14 +220,15 @@ impl Playout {
 }
 
 pub struct PlayoutResult {
+    amaf: HashMap<Coord,Color>,
     moves: Vec<Move>,
     winner: Color,
 }
 
 impl PlayoutResult {
 
-    pub fn new(moves: Vec<Move>, winner: Color) -> PlayoutResult {
-        PlayoutResult { moves: moves, winner: winner }
+    pub fn new(moves: Vec<Move>, winner: Color, amaf: HashMap<Coord,Color>) -> PlayoutResult {
+        PlayoutResult { moves: moves, winner: winner, amaf: amaf }
     }
 
     pub fn moves(&self) -> &Vec<Move> {
@@ -231,4 +239,7 @@ impl PlayoutResult {
         self.winner
     }
 
+    pub fn amaf(&self) -> &HashMap<Coord,Color> {
+        &self.amaf
+    }
 }

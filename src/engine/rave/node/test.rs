@@ -34,6 +34,7 @@ use sgf::Parser;
 use super::Node;
 
 use rand::weak_rng;
+use std::collections::HashMap;
 use std::path::Path;
 use std::sync::Arc;
 use test::Bencher;
@@ -212,18 +213,19 @@ fn no_super_ko_violations_in_the_children_of_the_root() {
 #[test]
 fn record_on_path_only_records_wins_for_the_correct_color() {
     let config = config();
+    let amaf = HashMap::new();
     let grandchild = Node::new(Pass(Black), config.clone());
     let mut child = Node::new(Pass(White), config.clone());
     child.children = vec!(grandchild);
     let mut root = Node::new(Pass(Black), config.clone());
     root.children = vec!(child);
 
-    root.record_on_path(&vec!(0, 0), Black, 0);
+    root.record_on_path(&vec!(0, 0), Black, 0, &amaf);
     assert_eq!(6, root.wins);
     assert_eq!(5, root.children[0].wins);
     assert_eq!(6, root.children[0].children[0].wins);
 
-    root.record_on_path(&vec!(0, 0), White, 0);
+    root.record_on_path(&vec!(0, 0), White, 0, &amaf);
     assert_eq!(6, root.wins);
     assert_eq!(6, root.children[0].wins);
     assert_eq!(6, root.children[0].children[0].wins);
@@ -231,6 +233,7 @@ fn record_on_path_only_records_wins_for_the_correct_color() {
 
 #[test]
 fn record_on_path_updates_the_descendant_counts() {
+    let amaf = HashMap::new();
     let mut grandchild = Node::new(Pass(Black), config().clone());
     // The leaf already has the correct value set
     grandchild.descendants = 5;
@@ -241,7 +244,7 @@ fn record_on_path_updates_the_descendant_counts() {
     root.children = vec!(child);
     root.descendants = 2;
 
-    root.record_on_path(&vec!(0, 0), Black, 5);
+    root.record_on_path(&vec!(0, 0), Black, 5, &amaf);
     assert_eq!(7, root.descendants);
     assert_eq!(6, root.children[0].descendants);
     assert_eq!(5, root.children[0].children[0].descendants);
@@ -406,6 +409,7 @@ fn full_uct_cycle(size: u8, b: &mut Bencher) {
         }
         let playout_result = playout.run(&mut b, None, &mut rng);
         let winner = playout_result.winner();
-        root.record_on_path(&path, winner, nodes_added);
+        let amaf = playout_result.amaf();
+        root.record_on_path(&path, winner, nodes_added, amaf);
     });
 }
