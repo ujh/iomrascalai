@@ -38,6 +38,8 @@ mod test;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Node {
+    amaf_plays: usize,
+    amaf_wins: usize,
     children: Vec<Node>,
     config: Arc<Config>,
     descendants: usize,
@@ -50,12 +52,14 @@ impl Node {
 
     pub fn new(m: Move, config: Arc<Config>) -> Node {
         Node {
-            plays: config.uct.priors.neutral_plays,
-            wins: config.uct.priors.neutral_wins,
+            amaf_plays: 0,
+            amaf_wins: 0,
             children: vec!(),
-            config: config,
+            config: config.clone(),
             descendants: 0,
             m: m,
+            plays: config.uct.priors.neutral_plays,
+            wins: config.uct.priors.neutral_wins,
         }
     }
 
