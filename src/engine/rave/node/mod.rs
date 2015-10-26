@@ -149,11 +149,12 @@ impl Node {
         if self.is_leaf() {
             (path, moves, self)
         } else {
-            let index = if self.config.uct.tuned {
-                self.next_uct_tuned_child_index()
-            } else {
-                self.next_uct_child_index()
-            };
+            let index = self.next_rave_child_index();
+            // let index = if self.config.uct.tuned {
+            //     self.next_uct_tuned_child_index()
+            // } else {
+            //     self.next_uct_child_index()
+            // };
             path.push(index);
             moves.push(self.children[index].m());
             self.children[index].find_leaf_and_mark(path, moves)
@@ -406,6 +407,31 @@ impl Node {
 
     fn c(&self) -> f32 {
         0.44 // sqrt(1/5)
+    }
+
+    fn next_rave_child_index(&self) -> usize {
+        let mut index = 0;
+        for i in 1..self.children.len() {
+            if self.children[i].rave_value() > self.children[index].rave_value() {
+                index = i;
+            }
+        }
+        index
+    }
+
+    fn rave_value(&self) -> f32 {
+        let winrate = self.win_ratio();
+        if self.amaf_plays == 0 {
+            winrate
+        } else {
+            let aw = self.amaf_wins as f32;
+            let ap = self.amaf_plays as f32;
+            let p = self.plays as f32;
+            let rave_equiv = 3500.0;
+            let rave_winrate = aw / ap;
+            let beta = ap / (ap + p + p * ap / rave_equiv);
+            beta * rave_winrate + (1.0 - beta) * winrate
+        }
     }
 
     pub fn win_ratio(&self) -> f32 {
