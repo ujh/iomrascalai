@@ -149,7 +149,7 @@ impl Node {
         if self.is_leaf() {
             (path, moves, self)
         } else {
-            let index = self.next_rave_child_index();
+            let index = self.next_child_index();
             // let index = if self.config.uct.tuned {
             //     self.next_uct_tuned_child_index()
             // } else {
@@ -363,16 +363,6 @@ impl Node {
         }
     }
 
-    fn next_uct_tuned_child_index(&self) -> usize {
-        let mut index = 0;
-        for i in 1..self.children.len() {
-            if self.children[i].uct_tuned_value(self.plays) > self.children[index].uct_tuned_value(self.plays) {
-                index = i;
-            }
-        }
-        index
-    }
-
     fn uct_tuned_value(&self, parent_plays: usize) -> f32 {
         const MAX_BERNOULLI_VARIANCE: f32 = 0.25;
         let p = self.win_ratio(); //bernoulli distribution parameter
@@ -381,16 +371,6 @@ impl Node {
         let smaller_upper_bound = MAX_BERNOULLI_VARIANCE.min(variance_upper_bound); //can't be greater than the theoretical variance
 
         p + (((parent_plays as f32).ln()) * smaller_upper_bound / (self.plays as f32)).sqrt()
-    }
-
-    fn next_uct_child_index(&self) -> usize {
-        let mut index = 0;
-        for i in 1..self.children.len() {
-            if self.children[i].uct_value(self.plays) > self.children[index].uct_value(self.plays) {
-                index = i;
-            }
-        }
-        index
     }
 
     fn uct_value(&self, parent_plays: usize) -> f32 {
@@ -409,20 +389,24 @@ impl Node {
         0.44 // sqrt(1/5)
     }
 
-    fn next_rave_child_index(&self) -> usize {
+    fn next_child_index(&self) -> usize {
         let mut index = 0;
         for i in 1..self.children.len() {
-            if self.children[i].rave_value() > self.children[index].rave_value() {
+            if self.children[i].child_value(self.plays) > self.children[index].child_value(self.plays) {
                 index = i;
             }
         }
         index
     }
 
-    fn rave_value(&self) -> f32 {
-        let winrate = self.win_ratio();
+    fn child_value(&self, parent_plays: usize) -> f32 {
+        let uct = if self.config.uct.tuned {
+            self.uct_tuned_value(parent_plays)
+        } else {
+            self.uct_value(parent_plays)
+        };
         if self.amaf_plays == 0 {
-            winrate
+            uct
         } else {
             let aw = self.amaf_wins as f32;
             let ap = self.amaf_plays as f32;
@@ -430,7 +414,7 @@ impl Node {
             let rave_equiv = 2000.0;
             let rave_winrate = aw / ap;
             let beta = ap / (ap + p + p * ap / rave_equiv);
-            beta * rave_winrate + (1.0 - beta) * winrate
+            beta * rave_winrate + (1.0 - beta) * uct
         }
     }
 
