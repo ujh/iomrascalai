@@ -37,6 +37,7 @@ pub struct UctConfig {
     pub end_of_game_cutoff: f32,
     pub expand_after: usize,
     pub priors: UctPriorsConfig,
+    pub rave_equiv: usize,
     pub reuse_subtree: bool,
 }
 
@@ -148,6 +149,7 @@ impl Config {
                     use_empty: true,
                     use_patterns: false,
                 },
+                rave_equiv: 2000,
                 reuse_subtree: true,
             },
         }
@@ -170,6 +172,7 @@ impl Config {
         self.opt(opts, "use-patterns-in-playouts", "Use 3x3 patterns in the playouts", self.playout.use_patterns);
         self.optopt(opts, "r", "ruleset", "Select the ruleset", self.ruleset);
         self.optopt(opts, "t", "threads", "Number of threads to use", self.threads);
+        self.opt(opts, "rave-equiv", "Weighting between RAVE and UCT term. Set to 0 for pure UCT", self.uct.rave_equiv);
     }
 
     pub fn set_from_opts(&mut self, matches: &Matches, opts: &Options, args: &Vec<String>) -> Result<Option<String>, String>{
@@ -195,6 +198,7 @@ impl Config {
         set_from_opt!(matches, "use-ladder-check-in-playouts", self.playout.ladder_check);
         set_from_opt!(matches, "use-patterns-prior", self.uct.priors.use_patterns);
         set_from_opt!(matches, "use-patterns-in-playouts", self.playout.use_patterns);
+        set_from_opt!(matches, "rave-equiv", self.uct.rave_equiv);
 
         set_from_flag!(matches, "l", "log", self.log);
 

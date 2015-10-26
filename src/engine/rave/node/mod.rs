@@ -385,7 +385,7 @@ impl Node {
             let aw = self.amaf_wins as f32;
             let ap = self.amaf_plays as f32;
             let p = self.plays as f32;
-            let rave_equiv = 2000.0;
+            let rave_equiv = self.config.uct.rave_equiv as f32;
             let rave_winrate = aw / ap;
             let beta = ap / (ap + p + p * ap / rave_equiv);
             beta * rave_winrate + (1.0 - beta) * uct
