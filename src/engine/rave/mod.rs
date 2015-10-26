@@ -72,7 +72,7 @@ impl RaveEngine {
 impl Engine for RaveEngine {
 
     fn gen_move(&mut self, color: Color, game: &Game, sender: Sender<(Move,usize)>, receiver: Receiver<()>) {
-        if !self.config.uct.reuse_subtree {
+        if !self.config.tree.reuse_subtree {
             self.root = Node::root(game, color, self.config.clone());
         } else {
             self.previous_node_count = self.root.descendants();
@@ -173,7 +173,7 @@ fn finish(root: &Node, game: &Game, color: Color, sender: Sender<(Move,usize)>, 
         halt_sender.send(()).unwrap();
     }
 
-    if root.mostly_losses(config.uct.end_of_game_cutoff) {
+    if root.mostly_losses(config.tree.end_of_game_cutoff) {
         let m = if game.winner() == color {
             Pass(color)
         } else {

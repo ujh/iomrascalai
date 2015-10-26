@@ -59,8 +59,8 @@ impl Node {
             config: config.clone(),
             descendants: 0,
             m: m,
-            plays: config.uct.priors.neutral_plays,
-            wins: config.uct.priors.neutral_wins,
+            plays: config.tree.priors.neutral_plays,
+            wins: config.tree.priors.neutral_wins,
         }
     }
 
@@ -175,7 +175,7 @@ impl Node {
 
     pub fn expand(&mut self, board: &Board, matcher: Arc<Matcher>) -> bool {
         let not_terminal = !board.is_game_over();
-        if not_terminal && self.plays >= self.config.uct.expand_after {
+        if not_terminal && self.plays >= self.config.tree.expand_after {
             let mut children = board.legal_moves_without_eyes()
                 .iter()
                 .map(|m| self.new_leaf(board, m, matcher.clone()))
@@ -208,8 +208,8 @@ impl Node {
             for one_stone in in_danger {
                 if let Some(solution) = board.capture_ladder(one_stone) {
                     if let Some(node) = children.iter_mut().find(|c| c.m() == solution) {
-                        node.plays += self.config.uct.priors.capture_one;
-                        node.wins += self.config.uct.priors.capture_one;
+                        node.plays += self.config.tree.priors.capture_one;
+                        node.wins += self.config.tree.priors.capture_one;
                     }
                 }
             }
@@ -220,8 +220,8 @@ impl Node {
             for many_stones in in_danger {
                 if let Some(solution) = board.capture_ladder(many_stones) {
                     if let Some(node) = children.iter_mut().find(|c| c.m() == solution) {
-                        node.plays += self.config.uct.priors.capture_many;
-                        node.wins += self.config.uct.priors.capture_many;
+                        node.plays += self.config.tree.priors.capture_many;
+                        node.wins += self.config.tree.priors.capture_many;
                     }
                 }
             }
@@ -231,24 +231,24 @@ impl Node {
         let mut node = Node::new(*m, self.config.clone());
 
         if !board.is_not_self_atari(m) {
-            node.plays += self.config.uct.priors.self_atari;
+            node.plays += self.config.tree.priors.self_atari;
             node.wins += 0; // That's a negative prior
         }
-        if self.config.uct.priors.use_empty {
+        if self.config.tree.priors.use_empty {
             let distance = m.coord().distance_to_border(board.size());
             if distance <= 2 && self.in_empty_area(board, m) {
                 if distance <= 1 {
-                    node.plays += self.config.uct.priors.empty;
+                    node.plays += self.config.tree.priors.empty;
                     node.wins += 0; // That's a negative prior
                 } else {
-                    node.plays += self.config.uct.priors.empty;
-                    node.wins += self.config.uct.priors.empty;
+                    node.plays += self.config.tree.priors.empty;
+                    node.wins += self.config.tree.priors.empty;
                 }
             }
         }
-        if self.config.uct.priors.use_patterns {
+        if self.config.tree.priors.use_patterns {
             let count = self.matching_patterns_count(board, m, matcher);
-            let prior = count * self.config.uct.priors.patterns;
+            let prior = count * self.config.tree.priors.patterns;
             node.plays += prior;
             node.wins += prior;
         }
@@ -385,7 +385,7 @@ impl Node {
             let aw = self.amaf_wins as f32;
             let ap = self.amaf_plays as f32;
             let p = self.plays as f32;
-            let rave_equiv = self.config.uct.rave_equiv as f32;
+            let rave_equiv = self.config.tree.rave_equiv as f32;
             let rave_winrate = aw / ap;
             let beta = ap / (ap + p + p * ap / rave_equiv);
             beta * rave_winrate + (1.0 - beta) * uct
