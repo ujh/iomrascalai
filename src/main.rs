@@ -1,7 +1,7 @@
 /************************************************************************
  *                                                                      *
  * Copyright 2014 Urban Hafner, Thomas Poinsot                          *
- * Copyright 2015 Urban Hafner, Thomas Poinsot, Igor Polyakov           *
+ * Copyright 2015 Urban Hafner, Thomas Poinsot, Igor Polyakov, Ben Fu   *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
