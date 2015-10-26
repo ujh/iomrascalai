@@ -149,7 +149,7 @@ impl Config {
                     use_empty: true,
                     use_patterns: false,
                 },
-                rave_equiv: 200,
+                rave_equiv: 20,
                 reuse_subtree: true,
             },
         }
