@@ -22,6 +22,7 @@
 use board::Board;
 use board::Color;
 use board::Coord;
+use board::Empty;
 use board::Move;
 use board::Pass;
 use board::Play;
@@ -68,7 +69,7 @@ impl Playout {
                 amaf.insert(m.coord(), *m.color());
             }
         }
-        PlayoutResult::new(played_moves, board.winner(), amaf)
+        PlayoutResult::new(board.winner(), amaf)
     }
 
     //don't self atari strings that will make an eye after dying, which is strings of 7+
@@ -221,18 +222,17 @@ impl Playout {
 
 pub struct PlayoutResult {
     amaf: HashMap<Coord,Color>,
-    moves: Vec<Move>,
     winner: Color,
 }
 
 impl PlayoutResult {
 
-    pub fn new(moves: Vec<Move>, winner: Color, amaf: HashMap<Coord,Color>) -> PlayoutResult {
-        PlayoutResult { moves: moves, winner: winner, amaf: amaf }
+    pub fn new(winner: Color, amaf: HashMap<Coord,Color>) -> PlayoutResult {
+        PlayoutResult { winner: winner, amaf: amaf }
     }
 
-    pub fn moves(&self) -> &Vec<Move> {
-        &self.moves
+    pub fn empty() -> PlayoutResult {
+        PlayoutResult { winner: Empty, amaf: HashMap::new() }
     }
 
     pub fn winner(&self) -> Color {
