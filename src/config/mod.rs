@@ -37,7 +37,7 @@ pub struct TreeConfig {
     pub end_of_game_cutoff: f32,
     pub expand_after: usize,
     pub priors: PriorsConfig,
-    pub rave_equiv: usize,
+    pub rave_equiv: f32,
     pub reuse_subtree: bool,
 }
 
@@ -149,7 +149,7 @@ impl Config {
                     use_empty: true,
                     use_patterns: false,
                 },
-                rave_equiv: 20,
+                rave_equiv: 20.0,
                 reuse_subtree: true,
             },
         }
@@ -172,7 +172,7 @@ impl Config {
         self.opt(opts, "use-patterns-in-playouts", "Use 3x3 patterns in the playouts", self.playout.use_patterns);
         self.optopt(opts, "r", "ruleset", "Select the ruleset", self.ruleset);
         self.optopt(opts, "t", "threads", "Number of threads to use", self.threads);
-        self.opt(opts, "rave-equiv", "Weighting between RAVE and UCT term. Set to 0 for pure UCT", self.tree.rave_equiv);
+        self.opt(opts, "rave-equiv", "Weighting between RAVE and UCT term. The smaller the higher the weight of the UCT term", self.tree.rave_equiv);
     }
 
     pub fn set_from_opts(&mut self, matches: &Matches, opts: &Options, args: &Vec<String>) -> Result<Option<String>, String>{
@@ -263,6 +263,14 @@ impl Hint for usize {
 
     fn hint_str(&self) -> &'static str {
         "NUM"
+    }
+
+}
+
+impl Hint for f32 {
+
+    fn hint_str(&self) -> &'static str {
+        "FLOAT"
     }
 
 }
