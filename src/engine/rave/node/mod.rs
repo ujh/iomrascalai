@@ -32,7 +32,6 @@ use game::Game;
 use patterns::Matcher;
 
 use std::collections::HashMap;
-use std::f32;
 use std::sync::Arc;
 use std::usize;
 
@@ -150,11 +149,6 @@ impl Node {
             (path, moves, self)
         } else {
             let index = self.next_child_index();
-            // let index = if self.config.uct.tuned {
-            //     self.next_uct_tuned_child_index()
-            // } else {
-            //     self.next_uct_child_index()
-            // };
             path.push(index);
             moves.push(self.children[index].m());
             self.children[index].find_leaf_and_mark(path, moves)
@@ -373,22 +367,6 @@ impl Node {
         p + (((parent_plays as f32).ln()) * smaller_upper_bound / (self.plays as f32)).sqrt()
     }
 
-    fn uct_value(&self, parent_plays: usize) -> f32 {
-        if self.plays == 0 {
-            f32::MAX
-        } else {
-            self.win_ratio() + self.c() * self.confidence(parent_plays)
-        }
-    }
-
-    fn confidence(&self, parent_plays: usize) -> f32 {
-        ((parent_plays as f32).ln()/(self.plays as f32)).sqrt()
-    }
-
-    fn c(&self) -> f32 {
-        0.44 // sqrt(1/5)
-    }
-
     fn next_child_index(&self) -> usize {
         let mut index = 0;
         for i in 1..self.children.len() {
@@ -400,11 +378,7 @@ impl Node {
     }
 
     fn child_value(&self, parent_plays: usize) -> f32 {
-        let uct = if self.config.uct.tuned {
-            self.uct_tuned_value(parent_plays)
-        } else {
-            self.uct_value(parent_plays)
-        };
+        let uct = self.uct_tuned_value(parent_plays);
         if self.amaf_plays == 0 {
             uct
         } else {

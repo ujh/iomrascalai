@@ -38,7 +38,6 @@ pub struct UctConfig {
     pub expand_after: usize,
     pub priors: UctPriorsConfig,
     pub reuse_subtree: bool,
-    pub tuned: bool,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -150,7 +149,6 @@ impl Config {
                     use_patterns: false,
                 },
                 reuse_subtree: true,
-                tuned: true,
             },
         }
     }
@@ -170,7 +168,6 @@ impl Config {
         self.opt(opts, "use-ladder-check-in-playouts", "Check for ladders in the playouts", self.playout.ladder_check);
         self.opt(opts, "use-patterns-prior", "Use a prior to prioritize 3x3 patterns", self.uct.priors.use_patterns);
         self.opt(opts, "use-patterns-in-playouts", "Use 3x3 patterns in the playouts", self.playout.use_patterns);
-        self.opt(opts, "use-ucb1-tuned", "Use the UCB1tuned selection strategy", self.uct.tuned);
         self.optopt(opts, "r", "ruleset", "Select the ruleset", self.ruleset);
         self.optopt(opts, "t", "threads", "Number of threads to use", self.threads);
     }
@@ -196,7 +193,6 @@ impl Config {
         set_from_opt!(matches, "use-atari-check-in-playouts", self.playout.atari_check);
         set_from_opt!(matches, "use-empty-area-prior", self.uct.priors.use_empty);
         set_from_opt!(matches, "use-ladder-check-in-playouts", self.playout.ladder_check);
-        set_from_opt!(matches, "use-ucb1-tuned", self.uct.tuned);
         set_from_opt!(matches, "use-patterns-prior", self.uct.priors.use_patterns);
         set_from_opt!(matches, "use-patterns-in-playouts", self.playout.use_patterns);
 
