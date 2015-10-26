@@ -43,7 +43,7 @@ use thread_scoped::scoped;
 
 mod node;
 
-pub struct RaveEngine {
+pub struct EngineImpl {
     config: Arc<Config>,
     matcher: Arc<Matcher>,
     playout: Arc<Playout>,
@@ -51,10 +51,10 @@ pub struct RaveEngine {
     root: Node,
 }
 
-impl RaveEngine {
+impl EngineImpl {
 
-    pub fn new(config: Arc<Config>, matcher: Arc<Matcher>) -> RaveEngine {
-        RaveEngine {
+    pub fn new(config: Arc<Config>, matcher: Arc<Matcher>) -> EngineImpl {
+        EngineImpl {
             config: config.clone(),
             matcher: matcher.clone(),
             playout: Arc::new(Playout::new(config.clone(), matcher.clone())),
@@ -69,7 +69,7 @@ impl RaveEngine {
 
 }
 
-impl Engine for RaveEngine {
+impl Engine for EngineImpl {
 
     fn gen_move(&mut self, color: Color, game: &Game, sender: Sender<(Move,usize)>, receiver: Receiver<()>) {
         if !self.config.tree.reuse_subtree {
