@@ -311,7 +311,7 @@ impl Node {
     pub fn best(&self) -> &Node {
         let mut best = &self.children[0];
         for n in self.children.iter() {
-            if n.plays > best.plays {
+            if n.plays_with_priors() > best.plays_with_priors() {
                 best = n;
             }
         }
@@ -417,6 +417,10 @@ impl Node {
         } else {
             (self.wins as f32) / (self.plays as f32)
         }
+    }
+
+    fn plays_with_priors(&self) -> usize {
+        self.plays + self.prior_plays
     }
 
     pub fn color(&self) -> Color {
