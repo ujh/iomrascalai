@@ -46,6 +46,8 @@ pub struct Node {
     descendants: usize,
     m: Move,
     plays: usize,
+    prior_plays: usize,
+    prior_wins: usize,
     wins: usize,
 }
 
@@ -59,8 +61,10 @@ impl Node {
             config: config.clone(),
             descendants: 0,
             m: m,
-            plays: config.tree.priors.neutral_plays,
-            wins: config.tree.priors.neutral_wins,
+            plays: 0,
+            prior_plays: config.tree.priors.neutral_plays,
+            prior_wins: config.tree.priors.neutral_wins,
+            wins: 0,
         }
     }
 
@@ -200,57 +204,53 @@ impl Node {
     }
 
     pub fn priors(&self, children: &mut Vec<Node>, board: &Board) {
-            let color = board.next_player().opposite();
+        let color = board.next_player().opposite();
 
-            let in_danger = board.chains().iter()
-                .filter(|chain| chain.color() == color && chain.coords().len() == 1 && chain.liberties().len() <= 2);
+        let in_danger = board.chains().iter()
+            .filter(|chain| chain.color() == color && chain.coords().len() == 1 && chain.liberties().len() <= 2);
 
-            for one_stone in in_danger {
-                if let Some(solution) = board.capture_ladder(one_stone) {
-                    if let Some(node) = children.iter_mut().find(|c| c.m() == solution) {
-                        node.plays += self.config.tree.priors.capture_one;
-                        node.wins += self.config.tree.priors.capture_one;
-                    }
+        for one_stone in in_danger {
+            if let Some(solution) = board.capture_ladder(one_stone) {
+                if let Some(node) = children.iter_mut().find(|c| c.m() == solution) {
+                    node.record_even_prior(self.config.tree.priors.capture_one);
                 }
             }
+        }
 
-            let in_danger = board.chains().iter()
-                .filter(|chain| chain.color() == color && chain.coords().len() > 1 && chain.liberties().len() <= 2);
+        let in_danger = board.chains().iter()
+            .filter(|chain| chain.color() == color && chain.coords().len() > 1 && chain.liberties().len() <= 2);
 
-            for many_stones in in_danger {
-                if let Some(solution) = board.capture_ladder(many_stones) {
-                    if let Some(node) = children.iter_mut().find(|c| c.m() == solution) {
-                        node.plays += self.config.tree.priors.capture_many;
-                        node.wins += self.config.tree.priors.capture_many;
-                    }
+        for many_stones in in_danger {
+            if let Some(solution) = board.capture_ladder(many_stones) {
+                if let Some(node) = children.iter_mut().find(|c| c.m() == solution) {
+                    node.record_even_prior(self.config.tree.priors.capture_many);
                 }
             }
+        }
     }
 
     pub fn new_leaf(&self, board: &Board, m: &Move, matcher: Arc<Matcher>) -> Node {
         let mut node = Node::new(*m, self.config.clone());
 
         if !board.is_not_self_atari(m) {
-            node.plays += self.config.tree.priors.self_atari;
-            node.wins += 0; // That's a negative prior
+            // That's a negative prior
+            node.record_priors(self.config.tree.priors.self_atari, 0);
         }
         if self.config.tree.priors.use_empty {
             let distance = m.coord().distance_to_border(board.size());
             if distance <= 2 && self.in_empty_area(board, m) {
                 if distance <= 1 {
-                    node.plays += self.config.tree.priors.empty;
-                    node.wins += 0; // That's a negative prior
+                    // That's a negative prior
+                    node.record_priors(self.config.tree.priors.empty, 0);
                 } else {
-                    node.plays += self.config.tree.priors.empty;
-                    node.wins += self.config.tree.priors.empty;
+                    node.record_even_prior(self.config.tree.priors.empty);
                 }
             }
         }
         if self.config.tree.priors.use_patterns {
             let count = self.matching_patterns_count(board, m, matcher);
             let prior = count * self.config.tree.priors.patterns;
-            node.plays += prior;
-            node.wins += prior;
+            node.record_even_prior(prior);
         }
         node
     }
@@ -319,7 +319,7 @@ impl Node {
     }
 
     pub fn mostly_losses(&self, cutoff: f32) -> bool {
-        self.win_ratio() < cutoff
+        self.win_ratio_with_priors() < cutoff
     }
 
     pub fn record_win(&mut self) {
@@ -336,6 +336,15 @@ impl Node {
 
     pub fn record_amaf_play(&mut self) {
         self.amaf_plays += 1;
+    }
+
+    pub fn record_priors(&mut self, prior_plays: usize, prior_wins: usize) {
+        self.prior_plays += prior_plays;
+        self.prior_wins += prior_wins;
+    }
+
+    pub fn record_even_prior(&mut self, prior: usize) {
+        self.record_priors(prior, prior);
     }
 
     pub fn m(&self) -> Move {
@@ -359,7 +368,7 @@ impl Node {
 
     fn uct_tuned_value(&self, parent_plays: usize) -> f32 {
         const MAX_BERNOULLI_VARIANCE: f32 = 0.25;
-        let p = self.win_ratio(); //bernoulli distribution parameter
+        let p = self.win_ratio_with_priors(); //bernoulli distribution parameter
         let variance = p * (1.0 - p);
         let variance_upper_bound = variance + ((2.0 * (parent_plays as f32).ln())/(self.plays as f32)).sqrt();
         let smaller_upper_bound = MAX_BERNOULLI_VARIANCE.min(variance_upper_bound); //can't be greater than the theoretical variance
@@ -389,6 +398,16 @@ impl Node {
             let rave_winrate = aw / ap;
             let beta = ap / (ap + p + p * ap / rave_equiv);
             beta * rave_winrate + (1.0 - beta) * uct
+        }
+    }
+
+    fn win_ratio_with_priors(&self) -> f32 {
+        let p = self.plays + self.prior_plays;
+        if p == 0 {
+            0f32
+        } else {
+            let w = self.wins + self.prior_wins;
+            w as f32 / p as f32
         }
     }
 
