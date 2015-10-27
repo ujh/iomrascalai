@@ -393,7 +393,7 @@ impl Node {
         } else {
             let aw = self.amaf_wins as f32;
             let ap = self.amaf_plays as f32;
-            let p = self.plays as f32;
+            let p = (self.plays + self.prior_plays) as f32;
             let rave_equiv = self.config.tree.rave_equiv;
             let rave_winrate = aw / ap;
             let beta = ap / (ap + p + p * ap / rave_equiv);
