@@ -1,7 +1,7 @@
 /************************************************************************
  *                                                                      *
  * Copyright 2014 Urban Hafner, Thomas Poinsot                          *
- * Copyright 2015 Urban Hafner, Thomas Poinsot, Igor Polyakov           *
+ * Copyright 2015 Urban Hafner, Thomas Poinsot, Igor Polyakov, Ben Fu   *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -71,8 +71,6 @@ pub fn main() {
     let mut config = Config::default();
     let mut opts = Options::new();
     let args : Vec<String> = args().collect();
-
-    opts.optopt("e", "engine", "Select an engine (defaults to uct)", "amaf|mc|random|uct");
 
     config.setup(&mut opts);
 

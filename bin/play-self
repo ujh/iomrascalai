@@ -7,10 +7,9 @@ set -ex
 
 cargo build --release
 
-IOMRASCALAIMC="./target/release/iomrascalai -t 8 -l"
-IOMRASCALAIAMAF="./target/release/iomrascalai -e random -t 8 -l"
+IOMRASCALAI="./target/release/iomrascalai -t 8 -l"
 SIZE=9
 TIME="5m"
 
-TWOGTP="gogui-twogtp -black \"$IOMRASCALAIMC\" -white \"$IOMRASCALAIAMAF\" -verbose -size $SIZE -time $TIME"
+TWOGTP="gogui-twogtp -black \"$IOMRASCALAI\" -white \"$IOMRASCALAI\" -verbose -size $SIZE -time $TIME"
 gogui -computer-both -program "$TWOGTP" -size $SIZE
