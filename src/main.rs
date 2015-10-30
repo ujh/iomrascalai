@@ -22,7 +22,6 @@
 #![feature(core)]
 #![feature(mpsc_select)]
 #![feature(plugin)]
-#![feature(slice_splits)]
 #![feature(test)]
 #![feature(vec_push_all)]
 #![plugin(regex_macros)]
