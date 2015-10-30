@@ -137,7 +137,7 @@ impl Config {
             },
             tree: TreeConfig {
                 end_of_game_cutoff: 0.08,
-                expand_after: 10,
+                expand_after: 0,
                 priors: PriorsConfig {
                     capture_many: 30,
                     capture_one: 15,
