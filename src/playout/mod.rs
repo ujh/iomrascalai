@@ -22,6 +22,7 @@
 use board::Board;
 use board::Color;
 use board::Coord;
+use board::Empty;
 use board::Move;
 use board::Pass;
 use board::Play;
@@ -31,6 +32,7 @@ use patterns::Matcher;
 use rand::Rng;
 use rand::XorShiftRng;
 use std::cmp;
+use std::collections::HashMap;
 use std::sync::Arc;
 
 mod test;
@@ -48,10 +50,13 @@ impl Playout {
 
     pub fn run(&self, board: &mut Board, initial_move: Option<&Move>, rng: &mut XorShiftRng) -> PlayoutResult {
         let mut played_moves = Vec::new();
-
+        let mut amaf = HashMap::new();
         initial_move.map(|&m| {
             board.play_legal_move(m);
             played_moves.push(m);
+            if !m.is_pass() && !amaf.contains_key(&m.coord()) {
+                amaf.insert(m.coord(), *m.color());
+            }
         });
 
         let max_moves = self.max_moves(board.size());
@@ -60,8 +65,11 @@ impl Playout {
             let m = self.select_move(board, heuristic_set, rng);
             board.play_legal_move(m);
             played_moves.push(m);
+            if !m.is_pass() && !amaf.contains_key(&m.coord()) {
+                amaf.insert(m.coord(), *m.color());
+            }
         }
-        PlayoutResult::new(played_moves, board.winner())
+        PlayoutResult::new(board.winner(), amaf)
     }
 
     //don't self atari strings that will make an eye after dying, which is strings of 7+
@@ -213,22 +221,25 @@ impl Playout {
 }
 
 pub struct PlayoutResult {
-    moves: Vec<Move>,
+    amaf: HashMap<Coord,Color>,
     winner: Color,
 }
 
 impl PlayoutResult {
 
-    pub fn new(moves: Vec<Move>, winner: Color) -> PlayoutResult {
-        PlayoutResult { moves: moves, winner: winner }
+    pub fn new(winner: Color, amaf: HashMap<Coord,Color>) -> PlayoutResult {
+        PlayoutResult { winner: winner, amaf: amaf }
     }
 
-    pub fn moves(&self) -> &Vec<Move> {
-        &self.moves
+    pub fn empty() -> PlayoutResult {
+        PlayoutResult { winner: Empty, amaf: HashMap::new() }
     }
 
     pub fn winner(&self) -> Color {
         self.winner
     }
 
+    pub fn amaf(&self) -> &HashMap<Coord,Color> {
+        &self.amaf
+    }
 }

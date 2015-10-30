@@ -24,7 +24,7 @@
 
 
 pub use config::Config;
-pub use engine::UctEngine;
+pub use engine::EngineImpl;
 pub use patterns::Matcher;
 pub use super::Command;
 pub use super::GTPInterpreter;
@@ -36,7 +36,7 @@ describe! interpreter {
     before_each {
         let config = Arc::new(Config::default());
         let matcher = Arc::new(Matcher::new());
-        let engine = Box::new(UctEngine::new(config.clone(), matcher));
+        let engine = Box::new(EngineImpl::new(config.clone(), matcher));
         let mut interpreter = GTPInterpreter::new(config.clone(), engine);
     }
 

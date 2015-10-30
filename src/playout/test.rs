@@ -42,15 +42,6 @@ fn playout(matcher: Arc<Matcher>) -> Playout {
 }
 
 #[test]
-fn should_add_the_passed_moves_as_the_first_move() {
-    let mut board = Board::new(9, 6.5, KgsChinese);
-    let playout = playout(Arc::new(Matcher::new()));
-    let mut rng = weak_rng();
-    let result = playout.run(&mut board, Some(&Play(Black, 1, 1)), &mut rng);
-    assert_eq!(Play(Black, 1, 1), result.moves()[0]);
-}
-
-#[test]
 fn max_moves() {
     assert_eq!(1083, playout(Arc::new(Matcher::new())).max_moves(19));
 }

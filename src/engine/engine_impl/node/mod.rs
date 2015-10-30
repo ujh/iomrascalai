@@ -21,6 +21,7 @@
 
 use board::Board;
 use board::Color;
+use board::Coord;
 use board::Empty;
 use board::Move;
 use board::NoMove;
@@ -30,14 +31,16 @@ use config::Config;
 use game::Game;
 use patterns::Matcher;
 
+use std::collections::HashMap;
 use std::sync::Arc;
-use std::f32;
 use std::usize;
 
 mod test;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Node {
+    amaf_plays: usize,
+    amaf_wins: usize,
     children: Vec<Node>,
     config: Arc<Config>,
     descendants: usize,
@@ -50,12 +53,14 @@ impl Node {
 
     pub fn new(m: Move, config: Arc<Config>) -> Node {
         Node {
-            plays: config.uct.priors.neutral_plays,
-            wins: config.uct.priors.neutral_wins,
+            amaf_plays: 0,
+            amaf_wins: 0,
             children: vec!(),
-            config: config,
+            config: config.clone(),
             descendants: 0,
             m: m,
+            plays: config.tree.priors.neutral_plays,
+            wins: config.tree.priors.neutral_wins,
         }
     }
 
@@ -134,16 +139,16 @@ impl Node {
         (path, moves, not_terminal, new_desc)
     }
 
+    /// Finds the next leave to simulate. To make sure that different
+    /// paths are taken through the tree (as we execute the
+    /// simulations in parallel) we already increase the play count
+    /// here instead of when recording the wins in the tree.
     pub fn find_leaf_and_mark(&mut self, mut path: Vec<usize>, mut moves: Vec<Move>) -> (Vec<usize>, Vec<Move>, &mut Node) {
         self.record_play();
         if self.is_leaf() {
             (path, moves, self)
         } else {
-            let index = if self.config.uct.tuned {
-                self.next_uct_tuned_child_index()
-            } else {
-                self.next_uct_child_index()
-            };
+            let index = self.next_child_index();
             path.push(index);
             moves.push(self.children[index].m());
             self.children[index].find_leaf_and_mark(path, moves)
@@ -170,7 +175,7 @@ impl Node {
 
     pub fn expand(&mut self, board: &Board, matcher: Arc<Matcher>) -> bool {
         let not_terminal = !board.is_game_over();
-        if not_terminal && self.plays >= self.config.uct.expand_after {
+        if not_terminal && self.plays >= self.config.tree.expand_after {
             let mut children = board.legal_moves_without_eyes()
                 .iter()
                 .map(|m| self.new_leaf(board, m, matcher.clone()))
@@ -203,8 +208,8 @@ impl Node {
             for one_stone in in_danger {
                 if let Some(solution) = board.capture_ladder(one_stone) {
                     if let Some(node) = children.iter_mut().find(|c| c.m() == solution) {
-                        node.plays += self.config.uct.priors.capture_one;
-                        node.wins += self.config.uct.priors.capture_one;
+                        node.plays += self.config.tree.priors.capture_one;
+                        node.wins += self.config.tree.priors.capture_one;
                     }
                 }
             }
@@ -215,8 +220,8 @@ impl Node {
             for many_stones in in_danger {
                 if let Some(solution) = board.capture_ladder(many_stones) {
                     if let Some(node) = children.iter_mut().find(|c| c.m() == solution) {
-                        node.plays += self.config.uct.priors.capture_many;
-                        node.wins += self.config.uct.priors.capture_many;
+                        node.plays += self.config.tree.priors.capture_many;
+                        node.wins += self.config.tree.priors.capture_many;
                     }
                 }
             }
@@ -226,24 +231,24 @@ impl Node {
         let mut node = Node::new(*m, self.config.clone());
 
         if !board.is_not_self_atari(m) {
-            node.plays += self.config.uct.priors.self_atari;
+            node.plays += self.config.tree.priors.self_atari;
             node.wins += 0; // That's a negative prior
         }
-        if self.config.uct.priors.use_empty {
+        if self.config.tree.priors.use_empty {
             let distance = m.coord().distance_to_border(board.size());
             if distance <= 2 && self.in_empty_area(board, m) {
                 if distance <= 1 {
-                    node.plays += self.config.uct.priors.empty;
+                    node.plays += self.config.tree.priors.empty;
                     node.wins += 0; // That's a negative prior
                 } else {
-                    node.plays += self.config.uct.priors.empty;
-                    node.wins += self.config.uct.priors.empty;
+                    node.plays += self.config.tree.priors.empty;
+                    node.wins += self.config.tree.priors.empty;
                 }
             }
         }
-        if self.config.uct.priors.use_patterns {
+        if self.config.tree.priors.use_patterns {
             let count = self.matching_patterns_count(board, m, matcher);
-            let prior = count * self.config.uct.priors.patterns;
+            let prior = count * self.config.tree.priors.patterns;
             node.plays += prior;
             node.wins += prior;
         }
@@ -277,13 +282,29 @@ impl Node {
         }
     }
 
-    pub fn record_on_path(&mut self, path: &[usize], winner: Color, new_nodes: usize) {
+    pub fn record_on_path(&mut self, path: &[usize], winner: Color, new_nodes: usize, amaf: &HashMap<Coord, Color>) {
         if self.color() == winner {
             self.record_win();
         }
+        // We need to switch the color as we see things from the
+        // opponent's point of view now.
+        let color = self.color().opposite();
+        for child in self.children.iter_mut() {
+            if !child.m.is_pass() {
+                match amaf.get(&child.m.coord()) {
+                    Some(&c) if c == color => {
+                        child.record_amaf_play();
+                        if color == winner {
+                            child.record_amaf_win();
+                        }
+                    }
+                    _ => {}
+                }
+            }
+        }
         if path.len() > 0 {
             self.descendants += new_nodes;
-            self.children[path[0]].record_on_path(&path[1..], winner, new_nodes);
+            self.children[path[0]].record_on_path(&path[1..], winner, new_nodes, amaf);
         }
     }
 
@@ -305,8 +326,16 @@ impl Node {
         self.wins += 1;
     }
 
+    pub fn record_amaf_win(&mut self) {
+        self.amaf_wins += 1;
+    }
+
     pub fn record_play(&mut self) {
         self.plays += 1;
+    }
+
+    pub fn record_amaf_play(&mut self) {
+        self.amaf_plays += 1;
     }
 
     pub fn m(&self) -> Move {
@@ -328,16 +357,6 @@ impl Node {
         }
     }
 
-    fn next_uct_tuned_child_index(&self) -> usize {
-        let mut index = 0;
-        for i in 1..self.children.len() {
-            if self.children[i].uct_tuned_value(self.plays) > self.children[index].uct_tuned_value(self.plays) {
-                index = i;
-            }
-        }
-        index
-    }
-
     fn uct_tuned_value(&self, parent_plays: usize) -> f32 {
         const MAX_BERNOULLI_VARIANCE: f32 = 0.25;
         let p = self.win_ratio(); //bernoulli distribution parameter
@@ -348,30 +367,29 @@ impl Node {
         p + (((parent_plays as f32).ln()) * smaller_upper_bound / (self.plays as f32)).sqrt()
     }
 
-    fn next_uct_child_index(&self) -> usize {
+    fn next_child_index(&self) -> usize {
         let mut index = 0;
         for i in 1..self.children.len() {
-            if self.children[i].uct_value(self.plays) > self.children[index].uct_value(self.plays) {
+            if self.children[i].child_value(self.plays) > self.children[index].child_value(self.plays) {
                 index = i;
             }
         }
         index
     }
 
-    fn uct_value(&self, parent_plays: usize) -> f32 {
-        if self.plays == 0 {
-            f32::MAX
+    fn child_value(&self, parent_plays: usize) -> f32 {
+        let uct = self.uct_tuned_value(parent_plays);
+        if self.amaf_plays == 0 {
+            uct
         } else {
-            self.win_ratio() + self.c() * self.confidence(parent_plays)
+            let aw = self.amaf_wins as f32;
+            let ap = self.amaf_plays as f32;
+            let p = self.plays as f32;
+            let rave_equiv = self.config.tree.rave_equiv;
+            let rave_winrate = aw / ap;
+            let beta = ap / (ap + p + p * ap / rave_equiv);
+            beta * rave_winrate + (1.0 - beta) * uct
         }
-    }
-
-    fn confidence(&self, parent_plays: usize) -> f32 {
-        ((parent_plays as f32).ln()/(self.plays as f32)).sqrt()
-    }
-
-    fn c(&self) -> f32 {
-        0.44 // sqrt(1/5)
     }
 
     pub fn win_ratio(&self) -> f32 {

@@ -21,7 +21,6 @@
 
 use board::Board;
 use board::Color;
-use board::Empty;
 use board::Move;
 use board::NoMove;
 use board::Pass;
@@ -31,6 +30,7 @@ use engine::Engine;
 use game::Game;
 use patterns::Matcher;
 use playout::Playout;
+use playout::PlayoutResult;
 use self::node::Node;
 
 use rand::weak_rng;
@@ -43,7 +43,7 @@ use thread_scoped::scoped;
 
 mod node;
 
-pub struct UctEngine {
+pub struct EngineImpl {
     config: Arc<Config>,
     matcher: Arc<Matcher>,
     playout: Arc<Playout>,
@@ -51,10 +51,10 @@ pub struct UctEngine {
     root: Node,
 }
 
-impl UctEngine {
+impl EngineImpl {
 
-    pub fn new(config: Arc<Config>, matcher: Arc<Matcher>) -> UctEngine {
-        UctEngine {
+    pub fn new(config: Arc<Config>, matcher: Arc<Matcher>) -> EngineImpl {
+        EngineImpl {
             config: config.clone(),
             matcher: matcher.clone(),
             playout: Arc::new(Playout::new(config.clone(), matcher.clone())),
@@ -69,10 +69,10 @@ impl UctEngine {
 
 }
 
-impl Engine for UctEngine {
+impl Engine for EngineImpl {
 
     fn gen_move(&mut self, color: Color, game: &Game, sender: Sender<(Move,usize)>, receiver: Receiver<()>) {
-        if !self.config.uct.reuse_subtree {
+        if !self.config.tree.reuse_subtree {
             self.root = Node::root(game, color, self.config.clone());
         } else {
             self.previous_node_count = self.root.descendants();
@@ -89,7 +89,7 @@ impl Engine for UctEngine {
             sender.send((Pass(color), self.root.plays())).unwrap();
             return;
         }
-        let (send_result_to_main, receive_result_from_threads) = channel::<((Vec<usize>, Color, usize), Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>();
+        let (send_result_to_main, receive_result_from_threads) = channel::<((Vec<usize>, usize, PlayoutResult), Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>();
         let (_guards, halt_senders) = spin_up(self.config.clone(), self.playout.clone(), game, send_result_to_main);
         loop {
             select!(
@@ -99,8 +99,12 @@ impl Engine for UctEngine {
                     break;
                 },
                 res = receive_result_from_threads.recv() => {
-                    let ((path, winner, nodes_added), send_to_thread) = res.unwrap();
-                    self.root.record_on_path(&path, winner, nodes_added);
+                    let ((path, nodes_added, playout_result), send_to_thread) = res.unwrap();
+                    self.root.record_on_path(
+                        &path,
+                        playout_result.winner(),
+                        nodes_added,
+                        playout_result.amaf());
                     let data = self.root.find_leaf_and_expand(game, self.matcher.clone());
                     match send_to_thread.send(data) {
                         Ok(_) => {},
@@ -120,7 +124,7 @@ impl Engine for UctEngine {
 
 }
 
-fn spin_up<'a>(config: Arc<Config>, playout: Arc<Playout>, game: &Game, send_to_main: Sender<((Vec<usize>, Color, usize), Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>) -> (Vec<JoinGuard<'a, ()>>, Vec<Sender<()>>) {
+fn spin_up<'a>(config: Arc<Config>, playout: Arc<Playout>, game: &Game, send_to_main: Sender<((Vec<usize>, usize, PlayoutResult), Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>) -> (Vec<JoinGuard<'a, ()>>, Vec<Sender<()>>) {
     let mut guards = Vec::new();
     let mut halt_senders = Vec::new();
     for _ in 0..config.threads {
@@ -133,12 +137,12 @@ fn spin_up<'a>(config: Arc<Config>, playout: Arc<Playout>, game: &Game, send_to_
     (guards, halt_senders)
 }
 
-fn spin_up_worker<'a>(config: Arc<Config>, playout: Arc<Playout>, board: Board, send_to_main: Sender<((Vec<usize>, Color, usize),Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>, receive_halt: Receiver<()>) -> JoinGuard<'a, ()> {
+fn spin_up_worker<'a>(config: Arc<Config>, playout: Arc<Playout>, board: Board, send_to_main: Sender<((Vec<usize>, usize, PlayoutResult),Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>, receive_halt: Receiver<()>) -> JoinGuard<'a, ()> {
     unsafe { scoped(move || {
         let mut rng = weak_rng();
         let (send_to_self, receive_from_main) = channel::<(Vec<usize>, Vec<Move>, bool, usize)>();
         // Send this empty message to get everything started
-        send_to_main.send(((vec!(), Empty, 0), send_to_self.clone())).unwrap();
+        send_to_main.send(((vec!(), 0, PlayoutResult::empty()), send_to_self.clone())).unwrap();
         loop {
             select!(
                 _ = receive_halt.recv() => { break; },
@@ -151,9 +155,8 @@ fn spin_up_worker<'a>(config: Arc<Config>, playout: Arc<Playout>, board: Board, 
                     // Playout is smart enough to correctly handle the
                     // case where the game is already over.
                     let playout_result = playout.run(&mut b, None, &mut rng);
-                    let winner = playout_result.winner();
                     let send_to_self = send_to_self.clone();
-                    match send_to_main.send(((path, winner, nodes_added), send_to_self)) {
+                    match send_to_main.send(((path, nodes_added, playout_result), send_to_self)) {
                         Ok(_) => {},
                         Err(e) => {
                             config.log(format!("send_to_main failed with {:?}", e));
@@ -170,7 +173,7 @@ fn finish(root: &Node, game: &Game, color: Color, sender: Sender<(Move,usize)>, 
         halt_sender.send(()).unwrap();
     }
 
-    if root.mostly_losses(config.uct.end_of_game_cutoff) {
+    if root.mostly_losses(config.tree.end_of_game_cutoff) {
         let m = if game.winner() == color {
             Pass(color)
         } else {
