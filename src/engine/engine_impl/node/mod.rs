@@ -311,7 +311,7 @@ impl Node {
     pub fn best(&self) -> &Node {
         let mut best = &self.children[0];
         for n in self.children.iter() {
-            if n.plays > best.plays {
+            if n.plays_with_prior_factor() > best.plays_with_prior_factor() {
                 best = n;
             }
         }
@@ -322,30 +322,35 @@ impl Node {
         self.win_ratio_with_priors() < cutoff
     }
 
-    pub fn record_win(&mut self) {
+    fn record_win(&mut self) {
         self.wins += 1;
     }
 
-    pub fn record_amaf_win(&mut self) {
+    fn record_amaf_win(&mut self) {
         self.amaf_wins += 1;
     }
 
-    pub fn record_play(&mut self) {
+    fn record_play(&mut self) {
         self.plays += 1;
     }
 
-    pub fn record_amaf_play(&mut self) {
+    fn record_amaf_play(&mut self) {
         self.amaf_plays += 1;
     }
 
-    pub fn record_priors(&mut self, prior_plays: usize, prior_wins: usize) {
+    fn record_priors(&mut self, prior_plays: usize, prior_wins: usize) {
         self.prior_plays += prior_plays;
         self.prior_wins += prior_wins;
     }
 
-    pub fn record_even_prior(&mut self, prior: usize) {
+    fn record_even_prior(&mut self, prior: usize) {
         self.record_priors(prior, prior);
     }
+
+    fn plays_with_prior_factor(&self) -> f32 {
+        self.plays as f32 + self.prior_plays as f32 * self.config.tree.priors.best_move_factor
+    }
+
 
     pub fn m(&self) -> Move {
         self.m
