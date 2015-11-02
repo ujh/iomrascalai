@@ -348,7 +348,7 @@ impl Node {
     }
 
     fn plays_with_prior_factor(&self) -> f32 {
-        self.plays as f32 + self.prior_plays as f32 * self.config.tree.priors.best_move_factor
+        self.plays as f32 + (self.prior_plays as f32 * self.config.tree.priors.best_move_factor)
     }
 
 
@@ -371,27 +371,28 @@ impl Node {
         }
     }
 
-    fn uct_tuned_value(&self, parent_plays: usize) -> f32 {
+    fn uct_tuned_value(&self, parent_plays: f32) -> f32 {
         const MAX_BERNOULLI_VARIANCE: f32 = 0.25;
         let p = self.win_ratio_with_priors(); //bernoulli distribution parameter
         let variance = p * (1.0 - p);
-        let variance_upper_bound = variance + ((2.0 * (parent_plays as f32).ln())/(self.plays as f32)).sqrt();
+        let variance_upper_bound = variance + ((2.0 * parent_plays.ln())/self.plays_with_prior_factor()).sqrt();
         let smaller_upper_bound = MAX_BERNOULLI_VARIANCE.min(variance_upper_bound); //can't be greater than the theoretical variance
 
-        p + (((parent_plays as f32).ln()) * smaller_upper_bound / (self.plays as f32)).sqrt()
+        p + ((parent_plays.ln()) * smaller_upper_bound / self.plays_with_prior_factor()).sqrt()
     }
 
     fn next_child_index(&self) -> usize {
-        let mut index = 0;
+        let mut best = 0;
+        let plays = self.plays_with_prior_factor();
         for i in 1..self.children.len() {
-            if self.children[i].child_value(self.plays) > self.children[index].child_value(self.plays) {
-                index = i;
+            if self.children[i].child_value(plays) > self.children[best].child_value(plays) {
+                best = i;
             }
         }
-        index
+        best
     }
 
-    fn child_value(&self, parent_plays: usize) -> f32 {
+    fn child_value(&self, parent_plays: f32) -> f32 {
         let uct = self.uct_tuned_value(parent_plays);
         if self.amaf_plays == 0 {
             uct
