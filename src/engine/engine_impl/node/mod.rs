@@ -70,6 +70,7 @@ impl Node {
 
     pub fn root(game: &Game, color: Color, config: Arc<Config>) -> Node {
         let mut root = Node::new(Pass(color), config);
+        root.reset();
         // So that we don't get NaN on the first UCT calculation
         root.plays = 1;
         // Now that plays is 1, this needs to be one too to keep the
@@ -98,12 +99,20 @@ impl Node {
         // Set these values to zero, as the new root is actually a
         // node of the opponent. Otherwise the win ratio would
         // approach 0% as we win the game. And then we would resign!
-        self.plays = 0;
-        self.wins = 0;
+        self.reset();
         // The root has to have the color of the player we want to
         // simulate. Otherwise the win statistics are for the wrong
         // player!
         self.m = Pass(color);
+    }
+
+    fn reset(&mut self) {
+        self.amaf_plays = 0;
+        self.amaf_wins = 0;
+        self.plays = 0;
+        self.prior_plays = 0;
+        self.prior_wins = 0;
+        self.wins = 0;
     }
 
     pub fn remove_illegal_children(&mut self, game: &Game) {
