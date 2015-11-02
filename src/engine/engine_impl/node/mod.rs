@@ -360,6 +360,9 @@ impl Node {
         self.plays as f32 + (self.prior_plays as f32 * self.config.tree.priors.best_move_factor)
     }
 
+    fn wins_with_prior_factor(&self) -> f32 {
+        self.wins as f32 + (self.prior_wins as f32 * self.config.tree.priors.best_move_factor)
+    }
 
     pub fn m(&self) -> Move {
         self.m
@@ -408,7 +411,7 @@ impl Node {
         } else {
             let aw = self.amaf_wins as f32;
             let ap = self.amaf_plays as f32;
-            let p = (self.plays + self.prior_plays) as f32;
+            let p = self.plays_with_prior_factor();
             let rave_equiv = self.config.tree.rave_equiv;
             let rave_winrate = aw / ap;
             let beta = ap / (ap + p + p * ap / rave_equiv);
@@ -417,12 +420,12 @@ impl Node {
     }
 
     fn win_ratio_with_priors(&self) -> f32 {
-        let p = self.plays + self.prior_plays;
-        if p == 0 {
-            0f32
+        let p = self.plays_with_prior_factor();
+        if p == 0.0 {
+            0.0
         } else {
-            let w = self.wins + self.prior_wins;
-            w as f32 / p as f32
+            let w = self.wins_with_prior_factor();
+            w / p
         }
     }
 
