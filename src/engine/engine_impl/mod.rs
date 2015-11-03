@@ -40,6 +40,8 @@ use std::sync::mpsc::Sender;
 use std::sync::mpsc::channel;
 use thread_scoped::JoinGuard;
 use thread_scoped::scoped;
+use time::Duration;
+use time::PreciseTime;
 
 mod node;
 
@@ -71,7 +73,10 @@ impl EngineImpl {
 
 impl Engine for EngineImpl {
 
-    fn gen_move(&mut self, color: Color, game: &Game, sender: Sender<(Move,usize)>, receiver: Receiver<()>) {
+    fn gen_move(&mut self, color: Color, budget_ms: u32, game: &Game, sender: Sender<(Move,usize)>, receiver: Receiver<()>) {
+        let start = PreciseTime::now();
+        let budget5 = Duration::milliseconds((budget_ms as f32 * 0.05) as i64);
+        let budget20 = Duration::milliseconds((budget_ms as f32 * 0.2) as i64);
         if !self.config.tree.reuse_subtree {
             self.root = Node::root(game, color, self.config.clone());
         } else {
@@ -92,6 +97,18 @@ impl Engine for EngineImpl {
         let (send_result_to_main, receive_result_from_threads) = channel::<((Vec<usize>, usize, PlayoutResult), Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>();
         let (_guards, halt_senders) = spin_up(self.config.clone(), self.playout.clone(), game, send_result_to_main);
         loop {
+            let win_ratio = self.root.best().win_ratio();
+            if start.to(PreciseTime::now()) > budget5 && win_ratio > self.config.tree.fastplay5_thres {
+                self.config.log(format!("Search stopped. 5% rule triggered"));
+                let m = finish(&self.root, game, color, sender, self.config.clone(), halt_senders);
+                self.set_new_root(&game.play(m).unwrap(), color);
+                break;
+            } else if start.to(PreciseTime::now()) > budget20 && win_ratio > self.config.tree.fastplay20_thres {
+                self.config.log(format!("Search stopped. 20% rule triggered"));
+                let m = finish(&self.root, game, color, sender, self.config.clone(), halt_senders);
+                self.set_new_root(&game.play(m).unwrap(), color);
+                break;
+            }
             select!(
                 _ = receiver.recv() => {
                     let m = finish(&self.root, game, color, sender, self.config.clone(), halt_senders);
@@ -159,7 +176,7 @@ fn spin_up_worker<'a>(config: Arc<Config>, playout: Arc<Playout>, board: Board, 
                     match send_to_main.send(((path, nodes_added, playout_result), send_to_self)) {
                         Ok(_) => {},
                         Err(e) => {
-                            config.log(format!("send_to_main failed with {:?}", e));
+                            config.log(format!("[DEBUG] send_to_main failed with {:?}", e));
                         }
                     }
                 }
@@ -170,7 +187,12 @@ fn spin_up_worker<'a>(config: Arc<Config>, playout: Arc<Playout>, board: Board, 
 
 fn finish(root: &Node, game: &Game, color: Color, sender: Sender<(Move,usize)>, config: Arc<Config>, halt_senders: Vec<Sender<()>>) -> Move {
     for halt_sender in halt_senders.iter() {
-        halt_sender.send(()).unwrap();
+        match halt_sender.send(()) {
+            Ok(_) => {},
+            Err(e) => {
+                config.log(format!("[DEBUG] halt_sender failed with {:?}", e));
+            }
+        }
     }
 
     if root.mostly_losses(config.tree.end_of_game_cutoff) {
@@ -187,7 +209,13 @@ fn finish(root: &Node, game: &Game, color: Color, sender: Sender<(Move,usize)>, 
         let msg = format!("{} simulations ({}% wins on average, {} nodes)", root.plays()-1, root.win_ratio()*100.0, root.descendants());
         config.log(msg);
         config.log(format!("Returning the best move ({}% wins)", best_node.win_ratio()*100.0));
-        sender.send((best_node.m(), root.plays())).unwrap();
+        match sender.send((best_node.m(), root.plays())) {
+            Ok(_) => {},
+            Err(e) => {
+                config.log(format!("[DEBUG] send move to controller failed with{:?}", e));
+            }
+        }
+
         best_node.m()
     }
 }
