@@ -22,6 +22,7 @@ smallvec        = "*"
 strenum         = "*"
 thread-scoped   = "*"
 time            = "*"
+toml            = "*"
 
 [dependencies.hamcrest]
 git = "https://github.com/carllerche/hamcrest-rust.git"
