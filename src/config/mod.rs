@@ -121,6 +121,7 @@ macro_rules! set_from_flag {
 impl Config {
 
     pub fn default() -> Config {
+        let default_toml = include_str!("defaults.toml");
         Config {
             log: false,
             play_out_aftermath: false,
