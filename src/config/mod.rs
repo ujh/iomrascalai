@@ -154,10 +154,10 @@ impl Config {
         Config {
             log: table["log"].as_bool().unwrap(),
             play_out_aftermath: table["play_out_aftermath"].as_bool().unwrap(),
-            ruleset: Ruleset::from_str(table["ruleset"].as_str().unwrap()).unwrap(),
-            threads: table["threads"].as_integer().unwrap() as usize,
             playout: PlayoutConfig::new(&table["playout"]),
             priors: PriorsConfig::new(&table["priors"]),
+            ruleset: Ruleset::from_str(table["ruleset"].as_str().unwrap()).unwrap(),
+            threads: table["threads"].as_integer().unwrap() as usize,
             timer: TimerConfig::new(&table["timer"]),
             tree: TreeConfig::new(&table["tree"]),
         }
