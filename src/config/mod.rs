@@ -20,14 +20,15 @@
  ************************************************************************/
 
 use ruleset::CGOS;
-use ruleset::KgsChinese;
 use ruleset::Ruleset;
 use version;
 
 use getopts::Matches;
 use getopts::Options;
+use std::str::FromStr;
 use std::io::Write;
 use std::io::stderr;
+use toml;
 
 mod test;
 
@@ -39,6 +40,22 @@ pub struct TreeConfig {
     pub fastplay5_thres: f32,
     pub rave_equiv: f32,
     pub reuse_subtree: bool,
+}
+
+impl TreeConfig {
+
+    pub fn new(value: &toml::Value) -> TreeConfig {
+        let table = value.as_table().unwrap();
+        TreeConfig {
+            end_of_game_cutoff: table["end_of_game_cutoff"].as_float().unwrap() as f32,
+            expand_after: table["expand_after"].as_integer().unwrap() as usize,
+            fastplay20_thres: table["fastplay20_thres"].as_float().unwrap() as f32,
+            fastplay5_thres: table["fastplay5_thres"].as_float().unwrap() as f32,
+            rave_equiv: table["rave_equiv"].as_float().unwrap() as f32,
+            reuse_subtree: table["reuse_subtree"].as_bool().unwrap(),
+        }
+    }
+
 }
 
 #[derive(Debug, PartialEq)]
@@ -55,9 +72,39 @@ pub struct PriorsConfig {
     pub use_patterns: bool,
 }
 
+impl PriorsConfig {
+
+    pub fn new(value: &toml::Value) -> PriorsConfig {
+        let table = value.as_table().unwrap();
+        PriorsConfig {
+            capture_many: table["capture_many"].as_integer().unwrap() as usize,
+            capture_one: table["capture_one"].as_integer().unwrap() as usize,
+            empty: table["empty"].as_integer().unwrap() as usize,
+            neutral_plays: table["neutral_plays"].as_integer().unwrap() as usize,
+            neutral_wins: table["neutral_wins"].as_integer().unwrap() as usize,
+            patterns: table["patterns"].as_integer().unwrap() as usize,
+            self_atari: table["self_atari"].as_integer().unwrap() as usize,
+            use_empty: table["use_empty"].as_bool().unwrap(),
+            use_patterns: table["use_patterns"].as_bool().unwrap(),
+        }
+    }
+
+}
+
 #[derive(Debug, PartialEq)]
 pub struct TimerConfig {
     pub c: f32,
+}
+
+impl TimerConfig {
+
+    pub fn new(value: &toml::Value) -> TimerConfig {
+        let table = value.as_table().unwrap();
+        TimerConfig {
+            c: table["c"].as_float().unwrap() as f32
+        }
+    }
+
 }
 
 #[derive(Debug, PartialEq)]
@@ -69,6 +116,23 @@ pub struct PlayoutConfig {
     pub pattern_probability: f32,
     pub play_in_middle_of_eye: bool,
     pub use_patterns: bool,
+}
+
+impl PlayoutConfig {
+
+    pub fn new(value: &toml::Value) -> PlayoutConfig {
+        let table = value.as_table().unwrap();
+        PlayoutConfig {
+            atari_check: table["atari_check"].as_bool().unwrap(),
+            ladder_check: table["ladder_check"].as_bool().unwrap(),
+            last_moves_for_heuristics: table["last_moves_for_heuristics"].as_integer().unwrap() as usize,
+            no_self_atari_cutoff: table["no_self_atari_cutoff"].as_integer().unwrap() as usize,
+            pattern_probability: table["pattern_probability"].as_float().unwrap() as f32,
+            play_in_middle_of_eye: table["play_in_middle_of_eye"].as_bool().unwrap(),
+            use_patterns: table["use_patterns"].as_bool().unwrap(),
+        }
+    }
+
 }
 
 #[derive(Debug, PartialEq)]
@@ -86,43 +150,16 @@ pub struct Config {
 impl Config {
 
     pub fn default() -> Config {
-        let default_toml = include_str!("defaults.toml");
+        let table = toml::Parser::new(include_str!("defaults.toml")).parse().unwrap();
         Config {
-            log: false,
-            play_out_aftermath: false,
-            playout: PlayoutConfig {
-                atari_check: true,
-                ladder_check: true,
-                last_moves_for_heuristics: 2,
-                no_self_atari_cutoff: 7,
-                pattern_probability: 0.9,
-                play_in_middle_of_eye: true,
-                use_patterns: true,
-            },
-            priors: PriorsConfig {
-                capture_many: 30,
-                capture_one: 15,
-                empty: 20,
-                neutral_plays: 10,
-                neutral_wins: 5,
-                patterns: 10,
-                self_atari: 10,
-                use_empty: true,
-                use_patterns: false,
-            },
-            ruleset: KgsChinese,
-            threads: 1,
-            timer: TimerConfig {
-                c: 0.5
-            },
-            tree: TreeConfig {
-                end_of_game_cutoff: 0.08,
-                expand_after: 1,
-                fastplay20_thres: 0.8,
-                fastplay5_thres: 0.95,
-                rave_equiv: 20.0,
-                reuse_subtree: true,
-            },
+            log: table["log"].as_bool().unwrap(),
+            play_out_aftermath: table["play_out_aftermath"].as_bool().unwrap(),
+            ruleset: Ruleset::from_str(table["ruleset"].as_str().unwrap()).unwrap(),
+            threads: table["threads"].as_integer().unwrap() as usize,
+            playout: PlayoutConfig::new(&table["playout"]),
+            priors: PriorsConfig::new(&table["priors"]),
+            timer: TimerConfig::new(&table["timer"]),
+            tree: TreeConfig::new(&table["tree"]),
         }
     }
 

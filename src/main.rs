@@ -42,6 +42,7 @@ extern crate smallvec;
 extern crate test;
 extern crate thread_scoped;
 extern crate time;
+extern crate toml;
 #[macro_use(strenum)] extern crate strenum;
 
 use config::Config;
@@ -71,6 +72,9 @@ pub fn main() {
     let mut opts = Options::new();
     let args : Vec<String> = args().collect();
 
+    // Define -h and -v
+    // Define -c to pass in config file
+    // Define -d/--dump to dump default toml
     config.setup(&mut opts);
 
     let (_, tail) = args.split_first().unwrap();
