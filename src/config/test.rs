@@ -21,7 +21,6 @@
 
 #![cfg(test)]
 
-use ruleset::Ruleset;
 use super::Config;
 
 #[test]
@@ -30,12 +29,4 @@ fn fail_if_ladder_and_atari_are_in_conflict() {
     config.playout.atari_check = false;
     config.playout.ladder_check = true;
     assert!(config.check().is_err());
-}
-
-#[test]
-fn playout_aftermath_under_cgos_rules_by_default() {
-    let mut config = Config::default();
-    config.ruleset = Ruleset::CGOS;
-    config.check().unwrap();
-    assert!(config.play_out_aftermath);
 }

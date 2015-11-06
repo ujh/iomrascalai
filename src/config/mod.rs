@@ -22,9 +22,10 @@
 use ruleset::CGOS;
 use ruleset::Ruleset;
 
-use std::str::FromStr;
-use std::io::Write;
+use std::io::prelude::*;
+use std::fs::File;
 use std::io::stderr;
+use std::str::FromStr;
 use toml;
 
 mod test;
@@ -147,7 +148,22 @@ pub struct Config {
 impl Config {
 
     pub fn default() -> Config {
-        let table = toml::Parser::new(Self::toml()).parse().unwrap();
+        Self::new(String::from(Self::toml()))
+    }
+
+    pub fn toml() -> &'static str {
+        include_str!("defaults.toml")
+    }
+
+    pub fn from_file(filename: String) -> Config {
+        let mut file = File::open(filename).unwrap();
+        let mut contents = String::new();
+        file.read_to_string(&mut contents).unwrap();
+        Self::new(contents)
+    }
+
+    fn new(toml_str: String) -> Config {
+        let table = toml::Parser::new(&toml_str).parse().unwrap();
         let mut c = Config {
             log: table["log"].as_bool().unwrap(),
             play_out_aftermath: table["play_out_aftermath"].as_bool().unwrap(),
@@ -160,10 +176,6 @@ impl Config {
         };
         c.set_ruleset_dependent_defaults();
         c
-    }
-
-    pub fn toml() -> &'static str {
-        include_str!("defaults.toml")
     }
 
     pub fn log(&self, s: String) {

@@ -97,9 +97,16 @@ pub fn main() {
         println!("{}", Config::toml());
         exit(0);
     }
+    let config_file_opt = matches.opt_str("c");
+    let config = match config_file_opt {
+        Some(filename) => {
+            Config::from_file(filename)
+        },
+        None => {
+            Config::default()
+        }
+    };
 
-
-    let config = Config::default();
     match config.check() {
         Ok(_) => {},
         Err(s) => {
