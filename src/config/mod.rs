@@ -31,7 +31,7 @@ use std::io::stderr;
 
 mod test;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct TreeConfig {
     pub end_of_game_cutoff: f32,
     pub expand_after: usize,
@@ -41,7 +41,7 @@ pub struct TreeConfig {
     pub reuse_subtree: bool,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct PriorsConfig {
     pub best_move_factor: f32,
     pub capture_many: usize,
@@ -55,12 +55,12 @@ pub struct PriorsConfig {
     pub use_patterns: bool,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct TimerConfig {
     pub c: f32,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct PlayoutConfig {
     pub atari_check: bool,
     pub ladder_check: bool,
@@ -71,7 +71,7 @@ pub struct PlayoutConfig {
     pub use_patterns: bool,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct Config {
     pub log: bool,
     pub play_out_aftermath: bool,
