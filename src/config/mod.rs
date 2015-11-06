@@ -21,10 +21,7 @@
 
 use ruleset::CGOS;
 use ruleset::Ruleset;
-use version;
 
-use getopts::Matches;
-use getopts::Options;
 use std::str::FromStr;
 use std::io::Write;
 use std::io::stderr;
@@ -151,7 +148,7 @@ impl Config {
 
     pub fn default() -> Config {
         let table = toml::Parser::new(include_str!("defaults.toml")).parse().unwrap();
-        Config {
+        let mut c = Config {
             log: table["log"].as_bool().unwrap(),
             play_out_aftermath: table["play_out_aftermath"].as_bool().unwrap(),
             playout: PlayoutConfig::new(&table["playout"]),
@@ -160,26 +157,9 @@ impl Config {
             threads: table["threads"].as_integer().unwrap() as usize,
             timer: TimerConfig::new(&table["timer"]),
             tree: TreeConfig::new(&table["tree"]),
-        }
-    }
-
-    pub fn setup(&self, opts: &mut Options) {
-        opts.optflag("h", "help", "Print this help menu");
-        opts.optflag("v", "version", "Print the version number");
-    }
-
-    pub fn set_from_opts(&mut self, matches: &Matches, opts: &Options, args: &Vec<String>) -> Result<Option<String>, String>{
-        if matches.opt_present("h") {
-            let brief = format!("Usage: {} [options]", args[0]);
-            let s = format!("{}", opts.usage(brief.as_ref()));
-            return Ok(Some(s));
-        }
-        if matches.opt_present("v") {
-            let s = format!("Iomrascálaí {}", version::version());
-            return Ok(Some(s));
-        }
-        self.set_ruleset_dependent_defaults();
-        self.check()
+        };
+        c.set_ruleset_dependent_defaults();
+        c
     }
 
     pub fn log(&self, s: String) {
@@ -191,12 +171,12 @@ impl Config {
         }
     }
 
-    fn check(&self) -> Result<Option<String>, String> {
+    pub fn check(&self) -> Result<(), String> {
         if self.playout.ladder_check && !self.playout.atari_check {
             let s = String::from("'--use-ladder-check-in-playouts true' requires '--use-atari-check-in-playouts true'");
             Err(s)
         } else {
-            Ok(None)
+            Ok(())
         }
     }
 

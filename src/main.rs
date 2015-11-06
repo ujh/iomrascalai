@@ -68,14 +68,15 @@ mod timer;
 mod version;
 
 pub fn main() {
-    let mut config = Config::default();
+    let config = Config::default();
     let mut opts = Options::new();
+    opts.optflag("h", "help", "Print this help menu");
+    opts.optflag("v", "version", "Print the version number");
+
     let args : Vec<String> = args().collect();
 
-    // Define -h and -v
     // Define -c to pass in config file
     // Define -d/--dump to dump default toml
-    config.setup(&mut opts);
 
     let (_, tail) = args.split_first().unwrap();
     let matches = match opts.parse(tail) {
@@ -86,16 +87,18 @@ pub fn main() {
         }
     };
 
-    match config.set_from_opts(&matches, &opts, &args) {
-        Ok(opt) => {
-            match opt {
-                Some(s) => {
-                    println!("{}", s);
-                    exit(0);
-                }
-                None => {}
-            }
-        },
+    if matches.opt_present("h") {
+        let brief = format!("Usage: {} [options]", args[0]);
+        println!("{}", opts.usage(brief.as_ref()));
+        exit(0);
+    }
+    if matches.opt_present("v") {
+        println!("Iomrascálaí {}", version::version());
+        exit(0);
+    }
+
+    match config.check() {
+        Ok(_) => {},
         Err(s) => {
             println!("{}", s);
             exit(1);
