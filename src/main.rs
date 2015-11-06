@@ -68,15 +68,12 @@ mod timer;
 mod version;
 
 pub fn main() {
-    let config = Config::default();
     let mut opts = Options::new();
+    opts.optflag("d", "dump", "Dump default config to stdout");
     opts.optflag("h", "help", "Print this help menu");
     opts.optflag("v", "version", "Print the version number");
-
+    opts.optopt("c", "config", "Config file", "FILE");
     let args : Vec<String> = args().collect();
-
-    // Define -c to pass in config file
-    // Define -d/--dump to dump default toml
 
     let (_, tail) = args.split_first().unwrap();
     let matches = match opts.parse(tail) {
@@ -96,7 +93,13 @@ pub fn main() {
         println!("Iomrascálaí {}", version::version());
         exit(0);
     }
+    if matches.opt_present("d") {
+        println!("{}", Config::toml());
+        exit(0);
+    }
 
+
+    let config = Config::default();
     match config.check() {
         Ok(_) => {},
         Err(s) => {

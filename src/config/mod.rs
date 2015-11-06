@@ -147,7 +147,7 @@ pub struct Config {
 impl Config {
 
     pub fn default() -> Config {
-        let table = toml::Parser::new(include_str!("defaults.toml")).parse().unwrap();
+        let table = toml::Parser::new(Self::toml()).parse().unwrap();
         let mut c = Config {
             log: table["log"].as_bool().unwrap(),
             play_out_aftermath: table["play_out_aftermath"].as_bool().unwrap(),
@@ -160,6 +160,10 @@ impl Config {
         };
         c.set_ruleset_dependent_defaults();
         c
+    }
+
+    pub fn toml() -> &'static str {
+        include_str!("defaults.toml")
     }
 
     pub fn log(&self, s: String) {
