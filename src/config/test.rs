@@ -22,6 +22,7 @@
 #![cfg(test)]
 
 use getopts::Options;
+use ruleset::Ruleset;
 use super::Config;
 
 #[test]
@@ -35,7 +36,8 @@ fn fail_if_ladder_and_atari_are_in_conflict() {
 #[test]
 fn playout_aftermath_under_cgos_rules_by_default() {
     let mut config = Config::default();
-    let args = vec!(String::from("-r"), String::from("cgos"));
+    config.ruleset = Ruleset::CGOS;
+    let args = vec!();
     let mut opts = Options::new();
     config.setup(&mut opts);
     let matches = opts.parse(args.clone()).unwrap();

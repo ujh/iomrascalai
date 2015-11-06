@@ -24,7 +24,6 @@ use ruleset::KgsChinese;
 use ruleset::Ruleset;
 use version;
 
-use core::fmt::Display;
 use getopts::Matches;
 use getopts::Options;
 use std::io::Write;
@@ -84,40 +83,6 @@ pub struct Config {
     pub tree: TreeConfig,
 }
 
-macro_rules! set_from_opt {
-    ($matches:expr, $longopt:expr, $key:expr) => {
-        set_from_opt!($matches, "", $longopt, $key);
-    };
-    ($matches:expr, $shortopt:expr, $longopt:expr, $key:expr) => {
-        if $matches.opt_present($longopt) {
-            let arg = $matches.opt_str($longopt).unwrap();
-            $key = match arg.parse() {
-                Ok(v) => v,
-                Err(_) => {
-                    let strs: Vec<String> = [format!("--{}", $longopt), format!("-{}", $shortopt)].iter()
-                        .filter(|&s| s != "")
-                        .cloned()
-                        .collect();
-                    let s = format!("Unknown value ({}) as argument to {}", arg, strs.join(" or "));
-                    return Err(s);
-                }
-            }
-        }
-    };
-}
-
-macro_rules! set_from_flag {
-    ($matches:expr, $longopt:expr, $key:expr) => {
-        set_from_flag!($matches, "", $longopt, $key);
-    };
-    ($matches:expr, $shortopt:expr, $longopt:expr, $key:expr) => {
-        // Do it with an if so as to not override the default
-        if $matches.opt_present($longopt) {
-            $key = true;
-        }
-    };
-}
-
 impl Config {
 
     pub fn default() -> Config {
@@ -164,21 +129,6 @@ impl Config {
     pub fn setup(&self, opts: &mut Options) {
         opts.optflag("h", "help", "Print this help menu");
         opts.optflag("v", "version", "Print the version number");
-
-        self.flag(opts, "l", "log", "Log to stderr", self.log);
-
-        self.opt(opts, "empty-area-prior", "Prior value for empty areas", self.priors.empty);
-        self.opt(opts, "play-out-aftermath", "Keep playing after the result of the game is decided", self.play_out_aftermath);
-        self.opt(opts, "play-in-middle-of-eye", "Try playing in the middle of a large eye", self.playout.play_in_middle_of_eye);
-        self.opt(opts, "reuse-subtree", "Reuse the subtree from the previous search", self.tree.reuse_subtree);
-        self.opt(opts, "use-atari-check-in-playouts", "Check for atari in the playouts", self.playout.ladder_check);
-        self.opt(opts, "use-empty-area-prior", "Use a prior for empty areas on the board", self.priors.use_empty);
-        self.opt(opts, "use-ladder-check-in-playouts", "Check for ladders in the playouts", self.playout.ladder_check);
-        self.opt(opts, "use-patterns-prior", "Use a prior to prioritize 3x3 patterns", self.priors.use_patterns);
-        self.opt(opts, "use-patterns-in-playouts", "Use 3x3 patterns in the playouts", self.playout.use_patterns);
-        self.optopt(opts, "r", "ruleset", "Select the ruleset", self.ruleset);
-        self.optopt(opts, "t", "threads", "Number of threads to use", self.threads);
-        self.opt(opts, "rave-equiv", "Weighting between RAVE and UCT term. The smaller the higher the weight of the UCT term", self.tree.rave_equiv);
     }
 
     pub fn set_from_opts(&mut self, matches: &Matches, opts: &Options, args: &Vec<String>) -> Result<Option<String>, String>{
@@ -191,23 +141,7 @@ impl Config {
             let s = format!("Iomrascálaí {}", version::version());
             return Ok(Some(s));
         }
-        set_from_opt!(matches, "r", "ruleset", self.ruleset);
         self.set_ruleset_dependent_defaults();
-
-        set_from_opt!(matches, "empty-area-prior", self.priors.empty);
-        set_from_opt!(matches, "play-out-aftermath", self.play_out_aftermath);
-        set_from_opt!(matches, "play-in-middle-of-eye", self.playout.play_in_middle_of_eye);
-        set_from_opt!(matches, "reuse-subtree", self.tree.reuse_subtree);
-        set_from_opt!(matches, "t", "threads", self.threads);
-        set_from_opt!(matches, "use-atari-check-in-playouts", self.playout.atari_check);
-        set_from_opt!(matches, "use-empty-area-prior", self.priors.use_empty);
-        set_from_opt!(matches, "use-ladder-check-in-playouts", self.playout.ladder_check);
-        set_from_opt!(matches, "use-patterns-prior", self.priors.use_patterns);
-        set_from_opt!(matches, "use-patterns-in-playouts", self.playout.use_patterns);
-        set_from_opt!(matches, "rave-equiv", self.tree.rave_equiv);
-
-        set_from_flag!(matches, "l", "log", self.log);
-
         self.check()
     }
 
@@ -236,47 +170,6 @@ impl Config {
             }
             _ => {}
         }
-    }
-
-    fn optopt<T: Display + Hint>(&self, opts: &mut Options, shortname: &'static str, name: &'static str, descr: &'static str, default: T) {
-        opts.optopt(shortname, name, format!("{} (defaults to {})", descr, default).as_ref(), default.hint_str());
-    }
-
-    fn opt<T: Display + Hint>(&self, opts: &mut Options, name: &'static str, descr: &'static str, default: T) {
-        self.optopt(opts, "", name, descr, default);
-    }
-
-    fn flag(&self, opts: &mut Options, shortname: &'static str, name: &'static str, descr: &'static str, default: bool) {
-        opts.optflag(shortname, name, format!("{} (defaults to {})", descr, default).as_ref());
-    }
-}
-
-pub trait Hint {
-
-    fn hint_str(&self) -> &'static str;
-
-}
-
-impl Hint for bool {
-
-    fn hint_str(&self) -> &'static str {
-        "true|false"
-    }
-}
-
-
-impl Hint for usize {
-
-    fn hint_str(&self) -> &'static str {
-        "NUM"
-    }
-
-}
-
-impl Hint for f32 {
-
-    fn hint_str(&self) -> &'static str {
-        "FLOAT"
     }
 
 }
