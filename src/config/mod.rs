@@ -38,7 +38,6 @@ pub struct TreeConfig {
     pub expand_after: usize,
     pub fastplay20_thres: f32,
     pub fastplay5_thres: f32,
-    pub priors: PriorsConfig,
     pub rave_equiv: f32,
     pub reuse_subtree: bool,
 }
@@ -78,6 +77,7 @@ pub struct Config {
     pub log: bool,
     pub play_out_aftermath: bool,
     pub playout: PlayoutConfig,
+    pub priors: PriorsConfig,
     pub ruleset: Ruleset,
     pub threads: usize,
     pub timer: TimerConfig,
@@ -134,6 +134,17 @@ impl Config {
                 play_in_middle_of_eye: true,
                 use_patterns: true,
             },
+            priors: PriorsConfig {
+                capture_many: 30,
+                capture_one: 15,
+                empty: 20,
+                neutral_plays: 10,
+                neutral_wins: 5,
+                patterns: 10,
+                self_atari: 10,
+                use_empty: true,
+                use_patterns: false,
+            },
             ruleset: KgsChinese,
             threads: 1,
             timer: TimerConfig {
@@ -144,18 +155,6 @@ impl Config {
                 expand_after: 1,
                 fastplay20_thres: 0.8,
                 fastplay5_thres: 0.95,
-                priors: PriorsConfig {
-                    best_move_factor: 1.0,
-                    capture_many: 30,
-                    capture_one: 15,
-                    empty: 20,
-                    neutral_plays: 10,
-                    neutral_wins: 5,
-                    patterns: 10,
-                    self_atari: 10,
-                    use_empty: true,
-                    use_patterns: false,
-                },
                 rave_equiv: 20.0,
                 reuse_subtree: true,
             },
@@ -168,14 +167,14 @@ impl Config {
 
         self.flag(opts, "l", "log", "Log to stderr", self.log);
 
-        self.opt(opts, "empty-area-prior", "Prior value for empty areas", self.tree.priors.empty);
+        self.opt(opts, "empty-area-prior", "Prior value for empty areas", self.priors.empty);
         self.opt(opts, "play-out-aftermath", "Keep playing after the result of the game is decided", self.play_out_aftermath);
         self.opt(opts, "play-in-middle-of-eye", "Try playing in the middle of a large eye", self.playout.play_in_middle_of_eye);
         self.opt(opts, "reuse-subtree", "Reuse the subtree from the previous search", self.tree.reuse_subtree);
         self.opt(opts, "use-atari-check-in-playouts", "Check for atari in the playouts", self.playout.ladder_check);
-        self.opt(opts, "use-empty-area-prior", "Use a prior for empty areas on the board", self.tree.priors.use_empty);
+        self.opt(opts, "use-empty-area-prior", "Use a prior for empty areas on the board", self.priors.use_empty);
         self.opt(opts, "use-ladder-check-in-playouts", "Check for ladders in the playouts", self.playout.ladder_check);
-        self.opt(opts, "use-patterns-prior", "Use a prior to prioritize 3x3 patterns", self.tree.priors.use_patterns);
+        self.opt(opts, "use-patterns-prior", "Use a prior to prioritize 3x3 patterns", self.priors.use_patterns);
         self.opt(opts, "use-patterns-in-playouts", "Use 3x3 patterns in the playouts", self.playout.use_patterns);
         self.optopt(opts, "r", "ruleset", "Select the ruleset", self.ruleset);
         self.optopt(opts, "t", "threads", "Number of threads to use", self.threads);
@@ -195,15 +194,15 @@ impl Config {
         set_from_opt!(matches, "r", "ruleset", self.ruleset);
         self.set_ruleset_dependent_defaults();
 
-        set_from_opt!(matches, "empty-area-prior", self.tree.priors.empty);
+        set_from_opt!(matches, "empty-area-prior", self.priors.empty);
         set_from_opt!(matches, "play-out-aftermath", self.play_out_aftermath);
         set_from_opt!(matches, "play-in-middle-of-eye", self.playout.play_in_middle_of_eye);
         set_from_opt!(matches, "reuse-subtree", self.tree.reuse_subtree);
         set_from_opt!(matches, "t", "threads", self.threads);
         set_from_opt!(matches, "use-atari-check-in-playouts", self.playout.atari_check);
-        set_from_opt!(matches, "use-empty-area-prior", self.tree.priors.use_empty);
+        set_from_opt!(matches, "use-empty-area-prior", self.priors.use_empty);
         set_from_opt!(matches, "use-ladder-check-in-playouts", self.playout.ladder_check);
-        set_from_opt!(matches, "use-patterns-prior", self.tree.priors.use_patterns);
+        set_from_opt!(matches, "use-patterns-prior", self.priors.use_patterns);
         set_from_opt!(matches, "use-patterns-in-playouts", self.playout.use_patterns);
         set_from_opt!(matches, "rave-equiv", self.tree.rave_equiv);
 

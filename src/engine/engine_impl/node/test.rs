@@ -406,7 +406,7 @@ fn full_uct_cycle(size: u8, b: &mut Bencher) {
     let mut cfg = Config::default();
     let matcher = matcher();
     cfg.play_out_aftermath = true;
-    cfg.tree.priors.use_patterns = true;
+    cfg.priors.use_patterns = true;
     let config = Arc::new(cfg);
     let mut root = Node::root(&game, Black, config.clone());
     let playout = Playout::new(config.clone(), matcher.clone());
