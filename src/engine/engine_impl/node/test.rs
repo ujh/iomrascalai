@@ -40,7 +40,9 @@ use std::sync::Arc;
 use test::Bencher;
 
 fn config() -> Arc<Config> {
-    Arc::new(Config::default())
+    let mut config = Config::default();
+    config.tree.expand_after = 0;
+    Arc::new(config)
 }
 
 fn matcher() -> Arc<Matcher> {
@@ -48,10 +50,17 @@ fn matcher() -> Arc<Matcher> {
 }
 
 fn play_out_aftermath(play_out_aftermath: bool) -> Arc<Config> {
-    let mut config = Config::default();
+    let mut config = Arc::try_unwrap(config()).unwrap();
     config.play_out_aftermath = play_out_aftermath;
     Arc::new(config)
 }
+
+fn expand_after(expand_after: usize) -> Arc<Config> {
+    let mut config = Arc::try_unwrap(config()).unwrap();
+    config.tree.expand_after = expand_after;
+    Arc::new(config)
+}
+
 
 #[test]
 fn root_expands_the_children() {
@@ -73,8 +82,9 @@ fn expand_doesnt_add_children_to_terminal_nodes() {
 
 #[test]
 fn expand_doesnt_add_children_if_threshold_not_met() {
+    let config = expand_after(1);
     let game = Game::new(2, 0.5, KgsChinese);
-    let mut node = Node::new(Pass(Black), config());
+    let mut node = Node::new(Pass(Black), config);
     node.plays = 0;
     node.expand(&game.board(), matcher());
     assert_eq!(0, node.children.len());
@@ -221,14 +231,14 @@ fn record_on_path_only_records_wins_for_the_correct_color() {
     root.children = vec!(child);
 
     root.record_on_path(&vec!(0, 0), Black, 0, &amaf);
-    assert_eq!(6, root.wins);
-    assert_eq!(5, root.children[0].wins);
-    assert_eq!(6, root.children[0].children[0].wins);
+    assert_eq!(1, root.wins);
+    assert_eq!(0, root.children[0].wins);
+    assert_eq!(1, root.children[0].children[0].wins);
 
     root.record_on_path(&vec!(0, 0), White, 0, &amaf);
-    assert_eq!(6, root.wins);
-    assert_eq!(6, root.children[0].wins);
-    assert_eq!(6, root.children[0].children[0].wins);
+    assert_eq!(1, root.wins);
+    assert_eq!(1, root.children[0].wins);
+    assert_eq!(1, root.children[0].children[0].wins);
 }
 
 #[test]

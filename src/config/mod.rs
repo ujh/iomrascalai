@@ -43,6 +43,7 @@ pub struct TreeConfig {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct PriorsConfig {
+    pub best_move_factor: f32,
     pub capture_many: usize,
     pub capture_one: usize,
     pub empty: usize,
@@ -139,6 +140,7 @@ impl Config {
                 end_of_game_cutoff: 0.08,
                 expand_after: 1,
                 priors: PriorsConfig {
+                    best_move_factor: 1.0,
                     capture_many: 30,
                     capture_one: 15,
                     empty: 20,
