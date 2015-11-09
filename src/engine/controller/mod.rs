@@ -60,14 +60,22 @@ impl<'a> EngineController<'a> {
         // Saving the guard into a variable is necessary. Otherwise
         // the code blocks right here.
         unsafe {
+            let ste_config = self.config.clone();
             let _guard = scoped(|| {
-                self.engine.gen_move(color, game, send_move_to_controller, receive_signal_from_controller);
+                self.engine.gen_move(color, budget, game, send_move_to_controller, receive_signal_from_controller);
             });
 
             let (send_time_up_to_controller, receive_time_up) = channel();
             thread::spawn(move || {
                 thread::sleep(Duration::from_millis(budget as u64));
-                send_time_up_to_controller.send(()).unwrap();
+                match send_time_up_to_controller.send(()) {
+                    Ok(_) => {}
+                    Err(_) => {
+                        // This is expected to fail whenever the
+                        // engine returns before the allotted time is
+                        // up.
+                    }
+                }
             });
             select!(
                 r = receive_move_from_engine.recv() => {
@@ -76,7 +84,12 @@ impl<'a> EngineController<'a> {
                     playouts
                 },
                 _ = receive_time_up.recv() => {
-                    send_signal_to_engine.send(()).unwrap();
+                    match send_signal_to_engine.send(()) {
+                        Ok(_) => {},
+                        Err(e) => {
+                            ste_config.log(format!("[DEBUG] sending time up to engine failed with {:?}", e));
+                        }
+                    }
                     let (m, playouts) = receive_move_from_engine.recv().unwrap();
                     send_move.send(m).unwrap();
                     playouts
