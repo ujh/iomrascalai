@@ -13,7 +13,7 @@ that we're using the Rust nightly build and not stable!
 Development
 ===========
 
-See the [Trello board](https://trello.com/b/3lIYxva7/development) for
+See the [issues](https://github.com/ujh/iomrascalai/issues) for
 planned features and bugs and
 [join the mailing list](https://groups.google.com/forum/#!forum/iomrascalai)
 and [the chat](https://gitter.im/ujh/iomrascalai) for discussion.
