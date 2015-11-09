@@ -357,11 +357,11 @@ impl Node {
     }
 
     fn plays_with_prior_factor(&self) -> f32 {
-        self.plays as f32 + (self.prior_plays as f32 * self.config.tree.priors.best_move_factor)
+        self.plays as f32 + (self.prior_plays as f32 * self.config.priors.best_move_factor)
     }
 
     fn wins_with_prior_factor(&self) -> f32 {
-        self.wins as f32 + (self.prior_wins as f32 * self.config.tree.priors.best_move_factor)
+        self.wins as f32 + (self.prior_wins as f32 * self.config.priors.best_move_factor)
     }
 
     pub fn m(&self) -> Move {

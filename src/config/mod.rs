@@ -75,6 +75,7 @@ impl PriorsConfig {
     pub fn new(value: &toml::Value) -> PriorsConfig {
         let table = value.as_table().unwrap();
         PriorsConfig {
+            best_move_factor: table["best_move_factor"].as_float().unwrap() as f32,
             capture_many: table["capture_many"].as_integer().unwrap() as usize,
             capture_one: table["capture_one"].as_integer().unwrap() as usize,
             empty: table["empty"].as_integer().unwrap() as usize,

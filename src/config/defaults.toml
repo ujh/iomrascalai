@@ -15,6 +15,7 @@ use_patterns = true
 
 [priors]
 
+best_move_factor = 1.0
 capture_many = 30
 capture_one = 15
 empty = 20
