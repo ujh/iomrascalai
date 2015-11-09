@@ -30,7 +30,7 @@ use std::sync::Arc;
 use std::sync::mpsc::channel;
 use std::sync::mpsc::Sender;
 use std::thread;
-use std::thread::sleep_ms;
+use std::time::Duration;
 use thread_scoped::scoped;
 
 mod test;
@@ -67,7 +67,7 @@ impl<'a> EngineController<'a> {
 
             let (send_time_up_to_controller, receive_time_up) = channel();
             thread::spawn(move || {
-                sleep_ms(budget);
+                thread::sleep(Duration::from_millis(budget as u64));
                 match send_time_up_to_controller.send(()) {
                     Ok(_) => {}
                     Err(_) => {
