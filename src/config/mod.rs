@@ -36,6 +36,8 @@ mod test;
 pub struct TreeConfig {
     pub end_of_game_cutoff: f32,
     pub expand_after: usize,
+    pub fastplay20_thres: f32,
+    pub fastplay5_thres: f32,
     pub priors: PriorsConfig,
     pub rave_equiv: f32,
     pub reuse_subtree: bool,
@@ -139,6 +141,8 @@ impl Config {
             tree: TreeConfig {
                 end_of_game_cutoff: 0.08,
                 expand_after: 1,
+                fastplay20_thres: 0.8,
+                fastplay5_thres: 0.95,
                 priors: PriorsConfig {
                     best_move_factor: 1.0,
                     capture_many: 30,
