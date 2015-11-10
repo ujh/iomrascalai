@@ -22,13 +22,60 @@
 use ruleset::CGOS;
 use ruleset::Ruleset;
 
-use std::io::prelude::*;
 use std::fs::File;
+use std::io::prelude::*;
 use std::io::stderr;
+use std::process::exit;
 use std::str::FromStr;
 use toml;
 
 mod test;
+
+trait FromToml {
+
+    fn as_float(table: &toml::Table, field: &'static str) -> f32 {
+        let value = &table[field];
+        match value.type_str() {
+            "integer" => value.as_integer().unwrap() as f32,
+            "float" => value.as_float().unwrap() as f32,
+            _ => Self::fail(field, value, "float")
+        }
+    }
+
+    fn as_integer(table: &toml::Table, field: &'static str) -> usize {
+        let value = &table[field];
+        match value.type_str() {
+            "integer" => value.as_integer().unwrap() as usize,
+            "float" => value.as_float().unwrap() as usize,
+            _ => {
+                Self::fail(field, value, "integer");
+            }
+        }
+    }
+
+    fn as_bool(table: &toml::Table, field: &'static str) -> bool {
+        let value = &table[field];
+        match value.as_bool() {
+            Some(v) => v,
+            None => {
+                Self::fail(field, value, "boolean");
+            }
+        }
+    }
+
+    fn fail(field: &'static str, value: &toml::Value, expected: &'static str) -> ! {
+        let long_name = match Self::name() {
+            Some(name) => format!("{}.{}", name, field),
+            None => format!("{}", field)
+        };
+        println!("Expected {} for {:?} but found {}", expected, long_name, value.type_str());
+        exit(1)
+    }
+
+
+    fn name() -> Option<&'static str>;
+
+}
 
 #[derive(Debug, PartialEq)]
 pub struct TreeConfig {
@@ -43,23 +90,25 @@ pub struct TreeConfig {
 impl TreeConfig {
 
     pub fn new(value: toml::Value, default: toml::Value) -> TreeConfig {
-        println!("TreeConfig");
         let opts = value.as_table().unwrap().clone();
         let default_table = default.as_table().unwrap().clone();
         let mut table = toml::Table::new();
         table.extend(default_table);
         table.extend(opts);
-        println!("{:?}", table);
         TreeConfig {
-            end_of_game_cutoff: table["end_of_game_cutoff"].as_float().unwrap() as f32,
-            expand_after: table["expand_after"].as_integer().unwrap() as usize,
-            fastplay20_thres: table["fastplay20_thres"].as_float().unwrap() as f32,
-            fastplay5_thres: table["fastplay5_thres"].as_float().unwrap() as f32,
-            rave_equiv: table["rave_equiv"].as_float().unwrap() as f32,
-            reuse_subtree: table["reuse_subtree"].as_bool().unwrap(),
+            end_of_game_cutoff: Self::as_float(&table, "end_of_game_cutoff"),
+            expand_after: Self::as_integer(&table, "expand_after"),
+            fastplay20_thres: Self::as_float(&table, "fastplay20_thres"),
+            fastplay5_thres: Self::as_float(&table, "fastplay5_thres"),
+            rave_equiv: Self::as_float(&table, "rave_equiv"),
+            reuse_subtree: Self::as_bool(&table, "reuse_subtree"),
         }
     }
 
+}
+
+impl FromToml for TreeConfig {
+    fn name() -> Option<&'static str> { Some("tree") }
 }
 
 #[derive(Debug, PartialEq)]
@@ -79,27 +128,29 @@ pub struct PriorsConfig {
 impl PriorsConfig {
 
     pub fn new(value: toml::Value, default: toml::Value) -> PriorsConfig {
-        println!("PriorsConfig");
         let opts = value.as_table().unwrap().clone();
         let default_table = default.as_table().unwrap().clone();
         let mut table = toml::Table::new();
         table.extend(default_table);
         table.extend(opts);
-        println!("{:?}", table);
         PriorsConfig {
-            best_move_factor: table["best_move_factor"].as_float().unwrap() as f32,
-            capture_many: table["capture_many"].as_integer().unwrap() as usize,
-            capture_one: table["capture_one"].as_integer().unwrap() as usize,
-            empty: table["empty"].as_integer().unwrap() as usize,
-            neutral_plays: table["neutral_plays"].as_integer().unwrap() as usize,
-            neutral_wins: table["neutral_wins"].as_integer().unwrap() as usize,
-            patterns: table["patterns"].as_integer().unwrap() as usize,
-            self_atari: table["self_atari"].as_integer().unwrap() as usize,
-            use_empty: table["use_empty"].as_bool().unwrap(),
-            use_patterns: table["use_patterns"].as_bool().unwrap(),
+            best_move_factor: Self::as_float(&table, "best_move_factor"),
+            capture_many: Self::as_integer(&table, "capture_many"),
+            capture_one: Self::as_integer(&table, "capture_one"),
+            empty: Self::as_integer(&table, "empty"),
+            neutral_plays: Self::as_integer(&table, "neutral_plays"),
+            neutral_wins: Self::as_integer(&table, "neutral_wins"),
+            patterns: Self::as_integer(&table, "patterns"),
+            self_atari: Self::as_integer(&table, "self_atari"),
+            use_empty: Self::as_bool(&table, "use_empty"),
+            use_patterns: Self::as_bool(&table, "use_patterns"),
         }
     }
 
+}
+
+impl FromToml for PriorsConfig {
+    fn name() -> Option<&'static str> { Some("priors") }
 }
 
 #[derive(Debug, PartialEq)]
@@ -115,12 +166,14 @@ impl TimerConfig {
         let mut table = toml::Table::new();
         table.extend(default_table);
         table.extend(opts);
-        let c = &table["c"];
         TimerConfig {
-            c: c.as_float().expect(&format!("Expected float for timer.c but {} given", c.type_str())) as f32
+            c: Self::as_float(&table, "c")
         }
     }
+}
 
+impl FromToml for TimerConfig {
+    fn name() -> Option<&'static str> { Some("timer") }
 }
 
 #[derive(Debug, PartialEq)]
@@ -137,24 +190,26 @@ pub struct PlayoutConfig {
 impl PlayoutConfig {
 
     pub fn new(value: toml::Value, default: toml::Value) -> PlayoutConfig {
-        println!("PlayoutConfig");
         let opts = value.as_table().unwrap().clone();
         let default_table = default.as_table().unwrap().clone();
         let mut table = toml::Table::new();
         table.extend(default_table);
         table.extend(opts);
-        println!("{:?}", table);
         PlayoutConfig {
-            atari_check: table["atari_check"].as_bool().unwrap(),
-            ladder_check: table["ladder_check"].as_bool().unwrap(),
-            last_moves_for_heuristics: table["last_moves_for_heuristics"].as_integer().unwrap() as usize,
-            no_self_atari_cutoff: table["no_self_atari_cutoff"].as_integer().unwrap() as usize,
-            pattern_probability: table["pattern_probability"].as_float().unwrap() as f32,
-            play_in_middle_of_eye: table["play_in_middle_of_eye"].as_bool().unwrap(),
-            use_patterns: table["use_patterns"].as_bool().unwrap(),
+            atari_check: Self::as_bool(&table, "atari_check"),
+            ladder_check: Self::as_bool(&table, "ladder_check"),
+            last_moves_for_heuristics: Self::as_integer(&table, "last_moves_for_heuristics"),
+            no_self_atari_cutoff: Self::as_integer(&table, "no_self_atari_cutoff"),
+            pattern_probability: Self::as_float(&table, "pattern_probability"),
+            play_in_middle_of_eye: Self::as_bool(&table, "play_in_middle_of_eye"),
+            use_patterns: Self::as_bool(&table, "use_patterns"),
         }
     }
 
+}
+
+impl FromToml for PlayoutConfig {
+    fn name() -> Option<&'static str> { Some("playout") }
 }
 
 #[derive(Debug, PartialEq)]
@@ -192,14 +247,13 @@ impl Config {
         let mut table = toml::Table::new();
         table.extend(default_table.clone());
         table.extend(opts.clone());
-        println!("{:?}", table);
         let mut c = Config {
-            log: table["log"].as_bool().unwrap(),
-            play_out_aftermath: table["play_out_aftermath"].as_bool().unwrap(),
+            log: Self::as_bool(&table, "log"),
+            play_out_aftermath: Self::as_bool(&table, "play_out_aftermath"),
             playout: PlayoutConfig::new(table["playout"].clone(), default_table["playout"].clone()),
             priors: PriorsConfig::new(table["priors"].clone(), default_table["priors"].clone()),
             ruleset: Ruleset::from_str(table["ruleset"].as_str().unwrap()).unwrap(),
-            threads: table["threads"].as_integer().unwrap() as usize,
+            threads: Self::as_integer(&table, "threads"),
             timer: TimerConfig::new(table["timer"].clone(), default_table["timer"].clone()),
             tree: TreeConfig::new(table["tree"].clone(), default_table["tree"].clone()),
         };
@@ -234,4 +288,8 @@ impl Config {
         }
     }
 
+}
+
+impl FromToml for Config {
+    fn name() -> Option<&'static str> { None }
 }
