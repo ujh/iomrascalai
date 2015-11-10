@@ -42,8 +42,14 @@ pub struct TreeConfig {
 
 impl TreeConfig {
 
-    pub fn new(value: &toml::Value) -> TreeConfig {
-        let table = value.as_table().unwrap();
+    pub fn new(value: toml::Value, default: toml::Value) -> TreeConfig {
+        println!("TreeConfig");
+        let opts = value.as_table().unwrap().clone();
+        let default_table = default.as_table().unwrap().clone();
+        let mut table = toml::Table::new();
+        table.extend(default_table);
+        table.extend(opts);
+        println!("{:?}", table);
         TreeConfig {
             end_of_game_cutoff: table["end_of_game_cutoff"].as_float().unwrap() as f32,
             expand_after: table["expand_after"].as_integer().unwrap() as usize,
@@ -72,8 +78,14 @@ pub struct PriorsConfig {
 
 impl PriorsConfig {
 
-    pub fn new(value: &toml::Value) -> PriorsConfig {
-        let table = value.as_table().unwrap();
+    pub fn new(value: toml::Value, default: toml::Value) -> PriorsConfig {
+        println!("PriorsConfig");
+        let opts = value.as_table().unwrap().clone();
+        let default_table = default.as_table().unwrap().clone();
+        let mut table = toml::Table::new();
+        table.extend(default_table);
+        table.extend(opts);
+        println!("{:?}", table);
         PriorsConfig {
             best_move_factor: table["best_move_factor"].as_float().unwrap() as f32,
             capture_many: table["capture_many"].as_integer().unwrap() as usize,
@@ -97,10 +109,15 @@ pub struct TimerConfig {
 
 impl TimerConfig {
 
-    pub fn new(value: &toml::Value) -> TimerConfig {
-        let table = value.as_table().unwrap();
+    pub fn new(value: toml::Value, default: toml::Value) -> TimerConfig {
+        let opts = value.as_table().unwrap().clone();
+        let default_table = default.as_table().unwrap().clone();
+        let mut table = toml::Table::new();
+        table.extend(default_table);
+        table.extend(opts);
+        let c = &table["c"];
         TimerConfig {
-            c: table["c"].as_float().unwrap() as f32
+            c: c.as_float().expect(&format!("Expected float for timer.c but {} given", c.type_str())) as f32
         }
     }
 
@@ -119,8 +136,14 @@ pub struct PlayoutConfig {
 
 impl PlayoutConfig {
 
-    pub fn new(value: &toml::Value) -> PlayoutConfig {
-        let table = value.as_table().unwrap();
+    pub fn new(value: toml::Value, default: toml::Value) -> PlayoutConfig {
+        println!("PlayoutConfig");
+        let opts = value.as_table().unwrap().clone();
+        let default_table = default.as_table().unwrap().clone();
+        let mut table = toml::Table::new();
+        table.extend(default_table);
+        table.extend(opts);
+        println!("{:?}", table);
         PlayoutConfig {
             atari_check: table["atari_check"].as_bool().unwrap(),
             ladder_check: table["ladder_check"].as_bool().unwrap(),
@@ -149,31 +172,36 @@ pub struct Config {
 impl Config {
 
     pub fn default() -> Config {
-        Self::new(String::from(Self::toml()))
+        Self::new(String::from(""), Self::toml())
     }
 
-    pub fn toml() -> &'static str {
-        include_str!("defaults.toml")
+    pub fn toml() -> String {
+        String::from(include_str!("defaults.toml"))
     }
 
     pub fn from_file(filename: String) -> Config {
         let mut file = File::open(filename).unwrap();
         let mut contents = String::new();
         file.read_to_string(&mut contents).unwrap();
-        Self::new(contents)
+        Self::new(contents, Self::toml())
     }
 
-    fn new(toml_str: String) -> Config {
-        let table = toml::Parser::new(&toml_str).parse().unwrap();
+    fn new(toml_str: String, default_toml_str: String) -> Config {
+        let opts = toml::Parser::new(&toml_str).parse().unwrap();
+        let default_table = toml::Parser::new(&default_toml_str).parse().unwrap();
+        let mut table = toml::Table::new();
+        table.extend(default_table.clone());
+        table.extend(opts.clone());
+        println!("{:?}", table);
         let mut c = Config {
             log: table["log"].as_bool().unwrap(),
             play_out_aftermath: table["play_out_aftermath"].as_bool().unwrap(),
-            playout: PlayoutConfig::new(&table["playout"]),
-            priors: PriorsConfig::new(&table["priors"]),
+            playout: PlayoutConfig::new(table["playout"].clone(), default_table["playout"].clone()),
+            priors: PriorsConfig::new(table["priors"].clone(), default_table["priors"].clone()),
             ruleset: Ruleset::from_str(table["ruleset"].as_str().unwrap()).unwrap(),
             threads: table["threads"].as_integer().unwrap() as usize,
-            timer: TimerConfig::new(&table["timer"]),
-            tree: TreeConfig::new(&table["tree"]),
+            timer: TimerConfig::new(table["timer"].clone(), default_table["timer"].clone()),
+            tree: TreeConfig::new(table["tree"].clone(), default_table["tree"].clone()),
         };
         c.set_ruleset_dependent_defaults();
         c
