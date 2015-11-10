@@ -47,9 +47,7 @@ trait FromToml {
         match value.type_str() {
             "integer" => value.as_integer().unwrap() as usize,
             "float" => value.as_float().unwrap() as usize,
-            _ => {
-                Self::fail(field, value, "integer");
-            }
+            _ => Self::fail(field, value, "integer")
         }
     }
 
@@ -57,9 +55,7 @@ trait FromToml {
         let value = &table[field];
         match value.as_bool() {
             Some(v) => v,
-            None => {
-                Self::fail(field, value, "boolean");
-            }
+            None => Self::fail(field, value, "boolean")
         }
     }
 
