@@ -62,8 +62,8 @@ impl Node {
             descendants: 0,
             m: m,
             plays: 0,
-            prior_plays: config.tree.priors.neutral_plays,
-            prior_wins: config.tree.priors.neutral_wins,
+            prior_plays: config.priors.neutral_plays,
+            prior_wins: config.priors.neutral_wins,
             wins: 0,
         }
     }
@@ -221,7 +221,7 @@ impl Node {
         for one_stone in in_danger {
             if let Some(solution) = board.capture_ladder(one_stone) {
                 if let Some(node) = children.iter_mut().find(|c| c.m() == solution) {
-                    node.record_even_prior(self.config.tree.priors.capture_one);
+                    node.record_even_prior(self.config.priors.capture_one);
                 }
             }
         }
@@ -232,7 +232,7 @@ impl Node {
         for many_stones in in_danger {
             if let Some(solution) = board.capture_ladder(many_stones) {
                 if let Some(node) = children.iter_mut().find(|c| c.m() == solution) {
-                    node.record_even_prior(self.config.tree.priors.capture_many);
+                    node.record_even_prior(self.config.priors.capture_many);
                 }
             }
         }
@@ -243,22 +243,22 @@ impl Node {
 
         if !board.is_not_self_atari(m) {
             // That's a negative prior
-            node.record_priors(self.config.tree.priors.self_atari, 0);
+            node.record_priors(self.config.priors.self_atari, 0);
         }
-        if self.config.tree.priors.use_empty {
+        if self.config.priors.use_empty {
             let distance = m.coord().distance_to_border(board.size());
             if distance <= 2 && self.in_empty_area(board, m) {
                 if distance <= 1 {
                     // That's a negative prior
-                    node.record_priors(self.config.tree.priors.empty, 0);
+                    node.record_priors(self.config.priors.empty, 0);
                 } else {
-                    node.record_even_prior(self.config.tree.priors.empty);
+                    node.record_even_prior(self.config.priors.empty);
                 }
             }
         }
-        if self.config.tree.priors.use_patterns {
+        if self.config.priors.use_patterns {
             let count = self.matching_patterns_count(board, m, matcher);
-            let prior = count * self.config.tree.priors.patterns;
+            let prior = count * self.config.priors.patterns;
             node.record_even_prior(prior);
         }
         node
@@ -357,11 +357,11 @@ impl Node {
     }
 
     fn plays_with_prior_factor(&self) -> f32 {
-        self.plays as f32 + (self.prior_plays as f32 * self.config.tree.priors.best_move_factor)
+        self.plays as f32 + (self.prior_plays as f32 * self.config.priors.best_move_factor)
     }
 
     fn wins_with_prior_factor(&self) -> f32 {
-        self.wins as f32 + (self.prior_wins as f32 * self.config.tree.priors.best_move_factor)
+        self.wins as f32 + (self.prior_wins as f32 * self.config.priors.best_move_factor)
     }
 
     pub fn m(&self) -> Move {

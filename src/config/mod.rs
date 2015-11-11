@@ -20,30 +20,94 @@
  ************************************************************************/
 
 use ruleset::CGOS;
-use ruleset::KgsChinese;
 use ruleset::Ruleset;
-use version;
 
-use core::fmt::Display;
-use getopts::Matches;
-use getopts::Options;
-use std::io::Write;
+use std::fs::File;
+use std::io::prelude::*;
 use std::io::stderr;
+use std::process::exit;
+use std::str::FromStr;
+use toml;
 
 mod test;
 
-#[derive(Debug, Clone, PartialEq)]
+trait FromToml {
+
+    fn as_float(table: &toml::Table, field: &'static str) -> f32 {
+        let value = &table[field];
+        match value.type_str() {
+            "integer" => value.as_integer().unwrap() as f32,
+            "float" => value.as_float().unwrap() as f32,
+            _ => Self::fail(field, value, "float")
+        }
+    }
+
+    fn as_integer(table: &toml::Table, field: &'static str) -> usize {
+        let value = &table[field];
+        match value.type_str() {
+            "integer" => value.as_integer().unwrap() as usize,
+            "float" => value.as_float().unwrap() as usize,
+            _ => Self::fail(field, value, "integer")
+        }
+    }
+
+    fn as_bool(table: &toml::Table, field: &'static str) -> bool {
+        let value = &table[field];
+        match value.as_bool() {
+            Some(v) => v,
+            None => Self::fail(field, value, "boolean")
+        }
+    }
+
+    fn fail(field: &'static str, value: &toml::Value, expected: &'static str) -> ! {
+        let long_name = match Self::name() {
+            Some(name) => format!("{}.{}", name, field),
+            None => format!("{}", field)
+        };
+        println!("Expected {} for {:?} but found {}", expected, long_name, value.type_str());
+        exit(1)
+    }
+
+
+    fn name() -> Option<&'static str>;
+
+}
+
+#[derive(Debug, PartialEq)]
 pub struct TreeConfig {
     pub end_of_game_cutoff: f32,
     pub expand_after: usize,
     pub fastplay20_thres: f32,
     pub fastplay5_thres: f32,
-    pub priors: PriorsConfig,
     pub rave_equiv: f32,
     pub reuse_subtree: bool,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+impl TreeConfig {
+
+    pub fn new(value: toml::Value, default: toml::Value) -> TreeConfig {
+        let opts = value.as_table().unwrap().clone();
+        let default_table = default.as_table().unwrap().clone();
+        let mut table = toml::Table::new();
+        table.extend(default_table);
+        table.extend(opts);
+        TreeConfig {
+            end_of_game_cutoff: Self::as_float(&table, "end_of_game_cutoff"),
+            expand_after: Self::as_integer(&table, "expand_after"),
+            fastplay20_thres: Self::as_float(&table, "fastplay20_thres"),
+            fastplay5_thres: Self::as_float(&table, "fastplay5_thres"),
+            rave_equiv: Self::as_float(&table, "rave_equiv"),
+            reuse_subtree: Self::as_bool(&table, "reuse_subtree"),
+        }
+    }
+
+}
+
+impl FromToml for TreeConfig {
+    fn name() -> Option<&'static str> { Some("tree") }
+}
+
+#[derive(Debug, PartialEq)]
 pub struct PriorsConfig {
     pub best_move_factor: f32,
     pub capture_many: usize,
@@ -57,12 +121,58 @@ pub struct PriorsConfig {
     pub use_patterns: bool,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+impl PriorsConfig {
+
+    pub fn new(value: toml::Value, default: toml::Value) -> PriorsConfig {
+        let opts = value.as_table().unwrap().clone();
+        let default_table = default.as_table().unwrap().clone();
+        let mut table = toml::Table::new();
+        table.extend(default_table);
+        table.extend(opts);
+        PriorsConfig {
+            best_move_factor: Self::as_float(&table, "best_move_factor"),
+            capture_many: Self::as_integer(&table, "capture_many"),
+            capture_one: Self::as_integer(&table, "capture_one"),
+            empty: Self::as_integer(&table, "empty"),
+            neutral_plays: Self::as_integer(&table, "neutral_plays"),
+            neutral_wins: Self::as_integer(&table, "neutral_wins"),
+            patterns: Self::as_integer(&table, "patterns"),
+            self_atari: Self::as_integer(&table, "self_atari"),
+            use_empty: Self::as_bool(&table, "use_empty"),
+            use_patterns: Self::as_bool(&table, "use_patterns"),
+        }
+    }
+
+}
+
+impl FromToml for PriorsConfig {
+    fn name() -> Option<&'static str> { Some("priors") }
+}
+
+#[derive(Debug, PartialEq)]
 pub struct TimerConfig {
     pub c: f32,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+impl TimerConfig {
+
+    pub fn new(value: toml::Value, default: toml::Value) -> TimerConfig {
+        let opts = value.as_table().unwrap().clone();
+        let default_table = default.as_table().unwrap().clone();
+        let mut table = toml::Table::new();
+        table.extend(default_table);
+        table.extend(opts);
+        TimerConfig {
+            c: Self::as_float(&table, "c")
+        }
+    }
+}
+
+impl FromToml for TimerConfig {
+    fn name() -> Option<&'static str> { Some("timer") }
+}
+
+#[derive(Debug, PartialEq)]
 pub struct PlayoutConfig {
     pub atari_check: bool,
     pub ladder_check: bool,
@@ -73,142 +183,78 @@ pub struct PlayoutConfig {
     pub use_patterns: bool,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+impl PlayoutConfig {
+
+    pub fn new(value: toml::Value, default: toml::Value) -> PlayoutConfig {
+        let opts = value.as_table().unwrap().clone();
+        let default_table = default.as_table().unwrap().clone();
+        let mut table = toml::Table::new();
+        table.extend(default_table);
+        table.extend(opts);
+        PlayoutConfig {
+            atari_check: Self::as_bool(&table, "atari_check"),
+            ladder_check: Self::as_bool(&table, "ladder_check"),
+            last_moves_for_heuristics: Self::as_integer(&table, "last_moves_for_heuristics"),
+            no_self_atari_cutoff: Self::as_integer(&table, "no_self_atari_cutoff"),
+            pattern_probability: Self::as_float(&table, "pattern_probability"),
+            play_in_middle_of_eye: Self::as_bool(&table, "play_in_middle_of_eye"),
+            use_patterns: Self::as_bool(&table, "use_patterns"),
+        }
+    }
+
+}
+
+impl FromToml for PlayoutConfig {
+    fn name() -> Option<&'static str> { Some("playout") }
+}
+
+#[derive(Debug, PartialEq)]
 pub struct Config {
     pub log: bool,
     pub play_out_aftermath: bool,
     pub playout: PlayoutConfig,
+    pub priors: PriorsConfig,
     pub ruleset: Ruleset,
     pub threads: usize,
     pub timer: TimerConfig,
     pub tree: TreeConfig,
 }
 
-macro_rules! set_from_opt {
-    ($matches:expr, $longopt:expr, $key:expr) => {
-        set_from_opt!($matches, "", $longopt, $key);
-    };
-    ($matches:expr, $shortopt:expr, $longopt:expr, $key:expr) => {
-        if $matches.opt_present($longopt) {
-            let arg = $matches.opt_str($longopt).unwrap();
-            $key = match arg.parse() {
-                Ok(v) => v,
-                Err(_) => {
-                    let strs: Vec<String> = [format!("--{}", $longopt), format!("-{}", $shortopt)].iter()
-                        .filter(|&s| s != "")
-                        .cloned()
-                        .collect();
-                    let s = format!("Unknown value ({}) as argument to {}", arg, strs.join(" or "));
-                    return Err(s);
-                }
-            }
-        }
-    };
-}
-
-macro_rules! set_from_flag {
-    ($matches:expr, $longopt:expr, $key:expr) => {
-        set_from_flag!($matches, "", $longopt, $key);
-    };
-    ($matches:expr, $shortopt:expr, $longopt:expr, $key:expr) => {
-        // Do it with an if so as to not override the default
-        if $matches.opt_present($longopt) {
-            $key = true;
-        }
-    };
-}
-
 impl Config {
 
     pub fn default() -> Config {
-        Config {
-            log: false,
-            play_out_aftermath: false,
-            playout: PlayoutConfig {
-                atari_check: true,
-                ladder_check: true,
-                last_moves_for_heuristics: 2,
-                no_self_atari_cutoff: 7,
-                pattern_probability: 0.9,
-                play_in_middle_of_eye: true,
-                use_patterns: true,
-            },
-            ruleset: KgsChinese,
-            threads: 1,
-            timer: TimerConfig {
-                c: 0.5
-            },
-            tree: TreeConfig {
-                end_of_game_cutoff: 0.08,
-                expand_after: 1,
-                fastplay20_thres: 0.8,
-                fastplay5_thres: 0.95,
-                priors: PriorsConfig {
-                    best_move_factor: 1.0,
-                    capture_many: 30,
-                    capture_one: 15,
-                    empty: 20,
-                    neutral_plays: 10,
-                    neutral_wins: 5,
-                    patterns: 10,
-                    self_atari: 10,
-                    use_empty: true,
-                    use_patterns: false,
-                },
-                rave_equiv: 20.0,
-                reuse_subtree: true,
-            },
-        }
+        Self::new(String::from(""), Self::toml())
     }
 
-    pub fn setup(&self, opts: &mut Options) {
-        opts.optflag("h", "help", "Print this help menu");
-        opts.optflag("v", "version", "Print the version number");
-
-        self.flag(opts, "l", "log", "Log to stderr", self.log);
-
-        self.opt(opts, "empty-area-prior", "Prior value for empty areas", self.tree.priors.empty);
-        self.opt(opts, "play-out-aftermath", "Keep playing after the result of the game is decided", self.play_out_aftermath);
-        self.opt(opts, "play-in-middle-of-eye", "Try playing in the middle of a large eye", self.playout.play_in_middle_of_eye);
-        self.opt(opts, "reuse-subtree", "Reuse the subtree from the previous search", self.tree.reuse_subtree);
-        self.opt(opts, "use-atari-check-in-playouts", "Check for atari in the playouts", self.playout.ladder_check);
-        self.opt(opts, "use-empty-area-prior", "Use a prior for empty areas on the board", self.tree.priors.use_empty);
-        self.opt(opts, "use-ladder-check-in-playouts", "Check for ladders in the playouts", self.playout.ladder_check);
-        self.opt(opts, "use-patterns-prior", "Use a prior to prioritize 3x3 patterns", self.tree.priors.use_patterns);
-        self.opt(opts, "use-patterns-in-playouts", "Use 3x3 patterns in the playouts", self.playout.use_patterns);
-        self.optopt(opts, "r", "ruleset", "Select the ruleset", self.ruleset);
-        self.optopt(opts, "t", "threads", "Number of threads to use", self.threads);
-        self.opt(opts, "rave-equiv", "Weighting between RAVE and UCT term. The smaller the higher the weight of the UCT term", self.tree.rave_equiv);
+    pub fn toml() -> String {
+        String::from(include_str!("defaults.toml"))
     }
 
-    pub fn set_from_opts(&mut self, matches: &Matches, opts: &Options, args: &Vec<String>) -> Result<Option<String>, String>{
-        if matches.opt_present("h") {
-            let brief = format!("Usage: {} [options]", args[0]);
-            let s = format!("{}", opts.usage(brief.as_ref()));
-            return Ok(Some(s));
-        }
-        if matches.opt_present("v") {
-            let s = format!("Iomrascálaí {}", version::version());
-            return Ok(Some(s));
-        }
-        set_from_opt!(matches, "r", "ruleset", self.ruleset);
-        self.set_ruleset_dependent_defaults();
+    pub fn from_file(filename: String) -> Config {
+        let mut file = File::open(filename).unwrap();
+        let mut contents = String::new();
+        file.read_to_string(&mut contents).unwrap();
+        Self::new(contents, Self::toml())
+    }
 
-        set_from_opt!(matches, "empty-area-prior", self.tree.priors.empty);
-        set_from_opt!(matches, "play-out-aftermath", self.play_out_aftermath);
-        set_from_opt!(matches, "play-in-middle-of-eye", self.playout.play_in_middle_of_eye);
-        set_from_opt!(matches, "reuse-subtree", self.tree.reuse_subtree);
-        set_from_opt!(matches, "t", "threads", self.threads);
-        set_from_opt!(matches, "use-atari-check-in-playouts", self.playout.atari_check);
-        set_from_opt!(matches, "use-empty-area-prior", self.tree.priors.use_empty);
-        set_from_opt!(matches, "use-ladder-check-in-playouts", self.playout.ladder_check);
-        set_from_opt!(matches, "use-patterns-prior", self.tree.priors.use_patterns);
-        set_from_opt!(matches, "use-patterns-in-playouts", self.playout.use_patterns);
-        set_from_opt!(matches, "rave-equiv", self.tree.rave_equiv);
-
-        set_from_flag!(matches, "l", "log", self.log);
-
-        self.check()
+    fn new(toml_str: String, default_toml_str: String) -> Config {
+        let opts = toml::Parser::new(&toml_str).parse().unwrap();
+        let default_table = toml::Parser::new(&default_toml_str).parse().unwrap();
+        let mut table = toml::Table::new();
+        table.extend(default_table.clone());
+        table.extend(opts.clone());
+        let mut c = Config {
+            log: Self::as_bool(&table, "log"),
+            play_out_aftermath: Self::as_bool(&table, "play_out_aftermath"),
+            playout: PlayoutConfig::new(table["playout"].clone(), default_table["playout"].clone()),
+            priors: PriorsConfig::new(table["priors"].clone(), default_table["priors"].clone()),
+            ruleset: Ruleset::from_str(table["ruleset"].as_str().unwrap()).unwrap(),
+            threads: Self::as_integer(&table, "threads"),
+            timer: TimerConfig::new(table["timer"].clone(), default_table["timer"].clone()),
+            tree: TreeConfig::new(table["tree"].clone(), default_table["tree"].clone()),
+        };
+        c.set_ruleset_dependent_defaults();
+        c
     }
 
     pub fn log(&self, s: String) {
@@ -220,12 +266,12 @@ impl Config {
         }
     }
 
-    fn check(&self) -> Result<Option<String>, String> {
+    pub fn check(&self) -> Result<(), String> {
         if self.playout.ladder_check && !self.playout.atari_check {
             let s = String::from("'--use-ladder-check-in-playouts true' requires '--use-atari-check-in-playouts true'");
             Err(s)
         } else {
-            Ok(None)
+            Ok(())
         }
     }
 
@@ -238,45 +284,8 @@ impl Config {
         }
     }
 
-    fn optopt<T: Display + Hint>(&self, opts: &mut Options, shortname: &'static str, name: &'static str, descr: &'static str, default: T) {
-        opts.optopt(shortname, name, format!("{} (defaults to {})", descr, default).as_ref(), default.hint_str());
-    }
-
-    fn opt<T: Display + Hint>(&self, opts: &mut Options, name: &'static str, descr: &'static str, default: T) {
-        self.optopt(opts, "", name, descr, default);
-    }
-
-    fn flag(&self, opts: &mut Options, shortname: &'static str, name: &'static str, descr: &'static str, default: bool) {
-        opts.optflag(shortname, name, format!("{} (defaults to {})", descr, default).as_ref());
-    }
 }
 
-pub trait Hint {
-
-    fn hint_str(&self) -> &'static str;
-
-}
-
-impl Hint for bool {
-
-    fn hint_str(&self) -> &'static str {
-        "true|false"
-    }
-}
-
-
-impl Hint for usize {
-
-    fn hint_str(&self) -> &'static str {
-        "NUM"
-    }
-
-}
-
-impl Hint for f32 {
-
-    fn hint_str(&self) -> &'static str {
-        "FLOAT"
-    }
-
+impl FromToml for Config {
+    fn name() -> Option<&'static str> { None }
 }

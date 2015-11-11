@@ -20,7 +20,6 @@
  *                                                                      *
  ************************************************************************/
 
-use config::Hint;
 pub use self::Ruleset::AnySizeTrompTaylor;
 pub use self::Ruleset::CGOS;
 pub use self::Ruleset::KgsChinese;
@@ -91,12 +90,4 @@ impl fmt::Display for Ruleset {
         };
         s.fmt(f)
     }
-}
-
-impl Hint for Ruleset {
-
-    fn hint_str(&self) -> &'static str {
-        "cgos|chinese|tromp-taylor|minimal"
-    }
-
 }
