@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+
+SIZE = 13
+
+require_relative 'runner'

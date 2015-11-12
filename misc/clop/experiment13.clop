@@ -1,0 +1,42 @@
+Name Experiment13
+Processor main
+Script ./runner13
+
+# bool
+IntegerParameter play_out_aftermath 0 1
+IntegerParameter threads 1 100
+
+# [playout]
+# bool
+IntegerParameter playout.atari_check 0 1
+# bool
+IntegerParameter playout.ladder_check 0 1
+IntegerParameter playout.last_moves_for_heuristics 0 300
+IntegerParameter playout.no_self_atari_cutoff 0 10
+LinearParameter playout.pattern_probability 0.0 1.0
+# bool
+IntegerParameter playout.play_in_middle_of_eye 0 1
+# bool
+IntegerParameter playout.use_patterns 0 1
+
+# [priors]
+LinearParameter priors.best_move_factor 0.0 10.0
+IntegerParameter priors.capture_many 0 100
+IntegerParameter priors.capture_one 0 100
+IntegerParameter priors.empty 0 100
+IntegerParameter priors.neutral_plays 0 100
+IntegerParameter priors.neutral_wins 0 100
+IntegerParameter priors.patterns 0 100
+IntegerParameter priors.self_atari 0 100
+IntegerParameter priors.use_empty 0 1
+IntegerParameter priors.use_patterns 0 1
+
+# [timer]
+LinearParameter timer.c 0.01 5.0
+
+# [tree]
+LinearParameter tree.end_of_game_cutoff 0.0 1.0
+IntegerParameter tree.expand_after 1 100
+LinearParameter tree.fastplay20_thres 0.5 1.0
+LinearParameter tree.fastplay5_thres 0.5 1.0
+LinearParameter tree.rave_equiv 0.0 10000.0
