@@ -9,3 +9,5 @@ target/
 
 # Ignore CLOP experiments output
 misc/clop/experiments
+misc/clop/*.dat
+misc/clop/*.log
