@@ -19,7 +19,7 @@ IntegerParameter priors.patterns 0 100
 IntegerParameter priors.self_atari 0 100
 
 # [timer]
-LinearParameter timer.c 0.01 5.0
+LinearParameter timer.c 0.1 1.0
 
 # [tree]
 LinearParameter tree.end_of_game_cutoff 0.0 0.1
