@@ -47,7 +47,6 @@ parameters = {
 
 ARGV[2..-1].each_slice(2) do |name, value|
   level1, level2 = name.split(".").map(&:to_sym)
-  value = value.to_f
   # Only one level of nesting is currently supported
   if level2
     parameters[level1][level2] = value
@@ -61,18 +60,12 @@ def bool(str)
 end
 
 config = <<EOS
-play_out_aftermath = #{bool(parameters[:play_out_aftermath])}
 threads = #{parameters[:threads]}
 
 [playout]
 
-atari_check = #{bool(parameters[:playout][:atari_check])}
-ladder_check = #{bool(parameters[:playout][:ladder_check])}
 last_moves_for_heuristics = #{parameters[:playout][:last_moves_for_heuristics]}
-no_self_atari_cutoff = #{parameters[:playout][:no_self_atari_cutoff]}
 pattern_probability = #{parameters[:playout][:pattern_probability]}
-play_in_middle_of_eye = #{bool(parameters[:playout][:play_in_middle_of_eye])}
-use_patterns = #{bool(parameters[:playout][:use_patterns])}
 
 [priors]
 
@@ -80,12 +73,8 @@ best_move_factor = #{parameters[:priors][:best_move_factor]}
 capture_many = #{parameters[:priors][:capture_many]}
 capture_one = #{parameters[:priors][:capture_one]}
 empty = #{parameters[:priors][:empty]}
-neutral_plays = #{parameters[:priors][:neutral_plays]}
-neutral_wins = #{parameters[:priors][:neutral_wins]}
 patterns = #{parameters[:priors][:patterns]}
 self_atari = #{parameters[:priors][:self_atari]}
-use_empty = #{bool(parameters[:priors][:use_empty])}
-use_patterns = #{bool(parameters[:priors][:use_patterns])}
 
 [timer]
 
