@@ -6,6 +6,7 @@ processor = ARGV[0] # ignored
 SEED = ARGV[1]
 
 def run(command)
+  command = "source ~/.bashrc && #{command}"
   $stderr.puts command.inspect
   system command
 end
