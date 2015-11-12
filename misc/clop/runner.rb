@@ -60,8 +60,6 @@ def bool(str)
 end
 
 config = <<EOS
-threads = #{parameters[:threads]}
-
 [playout]
 
 last_moves_for_heuristics = #{parameters[:playout][:last_moves_for_heuristics]}

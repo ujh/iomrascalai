@@ -6,8 +6,6 @@ Script ./runner13
 # We use this to switch color.
 Replications 2
 
-IntegerParameter threads 1 100
-
 # [playout]
 IntegerParameter playout.last_moves_for_heuristics 0 300
 LinearParameter playout.pattern_probability 0.0 1.0
