@@ -107,14 +107,6 @@ pub fn main() {
         }
     };
 
-    match config.check() {
-        Ok(_) => {},
-        Err(s) => {
-            println!("{}", s);
-            exit(1);
-        }
-    }
-
     let config = Arc::new(config);
     // Instantiate only one matcher as it does a lot of computation
     // during setup.

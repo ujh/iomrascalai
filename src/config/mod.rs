@@ -29,8 +29,6 @@ use std::process::exit;
 use std::str::FromStr;
 use toml;
 
-mod test;
-
 trait FromToml {
 
     fn as_float(table: &toml::Table, field: &'static str) -> f32 {
@@ -263,15 +261,6 @@ impl Config {
                 Ok(_) => {},
                 Err(x) => panic!("Unable to write to stderr: {}", x)
             }
-        }
-    }
-
-    pub fn check(&self) -> Result<(), String> {
-        if self.playout.ladder_check && !self.playout.atari_check {
-            let s = String::from("'--use-ladder-check-in-playouts true' requires '--use-atari-check-in-playouts true'");
-            Err(s)
-        } else {
-            Ok(())
         }
     }
 
