@@ -1,14 +1,11 @@
 #!/bin/bash
 
-DIR=$( cd $(dirname "${BASH_SOURCE[0]}") && pwd )
-cd "$DIR/.."
-
 set -ex
 
 cargo build --release
 
 GNUGO="gnugo --mode gtp --level 0 --chinese-rules --positional-superko --capture-all-dead --score aftermath --play-out-aftermath"
-IOMRASCALAI="./target/release/iomrascalai -t 8 -l"
+IOMRASCALAI="cargo run --release"
 SIZE=9
 TIME="5m"
 

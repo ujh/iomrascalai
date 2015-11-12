@@ -1,10 +1,9 @@
 @echo on
 REM configuration
-set threads=8
 set size=13
 
 REM set up the engines
-set iomrascalai=..\target\release\iomrascalai.exe -t %threads% --play-out-aftermath true
+set iomrascalai=..\target\release\iomrascalai.exe
 
 REM set up which color each engine plays
 set black=%iomrascalai%

@@ -1,13 +1,10 @@
 #!/bin/bash
 
-DIR=$( cd $(dirname "${BASH_SOURCE[0]}") && pwd )
-cd "$DIR/.."
-
 set -ex
 
 cargo build --release
 
-IOMRASCALAI="./target/release/iomrascalai -t 8 -l"
+IOMRASCALAI="cargo run --release"
 SIZE=9
 TIME="5m"
 
