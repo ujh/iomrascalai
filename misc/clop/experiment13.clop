@@ -1,6 +1,10 @@
+# Use for the naming of the .log and .dat files
 Name Experiment13
 Processor main
 Script ./runner13
+# Call the script "Replications" times with the idential parameters.
+# We use this to switch color.
+Replications 2
 
 # bool
 IntegerParameter play_out_aftermath 0 1

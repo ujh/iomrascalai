@@ -1,7 +1,7 @@
 require 'fileutils'
 
 processor = ARGV[0] # ignored
-SEED = ARGV[1]
+SEED = ARGV[1].to_i
 
 def run(command)
   command = "source ~/.bashrc && #{command}"
@@ -116,7 +116,8 @@ else
   exit 1
 end
 
-if rand(2).zero?
+# This works as long as we've set Replications to 2 in the .clop file
+if (SEED % 2).zero?
   WHITE = GNUGO
   BLACK = IOMRASCALAI
 else
