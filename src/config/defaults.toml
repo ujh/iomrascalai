@@ -1,7 +1,7 @@
 log = true
 play_out_aftermath = false
 ruleset = "chinese"
-threads = 1
+threads = 8
 
 [playout]
 
