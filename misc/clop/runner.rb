@@ -1,7 +1,5 @@
 require 'fileutils'
 
-$stderr.puts ARGV.inspect
-
 processor = ARGV[0] # ignored
 SEED = ARGV[1]
 
@@ -50,11 +48,16 @@ parameters = {
 ARGV[2..-1].each_slice(2) do |name, value|
   level1, level2 = name.split(".").map(&:to_sym)
   value = value.to_f
-  parameters[level1][level2] = value
+  # Only one level of nesting is currently supported
+  if level2
+    parameters[level1][level2] = value
+  else
+    parameters[level1] = value
+  end
 end
 
-def bool(number)
-  number.round.zero?.inspect
+def bool(str)
+  str.to_i.round.zero?.inspect
 end
 
 config = <<EOS
