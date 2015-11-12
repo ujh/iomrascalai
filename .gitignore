@@ -6,3 +6,8 @@ target/
 /*.dat
 /*.html
 /*.lock
+
+# Ignore CLOP experiments output
+misc/clop/experiments
+misc/clop/*.dat
+misc/clop/*.log
