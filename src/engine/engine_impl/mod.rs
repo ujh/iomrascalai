@@ -72,13 +72,13 @@ impl EngineImpl {
 }
 
 macro_rules! check {
-    ($r:expr, $config:expr, $body:expr) => {
-        check!($r, _unused_result, $config, $body)
+    ($config:expr, $r:expr, $body:expr) => {
+        check!($config, $r, _unused_result, $body)
     };
-    ($r:expr, $config:expr) => {
-        check!($r, $config, {})
+    ($config:expr, $r:expr) => {
+        check!($config, $r, {})
     };
-    ($r:expr, $res:ident, $config:expr, $body:expr) => {
+    ($config:expr, $r:expr, $res:ident, $body:expr) => {
         match $r {
             Ok(res) => {
                 let $res = res;
@@ -137,7 +137,8 @@ impl Engine for EngineImpl {
                     break;
                 },
                 r = receive_result_from_threads.recv() => {
-                    check!(r, res, self.config, {
+                    // check!(self.config, r => |res| {
+                    check!(self.config, r, res, {
                         let ((path, nodes_added, playout_result), send_to_thread) = res;
                         self.root.record_on_path(
                             &path,
@@ -145,7 +146,7 @@ impl Engine for EngineImpl {
                             nodes_added,
                             playout_result.amaf());
                         let data = self.root.find_leaf_and_expand(game, self.matcher.clone());
-                        check!(send_to_thread.send(data), self.config, {});
+                        check!(self.config, send_to_thread.send(data));
                     });
                 }
                 )
@@ -177,7 +178,9 @@ fn spin_up_worker<'a>(config: Arc<Config>, playout: Arc<Playout>, board: Board, 
         let mut rng = weak_rng();
         let (send_to_self, receive_from_main) = channel::<(Vec<usize>, Vec<Move>, bool, usize)>();
         // Send this empty message to get everything started
-        check!(send_to_main.send(((vec!(), 0, PlayoutResult::empty()), send_to_self.clone())), config);
+        check!(
+            config,
+            send_to_main.send(((vec!(), 0, PlayoutResult::empty()), send_to_self.clone())));
         loop {
             select!(
                 _ = receive_halt.recv() => { break; },
@@ -192,8 +195,8 @@ fn spin_up_worker<'a>(config: Arc<Config>, playout: Arc<Playout>, board: Board, 
                     let playout_result = playout.run(&mut b, None, &mut rng);
                     let send_to_self = send_to_self.clone();
                     check!(
-                        send_to_main.send(((path, nodes_added, playout_result), send_to_self)),
-                        config);
+                        config,
+                        send_to_main.send(((path, nodes_added, playout_result), send_to_self)));
                 }
                 )
         }
@@ -202,7 +205,7 @@ fn spin_up_worker<'a>(config: Arc<Config>, playout: Arc<Playout>, board: Board, 
 
 fn finish(root: &Node, game: &Game, color: Color, sender: Sender<(Move,usize)>, config: Arc<Config>, halt_senders: Vec<Sender<()>>) -> Move {
     for halt_sender in halt_senders.iter() {
-        check!(halt_sender.send(()), config)
+        check!(config, halt_sender.send(()));
     }
 
     if root.mostly_losses(config.tree.end_of_game_cutoff) {
@@ -219,7 +222,7 @@ fn finish(root: &Node, game: &Game, color: Color, sender: Sender<(Move,usize)>, 
         let msg = format!("{} simulations ({}% wins on average, {} nodes)", root.plays()-1, root.win_ratio()*100.0, root.descendants());
         config.log(msg);
         config.log(format!("Returning the best move ({}% wins)", best_node.win_ratio()*100.0));
-        check!(sender.send((best_node.m(), root.plays())), config);
+        check!(config, sender.send((best_node.m(), root.plays())));
         best_node.m()
     }
 }
