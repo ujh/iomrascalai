@@ -71,6 +71,27 @@ impl EngineImpl {
 
 }
 
+macro_rules! check {
+    ($r:expr, $config:expr, $body:expr) => {
+        check!($r, _unused_result, $config, $body)
+    };
+    ($r:expr, $config:expr) => {
+        check!($r, $config, {})
+    };
+    ($r:expr, $res:ident, $config:expr, $body:expr) => {
+        match $r {
+            Ok(res) => {
+                let $res = res;
+                $body
+            },
+            Err(e) => {
+                $config.log(format!("[DEBUG] unwrap failed with {:?} {}:{}", e, file!(), line!()));
+            }
+        }
+    };
+
+}
+
 impl Engine for EngineImpl {
 
     fn gen_move(&mut self, color: Color, budget_ms: u32, game: &Game, sender: Sender<(Move,usize)>, receiver: Receiver<()>) {
@@ -115,20 +136,17 @@ impl Engine for EngineImpl {
                     self.set_new_root(&game.play(m).unwrap(), color);
                     break;
                 },
-                res = receive_result_from_threads.recv() => {
-                    let ((path, nodes_added, playout_result), send_to_thread) = res.unwrap();
-                    self.root.record_on_path(
-                        &path,
-                        playout_result.winner(),
-                        nodes_added,
-                        playout_result.amaf());
-                    let data = self.root.find_leaf_and_expand(game, self.matcher.clone());
-                    match send_to_thread.send(data) {
-                        Ok(_) => {},
-                        Err(e) => {
-                            self.config.log(format!("[DEBUG] send_to_thread failed with {:?}", e));
-                        }
-                    }
+                r = receive_result_from_threads.recv() => {
+                    check!(r, res, self.config, {
+                        let ((path, nodes_added, playout_result), send_to_thread) = res;
+                        self.root.record_on_path(
+                            &path,
+                            playout_result.winner(),
+                            nodes_added,
+                            playout_result.amaf());
+                        let data = self.root.find_leaf_and_expand(game, self.matcher.clone());
+                        check!(send_to_thread.send(data), self.config, {});
+                    });
                 }
                 )
         }
@@ -159,7 +177,7 @@ fn spin_up_worker<'a>(config: Arc<Config>, playout: Arc<Playout>, board: Board, 
         let mut rng = weak_rng();
         let (send_to_self, receive_from_main) = channel::<(Vec<usize>, Vec<Move>, bool, usize)>();
         // Send this empty message to get everything started
-        send_to_main.send(((vec!(), 0, PlayoutResult::empty()), send_to_self.clone())).unwrap();
+        check!(send_to_main.send(((vec!(), 0, PlayoutResult::empty()), send_to_self.clone())), config);
         loop {
             select!(
                 _ = receive_halt.recv() => { break; },
@@ -173,12 +191,9 @@ fn spin_up_worker<'a>(config: Arc<Config>, playout: Arc<Playout>, board: Board, 
                     // case where the game is already over.
                     let playout_result = playout.run(&mut b, None, &mut rng);
                     let send_to_self = send_to_self.clone();
-                    match send_to_main.send(((path, nodes_added, playout_result), send_to_self)) {
-                        Ok(_) => {},
-                        Err(e) => {
-                            config.log(format!("[DEBUG] send_to_main failed with {:?}", e));
-                        }
-                    }
+                    check!(
+                        send_to_main.send(((path, nodes_added, playout_result), send_to_self)),
+                        config);
                 }
                 )
         }
@@ -187,12 +202,7 @@ fn spin_up_worker<'a>(config: Arc<Config>, playout: Arc<Playout>, board: Board, 
 
 fn finish(root: &Node, game: &Game, color: Color, sender: Sender<(Move,usize)>, config: Arc<Config>, halt_senders: Vec<Sender<()>>) -> Move {
     for halt_sender in halt_senders.iter() {
-        match halt_sender.send(()) {
-            Ok(_) => {},
-            Err(e) => {
-                config.log(format!("[DEBUG] halt_sender failed with {:?}", e));
-            }
-        }
+        check!(halt_sender.send(()), config)
     }
 
     if root.mostly_losses(config.tree.end_of_game_cutoff) {
@@ -209,13 +219,7 @@ fn finish(root: &Node, game: &Game, color: Color, sender: Sender<(Move,usize)>, 
         let msg = format!("{} simulations ({}% wins on average, {} nodes)", root.plays()-1, root.win_ratio()*100.0, root.descendants());
         config.log(msg);
         config.log(format!("Returning the best move ({}% wins)", best_node.win_ratio()*100.0));
-        match sender.send((best_node.m(), root.plays())) {
-            Ok(_) => {},
-            Err(e) => {
-                config.log(format!("[DEBUG] send move to controller failed with{:?}", e));
-            }
-        }
-
+        check!(sender.send((best_node.m(), root.plays())), config);
         best_node.m()
     }
 }
