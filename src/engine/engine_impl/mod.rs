@@ -72,20 +72,17 @@ impl EngineImpl {
 }
 
 macro_rules! check {
-    ($config:expr, $r:expr, $body:expr) => {
-        check!($config, $r, _unused_result, $body)
-    };
     ($config:expr, $r:expr) => {
-        check!($config, $r, {})
+        check!($config, _unused_result = $r => {})
     };
-    ($config:expr, $r:expr, $res:ident, $body:expr) => {
+    ($config:expr, $res:pat = $r:expr => $body:expr) => {
         match $r {
             Ok(res) => {
                 let $res = res;
                 $body
             },
             Err(e) => {
-                $config.log(format!("[DEBUG] unwrap failed with {:?} {}:{}", e, file!(), line!()));
+                $config.log(format!("[DEBUG] unwrap failed with {:?} at {}:{}", e, file!(), line!()));
             }
         }
     };
@@ -137,8 +134,7 @@ impl Engine for EngineImpl {
                     break;
                 },
                 r = receive_result_from_threads.recv() => {
-                    // check!(self.config, r => |res| {
-                    check!(self.config, r, res, {
+                    check!(self.config, res = r => {
                         let ((path, nodes_added, playout_result), send_to_thread) = res;
                         self.root.record_on_path(
                             &path,
@@ -185,18 +181,21 @@ fn spin_up_worker<'a>(config: Arc<Config>, playout: Arc<Playout>, board: Board, 
             select!(
                 _ = receive_halt.recv() => { break; },
                 task = receive_from_main.recv() => {
-                    let (path, moves, _, nodes_added) = task.unwrap();
-                    let mut b = board.clone();
-                    for &m in moves.iter() {
-                        b.play_legal_move(m);
-                    }
-                    // Playout is smart enough to correctly handle the
-                    // case where the game is already over.
-                    let playout_result = playout.run(&mut b, None, &mut rng);
-                    let send_to_self = send_to_self.clone();
                     check!(
                         config,
-                        send_to_main.send(((path, nodes_added, playout_result), send_to_self)));
+                        (path, moves, _unused, nodes_added) = task => {
+                            let mut b = board.clone();
+                            for &m in moves.iter() {
+                                b.play_legal_move(m);
+                            }
+                            // Playout is smart enough to correctly handle the
+                            // case where the game is already over.
+                            let playout_result = playout.run(&mut b, None, &mut rng);
+                            let send_to_self = send_to_self.clone();
+                            check!(
+                                config,
+                                send_to_main.send(((path, nodes_added, playout_result), send_to_self)));
+                        })
                 }
                 )
         }
