@@ -1,0 +1,97 @@
+#!/usr/bin/env ruby
+
+require 'fileutils'
+
+processor = ARGV[0] # ignored
+SEED = ARGV[1].to_i
+
+def run(command)
+  command = "source ~/.bashrc && #{command}"
+  $stderr.puts command.inspect
+  system command
+end
+
+parameters = {}
+ARGV[2..-1].each_slice(2) do |name, value|
+  level1, level2 = name.split(".").map(&:to_sym)
+  # Only one level of nesting is currently supported
+  if level2
+    parameters[level1] ||= {}
+    parameters[level1][level2] = value
+  else
+    parameters[level1] = value
+  end
+end
+
+def bool(str)
+  str.to_i.round.zero?.inspect
+end
+
+config = <<EOS
+[priors]
+
+best_move_factor = #{parameters[:priors][:best_move_factor]}
+capture_many = #{parameters[:priors][:capture_many]}
+capture_one = #{parameters[:priors][:capture_one]}
+empty = #{parameters[:priors][:empty]}
+patterns = #{parameters[:priors][:patterns]}
+self_atari = #{parameters[:priors][:self_atari]}
+EOS
+
+GNUGO = "gnugo --mode gtp --level 0 --chinese-rules --positional-superko --capture-all-dead --score aftermath --play-out-aftermath"
+REFEREE = GNUGO
+IOMRASCALAI = "cargo run --release -- -c config.toml"
+
+case SEED % 2
+when 0
+  SIZE = 9
+when 1
+  SIZE = 13
+end
+
+case SIZE
+when 9
+  TIME = "5m"
+when 13
+  TIME = "10m"
+when 19
+  TIME = "20m"
+else
+  puts "Size #{SIZE} not supported!"
+  exit 1
+end
+
+WHITE = IOMRASCALAI
+BLACK = GNUGO
+
+TWOGTP = "gogui-twogtp -auto -size #{SIZE} -time #{TIME} -komi 6.5 -games 1 -verbose -debugtocomment -referee #{REFEREE.inspect} -black #{BLACK.inspect} -white #{WHITE.inspect} -sgffile run -force"
+
+dir = File.join(File.dirname(__FILE__), "experiments", "priors", SEED.to_s)
+FileUtils.mkdir_p(dir)
+Dir.chdir(dir) do
+
+  File.open('config.toml', 'w') {|f| f.puts config }
+
+  run(TWOGTP)
+
+  File.open("run.dat", "r") do |f|
+    f.each_line do |line|
+      next if line =~/^#/
+      next if line =~/^\s*$/
+      winner = line.split(/\t/)[3]
+      won = false
+      if WHITE == IOMRASCALAI
+        won = winner.include?("W+")
+      else
+        won = winner.include?("B+")
+      end
+      if won
+        puts "W"
+      else
+        puts "L"
+      end
+      exit
+    end
+  end
+
+end
