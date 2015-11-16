@@ -19,6 +19,8 @@
  *                                                                      *
  ************************************************************************/
 
+#![deny(missing_docs)]
+
 use ruleset::CGOS;
 use ruleset::Ruleset;
 
