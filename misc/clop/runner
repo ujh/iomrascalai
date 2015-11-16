@@ -1,0 +1,21 @@
+#!/usr/bin/env ruby
+
+require_relative 'lib/lib'
+
+experiment = ARGV[0]
+processor = ARGV[1] # ignored
+SEED = ARGV[2].to_i
+
+toml = to_toml(from_assoc(ARGV[3..-1]))
+
+$stderr.puts toml
+
+dir(seed: SEED, experiment: experiment) do
+
+  playing_white = run(toml: toml, seed: SEED, outfile: "run")
+
+  puts analyze(outfile: "run", playing_white: playing_white)
+
+  exit
+
+end
