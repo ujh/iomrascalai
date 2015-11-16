@@ -171,7 +171,7 @@ impl Timer {
     }
 
     fn c(&self) -> f32 {
-        self.config.timer.c
+        self.config.time_control.c
     }
 
     pub fn budget<T: Info>(&self, game: &T) -> u32 {

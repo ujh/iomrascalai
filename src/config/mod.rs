@@ -75,8 +75,6 @@ trait FromToml {
 pub struct TreeConfig {
     pub end_of_game_cutoff: f32,
     pub expand_after: usize,
-    pub fastplay20_thres: f32,
-    pub fastplay5_thres: f32,
     pub rave_equiv: f32,
     pub reuse_subtree: bool,
 }
@@ -92,8 +90,6 @@ impl TreeConfig {
         TreeConfig {
             end_of_game_cutoff: Self::as_float(&table, "end_of_game_cutoff"),
             expand_after: Self::as_integer(&table, "expand_after"),
-            fastplay20_thres: Self::as_float(&table, "fastplay20_thres"),
-            fastplay5_thres: Self::as_float(&table, "fastplay5_thres"),
             rave_equiv: Self::as_float(&table, "rave_equiv"),
             reuse_subtree: Self::as_bool(&table, "reuse_subtree"),
         }
@@ -148,26 +144,30 @@ impl FromToml for PriorsConfig {
 }
 
 #[derive(Debug, PartialEq)]
-pub struct TimerConfig {
+pub struct TimeControlConfig {
     pub c: f32,
+    pub fastplay20_thres: f32,
+    pub fastplay5_thres: f32,
 }
 
-impl TimerConfig {
+impl TimeControlConfig {
 
-    pub fn new(value: toml::Value, default: toml::Value) -> TimerConfig {
+    pub fn new(value: toml::Value, default: toml::Value) -> TimeControlConfig {
         let opts = value.as_table().unwrap().clone();
         let default_table = default.as_table().unwrap().clone();
         let mut table = toml::Table::new();
         table.extend(default_table);
         table.extend(opts);
-        TimerConfig {
-            c: Self::as_float(&table, "c")
+        TimeControlConfig {
+            c: Self::as_float(&table, "c"),
+            fastplay20_thres: Self::as_float(&table, "fastplay20_thres"),
+            fastplay5_thres: Self::as_float(&table, "fastplay5_thres"),
         }
     }
 }
 
-impl FromToml for TimerConfig {
-    fn name() -> Option<&'static str> { Some("timer") }
+impl FromToml for TimeControlConfig {
+    fn name() -> Option<&'static str> { Some("time_control") }
 }
 
 #[derive(Debug, PartialEq)]
@@ -214,7 +214,7 @@ pub struct Config {
     pub priors: PriorsConfig,
     pub ruleset: Ruleset,
     pub threads: usize,
-    pub timer: TimerConfig,
+    pub time_control: TimeControlConfig,
     pub tree: TreeConfig,
 }
 
@@ -248,7 +248,7 @@ impl Config {
             priors: PriorsConfig::new(table["priors"].clone(), default_table["priors"].clone()),
             ruleset: Ruleset::from_str(table["ruleset"].as_str().unwrap()).unwrap(),
             threads: Self::as_integer(&table, "threads"),
-            timer: TimerConfig::new(table["timer"].clone(), default_table["timer"].clone()),
+            time_control: TimeControlConfig::new(table["time_control"].clone(), default_table["time_control"].clone()),
             tree: TreeConfig::new(table["tree"].clone(), default_table["tree"].clone()),
         };
         c.set_ruleset_dependent_defaults();

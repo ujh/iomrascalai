@@ -26,15 +26,15 @@ self_atari = 10
 use_empty = true
 use_patterns = false
 
-[timer]
+[time_control]
 
 c = 0.5
+fastplay20_thres = 0.8
+fastplay5_thres = 0.95
 
 [tree]
 
 end_of_game_cutoff = 0.08
 expand_after = 1
-fastplay20_thres = 0.8
-fastplay5_thres = 0.95
 rave_equiv = 20.0
 reuse_subtree = true
