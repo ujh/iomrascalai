@@ -231,15 +231,40 @@ impl FromToml for PlayoutConfig {
     fn name() -> Option<&'static str> { Some("playout") }
 }
 
+/// This is the global configuration object. Is is passed around
+/// (inside an `Arc`) most of the app and contains all possible
+/// settings and variables that can be tuned. Everything in here can
+/// be set in a configuration file in TOML format.
 #[derive(Debug, PartialEq)]
 pub struct Config {
+    /// If `true` the various information (e.g. the number of
+    /// simulations played) is printed to stderr while the engine is
+    /// running.
     pub log: bool,
+    /// If `true` then we don't consider passing a valid move while
+    /// there are still other legal moves on the board. This is
+    /// important for rulesets like Tromp/Taylor where all stones on
+    /// the board are assumed to be alive.
     pub play_out_aftermath: bool,
+    /// Holds a configuration object that contains everything related
+    /// to the playout policy.
     pub playout: PlayoutConfig,
+    /// Holds a configuration object that contains everything related
+    /// to setting prior values in the tree nodes.
     pub priors: PriorsConfig,
+    /// The ruleset we're currently playing under (CGOS, chinese, etc.)
     pub ruleset: Ruleset,
+    /// The number of threads to use. The best results are achieved
+    /// right now if this is the same number as the number of cores
+    /// the computer has that the program runs on.
     pub threads: usize,
+    /// Holds a configuration object that contains everything related
+    /// to allocating the time to use for the next move, stopping the
+    /// search early, etc.
     pub time_control: TimeControlConfig,
+    /// Holds a configuration object athat contains everything related
+    /// to the tree search (when to expand the leaves, RAVE
+    /// configuration, etc.)
     pub tree: TreeConfig,
 }
 
@@ -280,6 +305,8 @@ impl Config {
         c
     }
 
+    /// If logging is turned on then the string passed will be printed
+    /// to standard error. Otherwise it's silently discarded.
     pub fn log(&self, s: String) {
         if self.log {
             match stderr().write(format!("{}\n", s).as_bytes()) {
