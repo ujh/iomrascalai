@@ -22,9 +22,9 @@
 use config::Config;
 use game::Info;
 
-use time::precise_time_ns;
-
+use std::cmp::max;
 use std::sync::Arc;
+use time::precise_time_ns;
 
 mod test;
 
@@ -177,13 +177,13 @@ impl Timer {
     pub fn budget<T: Info>(&self, game: &T) -> u32 {
         // If there's still main time left
         if self.main_time_left > 0 {
-            // TODO: Are there issues with all these values being ints?
-            (self.main_time_left as f32 / (self.c() * game.vacant_point_count() as f32)).floor() as u32
+            // Assume at least 30 vacant points
+            let vacant = max(game.vacant_point_count(), 30) as f32;
+            (self.main_time_left as f32 / (self.c() * vacant)).floor() as u32
         } else if self.byo_time_left == 0 {
             0
         } else {
             // Else use byoyomi time
-            // TODO: Does that need to be adjusted wrt to time_left?
             (self.byo_time_left as f32 / self.byo_stones_left as f32).floor() as u32
         }
     }

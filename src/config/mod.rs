@@ -156,10 +156,22 @@ impl FromToml for PriorsConfig {
     fn name() -> Option<&'static str> { Some("priors") }
 }
 
+/// Holds all settings related to time control.
 #[derive(Debug, PartialEq)]
 pub struct TimeControlConfig {
+    /// Scaling factor for allocating the time for the next move. We
+    /// devide the remaining time by `c * <EMPTY INTERSECTION COUNT>`.
+    /// To make sure we never run out of time we set the empty
+    /// intersection count to 30 if there are less than 30 empty
+    /// intersections on the board.
     pub c: f32,
+    /// Once 20% of the allocated time for a move have passed check if
+    /// the best move has a win rate that is higher than this value.
+    /// If so then stop the search and return this move.
     pub fastplay20_thres: f32,
+    /// Once 5% of the allocated time for a move have passed check if
+    /// the best move has a win rate that is higher than this value.
+    /// If so then stop the search and return this move.
     pub fastplay5_thres: f32,
 }
 
