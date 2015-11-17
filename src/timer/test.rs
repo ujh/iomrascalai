@@ -21,13 +21,13 @@
 
 #![cfg(test)]
 
-use std::sync::Arc;
-
 use config::Config;
 use game::Info;
 use super::Timer;
 
-use std::thread::sleep_ms;
+use std::sync::Arc;
+use std::thread::sleep;
+use std::time::Duration;
 
 fn config() -> Arc<Config> {
     Arc::new(Config::default())
@@ -114,7 +114,7 @@ fn start_starts_the_clock() {
 fn stop_changes_the_time_left() {
     let mut timer = Timer::new(config());
     timer.start();
-    sleep_ms(10);
+    sleep(Duration::from_millis(10));
     timer.stop();
     assert!(timer.main_time_left < timer.main_time);
 }
