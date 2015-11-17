@@ -94,7 +94,7 @@ pub struct TreeConfig {
 
 impl TreeConfig {
 
-    pub fn new(value: toml::Value, default: toml::Value) -> TreeConfig {
+    fn new(value: toml::Value, default: toml::Value) -> TreeConfig {
         let opts = value.as_table().unwrap().clone();
         let default_table = default.as_table().unwrap().clone();
         let mut table = toml::Table::new();
@@ -114,23 +114,55 @@ impl FromToml for TreeConfig {
     fn name() -> Option<&'static str> { Some("tree") }
 }
 
+/// Holds all settings related to initializing the leaves of the
+/// search tree with prior values for plays and wins.
 #[derive(Debug, PartialEq)]
 pub struct PriorsConfig {
+    /// When calculating the number of wins and plays a node has (e.g.
+    /// when calculating the win rate) this is the weight the priors
+    /// are given. If it's 0 then they aren't taken into account at
+    /// all. If they are 1 then it's equal to adding up both the
+    /// actual plays and the priors plays. Larger values than 1 give
+    /// increasingly higher weight to the prior values over the
+    /// actually observed plays and wins.
     pub best_move_factor: f32,
+    /// The prior for a move that captures more than one stone. It is
+    /// an even prior, i.e. `capture_many` is added to both the prior
+    /// plays and wins.
     pub capture_many: usize,
+    /// Same as `capture_many` but for the case where a move captures
+    /// a single stone.
     pub capture_one: usize,
+    /// The prior to assign a move that plays close to the border.
+    /// It's a negative prior (i.e. only prior plays are increased)
+    /// when playing on the 1st and 2nd line and an even prior for
+    /// moves on the third line. This is only applied if the area
+    /// around the move of a Manhattan distance of three is empty.
     pub empty: usize,
+    /// The number of prior plays to start with. This is useful to
+    /// simplify the calculations as we can avoid 0 values.
     pub neutral_plays: usize,
+    /// The number of prior wins to start with. This is normally 0.5
+    /// of `neutral_plays` so that we start of with a win rate of 50%.
     pub neutral_wins: usize,
+    /// The prior to assign when one of the 3x3 pattern matches. This
+    /// is an even prior.
     pub patterns: usize,
+    /// The prior to assign when the move puts one of our own groups
+    /// in self atari. This is a negative prior (i.e. only prior plays
+    /// are increased).
     pub self_atari: usize,
+    /// If set to `true` we check if the move is in an empty area
+    /// close to the border and use the `empty` prior.
     pub use_empty: bool,
+    /// If set to `true` we check if a 3x3 pattern matches and use the
+    /// `patterns` prior.
     pub use_patterns: bool,
 }
 
 impl PriorsConfig {
 
-    pub fn new(value: toml::Value, default: toml::Value) -> PriorsConfig {
+    fn new(value: toml::Value, default: toml::Value) -> PriorsConfig {
         let opts = value.as_table().unwrap().clone();
         let default_table = default.as_table().unwrap().clone();
         let mut table = toml::Table::new();
@@ -177,7 +209,7 @@ pub struct TimeControlConfig {
 
 impl TimeControlConfig {
 
-    pub fn new(value: toml::Value, default: toml::Value) -> TimeControlConfig {
+    fn new(value: toml::Value, default: toml::Value) -> TimeControlConfig {
         let opts = value.as_table().unwrap().clone();
         let default_table = default.as_table().unwrap().clone();
         let mut table = toml::Table::new();
@@ -195,12 +227,23 @@ impl FromToml for TimeControlConfig {
     fn name() -> Option<&'static str> { Some("time_control") }
 }
 
+/// Holds settings related to the playout policy
 #[derive(Debug, PartialEq)]
 pub struct PlayoutConfig {
+    /// If set to `true` check for atari in the playout and
+    /// immediately play the saving move if there is one.
     pub atari_check: bool,
+    /// If set to `true` use the ladder checker (which is expensive)
+    /// during atari resolution.
     pub ladder_check: bool,
+    /// The number of most recently played moves to consider when
+    /// selecting moves based on heuristics.
     pub last_moves_for_heuristics: usize,
     pub no_self_atari_cutoff: usize,
+    /// The probability of playing a move that was found by trying to
+    /// match patterns on the current board. We don't want to always
+    /// play those moves as this would reduce the random element of
+    /// the playouts too much.
     pub pattern_probability: f32,
     pub play_in_middle_of_eye: bool,
     pub use_patterns: bool,
@@ -208,7 +251,7 @@ pub struct PlayoutConfig {
 
 impl PlayoutConfig {
 
-    pub fn new(value: toml::Value, default: toml::Value) -> PlayoutConfig {
+    fn new(value: toml::Value, default: toml::Value) -> PlayoutConfig {
         let opts = value.as_table().unwrap().clone();
         let default_table = default.as_table().unwrap().clone();
         let mut table = toml::Table::new();
@@ -270,14 +313,23 @@ pub struct Config {
 
 impl Config {
 
+    /// Uses the TOML returned by `Config::toml()` and returns a
+    /// `Config` object that encodes this data.
     pub fn default() -> Config {
         Self::new(String::from(""), Self::toml())
     }
 
+    /// Returns a string representation of the default configuration
+    /// encoded as TOML.
     pub fn toml() -> String {
         String::from(include_str!("defaults.toml"))
     }
 
+    /// Takes a `String` which should represent the path to a TOML
+    /// encoded file. It reads that file and generates a `Config`
+    /// object from the data. The file doesn't need to contain all
+    /// possible fields of `Config` or the various structs it
+    /// contains. What's missing is taken from `Config::toml()`.
     pub fn from_file(filename: String) -> Config {
         let mut file = File::open(filename).unwrap();
         let mut contents = String::new();
