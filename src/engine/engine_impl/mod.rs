@@ -116,12 +116,12 @@ impl Engine for EngineImpl {
         let (_guards, halt_senders) = spin_up(self.config.clone(), self.playout.clone(), game, send_result_to_main);
         loop {
             let win_ratio = self.root.best().win_ratio();
-            if start.to(PreciseTime::now()) > budget5 && win_ratio > self.config.tree.fastplay5_thres {
+            if start.to(PreciseTime::now()) > budget5 && win_ratio > self.config.time_control.fastplay5_thres {
                 self.config.log(format!("Search stopped. 5% rule triggered"));
                 let m = finish(&self.root, game, color, sender, self.config.clone(), halt_senders);
                 self.set_new_root(&game.play(m).unwrap(), color);
                 break;
-            } else if start.to(PreciseTime::now()) > budget20 && win_ratio > self.config.tree.fastplay20_thres {
+            } else if start.to(PreciseTime::now()) > budget20 && win_ratio > self.config.time_control.fastplay20_thres {
                 self.config.log(format!("Search stopped. 20% rule triggered"));
                 let m = finish(&self.root, game, color, sender, self.config.clone(), halt_senders);
                 self.set_new_root(&game.play(m).unwrap(), color);
