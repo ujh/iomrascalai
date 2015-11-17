@@ -73,11 +73,22 @@ trait FromToml {
 
 }
 
+/// Contains all settings that are related to the search tree.
 #[derive(Debug, PartialEq)]
 pub struct TreeConfig {
+    /// If the win rate of the best move at the end of the allocated
+    /// search time for the next move is lower than this value then we
+    /// resign. This is a hack until we implement estimating the score
+    /// based on the playouts.
     pub end_of_game_cutoff: f32,
+    /// The number of plays before a leaf will be expanded.
     pub expand_after: usize,
+    /// Configuration factor for the RAVE part of the node selection
+    /// algorithm. There's no clear way to set this value. It's best
+    /// to use parameter optimization to find the best value.
     pub rave_equiv: f32,
+    /// If this is `true` then we reuse the subtree from the last move
+    /// we searched so that we don't have to start with an empty tree.
     pub reuse_subtree: bool,
 }
 
