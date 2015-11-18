@@ -260,15 +260,15 @@ fn budget_rounds_down_when_calculating_the_byo_time() {
 #[test]
 fn budget_during_main_time_uses_the_vacant_points_to_calculate_the_time() {
     let mut timer = Timer::new(config());
-    timer.main_time_left = 10;
-    let info = TestGameInfo::new(10);
+    timer.main_time_left = 100;
+    let info = TestGameInfo::new(100);
     assert_eq!(2, timer.budget(&info));
 }
 
 #[test]
-fn budget_during_main_time_rounds_down() {
+fn budget_during_main_time_uses_a_minimum_of_30_for_vacant_points() {
     let mut timer = Timer::new(config());
-    timer.main_time_left = 11;
+    timer.main_time_left = 100;
     let info = TestGameInfo::new(10);
-    assert_eq!(2, timer.budget(&info));
+    assert_eq!(6, timer.budget(&info));
 }
