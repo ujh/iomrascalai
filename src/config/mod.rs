@@ -152,9 +152,6 @@ pub struct PriorsConfig {
     /// in self atari. This is a negative prior (i.e. only prior plays
     /// are increased).
     pub self_atari: usize,
-    /// If set to `true` we check if a 3x3 pattern matches and use the
-    /// `patterns` prior.
-    pub use_patterns: bool,
 }
 
 impl PriorsConfig {
@@ -174,7 +171,6 @@ impl PriorsConfig {
             neutral_wins: Self::as_integer(&table, "neutral_wins"),
             patterns: Self::as_integer(&table, "patterns"),
             self_atari: Self::as_integer(&table, "self_atari"),
-            use_patterns: Self::as_bool(&table, "use_patterns"),
         }
     }
 

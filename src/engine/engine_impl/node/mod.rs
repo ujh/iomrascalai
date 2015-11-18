@@ -256,12 +256,16 @@ impl Node {
                 }
             }
         }
-        if self.config.priors.use_patterns {
+        if self.use_patterns() {
             let count = self.matching_patterns_count(board, m, matcher);
             let prior = count * self.config.priors.patterns;
             node.record_even_prior(prior);
         }
         node
+    }
+
+    fn use_patterns(&self) -> bool {
+        self.config.priors.patterns > 0
     }
 
     fn matching_patterns_count(&self, board: &Board, m: &Move, matcher: Arc<Matcher>) -> usize {
