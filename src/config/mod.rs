@@ -222,9 +222,9 @@ impl FromToml for TimeControlConfig {
 /// Holds settings related to the playout policy
 #[derive(Debug, PartialEq)]
 pub struct PlayoutConfig {
-    /// If set to `true` check for atari in the playout and
-    /// immediately play the saving move if there is one.
-    pub atari_check: bool,
+    /// The probability of checking for atari moves (and playing one
+    /// if there are any). Set to 1.0 to always check.
+    pub atari_check: f32,
     /// If set to `true` use the ladder checker (which is expensive)
     /// during atari resolution.
     pub ladder_check: bool,
@@ -249,7 +249,7 @@ impl PlayoutConfig {
         table.extend(default_table);
         table.extend(opts);
         PlayoutConfig {
-            atari_check: Self::as_bool(&table, "atari_check"),
+            atari_check: Self::as_float(&table, "atari_check"),
             ladder_check: Self::as_bool(&table, "ladder_check"),
             last_moves_for_heuristics: Self::as_integer(&table, "last_moves_for_heuristics"),
             pattern_probability: Self::as_float(&table, "pattern_probability"),

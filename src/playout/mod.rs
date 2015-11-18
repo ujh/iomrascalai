@@ -110,7 +110,7 @@ impl Playout {
     fn select_move(&self, board: &Board, heuristic_set: Vec<Coord>, rng: &mut XorShiftRng) -> Move {
         let color = board.next_player();
 
-        if self.check_for_atari() {
+        if self.check_for_atari(rng) {
             let possible_move = self.atari_move(color, board, rng);
             if possible_move.is_some() {
                 return possible_move.unwrap();
@@ -200,8 +200,8 @@ impl Playout {
         self.config.playout.ladder_check
     }
 
-    fn check_for_atari(&self) -> bool {
-        self.config.playout.atari_check
+    fn check_for_atari(&self, rng: &mut XorShiftRng) -> bool {
+        rng.gen_range(0f32, 1f32) <= self.config.playout.atari_check
     }
 
     fn use_patterns(&self, rng: &mut XorShiftRng) -> bool {
