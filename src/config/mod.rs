@@ -244,7 +244,11 @@ pub struct PlayoutConfig {
     /// play those moves as this would reduce the random element of
     /// the playouts too much.
     pub pattern_probability: f32,
+    /// ???
     pub play_in_middle_of_eye: bool,
+    /// If set to `true` then we try to match 3x3 patterns with
+    /// `pattern_probability`. If any patterns match we play one of
+    /// these moves.
     pub use_patterns: bool,
 }
 
