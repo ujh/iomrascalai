@@ -205,11 +205,7 @@ impl Playout {
     }
 
     fn use_patterns(&self, rng: &mut XorShiftRng) -> bool {
-        if self.config.playout.use_patterns {
-            rng.gen_range(0f32, 1f32) < self.config.playout.pattern_probability
-        } else {
-            false
-        }
+        rng.gen_range(0f32, 1f32) < self.config.playout.pattern_probability
     }
 
     fn play_in_middle_of_eye(&self) -> bool {
