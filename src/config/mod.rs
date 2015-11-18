@@ -239,7 +239,6 @@ pub struct PlayoutConfig {
     /// The number of most recently played moves to consider when
     /// selecting moves based on heuristics.
     pub last_moves_for_heuristics: usize,
-    pub no_self_atari_cutoff: usize,
     /// The probability of playing a move that was found by trying to
     /// match patterns on the current board. We don't want to always
     /// play those moves as this would reduce the random element of
@@ -261,7 +260,6 @@ impl PlayoutConfig {
             atari_check: Self::as_bool(&table, "atari_check"),
             ladder_check: Self::as_bool(&table, "ladder_check"),
             last_moves_for_heuristics: Self::as_integer(&table, "last_moves_for_heuristics"),
-            no_self_atari_cutoff: Self::as_integer(&table, "no_self_atari_cutoff"),
             pattern_probability: Self::as_float(&table, "pattern_probability"),
             play_in_middle_of_eye: Self::as_bool(&table, "play_in_middle_of_eye"),
             use_patterns: Self::as_bool(&table, "use_patterns"),
