@@ -183,7 +183,7 @@ impl Playout {
                     if include_pass == 0 && !board.is_not_self_atari(&m) {
                         include_pass = 1; //try to pass in a seki sometimes
                     } else {
-                        return if self.play_in_middle_of_eye() {
+                        return if self.play_in_middle_of_eye(rng) {
                             board.play_in_middle_of_eye(m).unwrap_or(m)
                         } else {
                             m
@@ -205,11 +205,11 @@ impl Playout {
     }
 
     fn use_patterns(&self, rng: &mut XorShiftRng) -> bool {
-        rng.gen_range(0f32, 1f32) < self.config.playout.pattern_probability
+        rng.gen_range(0f32, 1f32) <= self.config.playout.pattern_probability
     }
 
-    fn play_in_middle_of_eye(&self) -> bool {
-        self.config.playout.play_in_middle_of_eye
+    fn play_in_middle_of_eye(&self, rng: &mut XorShiftRng) -> bool {
+        rng.gen_range(0f32, 1f32) <= self.config.playout.play_in_middle_of_eye
     }
 
 }

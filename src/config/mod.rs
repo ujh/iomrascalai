@@ -237,7 +237,7 @@ pub struct PlayoutConfig {
     /// the playouts too much.
     pub pattern_probability: f32,
     /// ???
-    pub play_in_middle_of_eye: bool,
+    pub play_in_middle_of_eye: f32,
 }
 
 impl PlayoutConfig {
@@ -253,7 +253,7 @@ impl PlayoutConfig {
             ladder_check: Self::as_bool(&table, "ladder_check"),
             last_moves_for_heuristics: Self::as_integer(&table, "last_moves_for_heuristics"),
             pattern_probability: Self::as_float(&table, "pattern_probability"),
-            play_in_middle_of_eye: Self::as_bool(&table, "play_in_middle_of_eye"),
+            play_in_middle_of_eye: Self::as_float(&table, "play_in_middle_of_eye"),
         }
     }
 

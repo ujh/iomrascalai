@@ -9,7 +9,7 @@ atari_check = true
 ladder_check = true
 last_moves_for_heuristics = 2
 pattern_probability = 0.9
-play_in_middle_of_eye = true
+play_in_middle_of_eye = 1.0
 
 [priors]
 
