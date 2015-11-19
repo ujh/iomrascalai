@@ -13,14 +13,14 @@ play_in_middle_of_eye = 1.0
 
 [priors]
 
-best_move_factor = 1.0
-capture_many = 30
-capture_one = 15
-empty = 20
+best_move_factor = 0.713554
+capture_many = 57
+capture_one = 54
+empty = 41
 neutral_plays = 10
 neutral_wins = 5
-patterns = 10
-self_atari = 10
+patterns = 26
+self_atari = 48
 
 [time_control]
 
