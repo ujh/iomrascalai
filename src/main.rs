@@ -45,7 +45,9 @@ extern crate time;
 extern crate toml;
 #[macro_use(strenum)] extern crate strenum;
 
-use config::Config;
+// Use everything in config publicly to force the generation of
+// documentation.
+pub use config::*;
 use gtp::driver::Driver;
 use patterns::Matcher;
 

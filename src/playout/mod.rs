@@ -37,6 +37,8 @@ use std::sync::Arc;
 
 mod test;
 
+const ATARI_CUTOFF: usize = 7;
+
 pub struct Playout {
     config: Arc<Config>,
     matcher: Arc<Matcher>
@@ -76,7 +78,7 @@ impl Playout {
     fn is_playable(&self, board: &Board, m: &Move) -> bool {
         !board.is_eye(&m.coord(), *m.color()) &&
             (board.is_not_self_atari(m) ||
-             board.new_chain_length_less_than(*m, self.cutoff())) //suicide for smaller groups is ok
+             board.new_chain_length_less_than(*m, ATARI_CUTOFF)) //suicide for smaller groups is ok
     }
 
     fn max_moves(&self, size: u8) -> usize {
@@ -212,10 +214,6 @@ impl Playout {
 
     fn play_in_middle_of_eye(&self) -> bool {
         self.config.playout.play_in_middle_of_eye
-    }
-
-    fn cutoff(&self) -> usize {
-        self.config.playout.no_self_atari_cutoff
     }
 
 }
