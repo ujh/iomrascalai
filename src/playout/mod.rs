@@ -133,7 +133,7 @@ impl Playout {
             });
         match in_danger.next() {
             Some(chain) => {
-                let solutions = if self.check_for_ladders() {
+                let solutions = if self.check_for_ladders(rng) {
                     board.save_group(chain)
                 } else {
                     board.fix_atari_no_ladder_check(chain)
@@ -196,8 +196,8 @@ impl Playout {
         }
     }
 
-    fn check_for_ladders(&self) -> bool {
-        self.config.playout.ladder_check
+    fn check_for_ladders(&self, rng: &mut XorShiftRng) -> bool {
+        rng.gen_range(0f32, 1f32) <= self.config.playout.ladder_check
     }
 
     fn check_for_atari(&self, rng: &mut XorShiftRng) -> bool {
