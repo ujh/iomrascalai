@@ -5,10 +5,22 @@
 Iomrascálaí
 ===========
 
-Iomrascálaí
-(Gaelic for wrestler, [see here for the pronunciation](https://raw.githubusercontent.com/ujh/iomrascalai/master/pronunciation.mp4))
-is an AI for the game of Go/Weiqi/Baduk written in Rust. Please note
-that we're using the Rust nightly build and not stable!
+Iomrascálaí (Gaelic for wrestler, [see here for the pronunciation](https://raw.githubusercontent.com/ujh/iomrascalai/master/pronunciation.mp4)) is an AI for the game of Go/Weiqi/Baduk written in [Rust](https://www.rust-lang.org).
+
+Installation
+------------
+
+Iomrascálaí requires the latest unstable (also called nightly) Rust compiler as well as the latest Cargo. Both are generally installed when you download the installers from the [Rust homepage](https://www.rust-lang.org). You will also need a graphical interface for playing games against the AI. We suggest downloading GoGui (**LINK**).
+
+Playing games
+-------------
+
+Once you've installed the nightly Rust compiler, Cargo, and [GoGui](http://gogui.sourceforge.net/) you can use the following shell scripts to compile the program and play games:
+
+* `bin/play` will compile the program and start a game on a 9x9 board with a time limit of 5 minutes (sudden death) in [GoGui](http://gogui.sourceforge.net/). By default it will assign black to Iomrascálaí. The defaults can be changed easily by editing some constants in the script.
+* `bin/play-gnugo` will compile the program and start a game on 9x9 with a time limit of 5 minutes (sudden death) against GnuGo. It will assign black to [GnuGo](https://www.gnu.org/software/gnugo/) and the game can be observed in [GoGui](http://gogui.sourceforge.net/). Again, the defaults (board size, time limits, etc.) can be changed by editing the script.
+* `bin/play-self` will compile the program and start a game on 9x9 with a time limit of 5 minutes (sudden death) between two copies of Iomrascálaí. Just like with the other scripts the game can be observed in [GoGui](http://gogui.sourceforge.net/) and the parameters can be adjusted by editing the script.
+
 
 Development
 ===========
@@ -17,27 +29,6 @@ See the [issues](https://github.com/ujh/iomrascalai/issues) for
 planned features and bugs and
 [join the mailing list](https://groups.google.com/forum/#!forum/iomrascalai)
 and [the chat](https://gitter.im/ujh/iomrascalai) for discussion.
-
-Testing
-=======
-
-To play 10 games against GnuGo, install GoGui and run the
-following command in the top level folder:
-
-``` sh
-BLACK="gnugo --mode gtp --chinese-rules --positional-superko --capture-all-dead --score aftermath --play-out-aftermath"
-WHITE="./target/release/iomrascalai"
-gogui-twogtp -auto -black "$BLACK" -white "$WHITE" -size 9 -alternate -time 5m -games 100 -sgffile gnugo-test
-```
-
-To run a game against GnuGo and view it in GoGui in real time use the following command (add `-auto` if a new game should automatically be started when a game is finished):
-
-``` sh
-BLACK="gnugo --mode gtp --chinese-rules --positional-superko --capture-all-dead --score aftermath --play-out-aftermath"
-WHITE="./target/release/iomrascalai"
-TWOGTP="gogui-twogtp -black \"$BLACK\" -white \"$WHITE\" -verbose -size 9"
-gogui -computer-both -program "$TWOGTP" -size 9
-```
 
 Resources
 =========
