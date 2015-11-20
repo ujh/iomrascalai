@@ -110,7 +110,7 @@ impl Playout {
     fn select_move(&self, board: &Board, heuristic_set: Vec<Coord>, rng: &mut XorShiftRng) -> Move {
         let color = board.next_player();
 
-        if self.check_for_atari() {
+        if self.check_for_atari(rng) {
             let possible_move = self.atari_move(color, board, rng);
             if possible_move.is_some() {
                 return possible_move.unwrap();
@@ -133,7 +133,7 @@ impl Playout {
             });
         match in_danger.next() {
             Some(chain) => {
-                let solutions = if self.check_for_ladders() {
+                let solutions = if self.check_for_ladders(rng) {
                     board.save_group(chain)
                 } else {
                     board.fix_atari_no_ladder_check(chain)
@@ -183,7 +183,7 @@ impl Playout {
                     if include_pass == 0 && !board.is_not_self_atari(&m) {
                         include_pass = 1; //try to pass in a seki sometimes
                     } else {
-                        return if self.play_in_middle_of_eye() {
+                        return if self.play_in_middle_of_eye(rng) {
                             board.play_in_middle_of_eye(m).unwrap_or(m)
                         } else {
                             m
@@ -196,24 +196,20 @@ impl Playout {
         }
     }
 
-    fn check_for_ladders(&self) -> bool {
-        self.config.playout.ladder_check
+    fn check_for_ladders(&self, rng: &mut XorShiftRng) -> bool {
+        rng.gen_range(0f32, 1f32) <= self.config.playout.ladder_check
     }
 
-    fn check_for_atari(&self) -> bool {
-        self.config.playout.atari_check
+    fn check_for_atari(&self, rng: &mut XorShiftRng) -> bool {
+        rng.gen_range(0f32, 1f32) <= self.config.playout.atari_check
     }
 
     fn use_patterns(&self, rng: &mut XorShiftRng) -> bool {
-        if self.config.playout.use_patterns {
-            rng.gen_range(0f32, 1f32) < self.config.playout.pattern_probability
-        } else {
-            false
-        }
+        rng.gen_range(0f32, 1f32) <= self.config.playout.pattern_probability
     }
 
-    fn play_in_middle_of_eye(&self) -> bool {
-        self.config.playout.play_in_middle_of_eye
+    fn play_in_middle_of_eye(&self, rng: &mut XorShiftRng) -> bool {
+        rng.gen_range(0f32, 1f32) <= self.config.playout.play_in_middle_of_eye
     }
 
 }

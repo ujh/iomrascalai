@@ -245,7 +245,7 @@ impl Node {
             // That's a negative prior
             node.record_priors(self.config.priors.self_atari, 0);
         }
-        if self.config.priors.use_empty {
+        if self.use_empty() {
             let distance = m.coord().distance_to_border(board.size());
             if distance <= 2 && self.in_empty_area(board, m) {
                 if distance <= 1 {
@@ -256,12 +256,16 @@ impl Node {
                 }
             }
         }
-        if self.config.priors.use_patterns {
+        if self.use_patterns() {
             let count = self.matching_patterns_count(board, m, matcher);
             let prior = count * self.config.priors.patterns;
             node.record_even_prior(prior);
         }
         node
+    }
+
+    fn use_patterns(&self) -> bool {
+        self.config.priors.patterns > 0
     }
 
     fn matching_patterns_count(&self, board: &Board, m: &Move, matcher: Arc<Matcher>) -> usize {
@@ -440,5 +444,10 @@ impl Node {
     pub fn color(&self) -> Color {
         *self.m().color()
     }
+
+    fn use_empty(&self) -> bool {
+        self.config.priors.empty > 0
+    }
+
 
 }

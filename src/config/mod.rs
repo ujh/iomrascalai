@@ -152,12 +152,6 @@ pub struct PriorsConfig {
     /// in self atari. This is a negative prior (i.e. only prior plays
     /// are increased).
     pub self_atari: usize,
-    /// If set to `true` we check if the move is in an empty area
-    /// close to the border and use the `empty` prior.
-    pub use_empty: bool,
-    /// If set to `true` we check if a 3x3 pattern matches and use the
-    /// `patterns` prior.
-    pub use_patterns: bool,
 }
 
 impl PriorsConfig {
@@ -177,8 +171,6 @@ impl PriorsConfig {
             neutral_wins: Self::as_integer(&table, "neutral_wins"),
             patterns: Self::as_integer(&table, "patterns"),
             self_atari: Self::as_integer(&table, "self_atari"),
-            use_empty: Self::as_bool(&table, "use_empty"),
-            use_patterns: Self::as_bool(&table, "use_patterns"),
         }
     }
 
@@ -230,12 +222,13 @@ impl FromToml for TimeControlConfig {
 /// Holds settings related to the playout policy
 #[derive(Debug, PartialEq)]
 pub struct PlayoutConfig {
-    /// If set to `true` check for atari in the playout and
-    /// immediately play the saving move if there is one.
-    pub atari_check: bool,
-    /// If set to `true` use the ladder checker (which is expensive)
-    /// during atari resolution.
-    pub ladder_check: bool,
+    /// The probability of checking for atari moves (and playing one
+    /// if there are any). Set to 1.0 to always check.
+    pub atari_check: f32,
+    /// The probability of using the ladder checker (which is
+    /// expensive) during atari resolution. Set to 1.0 to always use
+    /// it.
+    pub ladder_check: f32,
     /// The number of most recently played moves to consider when
     /// selecting moves based on heuristics.
     pub last_moves_for_heuristics: usize,
@@ -245,11 +238,7 @@ pub struct PlayoutConfig {
     /// the playouts too much.
     pub pattern_probability: f32,
     /// ???
-    pub play_in_middle_of_eye: bool,
-    /// If set to `true` then we try to match 3x3 patterns with
-    /// `pattern_probability`. If any patterns match we play one of
-    /// these moves.
-    pub use_patterns: bool,
+    pub play_in_middle_of_eye: f32,
 }
 
 impl PlayoutConfig {
@@ -261,12 +250,11 @@ impl PlayoutConfig {
         table.extend(default_table);
         table.extend(opts);
         PlayoutConfig {
-            atari_check: Self::as_bool(&table, "atari_check"),
-            ladder_check: Self::as_bool(&table, "ladder_check"),
+            atari_check: Self::as_float(&table, "atari_check"),
+            ladder_check: Self::as_float(&table, "ladder_check"),
             last_moves_for_heuristics: Self::as_integer(&table, "last_moves_for_heuristics"),
             pattern_probability: Self::as_float(&table, "pattern_probability"),
-            play_in_middle_of_eye: Self::as_bool(&table, "play_in_middle_of_eye"),
-            use_patterns: Self::as_bool(&table, "use_patterns"),
+            play_in_middle_of_eye: Self::as_float(&table, "play_in_middle_of_eye"),
         }
     }
 
