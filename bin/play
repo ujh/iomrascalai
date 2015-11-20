@@ -1,0 +1,11 @@
+#!/bin/bash
+
+set -ex
+
+cargo build --release
+
+IOMRASCALAI="cargo run --release -q"
+SIZE=9
+TIME="5m"
+
+gogui -computer-black -program "$IOMRASCALAI" -size $SIZE
