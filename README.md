@@ -21,6 +21,12 @@ Once you've installed the nightly Rust compiler, Cargo, and [GoGui](http://gogui
 * `bin/play-gnugo` will compile the program and start a game on 9x9 with a time limit of 5 minutes (sudden death) against GnuGo. It will assign black to [GnuGo](https://www.gnu.org/software/gnugo/) and the game can be observed in [GoGui](http://gogui.sourceforge.net/). Again, the defaults (board size, time limits, etc.) can be changed by editing the script.
 * `bin/play-self` will compile the program and start a game on 9x9 with a time limit of 5 minutes (sudden death) between two copies of Iomrascálaí. Just like with the other scripts the game can be observed in [GoGui](http://gogui.sourceforge.net/) and the parameters can be adjusted by editing the script.
 
+Program parameters
+------------------
+
+Many parameters of Iomrascálaí can be changed and those changes directly affect the program strength.
+
+You set the parameters by supplying a TOML (**LINK**) formatted configuration file when starting the program with either the `-c` or `--config` command line flag. A great way to get started is to capture the output of `-d` (or `--dump`) into a file and edit the variables. This is the default configuration and lists all possible variables with their default values. See the [api documentation](http://bettong.net/iomrascalai/api/iomrascalai) for details on what these variables do. Just use the search on top and enter the name of the configuration variable. It should take you to the page that lists the struct that defines it (e.g. `PriorsConfig` for a variable in the `[priors]` block in the config file).
 
 Development
 ===========
