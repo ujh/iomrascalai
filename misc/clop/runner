@@ -6,6 +6,8 @@ experiment = ARGV[0]
 processor = ARGV[1] # ignored
 SEED = ARGV[2].to_i
 
+srand(SEED)
+
 toml = to_toml(from_assoc(ARGV[3..-1]))
 
 $stderr.puts toml

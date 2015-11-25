@@ -1,15 +1,22 @@
 def run(toml:, seed:, outfile:)
   File.open("config.toml", "w") {|f| f.puts toml }
+  if rand(2).zero?
+    white = iomrascalai
+    black = gnugo
+  else
+    white = gnugo
+    black = iomrascalai
+  end
   execute(twogtp({
     size: size(seed),
     time: time(seed),
     referee: referee,
-    black: gnugo,
-    white: iomrascalai,
+    black: black,
+    white: white,
     outfile: outfile
   }))
-  # Just return true for now as we always play white
-  true
+  # Return if we're playing white or not
+  white == iomrascalai
 end
 
 def execute(command)
@@ -18,8 +25,10 @@ def execute(command)
   system command
 end
 
+# Select size based on the module of the seed (see Replications in the
+# experiments file). For now we just always use 13.
 def size(seed)
-  (seed % 2).zero? ? 9 : 13
+  13
 end
 
 def time(seed)
