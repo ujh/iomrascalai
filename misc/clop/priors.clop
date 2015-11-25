@@ -2,9 +2,7 @@
 Name priors
 Processor main
 Script ./priors-runner
-# Call the script "Replications" times with the idential parameters.
-# We use this to switch board size (9x9 & 13x13 for now)
-Replications 2
+Replications 1
 
 # [priors]
 LinearParameter priors.best_move_factor 0.0 10.0
