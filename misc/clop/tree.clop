@@ -1,0 +1,10 @@
+# Use for the naming of the .log and .dat files
+Name tree
+Processor main
+Script ./tree-runner
+Replications 1
+
+# [tree]
+LinearParameter tree.end_of_game_cutoff 0.0 0.1
+IntegerParameter tree.expand_after 0 50
+LinearParameter tree.rave_equiv 0.0 10000.0
