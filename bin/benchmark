@@ -2,8 +2,7 @@
 
 set -e
 
-THREADS=8
-GAMES=300
+GAMES=500
 
 if [ $1 == "9" ]; then
     TIME="5m"
