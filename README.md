@@ -26,7 +26,7 @@ Program parameters
 
 Many parameters of Iomrascálaí can be changed and those changes directly affect the program strength.
 
-You set the parameters by supplying a TOML (**LINK**) formatted configuration file when starting the program with either the `-c` or `--config` command line flag. A great way to get started is to capture the output of `-d` (or `--dump`) into a file and edit the variables. This is the default configuration and lists all possible variables with their default values. See the [api documentation](http://bettong.net/iomrascalai/api/iomrascalai) for details on what these variables do. Just use the search on top and enter the name of the configuration variable. It should take you to the page that lists the struct that defines it (e.g. `PriorsConfig` for a variable in the `[priors]` block in the config file).
+You set the parameters by supplying a [TOML](https://github.com/toml-lang/toml) formatted configuration file when starting the program with either the `-c` or `--config` command line flag. A great way to get started is to capture the output of `-d` (or `--dump`) into a file and edit the variables. This is the default configuration and lists all possible variables with their default values. See the [api documentation](http://bettong.net/iomrascalai/) for details on what these variables do. Just use the search on top and enter the name of the configuration variable. It should take you to the page that lists the struct that defines it (e.g. [PriorsConfig](http://bettong.net/iomrascalai/api/iomrascalai/struct.PriorsConfig.html) for a variable in the `[priors]` block in the config file).
 
 Development
 ===========
@@ -35,6 +35,8 @@ See the [issues](https://github.com/ujh/iomrascalai/issues) for
 planned features and bugs and
 [join the mailing list](https://groups.google.com/forum/#!forum/iomrascalai)
 and [the chat](https://gitter.im/ujh/iomrascalai) for discussion.
+
+The internal documentation is available [here](http://bettong.net/iomrascalai). It can also be built locally using `cargo doc`.
 
 License
 =======
