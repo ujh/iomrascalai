@@ -10,16 +10,16 @@ Iomrascálaí (Gaelic for wrestler, [see here for the pronunciation](https://raw
 Installation
 ------------
 
-Iomrascálaí requires the latest unstable (also called nightly) Rust compiler as well as the latest Cargo. Both are generally installed when you download the installers from the [Rust homepage](https://www.rust-lang.org). You will also need a graphical interface for playing games against the AI. We suggest downloading GoGui (**LINK**).
+Iomrascálaí requires the latest unstable (also called nightly) Rust compiler as well as the latest Cargo. Both are generally installed when you download the installers from the [Rust homepage](https://www.rust-lang.org). You will also need a graphical interface for playing games against the AI. We suggest downloading [GoGui](http://sourceforge.net/projects/gogui/).
 
 Playing games
 -------------
 
-Once you've installed the nightly Rust compiler, Cargo, and [GoGui](http://gogui.sourceforge.net/) you can use the following shell scripts to compile the program and play games:
+Once you've installed the nightly Rust compiler, Cargo, and [GoGui](http://gogui.sourceforge.net/) you can use the following shell scripts to compile the program and play games. All these scripts play a game on a 9x9 board with a time limit of 5 minutes by default. You can also play games on 13x13 and 19x19 by passing 13 or 19 as an argument to the scripts.
 
-* `bin/play` will compile the program and start a game on a 9x9 board with a time limit of 5 minutes (sudden death) in [GoGui](http://gogui.sourceforge.net/). By default it will assign black to Iomrascálaí. The defaults can be changed easily by editing some constants in the script.
-* `bin/play-gnugo` will compile the program and start a game on 9x9 with a time limit of 5 minutes (sudden death) against GnuGo. It will assign black to [GnuGo](https://www.gnu.org/software/gnugo/) and the game can be observed in [GoGui](http://gogui.sourceforge.net/). Again, the defaults (board size, time limits, etc.) can be changed by editing the script.
-* `bin/play-self` will compile the program and start a game on 9x9 with a time limit of 5 minutes (sudden death) between two copies of Iomrascálaí. Just like with the other scripts the game can be observed in [GoGui](http://gogui.sourceforge.net/) and the parameters can be adjusted by editing the script.
+* `bin/play` will compile the program and start a game in [GoGui](http://gogui.sourceforge.net/). By default it will assign black to Iomrascálaí. The defaults can be changed easily by editing some constants in the script.
+* `bin/play-gnugo` will compile the program and start a game against GnuGo. It will assign black to [GnuGo](https://www.gnu.org/software/gnugo/) and the game can be observed in [GoGui](http://gogui.sourceforge.net/). Again, the defaults can be changed by editing the script.
+* `bin/play-self` will compile the program and start a game between two copies of Iomrascálaí. Just like with the other scripts the game can be observed in [GoGui](http://gogui.sourceforge.net/) and the parameters can be adjusted by editing the script.
 
 Program parameters
 ------------------
@@ -36,24 +36,9 @@ planned features and bugs and
 [join the mailing list](https://groups.google.com/forum/#!forum/iomrascalai)
 and [the chat](https://gitter.im/ujh/iomrascalai) for discussion.
 
-Resources
-=========
-
-The following Go programs are available as source code and can serve
-as inspiration:
-
-* [HouseBot](https://github.com/ujh/HouseBot)
-* [Pachi](http://pachi.or.cz/)
-* [Orego](https://github.com/Orego/Orego)
-* [libego](https://github.com/lukaszlew/libego)
-* [Fuego](http://sourceforge.net/projects/fuego/)
-* [oakfoam](http://oakfoam.com/)
-* [GnuGo](https://www.gnu.org/software/gnugo/)
-* [Brown](http://www.lysator.liu.se/~gunnar/gtp/brown-1.0.tar.gz)
-
 License
 =======
 
-Iomrascálaí is licensed under GPL v3. See the
-[LICENSE file](https://github.com/ujh/iomrascalai/blob/master/LICENSE)
-for the complete license text.
+Iomrascálaí is licensed under GPLv3. See the
+[LICENSE](https://github.com/ujh/iomrascalai/blob/master/LICENSE)
+file for the complete license text. The scripts in `bin/` and `misc/clop` are licensed under the MIT license.
