@@ -1,12 +1,30 @@
 #!/bin/bash
 
-set -ex
+set -e
+
+if [ -z "$1" ]; then
+    SIZE="9"
+else
+    SIZE=$1
+fi
+
+if [ $SIZE == "9" ]; then
+    TIME="5m"
+elif [ $SIZE == "13" ]; then
+    TIME="10m"
+elif [ $SIZE == "19" ]; then
+    TIME="20m"
+else
+    echo "Size '$SIZE' isn't supported!"
+    exit 1
+fi
 
 cargo build --release
 
 IOMRASCALAI="cargo run --release"
-SIZE=9
-TIME="5m"
 
 TWOGTP="gogui-twogtp -black \"$IOMRASCALAI\" -white \"$IOMRASCALAI\" -verbose -size $SIZE -time $TIME"
+
+set -x
+
 gogui -computer-both -program "$TWOGTP" -size $SIZE
