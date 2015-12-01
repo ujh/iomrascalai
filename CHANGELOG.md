@@ -1,3 +1,18 @@
+## 0.3.0 [☰](https://github.com/ujh/iomrascalai/compare/0.2.4...master)
+
+* TODO
+
+### Performance
+
+After running 500 games on 9x9 with komi 6.5 and a time limit of 5
+minutes (sudden death) the win rate against GnuGo 3.8 level 0 was
+**XX.YY%** with the default configuration.
+
+After running 500 games on 13x13 with komi 6.5 and a time limit of 10
+minutes (sudden death) the win rate against GnuGo 3.8 level 0 was
+**XX.YY** with the default configuration.
+
+
 ## 0.2.4 [☰](https://github.com/ujh/iomrascalai/compare/0.2.3...0.2.4)
 
 This release doesn't contain any new features. But as the last release
