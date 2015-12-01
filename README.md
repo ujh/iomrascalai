@@ -10,7 +10,12 @@ Iomrascálaí (Gaelic for wrestler, [see here for the pronunciation](https://raw
 Installation
 ------------
 
-Iomrascálaí requires the latest unstable (also called nightly) Rust compiler as well as the latest Cargo. Both are generally installed when you download the installers from the [Rust homepage](https://www.rust-lang.org). You will also need a graphical interface for playing games against the AI. We suggest downloading [GoGui](http://sourceforge.net/projects/gogui/).
+If you just want to play a game against the engine you can download precompiled executables of the [releases](https://github.com/ujh/iomrascalai/releases) for Mac, Linux, and Windows. You will also need a graphical interface for playing games against the AI. We suggest downloading [GoGui](http://sourceforge.net/projects/gogui/).
+
+Compilation
+------------
+
+Iomrascálaí requires the latest unstable (also called nightly) Rust compiler as well as the latest Cargo. Both are generally installed when you download the installers from the [Rust homepage](https://www.rust-lang.org).
 
 Playing games
 -------------
