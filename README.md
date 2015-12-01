@@ -39,9 +39,9 @@ Development
 See the [issues](https://github.com/ujh/iomrascalai/issues) for
 planned features and bugs and
 [join the mailing list](https://groups.google.com/forum/#!forum/iomrascalai)
-and [the chat](https://gitter.im/ujh/iomrascalai) for discussion.
+and [the chat](https://gitter.im/ujh/iomrascalai) for discussion. The internal documentation is available [here](http://bettong.net/iomrascalai). It can also be built locally using `cargo doc`.
 
-The internal documentation is available [here](http://bettong.net/iomrascalai). It can also be built locally using `cargo doc`.
+Please note that this project is released with a Contributor Code of Conduct. By participating in this project you agree to abide by its terms.
 
 License
 =======
