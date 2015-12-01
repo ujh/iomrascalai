@@ -65,6 +65,7 @@ strenum! {
         version
 }
 
+#[derive(Debug)]
 pub enum Command {
     BoardSize,
     ClearBoard,
@@ -74,6 +75,7 @@ pub enum Command {
     FinalScore(String),
     GenMove(String),
     GenMoveError(Move, IllegalMove),
+    GoGuiAnalyzeCommands(String),
     KnownCommand(bool),
     Komi,
     ListCommands(String),

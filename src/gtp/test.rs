@@ -188,9 +188,25 @@ describe! interpreter {
                 Command::FinalScore(score) => assert_eq!("B+9.5", score),
                 _                          => panic!("FinalScore expected!")
             }
-            interpreter.quit();
         }
 
     }
 
+    // Gogui extensions
+    describe! gogui {
+
+        describe! analyze_commands {
+
+            it "returns the supported analyze commands" {
+                let response = interpreter.read("gogui-analyze_commands\n");
+                let expected = "dboard/Safe Territory/imrscl-safe_territory";
+                match response {
+                    Command::GoGuiAnalyzeCommands(r) => assert_eq!(expected, r),
+                    _ => panic!("wrong command returned: {:?}", response)
+                }
+            }
+
+        }
+
+    }
 }
