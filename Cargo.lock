@@ -8,8 +8,8 @@ dependencies = [
  "num 0.1.28 (registry+https://github.com/rust-lang/crates.io-index)",
  "quicksort 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.3.12 (registry+https://github.com/rust-lang/crates.io-index)",
- "regex 0.1.41 (registry+https://github.com/rust-lang/crates.io-index)",
- "regex_macros 0.1.23 (registry+https://github.com/rust-lang/crates.io-index)",
+ "regex 0.1.43 (registry+https://github.com/rust-lang/crates.io-index)",
+ "regex_macros 0.1.24 (registry+https://github.com/rust-lang/crates.io-index)",
  "smallvec 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "stainless 0.1.1 (git+https://github.com/reem/stainless.git)",
  "strenum 0.0.6 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -29,7 +29,7 @@ dependencies = [
 
 [[package]]
 name = "aho-corasick"
-version = "0.3.4"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "memchr 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -104,10 +104,10 @@ dependencies = [
 
 [[package]]
 name = "regex"
-version = "0.1.41"
+version = "0.1.43"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "aho-corasick 0.3.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "aho-corasick 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "memchr 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex-syntax 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -119,10 +119,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "regex_macros"
-version = "0.1.23"
+version = "0.1.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "regex 0.1.41 (registry+https://github.com/rust-lang/crates.io-index)",
+ "regex 0.1.43 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
