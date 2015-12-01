@@ -16,6 +16,7 @@ script:
 - |
   travis-cargo build &&
   travis-cargo test &&
+  travis-cargo doc
 after_success:
 - travis-cargo doc-upload
 - travis-cargo coveralls --no-sudo --verify
@@ -25,4 +26,5 @@ notifications:
     - https://webhooks.gitter.im/e/fc22c02441fe92b9dda0
 env:
   global:
-    secure: Afu8edoY4oE9U+BhZGrhzYmmO+3K5jRCGX2d8pqn+SON+SCBBfxzE27Hzl/mUKJg/OmMcxF/XtM65ojNEfuUifR/dPq2BazVPOTfimx/a6kU/Rzvw+qpFVLFNhE8CZ1I7wYpZLYyfqLUFIxjum70GAXgIaULzxzEMVgVtQS4j0w=
+    - TRAVIS_CARGO_NIGHTLY_FEATURE=""
+    - secure: Afu8edoY4oE9U+BhZGrhzYmmO+3K5jRCGX2d8pqn+SON+SCBBfxzE27Hzl/mUKJg/OmMcxF/XtM65ojNEfuUifR/dPq2BazVPOTfimx/a6kU/Rzvw+qpFVLFNhE8CZ1I7wYpZLYyfqLUFIxjum70GAXgIaULzxzEMVgVtQS4j0w=
