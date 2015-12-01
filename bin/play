@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 # Copyright (c) 2015 Urban Hafner
 #
@@ -21,13 +22,30 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'fileutils'
+set -e
 
-def dir(seed:, experiment:)
-  caller_fn = caller.first.split(":").first
-  output_dir = File.join(File.expand_path(File.dirname(caller_fn)), "experiments", experiment, seed.to_s)
-  FileUtils.mkdir_p(output_dir)
-  Dir.chdir(output_dir) do
-    yield
-  end
-end
+if [ -z "$1" ]; then
+    SIZE="9"
+else
+    SIZE=$1
+fi
+
+if [ $SIZE == "9" ]; then
+    TIME="5m"
+elif [ $SIZE == "13" ]; then
+    TIME="10m"
+elif [ $SIZE == "19" ]; then
+    TIME="20m"
+else
+    echo "Size '$SIZE' isn't supported!"
+    exit 1
+fi
+
+
+cargo build --release
+
+IOMRASCALAI="cargo run --release -q"
+
+set -x
+
+gogui -computer-black -program "$IOMRASCALAI" -size $SIZE

@@ -69,7 +69,7 @@ mod sgf;
 mod timer;
 mod version;
 
-pub fn main() {
+fn main() {
     let mut opts = Options::new();
     opts.optflag("d", "dump", "Dump default config to stdout");
     opts.optflag("h", "help", "Print this help menu");
