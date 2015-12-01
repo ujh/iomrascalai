@@ -40,25 +40,26 @@ describe! interpreter {
         let mut interpreter = GTPInterpreter::new(config.clone(), engine);
     }
 
+    after_each {
+        interpreter.quit();
+    }
+
     it "empty string" {
         let command = interpreter.read("");
         match command {
     	    Command::Empty => (),
     	    _ => panic!("Expected Command::Empty")
         }
-        interpreter.quit();
     }
 
     describe! loadsgf {
 
         it "wrong file" {
             interpreter.read("loadsgf wrongfileactually\n");
-            interpreter.quit();
         }
 
         it "one argument" {
             interpreter.read("loadsgf\n");
-            interpreter.quit();
         }
 
     }
@@ -67,7 +68,6 @@ describe! interpreter {
 
         it "one argument" {
             interpreter.read("time_left\n");
-            interpreter.quit();
         }
 
     }
@@ -76,12 +76,10 @@ describe! interpreter {
 
         it "one argument" {
             interpreter.read("time_settings\n");
-            interpreter.quit();
         }
 
         it "sets the time" {
             interpreter.read("time_settings 30 20 10\n");
-            interpreter.quit();
             assert_eq!(30_000, interpreter.timer.main_time);
             assert_eq!(20_000, interpreter.timer.byo_time);
             assert_eq!(10, interpreter.timer.byo_stones);
@@ -93,12 +91,10 @@ describe! interpreter {
 
         it "one argument" {
             interpreter.read("play\n");
-            interpreter.quit();
         }
 
         it "plays a move" {
             interpreter.read("play b a1\n");
-            interpreter.quit();
             assert_eq!(360, interpreter.game.board().vacant_point_count());
         }
 
@@ -108,7 +104,6 @@ describe! interpreter {
 
         it "one argument" {
             interpreter.read("genmove\n");
-            interpreter.quit();
         }
 
     }
@@ -117,12 +112,10 @@ describe! interpreter {
 
         it "one argument" {
             interpreter.read("komi\n");
-            interpreter.quit();
         }
 
         it "sets the komi" {
             interpreter.read("komi 10\n");
-            interpreter.quit();
             assert_eq!(10.0, interpreter.komi());
         }
 
@@ -132,20 +125,17 @@ describe! interpreter {
 
         it "one argument" {
             interpreter.read("boardsize\n");
-            interpreter.quit();
         }
 
         it "sets the correct size" {
             assert_eq!(19, interpreter.game.size());
             interpreter.read("boardsize 9\n");
-            interpreter.quit();
             assert_eq!(9, interpreter.game.size());
         }
 
         it "boardsize resets the board" {
             interpreter.read("play b a1\n");
             interpreter.read("boardsize 9\n");
-            interpreter.quit();
             assert_eq!(81, interpreter.game.board().vacant_point_count());
         }
 
@@ -155,7 +145,6 @@ describe! interpreter {
 
         it "one argument" {
             interpreter.read("known_command\n");
-            interpreter.quit();
         }
 
     }
@@ -169,7 +158,6 @@ describe! interpreter {
                 Command::ListCommands(cs) => assert_eq!(expected, cs),
                 _                         => panic!("wrong match")
             }
-            interpreter.quit();
         }
 
     }
@@ -179,7 +167,6 @@ describe! interpreter {
         it "resets the board" {
             interpreter.read("play b a1\n");
             interpreter.read("clear_board\n");
-            interpreter.quit();
             assert_eq!(361, interpreter.game.board().vacant_point_count());
         }
 
@@ -192,7 +179,6 @@ describe! interpreter {
                 Command::FinalScore(score) => assert_eq!("W+6.5", score),
                 _                          => panic!("FinalScore expected!")
             }
-            interpreter.quit();
         }
 
         it "one move" {
