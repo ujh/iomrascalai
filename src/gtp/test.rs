@@ -49,118 +49,162 @@ describe! interpreter {
         interpreter.quit();
     }
 
-    it "loadsgf wrong file" {
-        interpreter.read("loadsgf wrongfileactually\n");
-        interpreter.quit();
-    }
+    describe! loadsgf {
 
-    it "loadsgf one argument" {
-        interpreter.read("loadsgf\n");
-        interpreter.quit();
-    }
-
-    it "time_left one argument" {
-        interpreter.read("time_left\n");
-        interpreter.quit();
-    }
-
-    it "time_settings one argument" {
-        interpreter.read("time_settings\n");
-        interpreter.quit();
-    }
-
-    it "play one argument" {
-        interpreter.read("play\n");
-        interpreter.quit();
-    }
-
-    it "genmove one argument" {
-        interpreter.read("genmove\n");
-        interpreter.quit();
-    }
-
-    it "komi one argument" {
-        interpreter.read("komi\n");
-        interpreter.quit();
-    }
-
-    it "boardsize one argument" {
-        interpreter.read("boardsize\n");
-        interpreter.quit();
-    }
-
-    it "known_command one argument" {
-        interpreter.read("known_command\n");
-        interpreter.quit();
-    }
-
-    it "no newline at end of list_commands" {
-        let commands = interpreter.read("list_commands\n");
-        let expected = "boardsize\nclear_board\nfinal_score\ngenmove\nknown_command\nkomi\nlist_commands\nloadsgf\nname\nplay\nprotocol_version\nquit\nshowboard\ntime_left\ntime_settings\nversion";
-        match commands {
-            Command::ListCommands(cs) => assert_eq!(expected, cs),
-            _                         => panic!("wrong match")
+        it "wrong file" {
+            interpreter.read("loadsgf wrongfileactually\n");
+            interpreter.quit();
         }
-        interpreter.quit();
-    }
 
-    it "boardsize sets the correct size" {
-        assert_eq!(19, interpreter.game.size());
-        interpreter.read("boardsize 9\n");
-        interpreter.quit();
-        assert_eq!(9, interpreter.game.size());
-    }
-
-    it "boardsize resets the board" {
-        interpreter.read("play b a1\n");
-        interpreter.read("boardsize 9\n");
-        interpreter.quit();
-        assert_eq!(81, interpreter.game.board().vacant_point_count());
-    }
-
-    it "play plays a move" {
-        interpreter.read("play b a1\n");
-        interpreter.quit();
-        assert_eq!(360, interpreter.game.board().vacant_point_count());
-    }
-
-    it "sets the komi" {
-        interpreter.read("komi 10\n");
-        interpreter.quit();
-        assert_eq!(10.0, interpreter.komi());
-    }
-
-    it "sets the time" {
-        interpreter.read("time_settings 30 20 10\n");
-        interpreter.quit();
-        assert_eq!(30_000, interpreter.timer.main_time);
-        assert_eq!(20_000, interpreter.timer.byo_time);
-        assert_eq!(10, interpreter.timer.byo_stones);
-    }
-
-    it "clear_board resets the board" {
-        interpreter.read("play b a1\n");
-        interpreter.read("clear_board\n");
-        interpreter.quit();
-        assert_eq!(361, interpreter.game.board().vacant_point_count());
-    }
-
-    it "final_score no move" {
-        match interpreter.read("final_score\n") {
-            Command::FinalScore(score) => assert_eq!("W+6.5", score),
-            _                          => panic!("FinalScore expected!")
+        it "one argument" {
+            interpreter.read("loadsgf\n");
+            interpreter.quit();
         }
-        interpreter.quit();
+
     }
 
-    it "final_score one move" {
-        interpreter.read("boardsize 4\n");
-        interpreter.read("play b c2\n");
-        match interpreter.read("final_score\n") {
-            Command::FinalScore(score) => assert_eq!("B+9.5", score),
-            _                          => panic!("FinalScore expected!")
+    describe! time_left {
+
+        it "one argument" {
+            interpreter.read("time_left\n");
+            interpreter.quit();
         }
-        interpreter.quit();
+
+    }
+
+    describe! time_settings {
+
+        it "one argument" {
+            interpreter.read("time_settings\n");
+            interpreter.quit();
+        }
+
+        it "sets the time" {
+            interpreter.read("time_settings 30 20 10\n");
+            interpreter.quit();
+            assert_eq!(30_000, interpreter.timer.main_time);
+            assert_eq!(20_000, interpreter.timer.byo_time);
+            assert_eq!(10, interpreter.timer.byo_stones);
+        }
+
+    }
+
+    describe! play {
+
+        it "one argument" {
+            interpreter.read("play\n");
+            interpreter.quit();
+        }
+
+        it "plays a move" {
+            interpreter.read("play b a1\n");
+            interpreter.quit();
+            assert_eq!(360, interpreter.game.board().vacant_point_count());
+        }
+
+    }
+
+    describe! genmove {
+
+        it "one argument" {
+            interpreter.read("genmove\n");
+            interpreter.quit();
+        }
+
+    }
+
+    describe! komi {
+
+        it "one argument" {
+            interpreter.read("komi\n");
+            interpreter.quit();
+        }
+
+        it "sets the komi" {
+            interpreter.read("komi 10\n");
+            interpreter.quit();
+            assert_eq!(10.0, interpreter.komi());
+        }
+
+    }
+
+    describe! boardsize {
+
+        it "one argument" {
+            interpreter.read("boardsize\n");
+            interpreter.quit();
+        }
+
+        it "sets the correct size" {
+            assert_eq!(19, interpreter.game.size());
+            interpreter.read("boardsize 9\n");
+            interpreter.quit();
+            assert_eq!(9, interpreter.game.size());
+        }
+
+        it "boardsize resets the board" {
+            interpreter.read("play b a1\n");
+            interpreter.read("boardsize 9\n");
+            interpreter.quit();
+            assert_eq!(81, interpreter.game.board().vacant_point_count());
+        }
+
+    }
+
+    describe! known_command {
+
+        it "one argument" {
+            interpreter.read("known_command\n");
+            interpreter.quit();
+        }
+
+    }
+
+    describe! list_commands {
+
+        it "no newline at end" {
+            let commands = interpreter.read("list_commands\n");
+            let expected = "boardsize\nclear_board\nfinal_score\ngenmove\nknown_command\nkomi\nlist_commands\nloadsgf\nname\nplay\nprotocol_version\nquit\nshowboard\ntime_left\ntime_settings\nversion";
+            match commands {
+                Command::ListCommands(cs) => assert_eq!(expected, cs),
+                _                         => panic!("wrong match")
+            }
+            interpreter.quit();
+        }
+
+    }
+
+    describe! clear_board {
+
+        it "resets the board" {
+            interpreter.read("play b a1\n");
+            interpreter.read("clear_board\n");
+            interpreter.quit();
+            assert_eq!(361, interpreter.game.board().vacant_point_count());
+        }
+
+    }
+
+    describe! final_score {
+
+        it "no move" {
+            match interpreter.read("final_score\n") {
+                Command::FinalScore(score) => assert_eq!("W+6.5", score),
+                _                          => panic!("FinalScore expected!")
+            }
+            interpreter.quit();
+        }
+
+        it "one move" {
+            interpreter.read("boardsize 4\n");
+            interpreter.read("play b c2\n");
+            match interpreter.read("final_score\n") {
+                Command::FinalScore(score) => assert_eq!("B+9.5", score),
+                _                          => panic!("FinalScore expected!")
+            }
+            interpreter.quit();
+        }
+
     }
 
 }
