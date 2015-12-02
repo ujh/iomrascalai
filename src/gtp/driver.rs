@@ -22,9 +22,7 @@
 
 use config::Config;
 use engine::Engine;
-use super::Command;
 use super::GTPInterpreter;
-use version;
 
 use std::io::stdin;
 use std::sync::Arc;
@@ -33,43 +31,22 @@ pub struct Driver;
 
 impl Driver {
     pub fn new(config: Arc<Config>, engine: Box<Engine>) {
-        let engine_name = "Iomrascalai";
-        let engine_version = version::version();
-        let protocol_version = "2";
-
         let mut interpreter = GTPInterpreter::new(config, engine);
         let reader = stdin();
         let mut command = String::new();
-
+        let regex = regex!(r"^quit");
         loop {
             command.clear();
             reader.read_line(&mut command).unwrap();
 
-            let gtp_command = interpreter.read(&*command);
+            let response = interpreter.read(&*command);
 
-            match gtp_command {
-                Command::BoardSize               => print!("= \n\n"),
-                Command::ClearBoard              => print!("= \n\n"),
-                Command::Empty                   => print!("? empty command\n\n"),
-                Command::Error                   => print!("? unknown command\n\n"),
-                Command::ErrorMessage(e)         => print!("? {}\n\n", e),
-                Command::FinalScore(s)           => print!("= {}\n\n", s),
-                Command::GenMove(s)              => print!("= {}\n\n", s),
-                Command::GenMoveError(m, e)      => print!("? Illegal move: {:?} ({:?})\n\n", m, e),
-                Command::GoGuiAnalyzeCommands(s) => print!("= {}\n\n", s),
-                Command::KnownCommand(b)         => print!("= {}\n\n", b),
-                Command::Komi                    => print!("= \n\n"),
-                Command::ListCommands(s)         => print!("= {}\n\n", s),
-                Command::LoadSgf                 => print!("= \n\n"),
-                Command::Name                    => print!("= {}\n\n", engine_name),
-                Command::Play                    => print!("= \n\n"),
-                Command::PlayError(m, e)         => print!("? Illegal move: {:?} ({:?})\n\n", m, e),
-                Command::ProtocolVersion         => print!("= {}\n\n", protocol_version),
-                Command::Quit                    => { print!("= \n\n"); return; },
-                Command::ShowBoard(s)            => print!("= {}\n\n", s),
-                Command::TimeLeft                => print!("= \n\n"),
-                Command::TimeSettings            => print!("= \n\n"),
-                Command::Version                 => print!("= {}\n\n", engine_version),
+            match response {
+                Ok(s)  => print!("= {}\n\n", s),
+                Err(s) => print!("? {}\n\n", s)
+            }
+            if regex.is_match(&command) {
+                return;
             }
         }
 
