@@ -14,9 +14,7 @@
 
 *Note that the measurement of the error margins have changed. We now calculate proper 95% and 99% confidence intervals whereas previously we only used the ~68% standard deviation.*
 
-After running 500 games on 9x9 with komi 6.5 and a time limit of 5
-minutes (sudden death) the win rate against GnuGo 3.8 level 0 was
-**XX.YY%** with the default configuration.
+After running 500 games on 9x9 with komi 6.5 and a time limit of 5 minutes (sudden death) the win rate against GnuGo 3.8 level 0 was **85.40% (± 3.08 at 95%, ± 3.14 at 99%)** with the default configuration.
 
 After running 500 games on 13x13 with komi 6.5 and a time limit of 10
 minutes (sudden death) the win rate against GnuGo 3.8 level 0 was
