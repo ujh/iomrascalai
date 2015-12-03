@@ -19,7 +19,7 @@
  * along with Iomrascálaí.  If not, see <http://www.gnu.org/licenses/>. *
  *                                                                      *
  ************************************************************************/
-#![allow(non_camel_case_types)]
+
 use std::path::Path;
 use board::Color;
 use board::Move;
