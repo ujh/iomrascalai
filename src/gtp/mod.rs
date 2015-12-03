@@ -76,6 +76,7 @@ pub struct GTPInterpreter<'a> {
     config: Arc<Config>,
     game: Game,
     receive_move_from_controller: Receiver<Move>,
+    running: bool,
     send_command_to_controller: Sender<ControllerCommand>,
     timer: Timer,
 }
@@ -115,14 +116,16 @@ impl<'a> GTPInterpreter<'a> {
                 config: config.clone(),
                 game: Game::new(boardsize, komi, config.ruleset),
                 receive_move_from_controller: receive_move_from_controller,
+                running: true,
                 send_command_to_controller: send_command_to_controller,
                 timer: Timer::new(config),
             }
         }
     }
 
-    pub fn quit(&self) {
+    pub fn quit(&mut self) {
         self.send_command_to_controller.send(ControllerCommand::ShutDown).unwrap();
+        self.running = false;
     }
 
     pub fn komi(&self) -> f32 {

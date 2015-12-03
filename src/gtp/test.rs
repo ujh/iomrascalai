@@ -194,42 +194,87 @@ describe! interpreter {
 
     describe! list_commands {
 
-        // it "no newline at end" {
-        //     let response = interpreter.read("list_commands\n");
-        //     let expected = "boardsize\nclear_board\nfinal_score\ngenmove\nknown_command\nkomi\nlist_commands\nloadsgf\nname\nplay\nprotocol_version\nquit\nshowboard\ntime_left\ntime_settings\nversion";
-        //     assert!(response.is_ok());
-        //     assert_that(response.unwrap(), is(equal_to(expected.to_string())));
-        // }
+        it "no newline at end" {
+            let response = interpreter.read("list_commands\n");
+            let expected = "boardsize\nclear_board\nfinal_score\ngenmove\nknown_command\nkomi\nlist_commands\nloadsgf\nname\nplay\nprotocol_version\nquit\nshowboard\ntime_left\ntime_settings\nversion";
+            assert_that(response, is(equal_to(ok(expected))));
+        }
 
     }
 
     describe! clear_board {
 
-        // it "resets the board" {
-        //     interpreter.read("play b a1\n");
-        //     interpreter.read("clear_board\n");
-        //     assert_eq!(361, interpreter.game.board().vacant_point_count());
-        // }
+        it "resets the board" {
+            interpreter.read("play b a1\n").unwrap();
+            let response = interpreter.read("clear_board\n");
+            assert_that(response, is(equal_to(ok(""))));
+            assert_eq!(361, interpreter.game.board().vacant_point_count());
+        }
 
     }
 
     describe! final_score {
 
-        // it "no move" {
-        //     let response = interpreter.read("final_score\n");
-        //     assert!(response.is_ok());
-        //     assert_that(response.unwrap(), is(equal_to("W+6.5".to_string())));
-        // }
+        it "no move" {
+            let response = interpreter.read("final_score\n");
+            assert_that(response, is(equal_to(ok("W+6.5"))));
+        }
 
-        // it "one move" {
-        //     interpreter.read("boardsize 4\n");
-        //     interpreter.read("play b c2\n");
-        //     let response = interpreter.read("final_score\n");
-        //     assert!(response.is_ok());
-        //     assert_that(response.unwrap(), is(equal_to("B+9.5".to_string())));
-        // }
+        it "one move" {
+            interpreter.read("boardsize 4\n").unwrap();
+            interpreter.read("play b c2\n").unwrap();
+            let response = interpreter.read("final_score\n");
+            assert_that(response, is(equal_to(ok("B+9.5"))));
+        }
 
     }
+
+    describe! name {
+
+        it "returns the engine name" {
+            let response = interpreter.read("name\n");
+            assert_that(response, is(equal_to(ok("Iomrascalai"))));
+        }
+
+    }
+
+    describe! protocol_version {
+
+        it "returns 2" {
+            let response = interpreter.read("protocol_version\n");
+            assert_that(response, is(equal_to(ok("2"))));
+        }
+
+    }
+
+    describe! showboard {
+
+        it "returns a board representation" {
+            interpreter.read("boardsize 3\n").unwrap();
+            let response = interpreter.read("showboard\n");
+            let expected = "\nkomi: 6.5\n 3 . . . \n 2 . . . \n 1 . . . \n   1 2 3 \n";
+            assert_that(response, is(equal_to(ok(expected))));
+        }
+
+    }
+
+    describe! version {
+
+        it "returns the current version" {
+            let response = interpreter.read("version\n");
+            assert_that(response, is(equal_to(ok(::version::version()))));
+        }
+    }
+
+    describe! quit {
+
+        it "shuts down the interpreter" {
+            let response = interpreter.read("quit\n");
+            assert_that(response, is(equal_to(ok(""))));
+            assert!(!interpreter.running);
+        }
+    }
+
 
     // Gogui extensions
     describe! gogui {
