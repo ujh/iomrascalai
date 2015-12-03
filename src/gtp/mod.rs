@@ -338,7 +338,7 @@ impl<'a> GTPInterpreter<'a> {
 
     fn execute_gogui_analyze_commands(&mut self, _: &[&str]) -> Result<String, String> {
         let analyze_commands = vec![
-            "dboard/Safe Territory/imrscl-safe_territory"
+            "dboard/Ownership/imrscl-ownership"
                 ];
         Ok(analyze_commands[1..].iter().fold(analyze_commands[0].to_string(), |acc, &el| format!("{}\n{}", acc, el)))
     }

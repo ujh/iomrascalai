@@ -282,7 +282,7 @@ describe! interpreter {
         describe! analyze_commands {
 
             it "returns the supported analyze commands" {
-                let expected = "dboard/Safe Territory/imrscl-safe_territory";
+                let expected = "dboard/Ownership/imrscl-ownership";
                 let response = interpreter.read("gogui-analyze_commands\n");
                 assert_that(response, is(equal_to(ok(expected))));
             }
@@ -294,10 +294,10 @@ describe! interpreter {
     // Our extensions
     describe! imsrcl {
 
-        describe! safe_territory {
+        describe! ownership {
 
             it "returns board of ownership likelihoods" {
-                let response = interpreter.read("imrscl-safe_territory");
+                let response = interpreter.read("imrscl-ownership");
                 assert_that(response, is(equal_to(ok("TBD"))));
             }
         }
