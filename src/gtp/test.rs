@@ -291,4 +291,17 @@ describe! interpreter {
 
     }
 
+    // Our extensions
+    describe! imsrcl {
+
+        describe! safe_territory {
+
+            it "returns board of ownership likelihoods" {
+                let response = interpreter.read("imrscl-safe_territory");
+                assert_that(response, is(equal_to(ok("TBD"))));
+            }
+        }
+
+    }
+
 }
