@@ -21,26 +21,28 @@
  ************************************************************************/
 
 #![cfg(test)]
-#![allow(unused_must_use)]
 
 pub use hamcrest::assert_that;
+pub use hamcrest::contains;
 pub use hamcrest::equal_to;
 pub use hamcrest::is;
 
 pub use board::Black;
 pub use board::Board;
+pub use board::Coord;
+pub use board::Empty;
 pub use board::Pass;
 pub use board::Play;
 pub use board::White;
 pub use fixtures::load_board;
-pub use ruleset::Minimal;
 
 describe! score {
 
     describe! simple {
 
         before_each {
-            let score = load_board("score/simple").score();
+            let board = load_board("score/simple");
+            let score = board.score();
         }
 
         it "counting" {
@@ -54,8 +56,43 @@ describe! score {
             assert_that(format!("{}", score), is(equal_to("W+6.5".to_string())));
         }
 
-        it "ownership" {
-            // TODO
+        describe! ownership {
+
+            it "black" {
+                let expected_black = vec!["A1", "A2", "A3", "A4", "B1", "B2", "B3", "B4"].iter()
+                    .map(|s| s.to_string()).collect();
+                let mut black: Vec<String> = score.owner().iter()
+                    .enumerate()
+                    .filter(|&(_,c)| *c == Black)
+                    .map(|(i, _)| Coord::from_index(i, board.size()).to_gtp())
+                    .collect();
+                black.sort();
+                assert_that(&black, contains(expected_black).exactly());
+            }
+
+            it "white" {
+                let expected_white = vec!["D1", "D2", "D3", "D4", "D1", "D2", "D3", "D4"].iter()
+                    .map(|s| s.to_string()).collect();
+                let mut white: Vec<String> = score.owner().iter()
+                    .enumerate()
+                    .filter(|&(_,c)| *c == White)
+                    .map(|(i, _)| Coord::from_index(i, board.size()).to_gtp())
+                    .collect();
+                white.sort();
+                assert_that(&white, contains(expected_white).exactly());
+            }
+
+            it "dame" {
+                let expected_dame = vec![];
+                let mut dame: Vec<String> = score.owner().iter()
+                    .enumerate()
+                    .filter(|&(_,c)| *c == Empty)
+                    .map(|(i, _)| Coord::from_index(i, board.size()).to_gtp())
+                    .collect();
+                dame.sort();
+                assert_that(&dame, contains(expected_dame).exactly());
+            }
+
         }
 
     }
