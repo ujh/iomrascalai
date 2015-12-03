@@ -144,35 +144,32 @@ impl<'a> GTPInterpreter<'a> {
 
     pub fn read(&mut self, input: &str) -> Result<String, String> {
         let preprocessed = self.preprocess(input);
-        if preprocessed.len() == 0 { return Err("empty command".to_string()) };
-
+        if preprocessed.len() == 0 {
+            return Err("empty command".to_string())
+        };
         let command: Vec<&str> = preprocessed.split(' ').collect();
-
-        //command[0] is never empty because a split always has at least one part
         let command_name = match <KnownCommands>::enumify(command[0]) {
-        	Some(comm)     => comm,
-        	None           => return Err("unknown command".to_string())
+            Some(n) => n,
+            None => return Err("unknown command".to_string())
     	};
-
         let arguments = &command[1..];
-
         match command_name {
-            KnownCommands::name => self.execute_name(arguments),
-            KnownCommands::version => self.execute_version(arguments),
-            KnownCommands::protocol_version => self.execute_protocol_version(arguments),
-            KnownCommands::list_commands => self.execute_list_commands(arguments),
-            KnownCommands::known_command => self.execute_known_command(arguments),
             KnownCommands::boardsize => self.execute_boardsize(arguments),
             KnownCommands::clear_board => self.execute_clear_board(arguments),
-            KnownCommands::komi => self.execute_komi(arguments),
-            KnownCommands::genmove => self.execute_genmove(arguments),
-            KnownCommands::play => self.execute_play(arguments),
-            KnownCommands::showboard => self.execute_showboard(arguments),
-            KnownCommands::quit => self.execute_quit(arguments),
             KnownCommands::final_score => self.execute_final_score(arguments),
-            KnownCommands::time_settings => self.execute_time_settings(arguments),
-            KnownCommands::time_left => self.execute_time_left(arguments),
+            KnownCommands::genmove => self.execute_genmove(arguments),
+            KnownCommands::known_command => self.execute_known_command(arguments),
+            KnownCommands::komi => self.execute_komi(arguments),
+            KnownCommands::list_commands => self.execute_list_commands(arguments),
             KnownCommands::loadsgf => self.execute_loadsgf(arguments),
+            KnownCommands::name => self.execute_name(arguments),
+            KnownCommands::play => self.execute_play(arguments),
+            KnownCommands::protocol_version => self.execute_protocol_version(arguments),
+            KnownCommands::quit => self.execute_quit(arguments),
+            KnownCommands::showboard => self.execute_showboard(arguments),
+            KnownCommands::time_left => self.execute_time_left(arguments),
+            KnownCommands::time_settings => self.execute_time_settings(arguments),
+            KnownCommands::version => self.execute_version(arguments),
         }
     }
 
