@@ -92,22 +92,25 @@ impl<'a> GTPInterpreter<'a> {
             });
             GTPInterpreter {
                 _guard: guard,
-                commands: vec!["boardsize",
-                               "clear_board",
-                               "final_score",
-                               "genmove",
-                               "known_command",
-                               "komi",
-                               "list_commands",
-                               "loadsgf",
-                               "name",
-                               "play",
-                               "protocol_version",
-                               "quit",
-                               "showboard",
-                               "time_left",
-                               "time_settings",
-                               "version"],
+                commands: vec![
+                    "boardsize",
+                    "clear_board",
+                    "final_score",
+                    "genmove",
+                    "gogui-analyze_commands",
+                    "known_command",
+                    "komi",
+                    "list_commands",
+                    "loadsgf",
+                    "name",
+                    "play",
+                    "protocol_version",
+                    "quit",
+                    "showboard",
+                    "time_left",
+                    "time_settings",
+                    "version",
+                    ],
                 config: config.clone(),
                 game: Game::new(boardsize, komi, config.ruleset),
                 receive_move_from_controller: receive_move_from_controller,
@@ -152,6 +155,7 @@ impl<'a> GTPInterpreter<'a> {
             "clear_board" => self.execute_clear_board(arguments),
             "final_score" => self.execute_final_score(arguments),
             "genmove" => self.execute_genmove(arguments),
+            "gogui-analyze_commands" => self.execute_gogui_analyze_commands(arguments),
             "known_command" => self.execute_known_command(arguments),
             "komi" => self.execute_komi(arguments),
             "list_commands" => self.execute_list_commands(arguments),
@@ -330,6 +334,13 @@ impl<'a> GTPInterpreter<'a> {
             },
             None => Err("missing argument".to_string())
         }
+    }
+
+    fn execute_gogui_analyze_commands(&mut self, _: &[&str]) -> Result<String, String> {
+        let analyze_commands = vec![
+            "dboard/Safe Territory/imrscl-safe_territory"
+                ];
+        Ok(analyze_commands[1..].iter().fold(analyze_commands[0].to_string(), |acc, &el| format!("{}\n{}", acc, el)))
     }
 
     fn measure_playout_speed(started_at: u64, playouts: usize, config: &Arc<Config>) {
