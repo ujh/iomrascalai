@@ -36,7 +36,8 @@ mod test;
 
 pub struct Score {
     black_stones: usize,
-    komi:         f32,
+    komi: f32,
+    owner: Vec<Color>,
     white_stones: usize,
 }
 
@@ -52,7 +53,8 @@ impl Score {
         let (bs, ws) = Score::score_tt(board);
         Score {
             black_stones: bs,
-            komi:         board.komi(),
+            komi: board.komi(),
+            owner: Coord::for_board_size(board.size()).iter().map(|_| Empty).collect(),
             white_stones: ws
         }
     }
@@ -66,6 +68,10 @@ impl Score {
         } else {
             White
         }
+    }
+
+    pub fn owner(&self) -> &Vec<Color> {
+        &self.owner
     }
 
     fn score(&self) -> f32 {
