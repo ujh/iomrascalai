@@ -20,7 +20,11 @@
  ************************************************************************/
 #![cfg(test)]
 
-use super::Coord;
+pub use hamcrest::assert_that;
+pub use hamcrest::equal_to;
+pub use hamcrest::is;
+
+pub use super::Coord;
 
 #[test]
 fn test_neighbours_contain_n_s_e_w() {
@@ -128,4 +132,29 @@ fn manhattan_distance_three_neighbours_in_a_corner() {
     let coord = Coord::new(1, 1);
     let size = 9;
     assert_eq!(9, coord.manhattan_distance_three_neighbours(size).len());
+}
+
+describe! indexing {
+
+    it "a1" {
+        let coord = Coord::from_gtp("a1");
+        assert_that(coord, is(equal_to(Coord::new(1,1))));
+        assert_that(coord.to_index(9), is(equal_to(0)));
+        assert_that(Coord::from_index(0, 9), is(equal_to(coord)));
+    }
+
+    it "j9" {
+        let coord = Coord::from_gtp("j9");
+        assert_that(coord, is(equal_to(Coord::new(9,9))));
+        assert_that(coord.to_index(9), is(equal_to(80)));
+        assert_that(Coord::from_index(80, 9), is(equal_to(coord)));
+    }
+
+    it "g6" {
+        let coord = Coord::from_gtp("g6");
+        assert_that(coord, is(equal_to(Coord::new(7,6))));
+        assert_that(coord.to_index(9), is(equal_to(51)));
+        assert_that(Coord::from_index(51, 9), is(equal_to(coord)));
+    }
+
 }
