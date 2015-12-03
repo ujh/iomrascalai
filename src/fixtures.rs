@@ -1,7 +1,6 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2014 Urban Hafner                                          *
- * Copyright 2015 Urban Hafner, Igor Polyakov                           *
+ * Copyright 2015 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -21,43 +20,20 @@
  ************************************************************************/
 
 #![cfg(test)]
-#![allow(unused_must_use)]
 
-pub use board::Black;
-pub use board::Board;
-pub use board::Pass;
-pub use board::Play;
-pub use board::White;
-pub use fixtures::load_board;
-pub use ruleset::Minimal;
+use std::path::Path;
 
-describe! score {
+use board::Board;
+use game::Game;
+use sgf::Parser;
 
-    it "counting the simple case" {
-        let b = load_board("score/simple");
-        let score = b.score();
-        assert_eq!(8, score.black_stones);
-        assert_eq!(8, score.white_stones);
-        assert_eq!(White, score.color());
-        assert_eq!("W+6.5", format!("{}", score));
-    }
+pub fn load_game(filename: &'static str) -> Game {
+    let expanded_filename = format!("fixtures/sgf/{}.sgf", filename);
+    let path = Path::new(&expanded_filename);
+    let parser = Parser::from_path(path).unwrap();
+    parser.game().unwrap()
+}
 
-    it "counting disjoint territory" {
-        let b = load_board("score/disjoint");
-        let score = b.score();
-        assert_eq!(9, score.black_stones);
-        assert_eq!(16, score.white_stones);
-        assert_eq!(White, score.color());
-        assert_eq!("W+13.5", format!("{}", score));
-    }
-
-    it "counting with neutral points" {
-        let b = load_board("score/dame");
-        let score = b.score();
-        assert_eq!(4, score.black_stones);
-        assert_eq!(20, score.white_stones);
-        assert_eq!(White, score.color());
-        assert_eq!("W+22.5", format!("{}", score));
-    }
-
+pub fn load_board(filename: &'static str) -> Board {
+    load_game(filename).board()
 }

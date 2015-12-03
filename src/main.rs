@@ -58,6 +58,7 @@ use std::process::exit;
 mod board;
 mod config;
 mod engine;
+mod fixtures;
 mod game;
 mod gtp;
 mod patterns;
