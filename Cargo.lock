@@ -12,7 +12,6 @@ dependencies = [
  "regex_macros 0.1.24 (registry+https://github.com/rust-lang/crates.io-index)",
  "smallvec 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "stainless 0.1.1 (git+https://github.com/reem/stainless.git)",
- "strenum 0.0.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "thread-scoped 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "time 0.1.34 (registry+https://github.com/rust-lang/crates.io-index)",
  "toml 0.1.23 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -139,15 +138,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "stainless"
 version = "0.1.1"
 source = "git+https://github.com/reem/stainless.git#a1b3cfc3941d8718a15c32c8c2d8fa47aa58d10d"
-
-[[package]]
-name = "strenum"
-version = "0.0.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-dependencies = [
- "enum_primitive 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "num 0.1.28 (registry+https://github.com/rust-lang/crates.io-index)",
-]
 
 [[package]]
 name = "thread-scoped"

@@ -30,10 +30,8 @@ use game::Game;
 use ruleset::Ruleset;
 use sgf::parser::Parser;
 use timer::Timer;
-use strenum::Strenum;
 use version;
 
-use num::traits::FromPrimitive;
 use std::sync::Arc;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
@@ -45,26 +43,6 @@ use time::precise_time_ns;
 pub mod driver;
 mod test;
 
-strenum! {
-    KnownCommands =>
-        boardsize,
-        clear_board,
-        final_score,
-        genmove,
-        known_command,
-        komi,
-        list_commands,
-        loadsgf,
-        name,
-        play,
-        protocol_version,
-        quit,
-        showboard,
-        time_left,
-        time_settings,
-        version
-}
-
 pub enum ControllerCommand {
     GenMove(Game, Color, Timer),
     Reset,
@@ -73,6 +51,7 @@ pub enum ControllerCommand {
 
 pub struct GTPInterpreter<'a> {
     _guard: JoinGuard<'a, ()>,
+    commands: Vec<&'a str>,
     config: Arc<Config>,
     game: Game,
     receive_move_from_controller: Receiver<Move>,
@@ -113,6 +92,22 @@ impl<'a> GTPInterpreter<'a> {
             });
             GTPInterpreter {
                 _guard: guard,
+                commands: vec!["boardsize",
+                               "clear_board",
+                               "final_score",
+                               "genmove",
+                               "known_command",
+                               "komi",
+                               "list_commands",
+                               "loadsgf",
+                               "name",
+                               "play",
+                               "protocol_version",
+                               "quit",
+                               "showboard",
+                               "time_left",
+                               "time_settings",
+                               "version"],
                 config: config.clone(),
                 game: Game::new(boardsize, komi, config.ruleset),
                 receive_move_from_controller: receive_move_from_controller,
@@ -148,29 +143,30 @@ impl<'a> GTPInterpreter<'a> {
             return Err("empty command".to_string())
         };
         let command: Vec<&str> = preprocessed.split(' ').collect();
-        let command_name = match <KnownCommands>::enumify(command[0]) {
-            Some(n) => n,
-            None => return Err("unknown command".to_string())
-    	};
-        let arguments = &command[1..];
-        match command_name {
-            KnownCommands::boardsize => self.execute_boardsize(arguments),
-            KnownCommands::clear_board => self.execute_clear_board(arguments),
-            KnownCommands::final_score => self.execute_final_score(arguments),
-            KnownCommands::genmove => self.execute_genmove(arguments),
-            KnownCommands::known_command => self.execute_known_command(arguments),
-            KnownCommands::komi => self.execute_komi(arguments),
-            KnownCommands::list_commands => self.execute_list_commands(arguments),
-            KnownCommands::loadsgf => self.execute_loadsgf(arguments),
-            KnownCommands::name => self.execute_name(arguments),
-            KnownCommands::play => self.execute_play(arguments),
-            KnownCommands::protocol_version => self.execute_protocol_version(arguments),
-            KnownCommands::quit => self.execute_quit(arguments),
-            KnownCommands::showboard => self.execute_showboard(arguments),
-            KnownCommands::time_left => self.execute_time_left(arguments),
-            KnownCommands::time_settings => self.execute_time_settings(arguments),
-            KnownCommands::version => self.execute_version(arguments),
+        if !self.commands.contains(&command[0]) {
+            return Err("unknown command".to_string());
         }
+        let arguments = &command[1..];
+        match command[0] {
+            "boardsize" => self.execute_boardsize(arguments),
+            "clear_board" => self.execute_clear_board(arguments),
+            "final_score" => self.execute_final_score(arguments),
+            "genmove" => self.execute_genmove(arguments),
+            "known_command" => self.execute_known_command(arguments),
+            "komi" => self.execute_komi(arguments),
+            "list_commands" => self.execute_list_commands(arguments),
+            "loadsgf" => self.execute_loadsgf(arguments),
+            "name" => self.execute_name(arguments),
+            "play" => self.execute_play(arguments),
+            "protocol_version" => self.execute_protocol_version(arguments),
+            "quit" => self.execute_quit(arguments),
+            "showboard" => self.execute_showboard(arguments),
+            "time_left" => self.execute_time_left(arguments),
+            "time_settings" => self.execute_time_settings(arguments),
+            "version" => self.execute_version(arguments),
+            _ => Err("unknown command".to_string())
+        }
+
     }
 
     fn execute_name(&mut self, _: &[&str]) -> Result<String, String> {
@@ -186,12 +182,12 @@ impl<'a> GTPInterpreter<'a> {
     }
 
     fn execute_list_commands(&mut self, _: &[&str]) -> Result<String, String> {
-        Ok(<KnownCommands>::stringify())
+        Ok(self.commands[1..].iter().fold(self.commands[0].to_string(), |acc, &el| format!("{}\n{}", acc, el)))
     }
 
     fn execute_known_command(&mut self, arguments: &[&str]) -> Result<String, String> {
         match arguments.get(0) {
-            Some(comm) => Ok(format!("{}", <KnownCommands>::enumify(&comm).is_some())),
+            Some(comm) => Ok(format!("{}", self.commands.contains(comm))),
             None => Err("missing argument".to_string())
         }
     }
