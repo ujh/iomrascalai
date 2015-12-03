@@ -124,7 +124,9 @@ impl<'a> GTPInterpreter<'a> {
     }
 
     pub fn quit(&mut self) {
-        self.send_command_to_controller.send(ControllerCommand::ShutDown).unwrap();
+        if self.running {
+            self.send_command_to_controller.send(ControllerCommand::ShutDown).unwrap();
+        }
         self.running = false;
     }
 
