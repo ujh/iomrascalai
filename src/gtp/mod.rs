@@ -154,128 +154,188 @@ impl<'a> GTPInterpreter<'a> {
         	None           => return Err("unknown command".to_string())
     	};
 
+        let arguments = &command[1..];
+
         match command_name {
-            KnownCommands::name             => Ok("Iomrascalai".to_string()),
-            KnownCommands::version          => Ok(version::version().to_string()),
-            KnownCommands::protocol_version => Ok("2".to_string()),
-            KnownCommands::list_commands    => Ok(<KnownCommands>::stringify()),
-            KnownCommands::known_command    => match command.get(1) {
-            	Some(comm) => Ok(format!("{}", <KnownCommands>::enumify(&comm).is_some())),
-            	None => Err("missing argument".to_string())
+            KnownCommands::name => self.execute_name(arguments),
+            KnownCommands::version => self.execute_version(arguments),
+            KnownCommands::protocol_version => self.execute_protocol_version(arguments),
+            KnownCommands::list_commands => self.execute_list_commands(arguments),
+            KnownCommands::known_command => self.execute_known_command(arguments),
+            KnownCommands::boardsize => self.execute_boardsize(arguments),
+            KnownCommands::clear_board => self.execute_clear_board(arguments),
+            KnownCommands::komi => self.execute_komi(arguments),
+            KnownCommands::genmove => self.execute_genmove(arguments),
+            KnownCommands::play => self.execute_play(arguments),
+            KnownCommands::showboard => self.execute_showboard(arguments),
+            KnownCommands::quit => self.execute_quit(arguments),
+            KnownCommands::final_score => self.execute_final_score(arguments),
+            KnownCommands::time_settings => self.execute_time_settings(arguments),
+            KnownCommands::time_left => self.execute_time_left(arguments),
+            KnownCommands::loadsgf => self.execute_loadsgf(arguments),
+        }
+    }
+
+    fn execute_name(&mut self, _: &[&str]) -> Result<String, String> {
+        Ok("Iomrascalai".to_string())
+    }
+
+    fn execute_version(&mut self, _: &[&str]) -> Result<String, String> {
+        Ok(version::version().to_string())
+    }
+
+    fn execute_protocol_version(&mut self, _: &[&str]) -> Result<String, String> {
+        Ok("2".to_string())
+    }
+
+    fn execute_list_commands(&mut self, _: &[&str]) -> Result<String, String> {
+        Ok(<KnownCommands>::stringify())
+    }
+
+    fn execute_known_command(&mut self, arguments: &[&str]) -> Result<String, String> {
+        match arguments.get(0) {
+            Some(comm) => Ok(format!("{}", <KnownCommands>::enumify(&comm).is_some())),
+            None => Err("missing argument".to_string())
+        }
+    }
+
+    fn execute_boardsize(&mut self, arguments: &[&str]) -> Result<String, String> {
+        match arguments.get(0) {
+            Some(comm) => match comm.parse::<u8>() {
+                Ok(size) => {
+                    self.game = Game::new(size, self.komi(), self.ruleset());
+                    Ok("".to_string())
+                },
+                Err(e) => Err(format!("{:?}", e))
             },
-            KnownCommands::boardsize        => match command.get(1) {
-            	Some(comm) => match comm.parse::<u8>() {
-                    Ok(size) => {
-                        self.game = Game::new(size, self.komi(), self.ruleset());
+            None => Err("missing argument".to_string())
+        }
+    }
+
+    fn execute_clear_board(&mut self, _: &[&str]) -> Result<String, String> {
+        self.game = Game::new(self.boardsize(), self.komi(), self.ruleset());
+        self.timer.reset();
+        self.send_command_to_controller.send(ControllerCommand::Reset).unwrap();
+        Ok("".to_string())
+    }
+
+    fn execute_komi(&mut self, arguments: &[&str]) -> Result<String, String> {
+        match arguments.get(0) {
+            Some(comm) =>
+                match comm.parse::<f32>() {
+                    Ok(komi) => {
+                        self.game.set_komi(komi);
                         Ok("".to_string())
                     },
                     Err(e) => Err(format!("{:?}", e))
                 },
-            	None => Err("missing argument".to_string())
-            },
-            KnownCommands::clear_board      => {
-                self.game = Game::new(self.boardsize(), self.komi(), self.ruleset());
-                self.timer.reset();
-                self.send_command_to_controller.send(ControllerCommand::Reset).unwrap();
-                Ok("".to_string())
-            },
-            KnownCommands::komi             => match command.get(1) {
-                Some(comm) =>
-                    match comm.parse::<f32>() {
-                        Ok(komi) => {
-                            self.game.set_komi(komi);
-                            Ok("".to_string())
-                        },
-                        Err(e) => Err(format!("{:?}", e))
-                    },
-                None => Err("missing argument".to_string())
-            },
-            KnownCommands::genmove          => match command.get(1) {
-        	Some(comm) => {
-                    self.timer.start();
-        	    let color = Color::from_gtp(comm);
-                    let command = ControllerCommand::GenMove(self.game.clone(), color, self.timer.clone());
-                    self.send_command_to_controller.send(command).unwrap();
-                    let m = self.receive_move_from_controller.recv().unwrap();
-                    match self.game.play(m) {
-                        Ok(g) => {
-                            self.game = g;
-                            self.timer.stop();
-                            Ok(m.to_gtp())
-                        },
-                        Err(e) => {
-                            Err(format!("Illegal move {:?} ({:?})", m, e))
-                        }
-                    }
-                },
-                None => Err("missing argument".to_string())
-    	    },
-            KnownCommands::play             => match command.get(2) {
-            	Some(second) => {
-                    let m = Move::from_gtp(command[1], second); //command[1] should be there
-                    match self.game.play(m) {
-                        Ok(g) => {
-                            self.game = g;
-                            Ok("".to_string())
-                        },
-                        Err(e) => Err(format!("Illegal move {:?} ({:?})", m, e))
-                    }
-                },
-            	None => Err("missing argument".to_string())
-            },
-            KnownCommands::showboard        => Ok(format!("\n{}", self.game)),
-            KnownCommands::quit             => {
-                self.quit();
-                Ok("".to_string())
-            },
-            KnownCommands::final_score      => Ok(format!("{}", self.game.score())),
-            KnownCommands::time_settings    => match command.get(3) {
-            	Some(third) => {
-            		//command[1] and command[2] should be there
-                    match (command[1].parse::<u32>(), command[2].parse::<u32>(), third.parse::<i32>()) {
-                        (Ok(main), Ok(byo), Ok(stones)) => {
-                            self.timer.setup(main, byo, stones);
-                            Ok("".to_string())
-                        }
-                        _ => Err("error parsing time_settings".to_string())
-                    }
-                },
-            	None => Err("missing argument(s)".to_string())
-            },
-            KnownCommands::time_left        => match command.get(3) {
-            	Some(third) => {
-            		//command[2] should be there
-            		//TODO: seems wrong, missing a color
-                    match (command[2].parse::<u32>(), third.parse::<i32>()) {
-                        (Ok(time), Ok(stones)) => {
-                            self.timer.update(time, stones);
-                            Ok("".to_string())
-                        },
-                        _ => Err("error parsing time_left".to_string())
-                    }
-                },
-            	None => Err("missing argument(s)".to_string())
-            },
-            KnownCommands::loadsgf          => match command.get(1) {
-            	Some(comm) => {
-                    let filename = comm;
+            None => Err("missing argument".to_string())
+        }
+    }
 
-                    match Parser::from_path(Path::new(filename)) {
-                    	Ok(parser) => {
-                    		let game = parser.game();
-                            match game {
-                                Ok(g) => {
-                                    self.game = g;
-                                    Ok("".to_string())
-                                },
-                                Err(_) => Err("cannot load file".to_string())
-                            }
-                	},
-                    	Err(_) => Err("cannot load file".to_string())
+    fn execute_genmove(&mut self, arguments: &[&str]) -> Result<String, String> {
+        match arguments.get(0) {
+            Some(comm) => {
+                self.timer.start();
+        	let color = Color::from_gtp(comm);
+                let command = ControllerCommand::GenMove(self.game.clone(), color, self.timer.clone());
+                self.send_command_to_controller.send(command).unwrap();
+                let m = self.receive_move_from_controller.recv().unwrap();
+                match self.game.play(m) {
+                    Ok(g) => {
+                        self.game = g;
+                        self.timer.stop();
+                        Ok(m.to_gtp())
+                    },
+                    Err(e) => {
+                        Err(format!("Illegal move {:?} ({:?})", m, e))
                     }
-                },
-            	None => Err("missing argument".to_string())
-            }
+                }
+            },
+            None => Err("missing argument".to_string())
+    	}
+    }
+
+    fn execute_play(&mut self, arguments: &[&str]) -> Result<String, String> {
+        match arguments.get(1) {
+            Some(second) => {
+                let m = Move::from_gtp(arguments[0], second);
+                match self.game.play(m) {
+                    Ok(g) => {
+                        self.game = g;
+                        Ok("".to_string())
+                    },
+                    Err(e) => Err(format!("Illegal move {:?} ({:?})", m, e))
+                }
+            },
+            None => Err("missing argument".to_string())
+        }
+    }
+
+    fn execute_showboard(&mut self, _: &[&str]) -> Result<String, String> {
+        Ok(format!("\n{}", self.game))
+    }
+
+    fn execute_quit(&mut self, _: &[&str]) -> Result<String, String> {
+        self.quit();
+        Ok("".to_string())
+    }
+
+    fn execute_final_score(&mut self, _: &[&str]) -> Result<String, String> {
+        Ok(format!("{}", self.game.score()))
+    }
+
+    fn execute_time_settings(&mut self, arguments: &[&str]) -> Result<String, String> {
+        match arguments.get(2) {
+            Some(third) => {
+            	//command[1] and command[2] should be there
+                match (arguments[0].parse::<u32>(), arguments[1].parse::<u32>(), third.parse::<i32>()) {
+                    (Ok(main), Ok(byo), Ok(stones)) => {
+                        self.timer.setup(main, byo, stones);
+                        Ok("".to_string())
+                    }
+                    _ => Err("error parsing time_settings".to_string())
+                }
+            },
+            None => Err("missing argument(s)".to_string())
+        }
+    }
+
+    fn execute_time_left(&mut self, arguments: &[&str]) -> Result<String, String> {
+        match arguments.get(2) {
+            Some(third) => {
+                match (arguments[1].parse::<u32>(), third.parse::<i32>()) {
+                    (Ok(time), Ok(stones)) => {
+                        self.timer.update(time, stones);
+                        Ok("".to_string())
+                    },
+                    _ => Err("error parsing time_left".to_string())
+                }
+            },
+            None => Err("missing argument(s)".to_string())
+        }
+    }
+
+    fn execute_loadsgf(&mut self, arguments: &[&str]) -> Result<String, String> {
+        match arguments.get(0) {
+            Some(comm) => {
+                let filename = comm;
+
+                match Parser::from_path(Path::new(filename)) {
+                    Ok(parser) => {
+                    	let game = parser.game();
+                        match game {
+                            Ok(g) => {
+                                self.game = g;
+                                Ok("".to_string())
+                            },
+                            Err(_) => Err("cannot load file".to_string())
+                        }
+                    },
+                    Err(_) => Err("cannot load file".to_string())
+                }
+            },
+            None => Err("missing argument".to_string())
         }
     }
 
