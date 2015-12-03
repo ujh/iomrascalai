@@ -23,6 +23,10 @@
 #![cfg(test)]
 #![allow(unused_must_use)]
 
+pub use hamcrest::assert_that;
+pub use hamcrest::equal_to;
+pub use hamcrest::is;
+
 pub use board::Black;
 pub use board::Board;
 pub use board::Pass;
@@ -36,28 +40,31 @@ describe! score {
     it "counting the simple case" {
         let b = load_board("score/simple");
         let score = b.score();
-        assert_eq!(8, score.black_stones);
-        assert_eq!(8, score.white_stones);
-        assert_eq!(White, score.color());
-        assert_eq!("W+6.5", format!("{}", score));
+        assert_that(score.black_stones, is(equal_to(8)));
+        assert_that(score.white_stones, is(equal_to(8)));
+        assert_that(score.color(), is(equal_to(White)));
+        assert_that(score.score(), is(equal_to(6.5)));
+        assert_that(format!("{}", score), is(equal_to("W+6.5".to_string())));
     }
 
     it "counting disjoint territory" {
         let b = load_board("score/disjoint");
         let score = b.score();
-        assert_eq!(9, score.black_stones);
-        assert_eq!(16, score.white_stones);
-        assert_eq!(White, score.color());
-        assert_eq!("W+13.5", format!("{}", score));
+        assert_that(score.black_stones, is(equal_to(9)));
+        assert_that(score.white_stones, is(equal_to(16)));
+        assert_that(score.color(), is(equal_to(White)));
+        assert_that(score.score(), is(equal_to(13.5)));
+        assert_that(format!("{}", score), is(equal_to("W+13.5".to_string())));
     }
 
     it "counting with neutral points" {
         let b = load_board("score/dame");
         let score = b.score();
-        assert_eq!(4, score.black_stones);
-        assert_eq!(20, score.white_stones);
-        assert_eq!(White, score.color());
-        assert_eq!("W+22.5", format!("{}", score));
+        assert_that(score.black_stones, is(equal_to(4)));
+        assert_that(score.white_stones, is(equal_to(20)));
+        assert_that(score.color(), is(equal_to(White)));
+        assert_that(score.score(), is(equal_to(22.5)));
+        assert_that(format!("{}", score), is(equal_to("W+22.5".to_string())));
     }
 
 }
