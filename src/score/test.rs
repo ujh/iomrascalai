@@ -23,83 +23,84 @@
 #![cfg(test)]
 #![allow(unused_must_use)]
 
-use board::Black;
-use board::Board;
-use board::Pass;
-use board::Play;
-use board::White;
-use ruleset::Minimal;
+pub use board::Black;
+pub use board::Board;
+pub use board::Pass;
+pub use board::Play;
+pub use board::White;
+pub use ruleset::Minimal;
 
-#[test]
-fn counting_simple_case() {
-    let mut b = Board::new(4, 6.5, Minimal);
+describe! score {
 
-    b.play(Play(Black, 2, 1));
-    b.play(Play(White, 3, 1));
-    b.play(Play(Black, 2, 2));
-    b.play(Play(White, 3, 2));
-    b.play(Play(Black, 2, 3));
-    b.play(Play(White, 3, 3));
-    b.play(Play(Black, 2, 4));
-    b.play(Play(White, 3, 4));
-    b.play(Pass(Black));
-    b.play(Pass(White));
+    it "counting the simple case" {
+        let mut b = Board::new(4, 6.5, Minimal);
 
-    let score = b.score();
-    assert_eq!(8, score.black_stones);
-    assert_eq!(8, score.white_stones);
-    assert_eq!(White, score.color());
-    assert_eq!("W+6.5", format!("{}", score));
-}
+        b.play(Play(Black, 2, 1));
+        b.play(Play(White, 3, 1));
+        b.play(Play(Black, 2, 2));
+        b.play(Play(White, 3, 2));
+        b.play(Play(Black, 2, 3));
+        b.play(Play(White, 3, 3));
+        b.play(Play(Black, 2, 4));
+        b.play(Play(White, 3, 4));
+        b.play(Pass(Black));
+        b.play(Pass(White));
 
-#[test]
-fn counting_disjoint_territory() {
-    let mut b = Board::new(5, 6.5, Minimal);
+        let score = b.score();
+        assert_eq!(8, score.black_stones);
+        assert_eq!(8, score.white_stones);
+        assert_eq!(White, score.color());
+        assert_eq!("W+6.5", format!("{}", score));
+    }
 
-    b.play(Play(Black, 2, 1));
-    b.play(Play(White, 3, 1));
-    b.play(Play(Black, 2, 2));
-    b.play(Play(White, 3, 2));
-    b.play(Play(Black, 1, 3));
-    b.play(Play(White, 2, 3));
-    b.play(Play(Black, 5, 4));
-    b.play(Play(White, 1, 4));
-    b.play(Play(Black, 4, 4));
-    b.play(Play(White, 5, 3));
-    b.play(Play(Black, 4, 5));
-    b.play(Play(White, 4, 3));
-    b.play(Play(Black, 1, 2));
-    b.play(Play(White, 3, 4));
-    b.play(Pass(Black));
-    b.play(Play(White, 3, 5));
-    b.play(Pass(Black));
-    b.play(Pass(White));
+    it "counting disjoint territory" {
+        let mut b = Board::new(5, 6.5, Minimal);
 
-    let score = b.score();
-    assert_eq!(9, score.black_stones);
-    assert_eq!(16, score.white_stones);
-    assert_eq!(White, score.color());
-    assert_eq!("W+13.5", format!("{}", score));
-}
+        b.play(Play(Black, 2, 1));
+        b.play(Play(White, 3, 1));
+        b.play(Play(Black, 2, 2));
+        b.play(Play(White, 3, 2));
+        b.play(Play(Black, 1, 3));
+        b.play(Play(White, 2, 3));
+        b.play(Play(Black, 5, 4));
+        b.play(Play(White, 1, 4));
+        b.play(Play(Black, 4, 4));
+        b.play(Play(White, 5, 3));
+        b.play(Play(Black, 4, 5));
+        b.play(Play(White, 4, 3));
+        b.play(Play(Black, 1, 2));
+        b.play(Play(White, 3, 4));
+        b.play(Pass(Black));
+        b.play(Play(White, 3, 5));
+        b.play(Pass(Black));
+        b.play(Pass(White));
 
-#[test]
-fn counting_with_neutral_points() {
-    let mut b = Board::new(5, 6.5, Minimal);
+        let score = b.score();
+        assert_eq!(9, score.black_stones);
+        assert_eq!(16, score.white_stones);
+        assert_eq!(White, score.color());
+        assert_eq!("W+13.5", format!("{}", score));
+    }
 
-    b.play(Play(Black, 2, 1));
-    b.play(Play(White, 3, 1));
-    b.play(Play(Black, 2, 2));
-    b.play(Play(White, 3, 2));
-    b.play(Play(Black, 1, 2));
-    b.play(Play(White, 2, 3));
-    b.play(Pass(Black));
-    b.play(Play(White, 1, 4));
-    b.play(Pass(Black));
-    b.play(Pass(White));
+    it "counting with neutral points" {
+        let mut b = Board::new(5, 6.5, Minimal);
 
-    let score = b.score();
-    assert_eq!(4, score.black_stones);
-    assert_eq!(20, score.white_stones);
-    assert_eq!(White, score.color());
-    assert_eq!("W+22.5", format!("{}", score));
+        b.play(Play(Black, 2, 1));
+        b.play(Play(White, 3, 1));
+        b.play(Play(Black, 2, 2));
+        b.play(Play(White, 3, 2));
+        b.play(Play(Black, 1, 2));
+        b.play(Play(White, 2, 3));
+        b.play(Pass(Black));
+        b.play(Play(White, 1, 4));
+        b.play(Pass(Black));
+        b.play(Pass(White));
+
+        let score = b.score();
+        assert_eq!(4, score.black_stones);
+        assert_eq!(20, score.white_stones);
+        assert_eq!(White, score.color());
+        assert_eq!("W+22.5", format!("{}", score));
+    }
+
 }
