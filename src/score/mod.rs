@@ -43,12 +43,6 @@ pub struct Score {
 
 impl Score {
 
-    // Figure out which methods board needs to provide for this to
-    // work so that we can create a trait with just those methods for
-    // our test purposes.
-    //
-    // Store a reference to the Board in Score and compute the score
-    // in an instance method.
     pub fn new(board: &Board) -> Score {
         let (bs, ws, owners) = Score::score_tt(board);
         Score {
@@ -56,6 +50,15 @@ impl Score {
             komi: board.komi(),
             owner: owners,
             white_stones: ws
+        }
+    }
+
+    pub fn empty() -> Score {
+        Score {
+            black_stones: 0,
+            komi: 0.0,
+            owner: vec![],
+            white_stones: 0,
         }
     }
 

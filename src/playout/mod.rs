@@ -2,6 +2,7 @@
  *                                                                      *
  * Copyright 2014 Urban Hafner, Thomas Poinsot                          *
  * Copyright 2015 Urban Hafner, Thomas Poinsot, Igor Polyakov           *
+ *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
  * Iomrascálaí is free software: you can redistribute it and/or modify  *
@@ -22,12 +23,12 @@
 use board::Board;
 use board::Color;
 use board::Coord;
-use board::Empty;
 use board::Move;
 use board::Pass;
 use board::Play;
 use config::Config;
 use patterns::Matcher;
+use score::Score;
 
 use rand::Rng;
 use rand::XorShiftRng;
@@ -71,7 +72,7 @@ impl Playout {
                 amaf.insert(m.coord(), *m.color());
             }
         }
-        PlayoutResult::new(board.winner(), amaf)
+        PlayoutResult::new(board.score(), amaf)
     }
 
     //don't self atari strings that will make an eye after dying, which is strings of 7+
@@ -216,21 +217,31 @@ impl Playout {
 
 pub struct PlayoutResult {
     amaf: HashMap<Coord,Color>,
-    winner: Color,
+    score: Score,
 }
 
 impl PlayoutResult {
 
-    pub fn new(winner: Color, amaf: HashMap<Coord,Color>) -> PlayoutResult {
-        PlayoutResult { winner: winner, amaf: amaf }
+    pub fn new(score: Score, amaf: HashMap<Coord,Color>) -> PlayoutResult {
+        PlayoutResult {
+            amaf: amaf,
+            score: score,
+        }
     }
 
     pub fn empty() -> PlayoutResult {
-        PlayoutResult { winner: Empty, amaf: HashMap::new() }
+        PlayoutResult {
+            amaf: HashMap::new(),
+            score: Score::empty(),
+        }
     }
 
     pub fn winner(&self) -> Color {
-        self.winner
+        self.score.color()
+    }
+
+    pub fn score(&self) -> &Score {
+        &self.score
     }
 
     pub fn amaf(&self) -> &HashMap<Coord,Color> {
