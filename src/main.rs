@@ -61,6 +61,7 @@ mod engine;
 mod fixtures;
 mod game;
 mod gtp;
+mod ownership;
 mod patterns;
 mod playout;
 mod ruleset;
