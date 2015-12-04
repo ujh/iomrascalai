@@ -29,12 +29,28 @@ pub use hamcrest::is;
 
 pub use board::Black;
 pub use board::Board;
+pub use board::Color;
 pub use board::Coord;
 pub use board::Empty;
 pub use board::Pass;
 pub use board::Play;
 pub use board::White;
 pub use fixtures::load_board;
+pub use super::Score;
+
+pub fn points_for_color(score: &Score, board: &Board, color: Color) -> Vec<String> {
+    let mut points: Vec<String> = score.owner().iter()
+        .enumerate()
+        .filter(|&(_,c)| *c == color)
+        .map(|(i, _)| Coord::from_index(i, board.size()).to_gtp())
+        .collect();
+    points.sort();
+    points
+}
+
+pub fn points(strs: Vec<&'static str>) -> Vec<String> {
+    strs.iter().map(|s| s.to_string()).collect()
+}
 
 describe! score {
 
@@ -58,39 +74,24 @@ describe! score {
 
         describe! ownership {
 
+            after_each {
+                let actual = points_for_color(&score, &board, color);
+                assert_that(&actual, contains(expected).exactly());
+            }
+
             it "black" {
-                let expected_black = vec!["A1", "A2", "A3", "A4", "B1", "B2", "B3", "B4"].iter()
-                    .map(|s| s.to_string()).collect();
-                let mut black: Vec<String> = score.owner().iter()
-                    .enumerate()
-                    .filter(|&(_,c)| *c == Black)
-                    .map(|(i, _)| Coord::from_index(i, board.size()).to_gtp())
-                    .collect();
-                black.sort();
-                assert_that(&black, contains(expected_black).exactly());
+                let expected = points(vec!["A1", "A2", "A3", "A4", "B1", "B2", "B3", "B4"]);
+                let color = Black;
             }
 
             it "white" {
-                let expected_white = vec!["D1", "D2", "D3", "D4", "D1", "D2", "D3", "D4"].iter()
-                    .map(|s| s.to_string()).collect();
-                let mut white: Vec<String> = score.owner().iter()
-                    .enumerate()
-                    .filter(|&(_,c)| *c == White)
-                    .map(|(i, _)| Coord::from_index(i, board.size()).to_gtp())
-                    .collect();
-                white.sort();
-                assert_that(&white, contains(expected_white).exactly());
+                let expected = points(vec!["D1", "D2", "D3", "D4", "D1", "D2", "D3", "D4"]);
+                let color = White;
             }
 
             it "dame" {
-                let expected_dame = vec![];
-                let mut dame: Vec<String> = score.owner().iter()
-                    .enumerate()
-                    .filter(|&(_,c)| *c == Empty)
-                    .map(|(i, _)| Coord::from_index(i, board.size()).to_gtp())
-                    .collect();
-                dame.sort();
-                assert_that(&dame, contains(expected_dame).exactly());
+                let expected = points(vec![]);
+                let color = Empty;
             }
 
         }
@@ -100,7 +101,8 @@ describe! score {
     describe! disjoint_territory {
 
         before_each {
-            let score = load_board("score/disjoint").score();
+            let board = load_board("score/disjoint");
+            let score = board.score();
         }
 
         it "counting" {
@@ -114,8 +116,29 @@ describe! score {
             assert_that(format!("{}", score), is(equal_to("W+13.5".to_string())));
         }
 
-        it "ownership" {
-            // TODO
+        describe! ownership {
+
+            after_each {
+                let actual = points_for_color(&score, &board, color);
+                assert_that(&actual, contains(expected).exactly());
+            }
+
+            it "black" {
+                let expected = points(vec!["A1", "A2", "A3", "B1", "B2", "D4", "D5", "E4", "E5"]);
+                let color = Black;
+            }
+
+            it "white" {
+                let expected = points(vec!["A4", "A5", "B3", "B4", "B5", "C1", "C2", "C3", "C4",
+                                           "C5", "D1", "D2", "D3", "E1", "E2", "E3"]);
+                let color = White;
+            }
+
+            it "dame" {
+                let expected = points(vec![]);
+                let color = Empty;
+            }
+
         }
 
     }
@@ -123,7 +146,8 @@ describe! score {
     describe! dame {
 
         before_each {
-            let score = load_board("score/dame").score();
+            let board = load_board("score/dame");
+            let score = board.score();
         }
 
         it "counting" {
@@ -137,8 +161,30 @@ describe! score {
             assert_that(format!("{}", score), is(equal_to("W+22.5".to_string())));
         }
 
-        it "ownership" {
-            // TODO
+        describe! ownership {
+
+            after_each {
+                let actual = points_for_color(&score, &board, color);
+                assert_that(&actual, contains(expected).exactly());
+            }
+
+            it "black" {
+                let expected = points(vec!["A1", "A2", "B1", "B2"]);
+                let color = Black;
+            }
+
+            it "white" {
+                let expected = points(vec!["A4", "A5", "B3", "B4", "B5", "C1", "C2", "C3", "C4",
+                                           "C5", "D1", "D2", "D3", "D4", "D5", "E1", "E2", "E3",
+                                           "E4", "E5"]);
+                let color = White;
+            }
+
+            it "dame" {
+                let expected = points(vec!["A3"]);
+                let color = Empty;
+            }
+
         }
 
     }
