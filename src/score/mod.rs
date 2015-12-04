@@ -50,11 +50,11 @@ impl Score {
     // Store a reference to the Board in Score and compute the score
     // in an instance method.
     pub fn new(board: &Board) -> Score {
-        let (bs, ws) = Score::score_tt(board);
+        let (bs, ws, owners) = Score::score_tt(board);
         Score {
             black_stones: bs,
             komi: board.komi(),
-            owner: Coord::for_board_size(board.size()).iter().map(|_| Empty).collect(),
+            owner: owners,
             white_stones: ws
         }
     }
@@ -78,44 +78,41 @@ impl Score {
         (self.black_stones as f32 - (self.white_stones as f32 + self.komi)).abs()
     }
 
-    fn score_tt(board: &Board) -> (usize, usize) {
-        let (black_stones, white_stones) = Score::count_stones(board);
-        let (black_territory, white_territory) = Score::count_territory(board);
-        let black_score = black_stones + black_territory;
-        let white_score = white_stones + white_territory;
-        (black_score, white_score)
+    fn score_tt(board: &Board) -> (usize, usize, Vec<Color>) {
+        let len = board.size() as usize * board.size() as usize;
+        let mut owners = vec![Empty; len];
+        Score::count_stones(board, &mut owners);
+        Score::count_territory(board, &mut owners);
+        let mut black_score = 0;
+        let mut white_score = 0;
+        for &c in &owners {
+            match c {
+                Black => { black_score += 1; }
+                White => { white_score += 1; }
+                Empty => {}
+            }
+        }
+        (black_score, white_score, owners)
     }
 
-    fn count_territory(board: &Board) -> (usize, usize) {
-        let mut black = 0;
-        let mut white = 0;
+    fn count_territory(board: &Board, owners: &mut Vec<Color>) {
         let mut empty_intersections = board.vacant().clone();
         while empty_intersections.len() > 0 {
             let territory = Score::build_territory_chain(empty_intersections[0], board);
-            match territory.color() {
-                Black => black += territory.size(),
-                White => white += territory.size(),
-                Empty => () // This territory is not enclosed by a single color
+            for coord in territory.coords().iter() {
+                owners[coord.to_index(board.size())] = territory.color();
             }
             empty_intersections = empty_intersections
                 .into_iter()
                 .filter(|coord| !territory.contains(coord))
                 .collect();
         }
-        (black, white)
     }
 
-    fn count_stones(board: &Board) -> (usize, usize) {
-        let mut black = 0;
-        let mut white = 0;
-        for point in board.points().iter() {
-            match point.color {
-                Black => { black += 1; },
-                Empty => {},
-                White => { white += 1; },
-            }
+    fn count_stones(board: &Board, owners: &mut Vec<Color>) {
+        for (index, point) in board.points().iter().enumerate() {
+            owners[index] = point.color;
         }
-        (black, white)
     }
 
     fn build_territory_chain(first_intersection: Coord, board: &Board) -> Territory {

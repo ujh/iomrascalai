@@ -85,7 +85,7 @@ describe! score {
             }
 
             it "white" {
-                let expected = points(vec!["D1", "D2", "D3", "D4", "D1", "D2", "D3", "D4"]);
+                let expected = points(vec!["C1", "C2", "C3", "C4", "D1", "D2", "D3", "D4"]);
                 let color = White;
             }
 

@@ -43,12 +43,12 @@ impl Territory {
         self.color
     }
 
-    pub fn set_color(&mut self, c: Color) {
-        self.color = c;
+    pub fn coords(&self) -> &Vec<Coord> {
+        &self.coords
     }
 
-    pub fn size(&self) -> usize {
-        self.coords.len()
+    pub fn set_color(&mut self, c: Color) {
+        self.color = c;
     }
 
     pub fn add(&mut self, c: Coord) {
