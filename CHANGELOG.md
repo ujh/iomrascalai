@@ -1,24 +1,36 @@
-## 0.3.0 [☰](https://github.com/ujh/iomrascalai/compare/0.2.4...master)
+## 0.3.0 [☰](https://github.com/ujh/iomrascalai/compare/0.2.4...0.3.0)
 
-* Added 3x3 pattern support. These are used as priors in the tree and during the playouts.
+* Added 3x3 pattern support. These are used as priors in the tree and
+  during the playouts.
 * Added the RAVE heuristic to the search.
 * Terminate search early if the best move is ahead by a lot.
-* Changed the way to change the configuration of the engine. Everything is now stored inside a [TOML](https://github.com/toml-lang/toml) file instead of having command line switches for everything.
-* Measure the playouts per second per thread and display it when logging is turned on.
-* Scripts to run [CLOP](http://www.remi-coulom.fr/CLOP/) parameter optimization.
+* Changed the way to change the configuration of the engine.
+  Everything is now stored inside a
+  [TOML](https://github.com/toml-lang/toml) file instead of having
+  command line switches for everything.
+* Measure the playouts per second per thread and display it when
+  logging is turned on.
+* Scripts to run [CLOP](http://www.remi-coulom.fr/CLOP/) parameter
+  optimization.
 * Removed all weak engines (random, AMAF, MC).
 * Clarified the licensing (scripts are MIT licensed).
 * Added a code of conduct.
 
 ### Performance
 
-*Note that the measurement of the error margins have changed. We now calculate proper 95% and 99% confidence intervals whereas previously we only used the ~68% standard deviation.*
+*Note that the measurement of the error margins have changed. We now
+ calculate proper 95% and 99% confidence intervals whereas previously
+ we only used the ~68% standard deviation.*
 
-After running 500 games on 9x9 with komi 6.5 and a time limit of 5 minutes (sudden death) the win rate against GnuGo 3.8 level 0 was **85.40% (± 3.08 at 95%, ± 3.14 at 99%)** with the default configuration.
+After running 500 games on 9x9 with komi 6.5 and a time limit of 5
+minutes (sudden death) the win rate against GnuGo 3.8 level 0 was
+**85.40% (± 3.08 at 95%, ± 3.14 at 99%)** with the default
+configuration.
 
 After running 500 games on 13x13 with komi 6.5 and a time limit of 10
 minutes (sudden death) the win rate against GnuGo 3.8 level 0 was
-**XX.YY%** with the default configuration.
+**36.6% (± 4.2 at 95%, ± 4.29 at 99%)** with the default
+configuration.
 
 
 ## 0.2.4 [☰](https://github.com/ujh/iomrascalai/compare/0.2.3...0.2.4)
