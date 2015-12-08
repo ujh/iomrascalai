@@ -51,7 +51,7 @@ impl EarlyReturnEngine {
 
     pub fn new() -> EarlyReturnEngine {
         EarlyReturnEngine {
-            ownership: OwnershipStatistics::new(3)
+            ownership: OwnershipStatistics::new(config(), 3)
         }
     }
 
@@ -92,7 +92,7 @@ impl WaitingEngine {
 
     pub fn new() -> WaitingEngine {
         WaitingEngine {
-            ownership: OwnershipStatistics::new(3)
+            ownership: OwnershipStatistics::new(config(), 3)
         }
     }
 

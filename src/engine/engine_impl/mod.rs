@@ -61,7 +61,7 @@ impl EngineImpl {
         EngineImpl {
             config: config.clone(),
             matcher: matcher.clone(),
-            ownership: OwnershipStatistics::new(0),
+            ownership: OwnershipStatistics::new(config.clone(), 0),
             playout: Arc::new(Playout::new(config.clone(), matcher.clone())),
             previous_node_count: 0,
             root: Node::new(NoMove, config),
@@ -99,7 +99,7 @@ impl Engine for EngineImpl {
     }
 
     fn gen_move(&mut self, color: Color, budget_ms: u32, game: &Game, sender: Sender<(Move,usize)>, receiver: Receiver<()>) {
-        self.ownership = OwnershipStatistics::new(game.size());
+        self.ownership = OwnershipStatistics::new(self.config.clone(), game.size());
         let start = PreciseTime::now();
         let budget5 = Duration::milliseconds((budget_ms as f32 * 0.05) as i64);
         let budget20 = Duration::milliseconds((budget_ms as f32 * 0.2) as i64);
@@ -161,7 +161,7 @@ impl Engine for EngineImpl {
     fn reset(&mut self, boardsize: u8) {
         self.previous_node_count = 0;
         self.root = Node::new(NoMove, self.config.clone());
-        self.ownership = OwnershipStatistics::new(boardsize);
+        self.ownership = OwnershipStatistics::new(self.config.clone(), boardsize);
     }
 
 }

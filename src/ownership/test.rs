@@ -21,11 +21,14 @@
 
 #![cfg(test)]
 
+pub use config::Config;
+pub use super::OwnershipStatistics;
+
 pub use hamcrest::assert_that;
 pub use hamcrest::equal_to;
 pub use hamcrest::is;
+pub use std::sync::Arc;
 
-pub use super::OwnershipStatistics;
 
 describe! ownership {
 
@@ -37,7 +40,8 @@ describe! ownership {
         describe! formatting {
 
             before_each {
-                let stats = OwnershipStatistics::new(3);
+                let config = Arc::new(Config::default());
+                let stats = OwnershipStatistics::new(config, 3);
             }
 
             it "returns 0 by default" {

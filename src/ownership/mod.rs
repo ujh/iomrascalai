@@ -24,29 +24,33 @@ use board::Color;
 use board::Coord;
 use board::Empty;
 use board::White;
+use config::Config;
 use score::Score;
 
 use core::fmt::Display;
 use std::cmp;
 use std::collections::HashMap;
 use std::fmt;
+use std::sync::Arc;
 
 mod test;
 
 #[derive(Debug)]
 pub struct OwnershipStatistics {
+    config: Arc<Config>,
     size: u8,
     stats: HashMap<Coord, (usize, usize, usize)>
 }
 
 impl OwnershipStatistics {
 
-    pub fn new(size: u8) -> OwnershipStatistics {
+    pub fn new(config: Arc<Config>, size: u8) -> OwnershipStatistics {
         let mut stats = HashMap::new();
         for &coord in &Coord::for_board_size(size) {
             stats.insert(coord, Self::default_stats());
         }
         OwnershipStatistics {
+            config: config,
             size: size,
             stats: stats
         }
