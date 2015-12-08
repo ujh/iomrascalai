@@ -45,15 +45,21 @@ pub struct OwnershipStatistics {
 impl OwnershipStatistics {
 
     pub fn new(config: Arc<Config>, size: u8) -> OwnershipStatistics {
-        let mut stats = HashMap::new();
-        for &coord in &Coord::for_board_size(size) {
-            stats.insert(coord, Self::default_stats());
-        }
-        OwnershipStatistics {
+        let mut os = OwnershipStatistics {
             config: config,
             size: size,
-            stats: stats
+            stats: HashMap::new(),
+        };
+        os.setup();
+        os
+    }
+
+    pub fn setup(&mut self) {
+        let mut stats = HashMap::new();
+        for &coord in &Coord::for_board_size(self.size) {
+            stats.insert(coord, self.default_entry());
         }
+        self.stats = stats;
     }
 
     pub fn merge(&mut self, score: &Score) {
@@ -77,7 +83,7 @@ impl OwnershipStatistics {
     pub fn owner(&self, coord: &Coord) -> Color {
         let (b,w,e) = match self.stats.get(&coord) {
             Some(v) => *v,
-            None => Self::default_stats()
+            None => self.default_entry()
         };
         let count = b + w + e;
         let cutoff = 0.9;
@@ -101,7 +107,7 @@ impl OwnershipStatistics {
         }
     }
 
-    fn default_stats() -> (usize,usize,usize) {
+    fn default_entry(&self) -> (usize,usize,usize) {
         (1,1,100)
     }
 
