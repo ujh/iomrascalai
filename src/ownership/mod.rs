@@ -99,6 +99,19 @@ impl OwnershipStatistics {
         }
     }
 
+    pub fn gfx(&self) -> String {
+        let mut b = String::from("BLACK");
+        let mut w = String::from("WHITE");
+        for coord in Coord::for_board_size(self.size) {
+            match self.owner(&coord) {
+                Black => b.push_str(&format!(" {}", coord.to_gtp())),
+                White => w.push_str(&format!(" {}", coord.to_gtp())),
+                Empty => {}
+            }
+        }
+        format!("gogui-gfx:\nCLEAR\n{}\n{}\n", b, w)
+    }
+
     fn value_for_coord(&self, coord: Coord) -> f64 {
         match self.owner(&coord) {
             Black => 1.0,
