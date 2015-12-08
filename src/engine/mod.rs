@@ -44,6 +44,6 @@ pub trait Engine: Send + Sync {
 
     fn gen_move(&mut self, Color, u32, &Game, sender: Sender<(Move,usize)>, receiver: Receiver<()>);
     fn ownership(&self) -> &OwnershipStatistics;
-    fn reset(&mut self) {}
+    fn reset(&mut self, u8) {}
 
 }

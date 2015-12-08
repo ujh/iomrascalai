@@ -48,8 +48,8 @@ impl<'a> EngineController<'a> {
         }
     }
 
-    pub fn reset(&mut self) {
-        self.engine.reset();
+    pub fn reset(&mut self, boardsize: u8) {
+        self.engine.reset(boardsize);
     }
 
     pub fn ownership_statistics(&self) -> String {

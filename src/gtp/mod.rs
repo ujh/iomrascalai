@@ -46,7 +46,7 @@ mod test;
 pub enum ControllerCommand {
     GenMove(Game, Color, Timer),
     Ownership,
-    Reset,
+    Reset(u8),
     ShutDown,
 }
 
@@ -92,8 +92,8 @@ impl<'a> GTPInterpreter<'a> {
                                     let response = ControllerResponse::Ownership(stats);
                                     send_response_to_interpreter.send(response).expect("Failed to send respnse to imrscl-ownership to interpreter");
                                 },
-                                ControllerCommand::Reset => {
-                                    controller.reset();
+                                ControllerCommand::Reset(boardsize) => {
+                                    controller.reset(boardsize);
                                 }
                                 ControllerCommand::ShutDown => { break; },
                             }
@@ -226,7 +226,7 @@ impl<'a> GTPInterpreter<'a> {
     fn execute_clear_board(&mut self, _: &[&str]) -> Result<String, String> {
         self.game = Game::new(self.boardsize(), self.komi(), self.ruleset());
         self.timer.reset();
-        self.send_command_to_controller.send(ControllerCommand::Reset).unwrap();
+        self.send_command_to_controller.send(ControllerCommand::Reset(self.boardsize())).unwrap();
         Ok("".to_string())
     }
 

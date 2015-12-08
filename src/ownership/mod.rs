@@ -20,17 +20,20 @@
  ************************************************************************/
 
 use board::Black;
+use board::Color;
 use board::Coord;
 use board::Empty;
 use board::White;
 use score::Score;
 
 use core::fmt::Display;
+use std::cmp;
 use std::collections::HashMap;
 use std::fmt;
 
 mod test;
 
+#[derive(Debug)]
 pub struct OwnershipStatistics {
     size: u8,
     stats: HashMap<Coord, (usize, usize, usize)>
@@ -67,22 +70,31 @@ impl OwnershipStatistics {
         }
     }
 
-    fn value_for_coord(&self, coord: Coord) -> f64 {
+    pub fn owner(&self, coord: &Coord) -> Color {
         let (b,w,e) = match self.stats.get(&coord) {
             Some(v) => *v,
             None => Self::default_stats()
         };
         let count = b + w + e;
-        let mut fraction = b as f64 / count as f64;
-        if fraction < 0.1  {
-            fraction = 0.0;
-        } else if fraction > 0.9 {
-            fraction = 1.0;
+        let cutoff = 0.9;
+        let fraction = cmp::max(b,w) as f64 / count as f64;
+        if fraction > cutoff {
+            if b > w {
+                Black
+            } else {
+                White
+            }
         } else {
-            fraction = 0.5;
+            Empty
         }
-        // Scale to [-1,1]
-        (fraction * 2.0) - 1.0
+    }
+
+    fn value_for_coord(&self, coord: Coord) -> f64 {
+        match self.owner(&coord) {
+            Black => 1.0,
+            White => -1.0,
+            Empty => 0.0
+        }
     }
 
     fn default_stats() -> (usize,usize,usize) {

@@ -297,10 +297,10 @@ describe! interpreter {
         describe! ownership {
 
             it "returns board of ownership likelihoods" {
-                interpreter.read("boardsize 9\n").unwrap();
-                interpreter.read("genmove b\n").unwrap();
+                interpreter.read("boardsize 3\n").unwrap();
+                interpreter.read("clear_board\n").unwrap();
                 let response = interpreter.read("imrscl-ownership\n");
-                assert!(response.is_ok());
+                assert_that(response, is(equal_to(ok("0 0 0 \n0 0 0 \n0 0 0 \n"))));
             }
         }
 

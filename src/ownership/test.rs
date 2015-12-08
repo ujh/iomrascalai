@@ -21,12 +21,31 @@
 
 #![cfg(test)]
 
+pub use hamcrest::assert_that;
+pub use hamcrest::equal_to;
+pub use hamcrest::is;
+
+pub use super::OwnershipStatistics;
+
 describe! ownership {
 
     describe! statistics {
 
         // Tests for merge
         // Tests for formatting
+
+        describe! formatting {
+
+            before_each {
+                let stats = OwnershipStatistics::new(3);
+            }
+
+            it "returns 0 by default" {
+                let formatted = format!("{}", stats);
+
+                assert_that(formatted, is(equal_to("0 0 0 \n0 0 0 \n0 0 0 \n".to_string())));
+            }
+        }
     }
 
 }

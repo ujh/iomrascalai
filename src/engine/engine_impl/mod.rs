@@ -158,9 +158,10 @@ impl Engine for EngineImpl {
         }
     }
 
-    fn reset(&mut self) {
+    fn reset(&mut self, boardsize: u8) {
         self.previous_node_count = 0;
         self.root = Node::new(NoMove, self.config.clone());
+        self.ownership = OwnershipStatistics::new(boardsize);
     }
 
 }
