@@ -41,7 +41,7 @@ impl OwnershipStatistics {
     pub fn new(size: u8) -> OwnershipStatistics {
         let mut stats = HashMap::new();
         for &coord in &Coord::for_board_size(size) {
-            stats.insert(coord, (0,0,0));
+            stats.insert(coord, Self::default_stats());
         }
         OwnershipStatistics {
             size: size,
@@ -66,12 +66,39 @@ impl OwnershipStatistics {
             }
         }
     }
+
+    fn value_for_coord(&self, coord: Coord) -> f64 {
+        let (b,w,e) = match self.stats.get(&coord) {
+            Some(v) => *v,
+            None => Self::default_stats()
+        };
+        let count = b + w + e;
+        let mut fraction = b as f64 / count as f64;
+        if fraction < 0.1  {
+            fraction = 0.0;
+        } else if fraction > 0.9 {
+            fraction = 1.0;
+        }
+        fraction
+    }
+
+    fn default_stats() -> (usize,usize,usize) {
+        (1,1,100)
+    }
+
 }
 
 impl Display for OwnershipStatistics {
 
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let s = String::new();
+        let mut s = String::new();
+        for row in (1u8..self.size+1).rev() {
+            for col in 1u8..self.size+1 {
+                let coord = Coord::new(col, row);
+                s.push_str(&format!("{} ", self.value_for_coord(coord)));
+            }
+            s.push_str("\n");
+        }
         s.fmt(f)
     }
 }
