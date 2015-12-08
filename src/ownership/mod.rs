@@ -86,9 +86,8 @@ impl OwnershipStatistics {
             None => self.default_entry()
         };
         let count = b + w + e;
-        let cutoff = 0.9;
-        let fraction = cmp::max(b,w) as f64 / count as f64;
-        if fraction > cutoff {
+        let fraction = cmp::max(b,w) as f32 / count as f32;
+        if fraction > self.config.scoring.ownership_cutoff {
             if b > w {
                 Black
             } else {
@@ -121,7 +120,7 @@ impl OwnershipStatistics {
     }
 
     fn default_entry(&self) -> (usize,usize,usize) {
-        (1,1,100)
+        (1, 1, self.config.scoring.ownership_prior)
     }
 
 }

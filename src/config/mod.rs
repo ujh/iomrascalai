@@ -264,6 +264,39 @@ impl FromToml for PlayoutConfig {
     fn name() -> Option<&'static str> { Some("playout") }
 }
 
+/// Hold settings related to estimating the score of a board
+#[derive(Debug, PartialEq)]
+pub struct ScoringConfig {
+    /// Prior for the value of neutral owners (i.e. dame points). This
+    /// increases the number of playouts necessary to generate an
+    /// ownership value that's above the cutoff which increases the
+    /// confidence.
+    pub ownership_prior: usize,
+    /// Value between 0.0 and 1.0 which is the cutoff above which a
+    /// point is considered to be owned by a color.
+    pub ownership_cutoff: f32,
+}
+
+impl ScoringConfig {
+
+    fn new(value: toml::Value, default: toml::Value) -> ScoringConfig {
+        let opts = value.as_table().unwrap().clone();
+        let default_table = default.as_table().unwrap().clone();
+        let mut table = toml::Table::new();
+        table.extend(default_table);
+        table.extend(opts);
+        ScoringConfig {
+            ownership_prior: Self::as_integer(&table, "ownership_prior"),
+            ownership_cutoff: Self::as_float(&table, "ownership_cutoff"),
+        }
+    }
+
+}
+
+impl FromToml for ScoringConfig {
+    fn name() -> Option<&'static str> { Some("scoring") }
+}
+
 /// This is the global configuration object. Is is passed around
 /// (inside an `Arc`) most of the app and contains all possible
 /// settings and variables that can be tuned. Everything in here can
@@ -287,6 +320,9 @@ pub struct Config {
     pub priors: PriorsConfig,
     /// The ruleset we're currently playing under (CGOS, chinese, etc.)
     pub ruleset: Ruleset,
+    /// Holds a configuration object that contains everything related
+    /// to estimating the score of a board
+    pub scoring: ScoringConfig,
     /// The number of threads to use. The best results are achieved
     /// right now if this is the same number as the number of cores
     /// the computer has that the program runs on.
@@ -339,6 +375,7 @@ impl Config {
             playout: PlayoutConfig::new(table["playout"].clone(), default_table["playout"].clone()),
             priors: PriorsConfig::new(table["priors"].clone(), default_table["priors"].clone()),
             ruleset: Ruleset::from_str(table["ruleset"].as_str().unwrap()).unwrap(),
+            scoring: ScoringConfig::new(table["scoring"].clone(), default_table["scoring"].clone()),
             threads: Self::as_integer(&table, "threads"),
             time_control: TimeControlConfig::new(table["time_control"].clone(), default_table["time_control"].clone()),
             tree: TreeConfig::new(table["tree"].clone(), default_table["tree"].clone()),
