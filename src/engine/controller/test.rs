@@ -30,25 +30,29 @@ use board::Pass;
 use config::Config;
 use engine::Engine;
 use game::Game;
+use ownership::OwnershipStatistics;
 use ruleset::Minimal;
 use super::EngineController;
 use timer::Timer;
 
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
-use std::sync::mpsc::channel;
 use time::PreciseTime;
 
 fn config() -> Arc<Config> {
     Arc::new(Config::default())
 }
 
-pub struct EarlyReturnEngine;
+pub struct EarlyReturnEngine {
+    ownership: OwnershipStatistics
+}
 
 impl EarlyReturnEngine {
 
     pub fn new() -> EarlyReturnEngine {
-        EarlyReturnEngine
+        EarlyReturnEngine {
+            ownership: OwnershipStatistics::new(3)
+        }
     }
 
 }
@@ -57,6 +61,10 @@ impl Engine for EarlyReturnEngine {
 
     fn gen_move(&mut self, c: Color, _: u32, _: &Game, sender: Sender<(Move,usize)>, _: Receiver<()>) {
         sender.send((Pass(c),0));
+    }
+
+    fn ownership(&self) -> &OwnershipStatistics {
+        &self.ownership
     }
 
 }
@@ -70,20 +78,22 @@ fn the_engine_can_use_less_time_than_allocated() {
     let engine = Box::new(EarlyReturnEngine::new());
     let mut controller = EngineController::new(config(), engine);
     let start_time = PreciseTime::now();
-    let (sender, receiver) = channel::<Move>();
-    controller.run_and_return_move(color, &game, &timer, sender);
-    let m = receiver.recv().unwrap();
+    let (m, _) = controller.run_and_return_move(color, &game, &timer);
     let elapsed_time = start_time.to(PreciseTime::now()).num_milliseconds();
     assert!(elapsed_time < budget as i64);
     assert_eq!(Pass(color), m);
 }
 
-pub struct WaitingEngine;
+pub struct WaitingEngine {
+    ownership: OwnershipStatistics
+}
 
 impl WaitingEngine {
 
     pub fn new() -> WaitingEngine {
-        WaitingEngine
+        WaitingEngine {
+            ownership: OwnershipStatistics::new(3)
+        }
     }
 
 }
@@ -94,6 +104,10 @@ impl Engine for WaitingEngine {
         select!(
             _ = receiver.recv() => { sender.send((Pass(c),0)); }
         )
+    }
+
+    fn ownership(&self) -> &OwnershipStatistics {
+        &self.ownership
     }
 
 }
@@ -109,9 +123,7 @@ fn the_controller_asks_the_engine_for_a_move_when_the_time_is_up() {
     let engine = Box::new(WaitingEngine::new());
     let mut controller = EngineController::new(config(), engine);
     let start_time = PreciseTime::now();
-    let (sender, receiver) = channel::<Move>();
-    controller.run_and_return_move(color, &game, &timer, sender);
-    let m = receiver.recv().unwrap();
+    let (m, _) = controller.run_and_return_move(color, &game, &timer);
     let elapsed_time = start_time.to(PreciseTime::now()).num_milliseconds();
     assert!(elapsed_time >= budget as i64);
     assert_eq!(Pass(color), m);

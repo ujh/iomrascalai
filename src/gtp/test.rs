@@ -196,7 +196,7 @@ describe! interpreter {
 
         it "no newline at end" {
             let response = interpreter.read("list_commands\n");
-            let expected = "boardsize\nclear_board\nfinal_score\ngenmove\ngogui-analyze_commands\nknown_command\nkomi\nlist_commands\nloadsgf\nname\nplay\nprotocol_version\nquit\nshowboard\ntime_left\ntime_settings\nversion";
+            let expected = "boardsize\nclear_board\nfinal_score\ngenmove\ngogui-analyze_commands\nimrscl-ownership\nknown_command\nkomi\nlist_commands\nloadsgf\nname\nplay\nprotocol_version\nquit\nshowboard\ntime_left\ntime_settings\nversion";
             assert_that(response, is(equal_to(ok(expected))));
         }
 
@@ -297,8 +297,10 @@ describe! interpreter {
         describe! ownership {
 
             it "returns board of ownership likelihoods" {
-                let response = interpreter.read("imrscl-ownership");
-                assert_that(response, is(equal_to(ok("TBD"))));
+                interpreter.read("boardsize 9\n").unwrap();
+                interpreter.read("genmove b\n").unwrap();
+                let response = interpreter.read("imrscl-ownership\n");
+                assert!(response.is_ok());
             }
         }
 

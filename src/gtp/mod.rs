@@ -45,8 +45,14 @@ mod test;
 
 pub enum ControllerCommand {
     GenMove(Game, Color, Timer),
+    Ownership,
     Reset,
     ShutDown,
+}
+
+pub enum ControllerResponse {
+    GenMove(Move),
+    Ownership(String)
 }
 
 pub struct GTPInterpreter<'a> {
@@ -54,7 +60,7 @@ pub struct GTPInterpreter<'a> {
     commands: Vec<&'a str>,
     config: Arc<Config>,
     game: Game,
-    receive_move_from_controller: Receiver<Move>,
+    receive_response_from_controller: Receiver<ControllerResponse>,
     running: bool,
     send_command_to_controller: Sender<ControllerCommand>,
     timer: Timer,
@@ -65,7 +71,7 @@ impl<'a> GTPInterpreter<'a> {
         let komi      = 6.5;
         let boardsize = 19;
         let (send_command_to_controller, receive_command_from_interpreter) = channel::<ControllerCommand>();
-        let (send_move_to_interpreter, receive_move_from_controller) = channel::<Move>();
+        let (send_response_to_interpreter, receive_response_from_controller) = channel::<ControllerResponse>();
         let controller_config = config.clone();
         let genmove_config = config.clone();
         unsafe {
@@ -77,8 +83,14 @@ impl<'a> GTPInterpreter<'a> {
                             match command {
                                 ControllerCommand::GenMove(game, color, timer) => {
                                     let started_at = precise_time_ns();
-                                    let playouts = controller.run_and_return_move(color, &game, &timer, send_move_to_interpreter.clone());
+                                    let (m, playouts) = controller.run_and_return_move(color, &game, &timer);
+                                    send_response_to_interpreter.send(ControllerResponse::GenMove(m)).expect("Failed to send response to genmove to interpreter");
                                     Self::measure_playout_speed(started_at, playouts, &genmove_config);
+                                },
+                                ControllerCommand::Ownership => {
+                                    let stats = controller.ownership_statistics();
+                                    let response = ControllerResponse::Ownership(stats);
+                                    send_response_to_interpreter.send(response).expect("Failed to send respnse to imrscl-ownership to interpreter");
                                 },
                                 ControllerCommand::Reset => {
                                     controller.reset();
@@ -98,6 +110,7 @@ impl<'a> GTPInterpreter<'a> {
                     "final_score",
                     "genmove",
                     "gogui-analyze_commands",
+                    "imrscl-ownership",
                     "known_command",
                     "komi",
                     "list_commands",
@@ -113,7 +126,7 @@ impl<'a> GTPInterpreter<'a> {
                     ],
                 config: config.clone(),
                 game: Game::new(boardsize, komi, config.ruleset),
-                receive_move_from_controller: receive_move_from_controller,
+                receive_response_from_controller: receive_response_from_controller,
                 running: true,
                 send_command_to_controller: send_command_to_controller,
                 timer: Timer::new(config),
@@ -156,6 +169,7 @@ impl<'a> GTPInterpreter<'a> {
             "final_score" => self.execute_final_score(arguments),
             "genmove" => self.execute_genmove(arguments),
             "gogui-analyze_commands" => self.execute_gogui_analyze_commands(arguments),
+            "imrscl-ownership" => self.execute_imrscl_ownership(arguments),
             "known_command" => self.execute_known_command(arguments),
             "komi" => self.execute_komi(arguments),
             "list_commands" => self.execute_list_commands(arguments),
@@ -237,20 +251,35 @@ impl<'a> GTPInterpreter<'a> {
         	let color = Color::from_gtp(comm);
                 let command = ControllerCommand::GenMove(self.game.clone(), color, self.timer.clone());
                 self.send_command_to_controller.send(command).unwrap();
-                let m = self.receive_move_from_controller.recv().unwrap();
-                match self.game.play(m) {
-                    Ok(g) => {
-                        self.game = g;
-                        self.timer.stop();
-                        Ok(m.to_gtp())
+                let response = self.receive_response_from_controller.recv().unwrap();
+                match response {
+                    ControllerResponse::GenMove(m) => {
+                        match self.game.play(m) {
+                            Ok(g) => {
+                                self.game = g;
+                                self.timer.stop();
+                                Ok(m.to_gtp())
+                            },
+                            Err(e) => {
+                                Err(format!("Illegal move {:?} ({:?})", m, e))
+                            }
+                        }
                     },
-                    Err(e) => {
-                        Err(format!("Illegal move {:?} ({:?})", m, e))
-                    }
+                    _ => Err("received wrong response from controller for genmove".to_string())
                 }
             },
             None => Err("missing argument".to_string())
     	}
+    }
+
+    fn execute_imrscl_ownership(&mut self, _: &[&str]) -> Result<String, String> {
+        let command = ControllerCommand::Ownership;
+        self.send_command_to_controller.send(command).unwrap();
+        let response = self.receive_response_from_controller.recv().unwrap();
+        match response {
+            ControllerResponse::Ownership(s) => Ok(s),
+            _ => Err("Received from response from controller for imsrcl-ownership command".to_string())
+        }
     }
 
     fn execute_play(&mut self, arguments: &[&str]) -> Result<String, String> {

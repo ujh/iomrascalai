@@ -78,8 +78,11 @@ impl OwnershipStatistics {
             fraction = 0.0;
         } else if fraction > 0.9 {
             fraction = 1.0;
+        } else {
+            fraction = 0.5;
         }
-        fraction
+        // Scale to [-1,1]
+        (fraction * 2.0) - 1.0
     }
 
     fn default_stats() -> (usize,usize,usize) {
