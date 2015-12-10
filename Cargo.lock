@@ -6,7 +6,7 @@ dependencies = [
  "getopts 0.2.14 (registry+https://github.com/rust-lang/crates.io-index)",
  "hamcrest 0.1.0 (git+https://github.com/carllerche/hamcrest-rust.git)",
  "num 0.1.28 (registry+https://github.com/rust-lang/crates.io-index)",
- "num_cpus 0.2.10 (git+https://github.com/ujh/num_cpus.git?rev=53a4615daceb5448f5e6e025ce140e010ff87dd7)",
+ "num_cpus 0.2.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "quicksort 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.3.12 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex 0.1.43 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -90,7 +90,7 @@ dependencies = [
 [[package]]
 name = "num_cpus"
 version = "0.2.10"
-source = "git+https://github.com/ujh/num_cpus.git?rev=53a4615daceb5448f5e6e025ce140e010ff87dd7#53a4615daceb5448f5e6e025ce140e010ff87dd7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "kernel32-sys 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",

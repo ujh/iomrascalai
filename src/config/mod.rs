@@ -371,7 +371,7 @@ impl Config {
     fn new(toml_str: String, default_toml_str: String) -> Config {
         let opts = toml::Parser::new(&toml_str).parse().unwrap();
         let default_table = toml::Parser::new(&default_toml_str).parse().unwrap();
-        let threads = toml::Parser::new(&format!("threads = {}", num_cpus::get_physical())).parse().unwrap();
+        let threads = toml::Parser::new(&format!("threads = {}", num_cpus::get())).parse().unwrap();
         let mut table = toml::Table::new();
         table.extend(default_table.clone());
         table.extend(threads.clone());
