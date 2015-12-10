@@ -20,8 +20,9 @@
  *                                                                      *
  ************************************************************************/
 
-use std::path::Path;
 use board::Color;
+use board::Coord;
+use board::Empty;
 use board::Move;
 use config::Config;
 use engine::Engine;
@@ -32,112 +33,59 @@ use sgf::parser::Parser;
 use timer::Timer;
 use version;
 
+use std::path::Path;
 use std::sync::Arc;
-use std::sync::mpsc::Receiver;
-use std::sync::mpsc::Sender;
-use std::sync::mpsc::channel;
-use thread_scoped::JoinGuard;
-use thread_scoped::scoped;
 use time::precise_time_ns;
 
 pub mod driver;
 mod test;
 
-pub enum ControllerCommand {
-    GenMove(Game, Color, Timer),
-    Ownership,
-    Reset(u8),
-    ShutDown,
-}
-
-pub enum ControllerResponse {
-    GenMove(Move),
-    Ownership(String)
-}
-
 pub struct GTPInterpreter<'a> {
-    _guard: JoinGuard<'a, ()>,
     commands: Vec<&'a str>,
     config: Arc<Config>,
+    controller: EngineController<'a>,
     game: Game,
-    receive_response_from_controller: Receiver<ControllerResponse>,
     running: bool,
-    send_command_to_controller: Sender<ControllerCommand>,
     timer: Timer,
 }
 
 impl<'a> GTPInterpreter<'a> {
     pub fn new(config: Arc<Config>, engine: Box<Engine>) -> GTPInterpreter<'a> {
-        let komi      = 6.5;
+        let controller = EngineController::new(config.clone(), engine);
+        let komi = 6.5;
         let boardsize = 19;
-        let (send_command_to_controller, receive_command_from_interpreter) = channel::<ControllerCommand>();
-        let (send_response_to_interpreter, receive_response_from_controller) = channel::<ControllerResponse>();
-        let controller_config = config.clone();
-        let genmove_config = config.clone();
-        unsafe {
-            let guard = scoped(move || {
-                let mut controller = EngineController::new(controller_config, engine);
-                loop {
-                    match receive_command_from_interpreter.recv() {
-                        Ok(command) => {
-                            match command {
-                                ControllerCommand::GenMove(game, color, timer) => {
-                                    let started_at = precise_time_ns();
-                                    let (m, playouts) = controller.run_and_return_move(color, &game, &timer);
-                                    send_response_to_interpreter.send(ControllerResponse::GenMove(m)).expect("Failed to send response to genmove to interpreter");
-                                    Self::measure_playout_speed(started_at, playouts, &genmove_config);
-                                },
-                                ControllerCommand::Ownership => {
-                                    let stats = controller.ownership_statistics();
-                                    let response = ControllerResponse::Ownership(stats);
-                                    send_response_to_interpreter.send(response).expect("Failed to send respnse to imrscl-ownership to interpreter");
-                                },
-                                ControllerCommand::Reset(boardsize) => {
-                                    controller.reset(boardsize);
-                                }
-                                ControllerCommand::ShutDown => { break; },
-                            }
-                        },
-                        Err(_) => { break; }
-                    }
-                }
-            });
-            GTPInterpreter {
-                _guard: guard,
-                commands: vec![
-                    "boardsize",
-                    "clear_board",
-                    "final_score",
-                    "genmove",
-                    "gogui-analyze_commands",
-                    "imrscl-ownership",
-                    "known_command",
-                    "komi",
-                    "list_commands",
-                    "loadsgf",
-                    "name",
-                    "play",
-                    "protocol_version",
-                    "quit",
-                    "showboard",
-                    "time_left",
-                    "time_settings",
-                    "version",
-                    ],
-                config: config.clone(),
-                game: Game::new(boardsize, komi, config.ruleset),
-                receive_response_from_controller: receive_response_from_controller,
-                running: true,
-                send_command_to_controller: send_command_to_controller,
-                timer: Timer::new(config),
-            }
+        let commands = vec![
+            "boardsize",
+            "clear_board",
+            "final_score",
+            "final_status_list",
+            "genmove",
+            "gogui-analyze_commands",
+            "imrscl-ownership",
+            "known_command",
+            "komi",
+            "list_commands",
+            "loadsgf",
+            "name",
+            "play",
+            "protocol_version",
+            "quit",
+            "showboard",
+            "time_left",
+            "time_settings",
+            "version",
+            ];
+        GTPInterpreter {
+            commands: commands,
+            config: config.clone(),
+            controller: controller,
+            game: Game::new(boardsize, komi, config.ruleset),
+            running: true,
+            timer: Timer::new(config),
         }
     }
 
     pub fn quit(&mut self) {
-        if self.running {
-            self.send_command_to_controller.send(ControllerCommand::ShutDown).unwrap();
-        }
         self.running = false;
     }
 
@@ -167,6 +115,7 @@ impl<'a> GTPInterpreter<'a> {
             "boardsize" => self.execute_boardsize(arguments),
             "clear_board" => self.execute_clear_board(arguments),
             "final_score" => self.execute_final_score(arguments),
+            "final_status_list" => self.execute_final_status_list(arguments),
             "genmove" => self.execute_genmove(arguments),
             "gogui-analyze_commands" => self.execute_gogui_analyze_commands(arguments),
             "imrscl-ownership" => self.execute_imrscl_ownership(arguments),
@@ -224,9 +173,10 @@ impl<'a> GTPInterpreter<'a> {
     }
 
     fn execute_clear_board(&mut self, _: &[&str]) -> Result<String, String> {
-        self.game = Game::new(self.boardsize(), self.komi(), self.ruleset());
+        let size = self.boardsize();
+        self.game = Game::new(size, self.komi(), self.ruleset());
         self.timer.reset();
-        self.send_command_to_controller.send(ControllerCommand::Reset(self.boardsize())).unwrap();
+        self.controller.reset(size);
         Ok("".to_string())
     }
 
@@ -247,39 +197,30 @@ impl<'a> GTPInterpreter<'a> {
     fn execute_genmove(&mut self, arguments: &[&str]) -> Result<String, String> {
         match arguments.get(0) {
             Some(comm) => {
+                let started_at = precise_time_ns();
                 self.timer.start();
         	let color = Color::from_gtp(comm);
-                let command = ControllerCommand::GenMove(self.game.clone(), color, self.timer.clone());
-                self.send_command_to_controller.send(command).unwrap();
-                let response = self.receive_response_from_controller.recv().unwrap();
-                match response {
-                    ControllerResponse::GenMove(m) => {
-                        match self.game.play(m) {
-                            Ok(g) => {
-                                self.game = g;
-                                self.timer.stop();
-                                Ok(m.to_gtp())
-                            },
-                            Err(e) => {
-                                Err(format!("Illegal move {:?} ({:?})", m, e))
-                            }
-                        }
+                let (m, playouts) = self.controller.run_and_return_move(color, &self.game, &self.timer);
+                let response = match self.game.play(m) {
+                    Ok(g) => {
+                        self.game = g;
+                        self.timer.stop();
+                        Ok(m.to_gtp())
                     },
-                    _ => Err("received wrong response from controller for genmove".to_string())
-                }
+                    Err(e) => {
+                        Err(format!("Illegal move {:?} ({:?})", m, e))
+                    }
+                };
+                Self::measure_playout_speed(started_at, playouts, &self.config);
+                response
             },
             None => Err("missing argument".to_string())
     	}
     }
 
     fn execute_imrscl_ownership(&mut self, _: &[&str]) -> Result<String, String> {
-        let command = ControllerCommand::Ownership;
-        self.send_command_to_controller.send(command).unwrap();
-        let response = self.receive_response_from_controller.recv().unwrap();
-        match response {
-            ControllerResponse::Ownership(s) => Ok(s),
-            _ => Err("Received from response from controller for imsrcl-ownership command".to_string())
-        }
+        let stats = self.controller.ownership_statistics();
+        Ok(stats)
     }
 
     fn execute_play(&mut self, arguments: &[&str]) -> Result<String, String> {
@@ -309,6 +250,29 @@ impl<'a> GTPInterpreter<'a> {
 
     fn execute_final_score(&mut self, _: &[&str]) -> Result<String, String> {
         Ok(format!("{}", self.game.score()))
+    }
+
+    fn execute_final_status_list(&mut self, arguments: &[&str]) -> Result<String, String> {
+        match arguments.get(0) {
+            Some(kind) => {
+                match *kind {
+                    "alive" => {
+                        let board = self.game.board();
+                        let coords: Vec<Coord> = Coord::for_board_size(board.size()).iter()
+                            .filter(|c| board.color(c) != Empty)
+                            .cloned()
+                            .collect();
+                        let s = coords[1..].iter()
+                            .fold(coords[0].to_gtp(), |acc, el| format!("{} {}", acc, el.to_gtp()));
+                        Ok(s)
+                    },
+                    "dead" => Ok("".to_string()),
+                    "seki" => Ok("".to_string()),
+                    _ => Err("unknown argument".to_string()),
+                }
+            },
+            None => Err("missing argument".to_string())
+        }
     }
 
     fn execute_time_settings(&mut self, arguments: &[&str]) -> Result<String, String> {

@@ -19,11 +19,9 @@
  * along with Iomrascálaí.  If not, see <http://www.gnu.org/licenses/>. *
  *                                                                      *
  ************************************************************************/
-#![feature(core)]
 #![feature(mpsc_select)]
 #![feature(plugin)]
 #![feature(test)]
-#![feature(vec_push_all)]
 #![plugin(regex_macros)]
 #![plugin(stainless)]
 

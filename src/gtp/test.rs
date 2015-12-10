@@ -196,7 +196,7 @@ describe! interpreter {
 
         it "no newline at end" {
             let response = interpreter.read("list_commands\n");
-            let expected = "boardsize\nclear_board\nfinal_score\ngenmove\ngogui-analyze_commands\nimrscl-ownership\nknown_command\nkomi\nlist_commands\nloadsgf\nname\nplay\nprotocol_version\nquit\nshowboard\ntime_left\ntime_settings\nversion";
+            let expected = "boardsize\nclear_board\nfinal_score\nfinal_status_list\ngenmove\ngogui-analyze_commands\nimrscl-ownership\nknown_command\nkomi\nlist_commands\nloadsgf\nname\nplay\nprotocol_version\nquit\nshowboard\ntime_left\ntime_settings\nversion";
             assert_that(response, is(equal_to(ok(expected))));
         }
 
@@ -275,6 +275,40 @@ describe! interpreter {
         }
     }
 
+    describe! final_status_list {
+
+        before_each {
+            interpreter.read("boardsize 3\n").unwrap();
+            interpreter.read("clear_board\n").unwrap();
+            interpreter.read("play b a1\n").unwrap();
+            interpreter.read("play w b2\n").unwrap();
+        }
+
+        it "reports no dead stones" {
+            let response = interpreter.read("final_status_list dead\n");
+            assert_that(response, is(equal_to(ok(""))));
+        }
+
+        it "reports one alive stone" {
+            let response = interpreter.read("final_status_list alive\n");
+            assert_that(response, is(equal_to(ok("A1 B2"))));
+        }
+
+        it "reports no seki stones" {
+            let response = interpreter.read("final_status_list seki\n");
+            assert_that(response, is(equal_to(ok(""))));
+        }
+
+        it "returns an error on other arguments" {
+            let response = interpreter.read("final_status_list other\n");
+            assert_that(response, is(equal_to(err("unknown argument"))));
+        }
+
+        it "returns an error when no argument is given" {
+            let response = interpreter.read("final_status_list\n");
+            assert_that(response, is(equal_to(err("missing argument"))));
+        }
+    }
 
     // Gogui extensions
     describe! gogui {
