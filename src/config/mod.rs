@@ -329,7 +329,7 @@ pub struct Config {
     /// to estimating the score of a board
     pub scoring: ScoringConfig,
     /// The number of threads to use. The best results are achieved
-    /// right now if this is the same number as the number of (real)
+    /// right now if this is the same number as the number of (logical)
     /// cores the computer has that the program runs on.
     pub threads: usize,
     /// Holds a configuration object that contains everything related
