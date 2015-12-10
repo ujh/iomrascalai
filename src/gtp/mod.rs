@@ -20,8 +20,9 @@
  *                                                                      *
  ************************************************************************/
 
-use std::path::Path;
 use board::Color;
+use board::Coord;
+use board::Empty;
 use board::Move;
 use config::Config;
 use engine::Engine;
@@ -32,6 +33,7 @@ use sgf::parser::Parser;
 use timer::Timer;
 use version;
 
+use std::path::Path;
 use std::sync::Arc;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
@@ -108,6 +110,7 @@ impl<'a> GTPInterpreter<'a> {
                     "boardsize",
                     "clear_board",
                     "final_score",
+                    "final_status_list",
                     "genmove",
                     "gogui-analyze_commands",
                     "imrscl-ownership",
@@ -167,6 +170,7 @@ impl<'a> GTPInterpreter<'a> {
             "boardsize" => self.execute_boardsize(arguments),
             "clear_board" => self.execute_clear_board(arguments),
             "final_score" => self.execute_final_score(arguments),
+            "final_status_list" => self.execute_final_status_list(arguments),
             "genmove" => self.execute_genmove(arguments),
             "gogui-analyze_commands" => self.execute_gogui_analyze_commands(arguments),
             "imrscl-ownership" => self.execute_imrscl_ownership(arguments),
@@ -309,6 +313,29 @@ impl<'a> GTPInterpreter<'a> {
 
     fn execute_final_score(&mut self, _: &[&str]) -> Result<String, String> {
         Ok(format!("{}", self.game.score()))
+    }
+
+    fn execute_final_status_list(&mut self, arguments: &[&str]) -> Result<String, String> {
+        match arguments.get(0) {
+            Some(kind) => {
+                match *kind {
+                    "alive" => {
+                        let board = self.game.board();
+                        let coords: Vec<Coord> = Coord::for_board_size(board.size()).iter()
+                            .filter(|c| board.color(c) != Empty)
+                            .cloned()
+                            .collect();
+                        let s = coords[1..].iter()
+                            .fold(coords[0].to_gtp(), |acc, el| format!("{} {}", acc, el.to_gtp()));
+                        Ok(s)
+                    },
+                    "dead" => Ok("".to_string()),
+                    "seki" => Ok("".to_string()),
+                    _ => Err("unknown argument".to_string()),
+                }
+            },
+            None => Err("missing argument".to_string())
+        }
     }
 
     fn execute_time_settings(&mut self, arguments: &[&str]) -> Result<String, String> {

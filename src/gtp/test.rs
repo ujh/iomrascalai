@@ -196,7 +196,7 @@ describe! interpreter {
 
         it "no newline at end" {
             let response = interpreter.read("list_commands\n");
-            let expected = "boardsize\nclear_board\nfinal_score\ngenmove\ngogui-analyze_commands\nimrscl-ownership\nknown_command\nkomi\nlist_commands\nloadsgf\nname\nplay\nprotocol_version\nquit\nshowboard\ntime_left\ntime_settings\nversion";
+            let expected = "boardsize\nclear_board\nfinal_score\nfinal_status_list\ngenmove\ngogui-analyze_commands\nimrscl-ownership\nknown_command\nkomi\nlist_commands\nloadsgf\nname\nplay\nprotocol_version\nquit\nshowboard\ntime_left\ntime_settings\nversion";
             assert_that(response, is(equal_to(ok(expected))));
         }
 
@@ -302,6 +302,11 @@ describe! interpreter {
         it "returns an error on other arguments" {
             let response = interpreter.read("final_status_list other\n");
             assert_that(response, is(equal_to(err("unknown argument"))));
+        }
+
+        it "returns an error when no argument is given" {
+            let response = interpreter.read("final_status_list\n");
+            assert_that(response, is(equal_to(err("missing argument"))));
         }
     }
 
