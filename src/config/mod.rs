@@ -303,6 +303,10 @@ impl FromToml for ScoringConfig {
 /// be set in a configuration file in TOML format.
 #[derive(Debug, PartialEq)]
 pub struct Config {
+    /// If `true` output GoGui live graphics commands on stderr so
+    /// that you can see what the engine is "thinking" when playing or
+    /// observing a game via GoGui
+    pub gfx: bool,
     /// If `true` the various information (e.g. the number of
     /// simulations played) is printed to stderr while the engine is
     /// running.
@@ -370,6 +374,7 @@ impl Config {
         table.extend(default_table.clone());
         table.extend(opts.clone());
         let mut c = Config {
+            gfx: Self::as_bool(&table, "gfx"),
             log: Self::as_bool(&table, "log"),
             play_out_aftermath: Self::as_bool(&table, "play_out_aftermath"),
             playout: PlayoutConfig::new(table["playout"].clone(), default_table["playout"].clone()),
@@ -388,6 +393,18 @@ impl Config {
     /// to standard error. Otherwise it's silently discarded.
     pub fn log(&self, s: String) {
         if self.log {
+            match stderr().write(format!("{}\n", s).as_bytes()) {
+                Ok(_) => {},
+                Err(x) => panic!("Unable to write to stderr: {}", x)
+            }
+        }
+    }
+
+    /// If GoGui live graphics support is turned on then this will
+    /// output the commands on stderr. Otherwise they are silently
+    /// discarded.
+    pub fn gfx(&self, s: String) {
+        if self.gfx {
             match stderr().write(format!("{}\n", s).as_bytes()) {
                 Ok(_) => {},
                 Err(x) => panic!("Unable to write to stderr: {}", x)

@@ -1,3 +1,4 @@
+gfx = true
 log = true
 play_out_aftermath = false
 ruleset = "chinese"
