@@ -155,6 +155,14 @@ impl Timer {
         self.main_time_left
     }
 
+    pub fn byo_time_left(&self) -> u32 {
+        self.byo_time_left
+    }
+
+    pub fn byo_stones_left(&self) -> i32 {
+        self.byo_stones_left
+    }
+
     fn set_main_time(&mut self, time: u32) {
         self.main_time = time;
         self.main_time_left = time;

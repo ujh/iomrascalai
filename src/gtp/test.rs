@@ -22,14 +22,23 @@
 
 #![cfg(test)]
 
-
 pub use config::Config;
 pub use engine::EngineImpl;
 pub use patterns::Matcher;
-pub use super::Command;
 pub use super::GTPInterpreter;
 
+pub use hamcrest::assert_that;
+pub use hamcrest::equal_to;
+pub use hamcrest::is;
 pub use std::sync::Arc;
+
+pub fn err(s: &'static str) -> Result<String, String> {
+    Err(s.to_string())
+}
+
+pub fn ok(s: &'static str) -> Result<String, String> {
+    Ok(s.to_string())
+}
 
 describe! interpreter {
 
@@ -41,126 +50,260 @@ describe! interpreter {
     }
 
     it "empty string" {
-        let command = interpreter.read("");
-        match command {
-    	    Command::Empty => (),
-    	    _ => panic!("Expected Command::Empty")
+        let response = interpreter.read("");
+        assert_that(response, is(equal_to(err("empty command"))));
+    }
+
+    describe! loadsgf {
+
+        it "wrong file" {
+            let response = interpreter.read("loadsgf wrongfileactually\n");
+            assert_that(response, is(equal_to(err("cannot load file"))));
         }
-        interpreter.quit();
-    }
 
-    it "loadsgf wrong file" {
-        interpreter.read("loadsgf wrongfileactually\n");
-        interpreter.quit();
-    }
-
-    it "loadsgf one argument" {
-        interpreter.read("loadsgf\n");
-        interpreter.quit();
-    }
-
-    it "time_left one argument" {
-        interpreter.read("time_left\n");
-        interpreter.quit();
-    }
-
-    it "time_settings one argument" {
-        interpreter.read("time_settings\n");
-        interpreter.quit();
-    }
-
-    it "play one argument" {
-        interpreter.read("play\n");
-        interpreter.quit();
-    }
-
-    it "genmove one argument" {
-        interpreter.read("genmove\n");
-        interpreter.quit();
-    }
-
-    it "komi one argument" {
-        interpreter.read("komi\n");
-        interpreter.quit();
-    }
-
-    it "boardsize one argument" {
-        interpreter.read("boardsize\n");
-        interpreter.quit();
-    }
-
-    it "known_command one argument" {
-        interpreter.read("known_command\n");
-        interpreter.quit();
-    }
-
-    it "no newline at end of list_commands" {
-        let commands = interpreter.read("list_commands\n");
-        let expected = "boardsize\nclear_board\nfinal_score\ngenmove\nknown_command\nkomi\nlist_commands\nloadsgf\nname\nplay\nprotocol_version\nquit\nshowboard\ntime_left\ntime_settings\nversion";
-        match commands {
-            Command::ListCommands(cs) => assert_eq!(expected, cs),
-            _                         => panic!("wrong match")
+        it "one argument" {
+            let response = interpreter.read("loadsgf\n");
+            assert_that(response, is(equal_to(err("missing argument"))));
         }
-        interpreter.quit();
+
     }
 
-    it "boardsize sets the correct size" {
-        assert_eq!(19, interpreter.game.size());
-        interpreter.read("boardsize 9\n");
-        interpreter.quit();
-        assert_eq!(9, interpreter.game.size());
-    }
+    describe! time_left {
 
-    it "boardsize resets the board" {
-        interpreter.read("play b a1\n");
-        interpreter.read("boardsize 9\n");
-        interpreter.quit();
-        assert_eq!(81, interpreter.game.board().vacant_point_count());
-    }
-
-    it "play plays a move" {
-        interpreter.read("play b a1\n");
-        interpreter.quit();
-        assert_eq!(360, interpreter.game.board().vacant_point_count());
-    }
-
-    it "sets the komi" {
-        interpreter.read("komi 10\n");
-        interpreter.quit();
-        assert_eq!(10.0, interpreter.komi());
-    }
-
-    it "sets the time" {
-        interpreter.read("time_settings 30 20 10\n");
-        interpreter.quit();
-        assert_eq!(30_000, interpreter.timer.main_time);
-        assert_eq!(20_000, interpreter.timer.byo_time);
-        assert_eq!(10, interpreter.timer.byo_stones);
-    }
-
-    it "clear_board resets the board" {
-        interpreter.read("play b a1\n");
-        interpreter.read("clear_board\n");
-        interpreter.quit();
-        assert_eq!(361, interpreter.game.board().vacant_point_count());
-    }
-
-    it "final_score no move" {
-        match interpreter.read("final_score\n") {
-            Command::FinalScore(score) => assert_eq!("W+6.5", score),
-            _                          => panic!("FinalScore expected!")
+        it "one argument" {
+            let response = interpreter.read("time_left\n");
+            assert_that(response, is(equal_to(err("missing argument(s)"))));
         }
-        interpreter.quit();
+
+        it "sets the main time" {
+            let response = interpreter.read("time_left b 30 0");
+            assert_that(response, is(equal_to(ok(""))));
+            assert_that(interpreter.timer.main_time_left(), is(equal_to(30_000)));
+        }
+
+        it "sets the over time" {
+            let response = interpreter.read("time_left b 30 1");
+            assert_that(response, is(equal_to(ok(""))));
+            assert_that(interpreter.timer.main_time_left(), is(equal_to(0)));
+            assert_that(interpreter.timer.byo_time_left(), is(equal_to(30_000)));
+            assert_that(interpreter.timer.byo_stones_left(), is(equal_to(1)));
+        }
+
     }
 
-    it "final_score one move" {
-        interpreter.read("boardsize 4\n");
-        interpreter.read("play b c2\n");
-        match interpreter.read("final_score\n") {
-            Command::FinalScore(score) => assert_eq!("B+9.5", score),
-            _                          => panic!("FinalScore expected!")
+    describe! time_settings {
+
+        it "one argument" {
+            let response = interpreter.read("time_settings\n");
+            assert_that(response, is(equal_to(err("missing argument(s)"))));
         }
-        interpreter.quit();
+
+        it "sets the time" {
+            let response = interpreter.read("time_settings 30 20 10\n");
+            assert_that(response, is(equal_to(ok(""))));
+            assert_that(interpreter.timer.main_time, is(equal_to(30_000)));
+            assert_that(interpreter.timer.byo_time, is(equal_to(20_000)));
+            assert_that(interpreter.timer.byo_stones, is(equal_to(10)));
+        }
+
+    }
+
+    describe! play {
+
+        it "one argument" {
+            let response = interpreter.read("play\n");
+            assert_that(response, is(equal_to(err("missing argument"))));
+        }
+
+        it "plays a move" {
+            let response = interpreter.read("play b a1\n");
+            assert_that(response, is(equal_to(ok(""))));
+            assert_that(interpreter.game.board().vacant_point_count(), is(equal_to(360)));
+        }
+
+    }
+
+    describe! genmove {
+
+        it "one argument" {
+            let response = interpreter.read("genmove\n");
+            assert_that(response, is(equal_to(err("missing argument"))));
+        }
+
+        it "generates a move" {
+            let response = interpreter.read("genmove b\n");
+            assert!(response.is_ok());
+        }
+    }
+
+    describe! komi {
+
+        it "one argument" {
+            let response = interpreter.read("komi\n");
+            assert_that(response, is(equal_to(err("missing argument"))));
+        }
+
+        it "sets the komi" {
+            let response = interpreter.read("komi 10\n");
+            assert_that(response, is(equal_to(ok(""))));
+            assert_that(interpreter.komi(), is(equal_to(10.0)));
+        }
+
+    }
+
+    describe! boardsize {
+
+        it "one argument" {
+            let response = interpreter.read("boardsize\n");
+            assert_that(response, is(equal_to(err("missing argument"))));
+        }
+
+        it "sets the correct size" {
+            assert_that(interpreter.game.size(), is(equal_to(19)));
+            let response = interpreter.read("boardsize 9\n");
+            assert_that(response, is(equal_to(ok(""))));
+            assert_that(interpreter.game.size(), is(equal_to(9)));
+        }
+
+        it "boardsize resets the board" {
+            interpreter.read("play b a1\n").unwrap();
+            interpreter.read("boardsize 9\n").unwrap();
+            assert_that(interpreter.game.board().vacant_point_count(), is(equal_to(81)));
+        }
+
+    }
+
+    describe! known_command {
+
+        it "one argument" {
+            let response = interpreter.read("known_command\n");
+            assert_that(response, is(equal_to(err("missing argument"))));
+        }
+
+        it "known command" {
+            let response = interpreter.read("known_command play\n");
+            assert_that(response, is(equal_to(ok("true"))));
+        }
+
+        it "unknown command" {
+            let response = interpreter.read("known_command XXX\n");
+            assert_that(response, is(equal_to(ok("false"))));
+        }
+
+    }
+
+    describe! list_commands {
+
+        it "no newline at end" {
+            let response = interpreter.read("list_commands\n");
+            let expected = "boardsize\nclear_board\nfinal_score\ngenmove\ngogui-analyze_commands\nimrscl-ownership\nknown_command\nkomi\nlist_commands\nloadsgf\nname\nplay\nprotocol_version\nquit\nshowboard\ntime_left\ntime_settings\nversion";
+            assert_that(response, is(equal_to(ok(expected))));
+        }
+
+    }
+
+    describe! clear_board {
+
+        it "resets the board" {
+            interpreter.read("play b a1\n").unwrap();
+            let response = interpreter.read("clear_board\n");
+            assert_that(response, is(equal_to(ok(""))));
+            assert_eq!(361, interpreter.game.board().vacant_point_count());
+        }
+
+    }
+
+    describe! final_score {
+
+        it "no move" {
+            let response = interpreter.read("final_score\n");
+            assert_that(response, is(equal_to(ok("W+6.5"))));
+        }
+
+        it "one move" {
+            interpreter.read("boardsize 4\n").unwrap();
+            interpreter.read("play b c2\n").unwrap();
+            let response = interpreter.read("final_score\n");
+            assert_that(response, is(equal_to(ok("B+9.5"))));
+        }
+
+    }
+
+    describe! name {
+
+        it "returns the engine name" {
+            let response = interpreter.read("name\n");
+            assert_that(response, is(equal_to(ok("Iomrascalai"))));
+        }
+
+    }
+
+    describe! protocol_version {
+
+        it "returns 2" {
+            let response = interpreter.read("protocol_version\n");
+            assert_that(response, is(equal_to(ok("2"))));
+        }
+
+    }
+
+    describe! showboard {
+
+        it "returns a board representation" {
+            interpreter.read("boardsize 3\n").unwrap();
+            let response = interpreter.read("showboard\n");
+            let expected = "\nkomi: 6.5\n 3 . . . \n 2 . . . \n 1 . . . \n   1 2 3 \n";
+            assert_that(response, is(equal_to(ok(expected))));
+        }
+
+    }
+
+    describe! version {
+
+        it "returns the current version" {
+            let response = interpreter.read("version\n");
+            assert_that(response, is(equal_to(ok(::version::version()))));
+        }
+    }
+
+    describe! quit {
+
+        it "shuts down the interpreter" {
+            let response = interpreter.read("quit\n");
+            assert_that(response, is(equal_to(ok(""))));
+            assert!(!interpreter.running);
+        }
+    }
+
+
+    // Gogui extensions
+    describe! gogui {
+
+        describe! analyze_commands {
+
+            it "returns the supported analyze commands" {
+                let expected = "dboard/Ownership/imrscl-ownership";
+                let response = interpreter.read("gogui-analyze_commands\n");
+                assert_that(response, is(equal_to(ok(expected))));
+            }
+
+        }
+
+    }
+
+    // Our extensions
+    describe! imsrcl {
+
+        describe! ownership {
+
+            it "returns board of ownership likelihoods" {
+                interpreter.read("boardsize 3\n").unwrap();
+                interpreter.read("clear_board\n").unwrap();
+                let response = interpreter.read("imrscl-ownership\n");
+                assert_that(response, is(equal_to(ok("0 0 0 \n0 0 0 \n0 0 0 \n"))));
+            }
+        }
+
     }
 
 }

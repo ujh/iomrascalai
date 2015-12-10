@@ -89,6 +89,12 @@ impl Coord {
         (self.col as usize-1 + (self.row as usize-1)*board_size as usize)
     }
 
+    pub fn from_index(index: usize, board_size: u8) -> Coord {
+        let col = (index as isize % board_size as isize) + 1;
+        let row = ((index as isize - col + 1) / board_size as isize) + 1;
+        Coord::new(col as u8, row as u8)
+    }
+
     pub fn is_inside(&self, board_size: u8) -> bool {
         1 <= self.col && self.col <= board_size && 1 <= self.row && self.row <= board_size
     }

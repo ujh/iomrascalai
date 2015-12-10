@@ -28,7 +28,6 @@ use timer::Timer;
 
 use std::sync::Arc;
 use std::sync::mpsc::channel;
-use std::sync::mpsc::Sender;
 use std::thread;
 use std::time::Duration;
 use thread_scoped::scoped;
@@ -49,11 +48,15 @@ impl<'a> EngineController<'a> {
         }
     }
 
-    pub fn reset(&mut self) {
-        self.engine.reset();
+    pub fn reset(&mut self, boardsize: u8) {
+        self.engine.reset(boardsize);
     }
 
-    pub fn run_and_return_move(&mut self, color: Color, game: &Game, timer: &Timer, send_move: Sender<Move>) -> usize {
+    pub fn ownership_statistics(&self) -> String {
+        format!("{}", self.engine.ownership())
+    }
+
+    pub fn run_and_return_move(&mut self, color: Color, game: &Game, timer: &Timer) -> (Move, usize) {
         let budget = self.budget(timer, game);
         let (send_move_to_controller, receive_move_from_engine) = channel();
         let (send_signal_to_engine, receive_signal_from_controller) = channel::<()>();
@@ -79,9 +82,7 @@ impl<'a> EngineController<'a> {
             });
             select!(
                 r = receive_move_from_engine.recv() => {
-                    let (m, playouts) = r.unwrap();
-                    send_move.send(m).unwrap();
-                    playouts
+                    r.unwrap()
                 },
                 _ = receive_time_up.recv() => {
                     match send_signal_to_engine.send(()) {
@@ -90,9 +91,7 @@ impl<'a> EngineController<'a> {
                             ste_config.log(format!("[DEBUG] sending time up to engine failed with {:?}", e));
                         }
                     }
-                    let (m, playouts) = receive_move_from_engine.recv().unwrap();
-                    send_move.send(m).unwrap();
-                    playouts
+                    receive_move_from_engine.recv().unwrap()
                 }
             )
         }

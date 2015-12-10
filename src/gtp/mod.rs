@@ -19,10 +19,9 @@
  * along with Iomrascálaí.  If not, see <http://www.gnu.org/licenses/>. *
  *                                                                      *
  ************************************************************************/
-#![allow(non_camel_case_types)]
+
 use std::path::Path;
 use board::Color;
-use board::IllegalMove;
 use board::Move;
 use config::Config;
 use engine::Engine;
@@ -31,9 +30,8 @@ use game::Game;
 use ruleset::Ruleset;
 use sgf::parser::Parser;
 use timer::Timer;
-use strenum::Strenum;
+use version;
 
-use num::traits::FromPrimitive;
 use std::sync::Arc;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
@@ -45,61 +43,25 @@ use time::precise_time_ns;
 pub mod driver;
 mod test;
 
-strenum! {
-    KnownCommands =>
-        boardsize,
-        clear_board,
-        final_score,
-        genmove,
-        known_command,
-        komi,
-        list_commands,
-        loadsgf,
-        name,
-        play,
-        protocol_version,
-        quit,
-        showboard,
-        time_left,
-        time_settings,
-        version
-}
-
-pub enum Command {
-    BoardSize,
-    ClearBoard,
-    Empty,
-    Error,
-    ErrorMessage(String),
-    FinalScore(String),
-    GenMove(String),
-    GenMoveError(Move, IllegalMove),
-    KnownCommand(bool),
-    Komi,
-    ListCommands(String),
-    LoadSgf,
-    Name,
-    Play,
-    PlayError(Move, IllegalMove),
-    ProtocolVersion,
-    Quit,
-    ShowBoard(String),
-    TimeLeft,
-    TimeSettings,
-    Version,
-}
-
 pub enum ControllerCommand {
     GenMove(Game, Color, Timer),
-    Reset,
+    Ownership,
+    Reset(u8),
     ShutDown,
+}
+
+pub enum ControllerResponse {
+    GenMove(Move),
+    Ownership(String)
 }
 
 pub struct GTPInterpreter<'a> {
     _guard: JoinGuard<'a, ()>,
+    commands: Vec<&'a str>,
     config: Arc<Config>,
     game: Game,
-    receive_move_from_controller: Receiver<Move>,
+    receive_response_from_controller: Receiver<ControllerResponse>,
+    running: bool,
     send_command_to_controller: Sender<ControllerCommand>,
     timer: Timer,
 }
@@ -109,7 +71,7 @@ impl<'a> GTPInterpreter<'a> {
         let komi      = 6.5;
         let boardsize = 19;
         let (send_command_to_controller, receive_command_from_interpreter) = channel::<ControllerCommand>();
-        let (send_move_to_interpreter, receive_move_from_controller) = channel::<Move>();
+        let (send_response_to_interpreter, receive_response_from_controller) = channel::<ControllerResponse>();
         let controller_config = config.clone();
         let genmove_config = config.clone();
         unsafe {
@@ -121,11 +83,17 @@ impl<'a> GTPInterpreter<'a> {
                             match command {
                                 ControllerCommand::GenMove(game, color, timer) => {
                                     let started_at = precise_time_ns();
-                                    let playouts = controller.run_and_return_move(color, &game, &timer, send_move_to_interpreter.clone());
+                                    let (m, playouts) = controller.run_and_return_move(color, &game, &timer);
+                                    send_response_to_interpreter.send(ControllerResponse::GenMove(m)).expect("Failed to send response to genmove to interpreter");
                                     Self::measure_playout_speed(started_at, playouts, &genmove_config);
                                 },
-                                ControllerCommand::Reset => {
-                                    controller.reset();
+                                ControllerCommand::Ownership => {
+                                    let stats = controller.ownership_statistics();
+                                    let response = ControllerResponse::Ownership(stats);
+                                    send_response_to_interpreter.send(response).expect("Failed to send respnse to imrscl-ownership to interpreter");
+                                },
+                                ControllerCommand::Reset(boardsize) => {
+                                    controller.reset(boardsize);
                                 }
                                 ControllerCommand::ShutDown => { break; },
                             }
@@ -136,17 +104,41 @@ impl<'a> GTPInterpreter<'a> {
             });
             GTPInterpreter {
                 _guard: guard,
+                commands: vec![
+                    "boardsize",
+                    "clear_board",
+                    "final_score",
+                    "genmove",
+                    "gogui-analyze_commands",
+                    "imrscl-ownership",
+                    "known_command",
+                    "komi",
+                    "list_commands",
+                    "loadsgf",
+                    "name",
+                    "play",
+                    "protocol_version",
+                    "quit",
+                    "showboard",
+                    "time_left",
+                    "time_settings",
+                    "version",
+                    ],
                 config: config.clone(),
                 game: Game::new(boardsize, komi, config.ruleset),
-                receive_move_from_controller: receive_move_from_controller,
+                receive_response_from_controller: receive_response_from_controller,
+                running: true,
                 send_command_to_controller: send_command_to_controller,
                 timer: Timer::new(config),
             }
         }
     }
 
-    pub fn quit(&self) {
-        self.send_command_to_controller.send(ControllerCommand::ShutDown).unwrap();
+    pub fn quit(&mut self) {
+        if self.running {
+            self.send_command_to_controller.send(ControllerCommand::ShutDown).unwrap();
+        }
+        self.running = false;
     }
 
     pub fn komi(&self) -> f32 {
@@ -161,143 +153,223 @@ impl<'a> GTPInterpreter<'a> {
         self.game.size()
     }
 
-    pub fn read(&mut self, input: &str) -> Command {
+    pub fn read(&mut self, input: &str) -> Result<String, String> {
         let preprocessed = self.preprocess(input);
-        if preprocessed.len() == 0 { return Command::Empty };
-
+        if preprocessed.len() == 0 {
+            return Err("empty command".to_string())
+        };
         let command: Vec<&str> = preprocessed.split(' ').collect();
-
-        //command[0] is never empty because a split always has at least one part
-        let command_name = match <KnownCommands>::enumify(command[0]) {
-        	Some(comm)     => comm,
-        	None           => return Command::Error
-    	};
-
-        match command_name {
-            KnownCommands::name             => Command::Name,
-            KnownCommands::version          => Command::Version,
-            KnownCommands::protocol_version => Command::ProtocolVersion,
-            KnownCommands::list_commands    => Command::ListCommands(<KnownCommands>::stringify()),
-            KnownCommands::known_command    => match command.get(1) {
-            	Some(comm) => Command::KnownCommand(<KnownCommands>::enumify(&comm).is_some()),
-            	None => Command::KnownCommand(false)
-        	},
-            KnownCommands::boardsize        => match command.get(1) {
-            	Some(comm) => match comm.parse::<u8>() {
-                    Ok(size) => {
-                        self.game = Game::new(size, self.komi(), self.ruleset());
-                        Command::BoardSize
-                    },
-                    Err(_) => Command::Error
-                },
-            	None => Command::Error
-        	},
-            KnownCommands::clear_board      => {
-                self.game = Game::new(self.boardsize(), self.komi(), self.ruleset());
-                self.timer.reset();
-                self.send_command_to_controller.send(ControllerCommand::Reset).unwrap();
-                Command::ClearBoard
-            },
-            KnownCommands::komi             => match command.get(1) {
-                Some(comm) =>
-                    match comm.parse::<f32>() {
-                        Ok(komi) => {
-                            self.game.set_komi(komi);
-                            Command::Komi
-                        },
-                        Err(_) => Command::Error
-                    },
-                None => Command::Error
-            },
-            KnownCommands::genmove          => match command.get(1) {
-        	Some(comm) => {
-                    self.timer.start();
-        	    let color = Color::from_gtp(comm);
-                    let command = ControllerCommand::GenMove(self.game.clone(), color, self.timer.clone());
-                    self.send_command_to_controller.send(command).unwrap();
-                    let m = self.receive_move_from_controller.recv().unwrap();
-                    match self.game.play(m) {
-                        Ok(g) => {
-                            self.game = g;
-                            self.timer.stop();
-                            Command::GenMove(m.to_gtp())
-                        },
-                        Err(e) => {
-                            Command::GenMoveError(m, e)
-                        }
-                    }
-                },
-                None => Command::Error
-    		},
-            KnownCommands::play             => match command.get(2) {
-            	Some(second) => {
-                    let m = Move::from_gtp(command[1], second); //command[1] should be there
-                    match self.game.play(m) {
-                        Ok(g) => {
-                            self.game = g;
-                            Command::Play
-                        },
-                        Err(e) => {
-                            Command::PlayError(m, e)
-                        }
-                    }
-                },
-            	None => Command::Error
-        	},
-            KnownCommands::showboard        => Command::ShowBoard(format!("\n{}", self.game)),
-            KnownCommands::quit             => {
-                self.quit();
-                Command::Quit
-            },
-            KnownCommands::final_score      => Command::FinalScore(format!("{}", self.game.score())),
-            KnownCommands::time_settings    => match command.get(3) {
-            	Some(third) => {
-            		//command[1] and command[2] should be there
-                    match (command[1].parse::<u32>(), command[2].parse::<u32>(), third.parse::<i32>()) {
-                        (Ok(main), Ok(byo), Ok(stones)) => {
-                            self.timer.setup(main, byo, stones);
-                            Command::TimeSettings
-                        }
-                        _ => Command::Error
-                    }
-                },
-            	None => Command::Error
-        	},
-            KnownCommands::time_left        => match command.get(3) {
-            	Some(third) => {
-            		//command[2] should be there
-            		//TODO: seems wrong, missing a color
-                    match (command[2].parse::<u32>(), third.parse::<i32>()) {
-                        (Ok(time), Ok(stones)) => {
-                            self.timer.update(time, stones);
-                            Command::TimeLeft
-                        },
-                        _ => Command::Error
-                    }
-                },
-            	None => Command::Error
-        	},
-            KnownCommands::loadsgf          => match command.get(1) {
-            	Some(comm) => {
-                    let filename = comm;
-
-                    match Parser::from_path(Path::new(filename)) {
-                    	Ok(parser) => {
-                    		let game = parser.game();
-                            match game {
-                                Ok(g) => {
-                                    self.game = g;
-                                    Command::LoadSgf
-                                },
-                                Err(_) => Command::ErrorMessage(String::from("cannot load file"))
-                            }
-                		},
-                    	Err(_) => Command::ErrorMessage(String::from("cannot load file"))
-                	}
-                },
-            	None => Command::Error
-        	}
+        if !self.commands.contains(&command[0]) {
+            return Err("unknown command".to_string());
         }
+        let arguments = &command[1..];
+        match command[0] {
+            "boardsize" => self.execute_boardsize(arguments),
+            "clear_board" => self.execute_clear_board(arguments),
+            "final_score" => self.execute_final_score(arguments),
+            "genmove" => self.execute_genmove(arguments),
+            "gogui-analyze_commands" => self.execute_gogui_analyze_commands(arguments),
+            "imrscl-ownership" => self.execute_imrscl_ownership(arguments),
+            "known_command" => self.execute_known_command(arguments),
+            "komi" => self.execute_komi(arguments),
+            "list_commands" => self.execute_list_commands(arguments),
+            "loadsgf" => self.execute_loadsgf(arguments),
+            "name" => self.execute_name(arguments),
+            "play" => self.execute_play(arguments),
+            "protocol_version" => self.execute_protocol_version(arguments),
+            "quit" => self.execute_quit(arguments),
+            "showboard" => self.execute_showboard(arguments),
+            "time_left" => self.execute_time_left(arguments),
+            "time_settings" => self.execute_time_settings(arguments),
+            "version" => self.execute_version(arguments),
+            _ => Err("unknown command".to_string())
+        }
+
+    }
+
+    fn execute_name(&mut self, _: &[&str]) -> Result<String, String> {
+        Ok("Iomrascalai".to_string())
+    }
+
+    fn execute_version(&mut self, _: &[&str]) -> Result<String, String> {
+        Ok(version::version().to_string())
+    }
+
+    fn execute_protocol_version(&mut self, _: &[&str]) -> Result<String, String> {
+        Ok("2".to_string())
+    }
+
+    fn execute_list_commands(&mut self, _: &[&str]) -> Result<String, String> {
+        Ok(self.commands[1..].iter().fold(self.commands[0].to_string(), |acc, &el| format!("{}\n{}", acc, el)))
+    }
+
+    fn execute_known_command(&mut self, arguments: &[&str]) -> Result<String, String> {
+        match arguments.get(0) {
+            Some(comm) => Ok(format!("{}", self.commands.contains(comm))),
+            None => Err("missing argument".to_string())
+        }
+    }
+
+    fn execute_boardsize(&mut self, arguments: &[&str]) -> Result<String, String> {
+        match arguments.get(0) {
+            Some(comm) => match comm.parse::<u8>() {
+                Ok(size) => {
+                    self.game = Game::new(size, self.komi(), self.ruleset());
+                    Ok("".to_string())
+                },
+                Err(e) => Err(format!("{:?}", e))
+            },
+            None => Err("missing argument".to_string())
+        }
+    }
+
+    fn execute_clear_board(&mut self, _: &[&str]) -> Result<String, String> {
+        self.game = Game::new(self.boardsize(), self.komi(), self.ruleset());
+        self.timer.reset();
+        self.send_command_to_controller.send(ControllerCommand::Reset(self.boardsize())).unwrap();
+        Ok("".to_string())
+    }
+
+    fn execute_komi(&mut self, arguments: &[&str]) -> Result<String, String> {
+        match arguments.get(0) {
+            Some(comm) =>
+                match comm.parse::<f32>() {
+                    Ok(komi) => {
+                        self.game.set_komi(komi);
+                        Ok("".to_string())
+                    },
+                    Err(e) => Err(format!("{:?}", e))
+                },
+            None => Err("missing argument".to_string())
+        }
+    }
+
+    fn execute_genmove(&mut self, arguments: &[&str]) -> Result<String, String> {
+        match arguments.get(0) {
+            Some(comm) => {
+                self.timer.start();
+        	let color = Color::from_gtp(comm);
+                let command = ControllerCommand::GenMove(self.game.clone(), color, self.timer.clone());
+                self.send_command_to_controller.send(command).unwrap();
+                let response = self.receive_response_from_controller.recv().unwrap();
+                match response {
+                    ControllerResponse::GenMove(m) => {
+                        match self.game.play(m) {
+                            Ok(g) => {
+                                self.game = g;
+                                self.timer.stop();
+                                Ok(m.to_gtp())
+                            },
+                            Err(e) => {
+                                Err(format!("Illegal move {:?} ({:?})", m, e))
+                            }
+                        }
+                    },
+                    _ => Err("received wrong response from controller for genmove".to_string())
+                }
+            },
+            None => Err("missing argument".to_string())
+    	}
+    }
+
+    fn execute_imrscl_ownership(&mut self, _: &[&str]) -> Result<String, String> {
+        let command = ControllerCommand::Ownership;
+        self.send_command_to_controller.send(command).unwrap();
+        let response = self.receive_response_from_controller.recv().unwrap();
+        match response {
+            ControllerResponse::Ownership(s) => Ok(s),
+            _ => Err("Received from response from controller for imsrcl-ownership command".to_string())
+        }
+    }
+
+    fn execute_play(&mut self, arguments: &[&str]) -> Result<String, String> {
+        match arguments.get(1) {
+            Some(second) => {
+                let m = Move::from_gtp(arguments[0], second);
+                match self.game.play(m) {
+                    Ok(g) => {
+                        self.game = g;
+                        Ok("".to_string())
+                    },
+                    Err(e) => Err(format!("Illegal move {:?} ({:?})", m, e))
+                }
+            },
+            None => Err("missing argument".to_string())
+        }
+    }
+
+    fn execute_showboard(&mut self, _: &[&str]) -> Result<String, String> {
+        Ok(format!("\n{}", self.game))
+    }
+
+    fn execute_quit(&mut self, _: &[&str]) -> Result<String, String> {
+        self.quit();
+        Ok("".to_string())
+    }
+
+    fn execute_final_score(&mut self, _: &[&str]) -> Result<String, String> {
+        Ok(format!("{}", self.game.score()))
+    }
+
+    fn execute_time_settings(&mut self, arguments: &[&str]) -> Result<String, String> {
+        match arguments.get(2) {
+            Some(third) => {
+            	//command[1] and command[2] should be there
+                match (arguments[0].parse::<u32>(), arguments[1].parse::<u32>(), third.parse::<i32>()) {
+                    (Ok(main), Ok(byo), Ok(stones)) => {
+                        self.timer.setup(main, byo, stones);
+                        Ok("".to_string())
+                    }
+                    _ => Err("error parsing time_settings".to_string())
+                }
+            },
+            None => Err("missing argument(s)".to_string())
+        }
+    }
+
+    fn execute_time_left(&mut self, arguments: &[&str]) -> Result<String, String> {
+        match arguments.get(2) {
+            Some(third) => {
+                match (arguments[1].parse::<u32>(), third.parse::<i32>()) {
+                    (Ok(time), Ok(stones)) => {
+                        self.timer.update(time, stones);
+                        Ok("".to_string())
+                    },
+                    _ => Err("error parsing time_left".to_string())
+                }
+            },
+            None => Err("missing argument(s)".to_string())
+        }
+    }
+
+    fn execute_loadsgf(&mut self, arguments: &[&str]) -> Result<String, String> {
+        match arguments.get(0) {
+            Some(comm) => {
+                let filename = comm;
+
+                match Parser::from_path(Path::new(filename)) {
+                    Ok(parser) => {
+                    	let game = parser.game();
+                        match game {
+                            Ok(g) => {
+                                self.game = g;
+                                Ok("".to_string())
+                            },
+                            Err(_) => Err("cannot load file".to_string())
+                        }
+                    },
+                    Err(_) => Err("cannot load file".to_string())
+                }
+            },
+            None => Err("missing argument".to_string())
+        }
+    }
+
+    fn execute_gogui_analyze_commands(&mut self, _: &[&str]) -> Result<String, String> {
+        let analyze_commands = vec![
+            "dboard/Ownership/imrscl-ownership"
+                ];
+        Ok(analyze_commands[1..].iter().fold(analyze_commands[0].to_string(), |acc, &el| format!("{}\n{}", acc, el)))
     }
 
     fn measure_playout_speed(started_at: u64, playouts: usize, config: &Arc<Config>) {
@@ -322,5 +394,12 @@ impl<'a> GTPInterpreter<'a> {
         let without_comment = comment.replace(without_ctrls.as_ref(), "");
         // We remove the whitespaces before/after the string
         without_comment.trim().to_string()
+    }
+}
+
+impl<'a> Drop for GTPInterpreter<'a> {
+
+    fn drop(&mut self) {
+        self.quit();
     }
 }

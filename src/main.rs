@@ -43,7 +43,6 @@ extern crate test;
 extern crate thread_scoped;
 extern crate time;
 extern crate toml;
-#[macro_use(strenum)] extern crate strenum;
 
 // Use everything in config publicly to force the generation of
 // documentation.
@@ -59,8 +58,10 @@ use std::process::exit;
 mod board;
 mod config;
 mod engine;
+mod fixtures;
 mod game;
 mod gtp;
+mod ownership;
 mod patterns;
 mod playout;
 mod ruleset;

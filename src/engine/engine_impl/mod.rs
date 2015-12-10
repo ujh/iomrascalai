@@ -28,6 +28,7 @@ use board::Resign;
 use config::Config;
 use engine::Engine;
 use game::Game;
+use ownership::OwnershipStatistics;
 use patterns::Matcher;
 use playout::Playout;
 use playout::PlayoutResult;
@@ -48,6 +49,7 @@ mod node;
 pub struct EngineImpl {
     config: Arc<Config>,
     matcher: Arc<Matcher>,
+    ownership: OwnershipStatistics,
     playout: Arc<Playout>,
     previous_node_count: usize,
     root: Node,
@@ -59,6 +61,7 @@ impl EngineImpl {
         EngineImpl {
             config: config.clone(),
             matcher: matcher.clone(),
+            ownership: OwnershipStatistics::new(config.clone(), 0),
             playout: Arc::new(Playout::new(config.clone(), matcher.clone())),
             previous_node_count: 0,
             root: Node::new(NoMove, config),
@@ -91,7 +94,13 @@ macro_rules! check {
 
 impl Engine for EngineImpl {
 
+    fn ownership(&self) -> &OwnershipStatistics {
+        &self.ownership
+    }
+
     fn gen_move(&mut self, color: Color, budget_ms: u32, game: &Game, sender: Sender<(Move,usize)>, receiver: Receiver<()>) {
+        self.config.gfx(self.ownership.gfx());
+        self.ownership = OwnershipStatistics::new(self.config.clone(), game.size());
         let start = PreciseTime::now();
         let budget5 = Duration::milliseconds((budget_ms as f32 * 0.05) as i64);
         let budget20 = Duration::milliseconds((budget_ms as f32 * 0.2) as i64);
@@ -136,6 +145,7 @@ impl Engine for EngineImpl {
                 r = receive_result_from_threads.recv() => {
                     check!(self.config, res = r => {
                         let ((path, nodes_added, playout_result), send_to_thread) = res;
+                        self.ownership.merge(playout_result.score());
                         self.root.record_on_path(
                             &path,
                             playout_result.winner(),
@@ -149,9 +159,10 @@ impl Engine for EngineImpl {
         }
     }
 
-    fn reset(&mut self) {
+    fn reset(&mut self, boardsize: u8) {
         self.previous_node_count = 0;
         self.root = Node::new(NoMove, self.config.clone());
+        self.ownership = OwnershipStatistics::new(self.config.clone(), boardsize);
     }
 
 }

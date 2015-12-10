@@ -21,85 +21,172 @@
  ************************************************************************/
 
 #![cfg(test)]
-#![allow(unused_must_use)]
 
-use board::Black;
-use board::Board;
-use board::Pass;
-use board::Play;
-use board::White;
-use ruleset::Minimal;
+pub use hamcrest::assert_that;
+pub use hamcrest::contains;
+pub use hamcrest::equal_to;
+pub use hamcrest::is;
 
-#[test]
-fn counting_simple_case() {
-    let mut b = Board::new(4, 6.5, Minimal);
+pub use board::Black;
+pub use board::Board;
+pub use board::Color;
+pub use board::Coord;
+pub use board::Empty;
+pub use board::Pass;
+pub use board::Play;
+pub use board::White;
+pub use fixtures::load_board;
+pub use super::Score;
 
-    b.play(Play(Black, 2, 1));
-    b.play(Play(White, 3, 1));
-    b.play(Play(Black, 2, 2));
-    b.play(Play(White, 3, 2));
-    b.play(Play(Black, 2, 3));
-    b.play(Play(White, 3, 3));
-    b.play(Play(Black, 2, 4));
-    b.play(Play(White, 3, 4));
-    b.play(Pass(Black));
-    b.play(Pass(White));
-
-    let score = b.score();
-    assert_eq!(8, score.black_stones);
-    assert_eq!(8, score.white_stones);
-    assert_eq!(White, score.color());
-    assert_eq!("W+6.5", format!("{}", score));
+pub fn points_for_color(score: &Score, board: &Board, color: Color) -> Vec<String> {
+    let mut points: Vec<String> = score.owner().iter()
+        .enumerate()
+        .filter(|&(_,c)| *c == color)
+        .map(|(i, _)| Coord::from_index(i, board.size()).to_gtp())
+        .collect();
+    points.sort();
+    points
 }
 
-#[test]
-fn counting_disjoint_territory() {
-    let mut b = Board::new(5, 6.5, Minimal);
-
-    b.play(Play(Black, 2, 1));
-    b.play(Play(White, 3, 1));
-    b.play(Play(Black, 2, 2));
-    b.play(Play(White, 3, 2));
-    b.play(Play(Black, 1, 3));
-    b.play(Play(White, 2, 3));
-    b.play(Play(Black, 5, 4));
-    b.play(Play(White, 1, 4));
-    b.play(Play(Black, 4, 4));
-    b.play(Play(White, 5, 3));
-    b.play(Play(Black, 4, 5));
-    b.play(Play(White, 4, 3));
-    b.play(Play(Black, 1, 2));
-    b.play(Play(White, 3, 4));
-    b.play(Pass(Black));
-    b.play(Play(White, 3, 5));
-    b.play(Pass(Black));
-    b.play(Pass(White));
-
-    let score = b.score();
-    assert_eq!(9, score.black_stones);
-    assert_eq!(16, score.white_stones);
-    assert_eq!(White, score.color());
-    assert_eq!("W+13.5", format!("{}", score));
+pub fn points(strs: Vec<&'static str>) -> Vec<String> {
+    strs.iter().map(|s| s.to_string()).collect()
 }
 
-#[test]
-fn counting_with_neutral_points() {
-    let mut b = Board::new(5, 6.5, Minimal);
+describe! score {
 
-    b.play(Play(Black, 2, 1));
-    b.play(Play(White, 3, 1));
-    b.play(Play(Black, 2, 2));
-    b.play(Play(White, 3, 2));
-    b.play(Play(Black, 1, 2));
-    b.play(Play(White, 2, 3));
-    b.play(Pass(Black));
-    b.play(Play(White, 1, 4));
-    b.play(Pass(Black));
-    b.play(Pass(White));
+    describe! simple {
 
-    let score = b.score();
-    assert_eq!(4, score.black_stones);
-    assert_eq!(20, score.white_stones);
-    assert_eq!(White, score.color());
-    assert_eq!("W+22.5", format!("{}", score));
+        before_each {
+            let board = load_board("score/simple");
+            let score = board.score();
+        }
+
+        it "counting" {
+            assert_that(score.black_stones, is(equal_to(8)));
+            assert_that(score.white_stones, is(equal_to(8)));
+        }
+
+        it "score" {
+            assert_that(score.color(), is(equal_to(White)));
+            assert_that(score.score(), is(equal_to(6.5)));
+            assert_that(format!("{}", score), is(equal_to("W+6.5".to_string())));
+        }
+
+        describe! ownership {
+
+            after_each {
+                let actual = points_for_color(&score, &board, color);
+                assert_that(&actual, contains(expected).exactly());
+            }
+
+            it "black" {
+                let expected = points(vec!["A1", "A2", "A3", "A4", "B1", "B2", "B3", "B4"]);
+                let color = Black;
+            }
+
+            it "white" {
+                let expected = points(vec!["C1", "C2", "C3", "C4", "D1", "D2", "D3", "D4"]);
+                let color = White;
+            }
+
+            it "dame" {
+                let expected = points(vec![]);
+                let color = Empty;
+            }
+
+        }
+
+    }
+
+    describe! disjoint_territory {
+
+        before_each {
+            let board = load_board("score/disjoint");
+            let score = board.score();
+        }
+
+        it "counting" {
+            assert_that(score.black_stones, is(equal_to(9)));
+            assert_that(score.white_stones, is(equal_to(16)));
+        }
+
+        it "score" {
+            assert_that(score.color(), is(equal_to(White)));
+            assert_that(score.score(), is(equal_to(13.5)));
+            assert_that(format!("{}", score), is(equal_to("W+13.5".to_string())));
+        }
+
+        describe! ownership {
+
+            after_each {
+                let actual = points_for_color(&score, &board, color);
+                assert_that(&actual, contains(expected).exactly());
+            }
+
+            it "black" {
+                let expected = points(vec!["A1", "A2", "A3", "B1", "B2", "D4", "D5", "E4", "E5"]);
+                let color = Black;
+            }
+
+            it "white" {
+                let expected = points(vec!["A4", "A5", "B3", "B4", "B5", "C1", "C2", "C3", "C4",
+                                           "C5", "D1", "D2", "D3", "E1", "E2", "E3"]);
+                let color = White;
+            }
+
+            it "dame" {
+                let expected = points(vec![]);
+                let color = Empty;
+            }
+
+        }
+
+    }
+
+    describe! dame {
+
+        before_each {
+            let board = load_board("score/dame");
+            let score = board.score();
+        }
+
+        it "counting" {
+            assert_that(score.black_stones, is(equal_to(4)));
+            assert_that(score.white_stones, is(equal_to(20)));
+        }
+
+        it "score" {
+            assert_that(score.color(), is(equal_to(White)));
+            assert_that(score.score(), is(equal_to(22.5)));
+            assert_that(format!("{}", score), is(equal_to("W+22.5".to_string())));
+        }
+
+        describe! ownership {
+
+            after_each {
+                let actual = points_for_color(&score, &board, color);
+                assert_that(&actual, contains(expected).exactly());
+            }
+
+            it "black" {
+                let expected = points(vec!["A1", "A2", "B1", "B2"]);
+                let color = Black;
+            }
+
+            it "white" {
+                let expected = points(vec!["A4", "A5", "B3", "B4", "B5", "C1", "C2", "C3", "C4",
+                                           "C5", "D1", "D2", "D3", "D4", "D5", "E1", "E2", "E3",
+                                           "E4", "E5"]);
+                let color = White;
+            }
+
+            it "dame" {
+                let expected = points(vec!["A3"]);
+                let color = Empty;
+            }
+
+        }
+
+    }
+
 }

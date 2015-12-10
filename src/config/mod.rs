@@ -264,12 +264,49 @@ impl FromToml for PlayoutConfig {
     fn name() -> Option<&'static str> { Some("playout") }
 }
 
+/// Hold settings related to estimating the score of a board
+#[derive(Debug, PartialEq)]
+pub struct ScoringConfig {
+    /// Prior for the value of neutral owners (i.e. dame points). This
+    /// increases the number of playouts necessary to generate an
+    /// ownership value that's above the cutoff which increases the
+    /// confidence.
+    pub ownership_prior: usize,
+    /// Value between 0.0 and 1.0 which is the cutoff above which a
+    /// point is considered to be owned by a color.
+    pub ownership_cutoff: f32,
+}
+
+impl ScoringConfig {
+
+    fn new(value: toml::Value, default: toml::Value) -> ScoringConfig {
+        let opts = value.as_table().unwrap().clone();
+        let default_table = default.as_table().unwrap().clone();
+        let mut table = toml::Table::new();
+        table.extend(default_table);
+        table.extend(opts);
+        ScoringConfig {
+            ownership_prior: Self::as_integer(&table, "ownership_prior"),
+            ownership_cutoff: Self::as_float(&table, "ownership_cutoff"),
+        }
+    }
+
+}
+
+impl FromToml for ScoringConfig {
+    fn name() -> Option<&'static str> { Some("scoring") }
+}
+
 /// This is the global configuration object. Is is passed around
 /// (inside an `Arc`) most of the app and contains all possible
 /// settings and variables that can be tuned. Everything in here can
 /// be set in a configuration file in TOML format.
 #[derive(Debug, PartialEq)]
 pub struct Config {
+    /// If `true` output GoGui live graphics commands on stderr so
+    /// that you can see what the engine is "thinking" when playing or
+    /// observing a game via GoGui
+    pub gfx: bool,
     /// If `true` the various information (e.g. the number of
     /// simulations played) is printed to stderr while the engine is
     /// running.
@@ -287,6 +324,9 @@ pub struct Config {
     pub priors: PriorsConfig,
     /// The ruleset we're currently playing under (CGOS, chinese, etc.)
     pub ruleset: Ruleset,
+    /// Holds a configuration object that contains everything related
+    /// to estimating the score of a board
+    pub scoring: ScoringConfig,
     /// The number of threads to use. The best results are achieved
     /// right now if this is the same number as the number of cores
     /// the computer has that the program runs on.
@@ -334,11 +374,13 @@ impl Config {
         table.extend(default_table.clone());
         table.extend(opts.clone());
         let mut c = Config {
+            gfx: Self::as_bool(&table, "gfx"),
             log: Self::as_bool(&table, "log"),
             play_out_aftermath: Self::as_bool(&table, "play_out_aftermath"),
             playout: PlayoutConfig::new(table["playout"].clone(), default_table["playout"].clone()),
             priors: PriorsConfig::new(table["priors"].clone(), default_table["priors"].clone()),
             ruleset: Ruleset::from_str(table["ruleset"].as_str().unwrap()).unwrap(),
+            scoring: ScoringConfig::new(table["scoring"].clone(), default_table["scoring"].clone()),
             threads: Self::as_integer(&table, "threads"),
             time_control: TimeControlConfig::new(table["time_control"].clone(), default_table["time_control"].clone()),
             tree: TreeConfig::new(table["tree"].clone(), default_table["tree"].clone()),
@@ -351,6 +393,18 @@ impl Config {
     /// to standard error. Otherwise it's silently discarded.
     pub fn log(&self, s: String) {
         if self.log {
+            match stderr().write(format!("{}\n", s).as_bytes()) {
+                Ok(_) => {},
+                Err(x) => panic!("Unable to write to stderr: {}", x)
+            }
+        }
+    }
+
+    /// If GoGui live graphics support is turned on then this will
+    /// output the commands on stderr. Otherwise they are silently
+    /// discarded.
+    pub fn gfx(&self, s: String) {
+        if self.gfx {
             match stderr().write(format!("{}\n", s).as_bytes()) {
                 Ok(_) => {},
                 Err(x) => panic!("Unable to write to stderr: {}", x)

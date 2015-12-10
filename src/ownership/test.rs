@@ -1,6 +1,5 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2014 Urban Hafner, Thomas Poinsot                          *
  * Copyright 2015 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
@@ -20,43 +19,37 @@
  *                                                                      *
  ************************************************************************/
 
-use board::Color;
-use board::Coord;
-use board::Empty;
+#![cfg(test)]
 
-pub struct Territory {
-    color:  Color,
-    coords: Vec<Coord>,
-}
+pub use config::Config;
+pub use super::OwnershipStatistics;
 
-impl Territory {
+pub use hamcrest::assert_that;
+pub use hamcrest::equal_to;
+pub use hamcrest::is;
+pub use std::sync::Arc;
 
-    pub fn new() -> Territory {
-        Territory { color: Empty, coords: Vec::new() }
+
+describe! ownership {
+
+    describe! statistics {
+
+        // Tests for merge
+        // Tests for formatting
+
+        describe! formatting {
+
+            before_each {
+                let config = Arc::new(Config::default());
+                let stats = OwnershipStatistics::new(config, 3);
+            }
+
+            it "returns 0 by default" {
+                let formatted = format!("{}", stats);
+
+                assert_that(formatted, is(equal_to("0 0 0 \n0 0 0 \n0 0 0 \n".to_string())));
+            }
+        }
     }
 
-    pub fn contains(&self, c: &Coord) -> bool {
-        self.coords.contains(c)
-    }
-
-    pub fn color(&self) -> Color {
-        self.color
-    }
-
-    pub fn coords(&self) -> &Vec<Coord> {
-        &self.coords
-    }
-
-    pub fn set_color(&mut self, c: Color) {
-        self.color = c;
-    }
-
-    pub fn add(&mut self, c: Coord) {
-        self.coords.push(c)
-    }
-
-    pub fn dedup(&mut self) {
-        self.coords.sort();
-        self.coords.dedup();
-    }
 }

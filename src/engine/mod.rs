@@ -25,6 +25,7 @@ use board::Color;
 use board::Move;
 use config::Config;
 use game::Game;
+use ownership::OwnershipStatistics;
 use patterns::Matcher;
 
 use std::sync::Arc;
@@ -42,6 +43,7 @@ pub fn factory(config: Arc<Config>, matcher: Arc<Matcher>) -> Box<Engine> {
 pub trait Engine: Send + Sync {
 
     fn gen_move(&mut self, Color, u32, &Game, sender: Sender<(Move,usize)>, receiver: Receiver<()>);
-    fn reset(&mut self) {}
+    fn ownership(&self) -> &OwnershipStatistics;
+    fn reset(&mut self, u8) {}
 
 }

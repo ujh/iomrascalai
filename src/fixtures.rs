@@ -1,6 +1,5 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2014 Urban Hafner, Thomas Poinsot                          *
  * Copyright 2015 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
@@ -20,43 +19,21 @@
  *                                                                      *
  ************************************************************************/
 
-use board::Color;
-use board::Coord;
-use board::Empty;
+#![cfg(test)]
 
-pub struct Territory {
-    color:  Color,
-    coords: Vec<Coord>,
+use std::path::Path;
+
+use board::Board;
+use game::Game;
+use sgf::Parser;
+
+pub fn load_game(filename: &'static str) -> Game {
+    let expanded_filename = format!("fixtures/sgf/{}.sgf", filename);
+    let path = Path::new(&expanded_filename);
+    let parser = Parser::from_path(path).unwrap();
+    parser.game().unwrap()
 }
 
-impl Territory {
-
-    pub fn new() -> Territory {
-        Territory { color: Empty, coords: Vec::new() }
-    }
-
-    pub fn contains(&self, c: &Coord) -> bool {
-        self.coords.contains(c)
-    }
-
-    pub fn color(&self) -> Color {
-        self.color
-    }
-
-    pub fn coords(&self) -> &Vec<Coord> {
-        &self.coords
-    }
-
-    pub fn set_color(&mut self, c: Color) {
-        self.color = c;
-    }
-
-    pub fn add(&mut self, c: Coord) {
-        self.coords.push(c)
-    }
-
-    pub fn dedup(&mut self) {
-        self.coords.sort();
-        self.coords.dedup();
-    }
+pub fn load_board(filename: &'static str) -> Board {
+    load_game(filename).board()
 }
