@@ -2,7 +2,6 @@ gfx = true
 log = true
 play_out_aftermath = false
 ruleset = "chinese"
-threads = 8
 
 [playout]
 

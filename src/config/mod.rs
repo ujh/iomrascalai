@@ -24,6 +24,7 @@
 use ruleset::CGOS;
 use ruleset::Ruleset;
 
+use num_cpus;
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::stderr;
@@ -328,8 +329,8 @@ pub struct Config {
     /// to estimating the score of a board
     pub scoring: ScoringConfig,
     /// The number of threads to use. The best results are achieved
-    /// right now if this is the same number as the number of cores
-    /// the computer has that the program runs on.
+    /// right now if this is the same number as the number of (logical)
+    /// cores the computer has that the program runs on.
     pub threads: usize,
     /// Holds a configuration object that contains everything related
     /// to allocating the time to use for the next move, stopping the
@@ -370,8 +371,10 @@ impl Config {
     fn new(toml_str: String, default_toml_str: String) -> Config {
         let opts = toml::Parser::new(&toml_str).parse().unwrap();
         let default_table = toml::Parser::new(&default_toml_str).parse().unwrap();
+        let threads = toml::Parser::new(&format!("threads = {}", num_cpus::get())).parse().unwrap();
         let mut table = toml::Table::new();
         table.extend(default_table.clone());
+        table.extend(threads.clone());
         table.extend(opts.clone());
         let mut c = Config {
             gfx: Self::as_bool(&table, "gfx"),
