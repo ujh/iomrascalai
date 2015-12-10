@@ -14,7 +14,6 @@ license = "GPL-3.0+"
 enum_primitive  = "*"
 getopts         = "*"
 num             = "*"
-num_cpus        = "*"
 quicksort       = "*"
 rand            = "*"
 regex           = "*"
@@ -29,6 +28,10 @@ git = "https://github.com/carllerche/hamcrest-rust.git"
 
 [dependencies.stainless]
 git = "https://github.com/reem/stainless.git"
+
+[dependencies.num_cpus]
+git = "https://github.com/ujh/num_cpus.git"
+rev = "53a4615daceb5448f5e6e025ce140e010ff87dd7"
 
 [profile.release]
 opt-level = 3
