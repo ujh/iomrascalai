@@ -410,8 +410,8 @@ impl Board {
     fn update_vacant(&mut self, m: &Move) {
         let pos = self.vacant.iter().position(|&c| c == m.coord()).unwrap();
         self.vacant.swap_remove(pos);
-        self.vacant.push_all(self.adv_stones_removed.as_ref());
-        self.vacant.push_all(self.friend_stones_removed.as_ref());
+        self.vacant.extend_from_slice(self.adv_stones_removed.as_ref());
+        self.vacant.extend_from_slice(self.friend_stones_removed.as_ref());
     }
 
     fn add_removed_adv_stones_as_libs(&mut self, m: &Move) {
