@@ -275,6 +275,35 @@ describe! interpreter {
         }
     }
 
+    describe! final_status_list {
+
+        before_each {
+            interpreter.read("boardsize 3\n").unwrap();
+            interpreter.read("clear_board\n").unwrap();
+            interpreter.read("play b a1\n").unwrap();
+            interpreter.read("play w b2\n").unwrap();
+        }
+
+        it "reports no dead stones" {
+            let response = interpreter.read("final_status_list dead\n");
+            assert_that(response, is(equal_to(ok(""))));
+        }
+
+        it "reports one alive stone" {
+            let response = interpreter.read("final_status_list alive\n");
+            assert_that(response, is(equal_to(ok("A1 B2"))));
+        }
+
+        it "reports no seki stones" {
+            let response = interpreter.read("final_status_list seki\n");
+            assert_that(response, is(equal_to(ok(""))));
+        }
+
+        it "returns an error on other arguments" {
+            let response = interpreter.read("final_status_list other\n");
+            assert_that(response, is(equal_to(err("unknown argument"))));
+        }
+    }
 
     // Gogui extensions
     describe! gogui {
