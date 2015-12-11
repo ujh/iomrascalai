@@ -20,6 +20,7 @@
  *                                                                      *
  ************************************************************************/
 
+pub use self::final_score::FinalScore;
 use board::Black;
 use board::Board;
 use board::Color;
@@ -31,6 +32,7 @@ use self::territory::Territory;
 use core::fmt::Display;
 use std::fmt;
 
+mod final_score;
 mod territory;
 mod test;
 

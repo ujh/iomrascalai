@@ -135,13 +135,13 @@ impl Timer {
             let overtime_spent = time_elapsed - self.main_time_left;
             self.main_time_left = 0;
 
-            if overtime_spent > self.byo_time_left {
+            if overtime_spent > self.byo_time_left() {
                 self.byo_time_left = 0;
                 self.byo_stones_left = 0;
             } else {
                 self.byo_time_left -= overtime_spent;
                 self.byo_stones_left -= 1;
-                if self.byo_stones_left == 0 {
+                if self.byo_stones_left() == 0 {
                     self.byo_time_left = self.byo_time;
                     self.byo_stones_left = self.byo_stones;
                 }
@@ -188,11 +188,11 @@ impl Timer {
             // Assume at least 30 vacant points
             let vacant = max(game.vacant_point_count(), 30) as f32;
             (self.main_time_left as f32 / (self.c() * vacant)).floor() as u32
-        } else if self.byo_time_left == 0 {
+        } else if self.byo_time_left() == 0 {
             0
         } else {
             // Else use byoyomi time
-            (self.byo_time_left as f32 / self.byo_stones_left as f32).floor() as u32
+            (self.byo_time_left() as f32 / self.byo_stones_left() as f32).floor() as u32
         }
     }
 }

@@ -21,8 +21,6 @@
  ************************************************************************/
 
 use board::Color;
-use board::Coord;
-use board::Empty;
 use board::Move;
 use config::Config;
 use engine::Engine;
@@ -249,27 +247,13 @@ impl<'a> GTPInterpreter<'a> {
     }
 
     fn execute_final_score(&mut self, _: &[&str]) -> Result<String, String> {
-        Ok(format!("{}", self.game.score()))
+        Ok(self.controller.final_score(&self.game))
     }
 
     fn execute_final_status_list(&mut self, arguments: &[&str]) -> Result<String, String> {
         match arguments.get(0) {
             Some(kind) => {
-                match *kind {
-                    "alive" => {
-                        let board = self.game.board();
-                        let coords: Vec<Coord> = Coord::for_board_size(board.size()).iter()
-                            .filter(|c| board.color(c) != Empty)
-                            .cloned()
-                            .collect();
-                        let s = coords[1..].iter()
-                            .fold(coords[0].to_gtp(), |acc, el| format!("{} {}", acc, el.to_gtp()));
-                        Ok(s)
-                    },
-                    "dead" => Ok("".to_string()),
-                    "seki" => Ok("".to_string()),
-                    _ => Err("unknown argument".to_string()),
-                }
+                self.controller.final_status_list(&self.game, kind)
             },
             None => Err("missing argument".to_string())
         }
@@ -331,7 +315,9 @@ impl<'a> GTPInterpreter<'a> {
 
     fn execute_gogui_analyze_commands(&mut self, _: &[&str]) -> Result<String, String> {
         let analyze_commands = vec![
-            "dboard/Ownership/imrscl-ownership"
+            "dboard/Ownership/imrscl-ownership",
+            "plist/Final Status List Dead/final_status_list dead",
+            "plist/Final Status List Alive/final_status_list alive"
                 ];
         Ok(analyze_commands[1..].iter().fold(analyze_commands[0].to_string(), |acc, &el| format!("{}\n{}", acc, el)))
     }

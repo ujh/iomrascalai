@@ -26,7 +26,6 @@ use board::IllegalMove;
 use board::Move;
 use board::NoMove;
 use ruleset::Ruleset;
-use score::Score;
 use self::zobrist_hash_table::ZobristHashTable;
 
 use std::fmt;
@@ -108,10 +107,6 @@ impl Game {
 
     pub fn size(&self) -> u8 {
         self.board.size()
-    }
-
-    pub fn score(&self) -> Score {
-        self.board.score()
     }
 
     pub fn winner(&self) -> Color {
