@@ -322,7 +322,7 @@ describe! interpreter {
             describe! analyze_commands {
 
                 it "returns the supported analyze commands" {
-                    let expected = "dboard/Ownership/imrscl-ownership";
+                    let expected = "dboard/Ownership/imrscl-ownership\nplist/Final Status List Dead/final_status_list dead\nplist/Final Status List Alive/final_status_list alive";
                     let response = interpreter.read("gogui-analyze_commands\n");
                     assert_that(response, is(equal_to(ok(expected))));
                 }

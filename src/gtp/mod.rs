@@ -315,7 +315,9 @@ impl<'a> GTPInterpreter<'a> {
 
     fn execute_gogui_analyze_commands(&mut self, _: &[&str]) -> Result<String, String> {
         let analyze_commands = vec![
-            "dboard/Ownership/imrscl-ownership"
+            "dboard/Ownership/imrscl-ownership",
+            "plist/Final Status List Dead/final_status_list dead",
+            "plist/Final Status List Alive/final_status_list alive"
                 ];
         Ok(analyze_commands[1..].iter().fold(analyze_commands[0].to_string(), |acc, &el| format!("{}\n{}", acc, el)))
     }
