@@ -31,6 +31,7 @@ use self::territory::Territory;
 use core::fmt::Display;
 use std::fmt;
 
+mod final_score;
 mod territory;
 mod test;
 
