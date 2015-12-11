@@ -23,6 +23,7 @@ use board::Coord;
 use board::Empty;
 use config::Config;
 use game::Game;
+use ownership::OwnershipStatistics;
 
 use std::sync::Arc;
 
@@ -30,13 +31,18 @@ mod test;
 
 pub struct FinalScore<'a> {
     config: Arc<Config>,
-    game: &'a Game
+    game: &'a Game,
+    ownership: &'a OwnershipStatistics,
 }
 
 impl<'a> FinalScore<'a> {
 
-    pub fn new(config: Arc<Config>, game: &Game) -> FinalScore {
-        FinalScore { config: config, game: game }
+    pub fn new(config: Arc<Config>, game: &'a Game, ownership: &'a OwnershipStatistics) -> FinalScore<'a> {
+        FinalScore {
+            config: config,
+            game: game,
+            ownership: ownership,
+        }
     }
 
     pub fn score(&self) -> String {

@@ -27,7 +27,6 @@ use engine::Engine;
 use engine::EngineController;
 use game::Game;
 use ruleset::Ruleset;
-use score::FinalScore;
 use sgf::parser::Parser;
 use timer::Timer;
 use version;
@@ -248,13 +247,13 @@ impl<'a> GTPInterpreter<'a> {
     }
 
     fn execute_final_score(&mut self, _: &[&str]) -> Result<String, String> {
-        Ok(FinalScore::new(self.config.clone(), &self.game).score())
+        Ok(self.controller.final_score(&self.game))
     }
 
     fn execute_final_status_list(&mut self, arguments: &[&str]) -> Result<String, String> {
         match arguments.get(0) {
             Some(kind) => {
-                FinalScore::new(self.config.clone(), &self.game).status_list(kind)
+                self.controller.final_status_list(&self.game, kind)
             },
             None => Err("missing argument".to_string())
         }

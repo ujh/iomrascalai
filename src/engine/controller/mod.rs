@@ -24,6 +24,8 @@ use board::Move;
 use config::Config;
 use engine::Engine;
 use game::Game;
+use ownership::OwnershipStatistics;
+use score::FinalScore;
 use timer::Timer;
 
 use std::sync::Arc;
@@ -53,7 +55,16 @@ impl<'a> EngineController<'a> {
     }
 
     pub fn ownership_statistics(&self) -> String {
-        format!("{}", self.engine.ownership())
+        format!("{}", self.ownership())
+    }
+
+    pub fn final_score(&self, game: &Game) -> String {
+        FinalScore::new(self.config.clone(), game, self.ownership()).score()
+    }
+
+    pub fn final_status_list(&self, game: &Game, kind: &str) -> Result<String, String> {
+        FinalScore::new(self.config.clone(), game, self.ownership()).status_list(kind)
+
     }
 
     pub fn run_and_return_move(&mut self, color: Color, game: &Game, timer: &Timer) -> (Move, usize) {
@@ -102,6 +113,10 @@ impl<'a> EngineController<'a> {
         self.config.log(
             format!("Thinking for {}ms ({}ms time left)", budget, timer.main_time_left()));
         budget
+    }
+
+    fn ownership(&self) -> &OwnershipStatistics {
+        &self.engine.ownership()
     }
 
 }
