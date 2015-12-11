@@ -19,52 +19,74 @@
  *                                                                      *
  ************************************************************************/
 
+use board::Board;
 use board::Coord;
 use board::Empty;
 use config::Config;
 use game::Game;
 use ownership::OwnershipStatistics;
+use ruleset::KgsChinese;
 
 use std::sync::Arc;
 
 mod test;
 
-pub struct FinalScore<'a> {
-    config: Arc<Config>,
-    game: &'a Game,
-    ownership: &'a OwnershipStatistics,
+pub struct FinalScore {
+    board: Board,
+    dead: Vec<Coord>,
 }
 
-impl<'a> FinalScore<'a> {
+impl FinalScore {
 
-    pub fn new(config: Arc<Config>, game: &'a Game, ownership: &'a OwnershipStatistics) -> FinalScore<'a> {
+    pub fn new(config: Arc<Config>, game: &Game, ownership: &OwnershipStatistics) -> FinalScore {
+        let mut board = game.board();
+        let mut dead = vec!();
+        if config.ruleset == KgsChinese {
+            dead = Coord::for_board_size(board.size()).iter()
+                .filter(|c| board.color(c) != Empty)
+                .filter(|c| ownership.owner(c) != Empty)
+                .filter(|c| ownership.owner(c) != board.color(c))
+                .cloned()
+                .collect();
+            for coord in &dead {
+                board.remove_dead_stone(coord);
+            }
+        }
         FinalScore {
-            config: config,
-            game: game,
-            ownership: ownership,
+            board: board,
+            dead: dead,
         }
     }
 
     pub fn score(&self) -> String {
-        format!("{}", self.game.score())
+        format!("{}", self.board.score())
     }
 
     pub fn status_list(&self, kind: &str) -> Result<String, String> {
         match kind {
-            "alive" => {
-                let board = self.game.board();
-                let coords: Vec<Coord> = Coord::for_board_size(board.size()).iter()
-                    .filter(|c| board.color(c) != Empty)
-                    .cloned()
-                    .collect();
-                let s = coords[1..].iter()
-                    .fold(coords[0].to_gtp(), |acc, el| format!("{} {}", acc, el.to_gtp()));
-                Ok(s)
-            },
-            "dead" => Ok("".to_string()),
-            "seki" => Ok("".to_string()),
+            "alive" => self.status_list_alive(),
+            "dead" => self.status_list_dead(),
+            "seki" => self.status_list_seki(),
             _ => Err("unknown argument".to_string()),
         }
+    }
+
+    fn status_list_dead(&self) -> Result<String, String> {
+        let s = self.dead.iter()
+            .fold(String::new(), |acc, el| format!("{} {}", acc, el.to_gtp()));
+
+        Ok(String::from(s.trim()))
+    }
+
+    fn status_list_seki(&self) -> Result<String, String> {
+        Ok("".to_string())
+    }
+
+    fn status_list_alive(&self) -> Result<String, String> {
+        let s = Coord::for_board_size(self.board.size()).iter()
+            .filter(|c| self.board.color(c) != Empty)
+            .fold(String::new(), |acc, el| format!("{} {}", acc, el.to_gtp()));
+        Ok(String::from(s.trim()))
     }
 
 }

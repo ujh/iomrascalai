@@ -26,6 +26,7 @@ pub use config::Config;
 pub use engine::EngineImpl;
 pub use patterns::Matcher;
 pub use ruleset::CGOS;
+pub use ruleset::KgsChinese;
 pub use super::GTPInterpreter;
 
 pub use hamcrest::assert_that;
@@ -343,6 +344,70 @@ describe! interpreter {
                 }
             }
 
+        }
+
+    }
+
+    describe! chinese {
+
+        before_each {
+            let mut c = Config::default();
+            c.ruleset = KgsChinese;
+            let config = Arc::new(c);
+            let matcher = Arc::new(Matcher::new());
+            let engine = Box::new(EngineImpl::new(config.clone(), matcher));
+            let mut interpreter = GTPInterpreter::new(config.clone(), engine);
+        }
+
+        describe! final_score {
+
+            it "no move" {
+                let response = interpreter.read("final_score\n");
+                assert_that(response, is(equal_to(ok("W+6.5"))));
+            }
+
+            it "one move" {
+                interpreter.read("boardsize 4\n").unwrap();
+                interpreter.read("play b c2\n").unwrap();
+                let response = interpreter.read("final_score\n");
+                assert_that(response, is(equal_to(ok("B+9.5"))));
+            }
+
+        }
+
+        describe! final_status_list {
+
+            before_each {
+                interpreter.read("boardsize 3\n").unwrap();
+                interpreter.read("clear_board\n").unwrap();
+                interpreter.read("play b a1\n").unwrap();
+                interpreter.read("play w b2\n").unwrap();
+            }
+
+            it "reports no dead stones" {
+                let response = interpreter.read("final_status_list dead\n");
+                assert_that(response, is(equal_to(ok(""))));
+            }
+
+            it "reports one alive stone" {
+                let response = interpreter.read("final_status_list alive\n");
+                assert_that(response, is(equal_to(ok("A1 B2"))));
+            }
+
+            it "reports no seki stones" {
+                let response = interpreter.read("final_status_list seki\n");
+                assert_that(response, is(equal_to(ok(""))));
+            }
+
+            it "returns an error on other arguments" {
+                let response = interpreter.read("final_status_list other\n");
+                assert_that(response, is(equal_to(err("unknown argument"))));
+            }
+
+            it "returns an error when no argument is given" {
+                let response = interpreter.read("final_status_list\n");
+                assert_that(response, is(equal_to(err("missing argument"))));
+            }
         }
 
     }

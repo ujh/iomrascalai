@@ -225,6 +225,12 @@ impl Board {
         self.board[c.to_index(self.size)].color
     }
 
+    /// Remove dead stone for scoring. Board becomes unplayable after
+    /// doing this!
+    pub fn remove_dead_stone(&mut self, c: &Coord) {
+        self.board[c.to_index(self.size)].color = Empty;
+    }
+
     pub fn chain_id(&self, c: &Coord) -> usize {
         self.board[c.to_index(self.size)].chain_id
     }
