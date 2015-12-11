@@ -51,7 +51,7 @@ set -x
 
 cargo build --release
 
-GNUGO="gnugo --mode gtp --level 0 --chinese-rules --positional-superko --capture-all-dead --score aftermath --play-out-aftermath"
+GNUGO="gnugo --mode gtp --level 0 --chinese-rules --positional-superko --score aftermath"
 IOMRASCALAI="cargo run --release"
 REFEREE="$GNUGO"
 
