@@ -21,14 +21,13 @@
  ************************************************************************/
 
 use board::Color;
-use board::Coord;
-use board::Empty;
 use board::Move;
 use config::Config;
 use engine::Engine;
 use engine::EngineController;
 use game::Game;
 use ruleset::Ruleset;
+use score::FinalScore;
 use sgf::parser::Parser;
 use timer::Timer;
 use version;
@@ -249,27 +248,13 @@ impl<'a> GTPInterpreter<'a> {
     }
 
     fn execute_final_score(&mut self, _: &[&str]) -> Result<String, String> {
-        Ok(format!("{}", self.game.score()))
+        Ok(FinalScore::new(self.config.clone(), &self.game).score())
     }
 
     fn execute_final_status_list(&mut self, arguments: &[&str]) -> Result<String, String> {
         match arguments.get(0) {
             Some(kind) => {
-                match *kind {
-                    "alive" => {
-                        let board = self.game.board();
-                        let coords: Vec<Coord> = Coord::for_board_size(board.size()).iter()
-                            .filter(|c| board.color(c) != Empty)
-                            .cloned()
-                            .collect();
-                        let s = coords[1..].iter()
-                            .fold(coords[0].to_gtp(), |acc, el| format!("{} {}", acc, el.to_gtp()));
-                        Ok(s)
-                    },
-                    "dead" => Ok("".to_string()),
-                    "seki" => Ok("".to_string()),
-                    _ => Err("unknown argument".to_string()),
-                }
+                FinalScore::new(self.config.clone(), &self.game).status_list(kind)
             },
             None => Err("missing argument".to_string())
         }

@@ -20,6 +20,7 @@
  *                                                                      *
  ************************************************************************/
 
+pub use self::final_score::FinalScore;
 use board::Black;
 use board::Board;
 use board::Color;

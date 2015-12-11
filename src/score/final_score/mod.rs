@@ -19,4 +19,46 @@
  *                                                                      *
  ************************************************************************/
 
+use board::Coord;
+use board::Empty;
+use config::Config;
+use game::Game;
+
+use std::sync::Arc;
+
 mod test;
+
+pub struct FinalScore<'a> {
+    config: Arc<Config>,
+    game: &'a Game
+}
+
+impl<'a> FinalScore<'a> {
+
+    pub fn new(config: Arc<Config>, game: &Game) -> FinalScore {
+        FinalScore { config: config, game: game }
+    }
+
+    pub fn score(&self) -> String {
+        format!("{}", self.game.score())
+    }
+
+    pub fn status_list(&self, kind: &str) -> Result<String, String> {
+        match kind {
+            "alive" => {
+                let board = self.game.board();
+                let coords: Vec<Coord> = Coord::for_board_size(board.size()).iter()
+                    .filter(|c| board.color(c) != Empty)
+                    .cloned()
+                    .collect();
+                let s = coords[1..].iter()
+                    .fold(coords[0].to_gtp(), |acc, el| format!("{} {}", acc, el.to_gtp()));
+                Ok(s)
+            },
+            "dead" => Ok("".to_string()),
+            "seki" => Ok("".to_string()),
+            _ => Err("unknown argument".to_string()),
+        }
+    }
+
+}
