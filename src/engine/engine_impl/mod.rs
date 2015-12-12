@@ -72,6 +72,22 @@ impl EngineImpl {
         self.root = self.root.find_new_root(game, color);
     }
 
+    fn genmove_setup(&mut self, color: Color, game: &Game) {
+        self.config.gfx(self.ownership.gfx());
+        self.ownership = OwnershipStatistics::new(self.config.clone(), game.size());
+        if !self.config.tree.reuse_subtree {
+            self.root = Node::root(game, color, self.config.clone());
+        } else {
+            self.previous_node_count = self.root.descendants();
+            self.set_new_root(game, color);
+            let reused_node_count = self.root.descendants();
+            if self.previous_node_count > 0 {
+                let percentage = reused_node_count as f32 / self.previous_node_count as f32;
+                let msg = format!("Reusing {} nodes ({}%)", reused_node_count, percentage*100.0);
+                self.config.log(msg);
+            }
+        }
+    }
 }
 
 macro_rules! check {
@@ -99,23 +115,10 @@ impl Engine for EngineImpl {
     }
 
     fn gen_move(&mut self, color: Color, budget_ms: u32, game: &Game, sender: Sender<(Move,usize)>, receiver: Receiver<()>) {
-        self.config.gfx(self.ownership.gfx());
-        self.ownership = OwnershipStatistics::new(self.config.clone(), game.size());
+        self.genmove_setup(color, game);
         let start = PreciseTime::now();
         let budget5 = Duration::milliseconds((budget_ms as f32 * 0.05) as i64);
         let budget20 = Duration::milliseconds((budget_ms as f32 * 0.2) as i64);
-        if !self.config.tree.reuse_subtree {
-            self.root = Node::root(game, color, self.config.clone());
-        } else {
-            self.previous_node_count = self.root.descendants();
-            self.set_new_root(game, color);
-            let reused_node_count = self.root.descendants();
-            if self.previous_node_count > 0 {
-                let percentage = reused_node_count as f32 / self.previous_node_count as f32;
-                let msg = format!("Reusing {} nodes ({}%)", reused_node_count, percentage*100.0);
-                self.config.log(msg);
-            }
-        }
         if self.root.has_no_children() {
             self.config.log(format!("No moves to simulate!"));
             sender.send((Pass(color), self.root.plays())).unwrap();
