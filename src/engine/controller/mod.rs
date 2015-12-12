@@ -62,15 +62,7 @@ impl<'a> EngineController<'a> {
     }
 
     pub fn run_and_return_move(&mut self, color: Color, game: &Game, timer: &Timer) -> (Move, usize) {
-        let budget = self.budget(timer, game);
-        self.engine.genmove(color, budget, game)
-    }
-
-    fn budget(&self, timer: &Timer, game: &Game) -> i64 {
-        let budget = timer.budget(game);
-        self.config.log(
-            format!("Thinking for {}ms ({}ms time left)", budget, timer.main_time_left()));
-        budget
+        self.engine.genmove(color, game, timer)
     }
 
     fn ownership(&self) -> &OwnershipStatistics {

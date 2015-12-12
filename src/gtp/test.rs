@@ -107,9 +107,9 @@ describe! interpreter {
             it "sets the time" {
                 let response = interpreter.read("time_settings 30 20 10\n");
                 assert_that(response, is(equal_to(ok(""))));
-                assert_that(interpreter.timer.main_time, is(equal_to(30_000)));
-                assert_that(interpreter.timer.byo_time, is(equal_to(20_000)));
-                assert_that(interpreter.timer.byo_stones, is(equal_to(10)));
+                assert_that(interpreter.timer.main_time(), is(equal_to(30_000)));
+                assert_that(interpreter.timer.byo_time(), is(equal_to(20_000)));
+                assert_that(interpreter.timer.byo_stones(), is(equal_to(10)));
             }
 
         }

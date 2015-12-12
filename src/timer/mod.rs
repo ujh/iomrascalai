@@ -20,62 +20,27 @@
  ************************************************************************/
 
 use config::Config;
+use engine::Node;
 use game::Info;
 
 use std::cmp::max;
 use std::sync::Arc;
-use time::precise_time_ns;
+use time::Duration;
+use time::PreciseTime;
 
-mod test;
-
-#[derive(Clone)]
-struct Clock {
-    start: Option<u64>,
-    end:   Option<u64>,
-}
-
-impl Clock {
-
-    pub fn new() -> Clock {
-        Clock {
-            start: None,
-            end:   None,
-        }
-    }
-
-    pub fn start(&mut self) {
-        self.start = Some(precise_time_ns());
-        self.end   = None;
-    }
-
-    pub fn stop(&mut self) {
-        self.end = Some(precise_time_ns());
-    }
-
-    fn time_elapsed_in_ms(&self) -> u32 {
-        match self.start {
-            Some(start) => {
-                match self.end {
-                    Some(end) => ((end - start) / 1000000) as u32,
-                    None      => 0
-                }
-            },
-            None => 0
-        }
-    }
-
-}
+// mod test;
 
 #[derive(Clone)]
 pub struct Timer {
-    pub byo_stones: i32, // stones per byo yomi period
     byo_stones_left: i32,
-    pub byo_time: u32, // byo yomi time in ms
-    byo_time_left: u32,
-    pub main_time: u32, // main time in ms
-    main_time_left: u32,
-    clock: Clock,
+    byo_time_left: i64,
     config: Arc<Config>,
+    current_budget: Duration,
+    main_time_left: i64,
+    byo_stones: i32,
+    byo_time: i64,
+    main_time: i64,
+    time_stamp: PreciseTime,
 }
 
 impl Timer {
@@ -86,10 +51,11 @@ impl Timer {
             byo_stones_left: 0,
             byo_time: 0,
             byo_time_left: 0,
+            config: config,
+            current_budget: Duration::milliseconds(0),
             main_time: 300000, // 5min
             main_time_left: 300000,
-            clock: Clock::new(),
-            config: config,
+            time_stamp: PreciseTime::now(),
         }
 
     }
@@ -98,17 +64,17 @@ impl Timer {
         self.main_time_left  = self.main_time;
         self.byo_time_left   = self.byo_time;
         self.byo_stones_left = self.byo_stones;
-        self.clock.stop();
+        self.reset_time_stamp();
     }
 
-    pub fn setup(&mut self, main_in_s: u32, byo_in_s: u32, stones: i32) {
+    pub fn setup(&mut self, main_in_s: i64, byo_in_s: i64, stones: i32) {
         self.set_main_time(main_in_s * 1000);
         self.set_byo_time(byo_in_s * 1000);
         self.set_byo_stones(stones);
-        self.clock.stop();
+        self.reset_time_stamp();
     }
 
-    pub fn update(&mut self, time_in_s: u32, stones: i32) {
+    pub fn update(&mut self, time_in_s: i64, stones: i32) {
         if stones == 0 {
             self.main_time_left = time_in_s * 1000;
         } else {
@@ -116,20 +82,89 @@ impl Timer {
             self.byo_time_left   = time_in_s * 1000;
             self.byo_stones_left = stones;
         }
-        self.start();
+        self.reset_time_stamp();
     }
 
-    pub fn start(&mut self) {
-        self.clock.start();
+    pub fn start<T: Info>(&mut self, game: &T) {
+        self.reset_time_stamp();
+        let budget = self.budget(game);
+        self.current_budget = budget;
+        let msg = format!(
+            "Thinking for {}ms ({}ms time left)",
+            budget.num_milliseconds(),
+            self.main_time_left());
+        self.config.log(msg);
+    }
+
+    pub fn ran_out_of_time(&self, root: &Node) -> bool {
+        let budget5 = self.current_budget / 20;
+        let budget20 = self.current_budget / 5;
+        let win_ratio = root.best().win_ratio();
+        let elapsed = self.elapsed();
+        if elapsed > budget5 && win_ratio > self.config.time_control.fastplay5_thres {
+            self.config.log(format!("Search stopped. 5% rule triggered"));
+            true
+        } else if elapsed > budget20 && win_ratio > self.config.time_control.fastplay20_thres {
+            self.config.log(format!("Search stopped. 20% rule triggered"));
+            true
+        } else {
+            elapsed > self.current_budget
+        }
     }
 
     pub fn stop(&mut self) {
-        self.clock.stop();
         self.adjust_time();
     }
 
+    pub fn byo_stones(&self) -> i32 {
+        self.byo_stones
+    }
+
+    pub fn byo_stones_left(&self) -> i32 {
+        self.byo_stones_left
+    }
+
+    pub fn byo_time(&self) -> i64 {
+        self.byo_time
+    }
+
+    pub fn byo_time_left(&self) -> i64 {
+        self.byo_time_left
+    }
+
+    pub fn main_time(&self) -> i64 {
+        self.main_time
+    }
+
+    pub fn main_time_left(&self) -> i64 {
+        self.main_time_left
+    }
+
+    fn set_main_time(&mut self, time: i64) {
+        self.main_time = time;
+        self.main_time_left = time;
+    }
+
+    fn set_byo_time(&mut self, time: i64) {
+        self.byo_time = time;
+        self.byo_time_left = time;
+    }
+
+    fn set_byo_stones(&mut self, stones: i32) {
+        self.byo_stones = stones;
+        self.byo_stones_left = stones;
+    }
+
+    fn elapsed(&self) -> Duration {
+        self.time_stamp.to(PreciseTime::now())
+    }
+
+    fn reset_time_stamp(&mut self) {
+        self.time_stamp = PreciseTime::now();
+    }
+
     fn adjust_time(&mut self) {
-        let time_elapsed = self.clock.time_elapsed_in_ms();
+        let time_elapsed = self.elapsed().num_milliseconds();
 
         if time_elapsed > self.main_time_left {
             let overtime_spent = time_elapsed - self.main_time_left;
@@ -151,40 +186,13 @@ impl Timer {
         }
     }
 
-    pub fn main_time_left(&self) -> u32 {
-        self.main_time_left
-    }
-
-    pub fn byo_time_left(&self) -> u32 {
-        self.byo_time_left
-    }
-
-    pub fn byo_stones_left(&self) -> i32 {
-        self.byo_stones_left
-    }
-
-    fn set_main_time(&mut self, time: u32) {
-        self.main_time = time;
-        self.main_time_left = time;
-    }
-
-    fn set_byo_time(&mut self, time: u32) {
-        self.byo_time = time;
-        self.byo_time_left = time;
-    }
-
-    fn set_byo_stones(&mut self, stones: i32) {
-        self.byo_stones = stones;
-        self.byo_stones_left = stones;
-    }
-
     fn c(&self) -> f32 {
         self.config.time_control.c
     }
 
-    pub fn budget<T: Info>(&self, game: &T) -> i64 {
+    fn budget<T: Info>(&self, game: &T) -> Duration {
         // If there's still main time left
-        if self.main_time_left > 0 {
+        let ms = if self.main_time_left > 0 {
             // Assume at least 30 vacant points
             let vacant = max(game.vacant_point_count(), 30) as f32;
             (self.main_time_left as f32 / (self.c() * vacant)).floor() as i64
@@ -193,6 +201,7 @@ impl Timer {
         } else {
             // Else use byoyomi time
             (self.byo_time_left() as f32 / self.byo_stones_left() as f32).floor() as i64
-        }
+        };
+        Duration::milliseconds(ms)
     }
 }

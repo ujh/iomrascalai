@@ -196,7 +196,7 @@ impl<'a> GTPInterpreter<'a> {
         match arguments.get(0) {
             Some(comm) => {
                 let started_at = precise_time_ns();
-                self.timer.start();
+                self.timer.start(&self.game);
         	let color = Color::from_gtp(comm);
                 let (m, playouts) = self.controller.run_and_return_move(color, &self.game, &self.timer);
                 let response = match self.game.play(m) {
@@ -263,7 +263,7 @@ impl<'a> GTPInterpreter<'a> {
         match arguments.get(2) {
             Some(third) => {
             	//command[1] and command[2] should be there
-                match (arguments[0].parse::<u32>(), arguments[1].parse::<u32>(), third.parse::<i32>()) {
+                match (arguments[0].parse::<i64>(), arguments[1].parse::<i64>(), third.parse::<i32>()) {
                     (Ok(main), Ok(byo), Ok(stones)) => {
                         self.timer.setup(main, byo, stones);
                         Ok("".to_string())
@@ -278,7 +278,7 @@ impl<'a> GTPInterpreter<'a> {
     fn execute_time_left(&mut self, arguments: &[&str]) -> Result<String, String> {
         match arguments.get(2) {
             Some(third) => {
-                match (arguments[1].parse::<u32>(), third.parse::<i32>()) {
+                match (arguments[1].parse::<i64>(), third.parse::<i32>()) {
                     (Ok(time), Ok(stones)) => {
                         self.timer.update(time, stones);
                         Ok("".to_string())
