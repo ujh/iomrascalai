@@ -76,7 +76,7 @@ impl<'a> EngineController<'a> {
         unsafe {
             let ste_config = self.config.clone();
             let _guard = scoped(|| {
-                self.engine.gen_move(color, budget, game, send_move_to_controller, receive_signal_from_controller);
+                self.engine.genmove(color, budget, game, send_move_to_controller, receive_signal_from_controller);
             });
 
             let (send_time_up_to_controller, receive_time_up) = channel();

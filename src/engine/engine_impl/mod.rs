@@ -114,7 +114,7 @@ impl Engine for EngineImpl {
         &self.ownership
     }
 
-    fn gen_move(&mut self, color: Color, budget_ms: u32, game: &Game, sender: Sender<(Move,usize)>, receiver: Receiver<()>) {
+    fn genmove(&mut self, color: Color, budget_ms: u32, game: &Game, sender: Sender<(Move,usize)>, receiver: Receiver<()>) {
         self.genmove_setup(color, game);
         let start = PreciseTime::now();
         let budget5 = Duration::milliseconds((budget_ms as f32 * 0.05) as i64);
