@@ -29,12 +29,6 @@ use score::FinalScore;
 use timer::Timer;
 
 use std::sync::Arc;
-use std::sync::mpsc::channel;
-use std::thread;
-use std::time::Duration;
-use thread_scoped::scoped;
-
-mod test;
 
 pub struct EngineController<'a> {
     config: Arc<Config>,
@@ -69,46 +63,10 @@ impl<'a> EngineController<'a> {
 
     pub fn run_and_return_move(&mut self, color: Color, game: &Game, timer: &Timer) -> (Move, usize) {
         let budget = self.budget(timer, game);
-        let (send_move_to_controller, receive_move_from_engine) = channel();
-        let (send_signal_to_engine, receive_signal_from_controller) = channel::<()>();
-        // Saving the guard into a variable is necessary. Otherwise
-        // the code blocks right here.
-        unsafe {
-            let ste_config = self.config.clone();
-            let _guard = scoped(|| {
-                self.engine.genmove(color, budget, game, send_move_to_controller, receive_signal_from_controller);
-            });
-
-            let (send_time_up_to_controller, receive_time_up) = channel();
-            thread::spawn(move || {
-                thread::sleep(Duration::from_millis(budget as u64));
-                match send_time_up_to_controller.send(()) {
-                    Ok(_) => {}
-                    Err(_) => {
-                        // This is expected to fail whenever the
-                        // engine returns before the allotted time is
-                        // up.
-                    }
-                }
-            });
-            select!(
-                r = receive_move_from_engine.recv() => {
-                    r.unwrap()
-                },
-                _ = receive_time_up.recv() => {
-                    match send_signal_to_engine.send(()) {
-                        Ok(_) => {},
-                        Err(e) => {
-                            ste_config.log(format!("[DEBUG] sending time up to engine failed with {:?}", e));
-                        }
-                    }
-                    receive_move_from_engine.recv().unwrap()
-                }
-            )
-        }
+        self.engine.genmove(color, budget, game)
     }
 
-    fn budget(&self, timer: &Timer, game: &Game) -> u32 {
+    fn budget(&self, timer: &Timer, game: &Game) -> i64 {
         let budget = timer.budget(game);
         self.config.log(
             format!("Thinking for {}ms ({}ms time left)", budget, timer.main_time_left()));

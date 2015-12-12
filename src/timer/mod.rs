@@ -182,17 +182,17 @@ impl Timer {
         self.config.time_control.c
     }
 
-    pub fn budget<T: Info>(&self, game: &T) -> u32 {
+    pub fn budget<T: Info>(&self, game: &T) -> i64 {
         // If there's still main time left
         if self.main_time_left > 0 {
             // Assume at least 30 vacant points
             let vacant = max(game.vacant_point_count(), 30) as f32;
-            (self.main_time_left as f32 / (self.c() * vacant)).floor() as u32
+            (self.main_time_left as f32 / (self.c() * vacant)).floor() as i64
         } else if self.byo_time_left() == 0 {
             0
         } else {
             // Else use byoyomi time
-            (self.byo_time_left() as f32 / self.byo_stones_left() as f32).floor() as u32
+            (self.byo_time_left() as f32 / self.byo_stones_left() as f32).floor() as i64
         }
     }
 }
