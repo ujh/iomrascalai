@@ -29,8 +29,6 @@ use ownership::OwnershipStatistics;
 use patterns::Matcher;
 
 use std::sync::Arc;
-use std::sync::mpsc::Receiver;
-use std::sync::mpsc::Sender;
 
 mod controller;
 mod engine_impl;
@@ -40,9 +38,9 @@ pub fn factory(config: Arc<Config>, matcher: Arc<Matcher>) -> Box<Engine> {
     Box::new(EngineImpl::new(config, matcher))
 }
 
-pub trait Engine: Send + Sync {
+pub trait Engine {
 
-    fn gen_move(&mut self, Color, u32, &Game, sender: Sender<(Move,usize)>, receiver: Receiver<()>);
+    fn genmove(&mut self, Color, i64, &Game) -> (Move,usize);
     fn ownership(&self) -> &OwnershipStatistics;
     fn reset(&mut self, u8) {}
 

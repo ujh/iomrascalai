@@ -46,34 +46,6 @@ use time::PreciseTime;
 
 mod node;
 
-pub struct EngineImpl {
-    config: Arc<Config>,
-    matcher: Arc<Matcher>,
-    ownership: OwnershipStatistics,
-    playout: Arc<Playout>,
-    previous_node_count: usize,
-    root: Node,
-}
-
-impl EngineImpl {
-
-    pub fn new(config: Arc<Config>, matcher: Arc<Matcher>) -> EngineImpl {
-        EngineImpl {
-            config: config.clone(),
-            matcher: matcher.clone(),
-            ownership: OwnershipStatistics::new(config.clone(), 0),
-            playout: Arc::new(Playout::new(config.clone(), matcher.clone())),
-            previous_node_count: 0,
-            root: Node::new(NoMove, config),
-        }
-    }
-
-    fn set_new_root(&mut self, game: &Game, color: Color) {
-        self.root = self.root.find_new_root(game, color);
-    }
-
-}
-
 macro_rules! check {
     ($config:expr, $r:expr) => {
         check!($config, _unused_result = $r => {})
@@ -92,18 +64,38 @@ macro_rules! check {
 
 }
 
-impl Engine for EngineImpl {
+pub struct EngineImpl {
+    config: Arc<Config>,
+    matcher: Arc<Matcher>,
+    ownership: OwnershipStatistics,
+    playout: Arc<Playout>,
+    previous_node_count: usize,
+    root: Node,
+    start: PreciseTime,
+}
 
-    fn ownership(&self) -> &OwnershipStatistics {
-        &self.ownership
+impl EngineImpl {
+
+    pub fn new(config: Arc<Config>, matcher: Arc<Matcher>) -> EngineImpl {
+        EngineImpl {
+            config: config.clone(),
+            matcher: matcher.clone(),
+            ownership: OwnershipStatistics::new(config.clone(), 0),
+            playout: Arc::new(Playout::new(config.clone(), matcher.clone())),
+            previous_node_count: 0,
+            root: Node::new(NoMove, config),
+            start: PreciseTime::now(),
+        }
     }
 
-    fn gen_move(&mut self, color: Color, budget_ms: u32, game: &Game, sender: Sender<(Move,usize)>, receiver: Receiver<()>) {
+    fn set_new_root(&mut self, game: &Game, color: Color) {
+        self.root = self.root.find_new_root(game, color);
+    }
+
+    fn genmove_setup(&mut self, color: Color, game: &Game) {
+        self.start = PreciseTime::now();
         self.config.gfx(self.ownership.gfx());
         self.ownership = OwnershipStatistics::new(self.config.clone(), game.size());
-        let start = PreciseTime::now();
-        let budget5 = Duration::milliseconds((budget_ms as f32 * 0.05) as i64);
-        let budget20 = Duration::milliseconds((budget_ms as f32 * 0.2) as i64);
         if !self.config.tree.reuse_subtree {
             self.root = Node::root(game, color, self.config.clone());
         } else {
@@ -116,32 +108,66 @@ impl Engine for EngineImpl {
                 self.config.log(msg);
             }
         }
+    }
+
+    fn finish(&mut self, game: &Game, color: Color, halt_senders: Vec<Sender<()>>) -> (Move,usize) {
+        for halt_sender in halt_senders.iter() {
+            check!(self.config, halt_sender.send(()));
+        }
+        let m = if self.root.mostly_losses(self.config.tree.end_of_game_cutoff) {
+            self.config.log(format!("Almost all simulations were losses"));
+            if game.winner() == color {
+                Pass(color)
+            } else {
+                Resign(color)
+            }
+        } else {
+            let best_node = self.root.best();
+            let msg = format!("{} simulations ({}% wins on average, {} nodes)", self.root.plays()-1, self.root.win_ratio()*100.0, self.root.descendants());
+            self.config.log(msg);
+            self.config.log(format!("Returning the best move ({}% wins)", best_node.win_ratio()*100.0));
+            best_node.m()
+        };
+        (m,self.root.plays())
+    }
+
+    fn stop(&self, budget_ms: i64) -> bool {
+        let budget5 = Duration::milliseconds((budget_ms as f32 * 0.05) as i64);
+        let budget20 = Duration::milliseconds((budget_ms as f32 * 0.2) as i64);
+        let win_ratio = self.root.best().win_ratio();
+        let duration = self.start.to(PreciseTime::now());
+        if duration > budget5 && win_ratio > self.config.time_control.fastplay5_thres {
+            self.config.log(format!("Search stopped. 5% rule triggered"));
+            true
+        } else if duration > budget20 && win_ratio > self.config.time_control.fastplay20_thres {
+            self.config.log(format!("Search stopped. 20% rule triggered"));
+            true
+        } else {
+            duration > Duration::milliseconds(budget_ms)
+        }
+    }
+
+}
+
+impl Engine for EngineImpl {
+
+    fn ownership(&self) -> &OwnershipStatistics {
+        &self.ownership
+    }
+
+    fn genmove(&mut self, color: Color, budget_ms: i64, game: &Game) -> (Move,usize) {
+        self.genmove_setup(color, game);
         if self.root.has_no_children() {
             self.config.log(format!("No moves to simulate!"));
-            sender.send((Pass(color), self.root.plays())).unwrap();
-            return;
+            return (Pass(color), self.root.plays());
         }
         let (send_result_to_main, receive_result_from_threads) = channel::<((Vec<usize>, usize, PlayoutResult), Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>();
         let (_guards, halt_senders) = spin_up(self.config.clone(), self.playout.clone(), game, send_result_to_main);
         loop {
-            let win_ratio = self.root.best().win_ratio();
-            if start.to(PreciseTime::now()) > budget5 && win_ratio > self.config.time_control.fastplay5_thres {
-                self.config.log(format!("Search stopped. 5% rule triggered"));
-                let m = finish(&self.root, game, color, sender, self.config.clone(), halt_senders);
-                self.set_new_root(&game.play(m).unwrap(), color);
-                break;
-            } else if start.to(PreciseTime::now()) > budget20 && win_ratio > self.config.time_control.fastplay20_thres {
-                self.config.log(format!("Search stopped. 20% rule triggered"));
-                let m = finish(&self.root, game, color, sender, self.config.clone(), halt_senders);
-                self.set_new_root(&game.play(m).unwrap(), color);
-                break;
+            if self.stop(budget_ms) {
+                return self.finish(game, color, halt_senders);
             }
             select!(
-                _ = receiver.recv() => {
-                    let m = finish(&self.root, game, color, sender, self.config.clone(), halt_senders);
-                    self.set_new_root(&game.play(m).unwrap(), color);
-                    break;
-                },
                 r = receive_result_from_threads.recv() => {
                     check!(self.config, res = r => {
                         let ((path, nodes_added, playout_result), send_to_thread) = res;
@@ -211,28 +237,4 @@ fn spin_up_worker<'a>(config: Arc<Config>, playout: Arc<Playout>, board: Board, 
                 )
         }
     })}
-}
-
-fn finish(root: &Node, game: &Game, color: Color, sender: Sender<(Move,usize)>, config: Arc<Config>, halt_senders: Vec<Sender<()>>) -> Move {
-    for halt_sender in halt_senders.iter() {
-        check!(config, halt_sender.send(()));
-    }
-
-    if root.mostly_losses(config.tree.end_of_game_cutoff) {
-        let m = if game.winner() == color {
-            Pass(color)
-        } else {
-            Resign(color)
-        };
-        sender.send((m, root.plays())).unwrap();
-        config.log(format!("Almost all simulations were losses"));
-        m
-    } else {
-        let best_node = root.best();
-        let msg = format!("{} simulations ({}% wins on average, {} nodes)", root.plays()-1, root.win_ratio()*100.0, root.descendants());
-        config.log(msg);
-        config.log(format!("Returning the best move ({}% wins)", best_node.win_ratio()*100.0));
-        check!(config, sender.send((best_node.m(), root.plays())));
-        best_node.m()
-    }
 }
