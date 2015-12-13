@@ -88,9 +88,6 @@ pub struct TreeConfig {
     /// algorithm. There's no clear way to set this value. It's best
     /// to use parameter optimization to find the best value.
     pub rave_equiv: f32,
-    /// If this is `true` then we reuse the subtree from the last move
-    /// we searched so that we don't have to start with an empty tree.
-    pub reuse_subtree: bool,
 }
 
 impl TreeConfig {
@@ -105,7 +102,6 @@ impl TreeConfig {
             end_of_game_cutoff: Self::as_float(&table, "end_of_game_cutoff"),
             expand_after: Self::as_integer(&table, "expand_after"),
             rave_equiv: Self::as_float(&table, "rave_equiv"),
-            reuse_subtree: Self::as_bool(&table, "reuse_subtree"),
         }
     }
 

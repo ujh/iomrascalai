@@ -96,17 +96,13 @@ impl EngineImpl {
         self.start = PreciseTime::now();
         self.config.gfx(self.ownership.gfx());
         self.ownership = OwnershipStatistics::new(self.config.clone(), game.size());
-        if !self.config.tree.reuse_subtree {
-            self.root = Node::root(game, color, self.config.clone());
-        } else {
-            self.previous_node_count = self.root.descendants();
-            self.set_new_root(game, color);
-            let reused_node_count = self.root.descendants();
-            if self.previous_node_count > 0 {
-                let percentage = reused_node_count as f32 / self.previous_node_count as f32;
-                let msg = format!("Reusing {} nodes ({}%)", reused_node_count, percentage*100.0);
-                self.config.log(msg);
-            }
+        self.previous_node_count = self.root.descendants();
+        self.set_new_root(game, color);
+        let reused_node_count = self.root.descendants();
+        if self.previous_node_count > 0 {
+            let percentage = reused_node_count as f32 / self.previous_node_count as f32;
+            let msg = format!("Reusing {} nodes ({}%)", reused_node_count, percentage*100.0);
+            self.config.log(msg);
         }
     }
 
