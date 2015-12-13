@@ -128,6 +128,7 @@ impl EngineImpl {
             self.config.log(format!("Returning the best move ({}% wins)", best_node.win_ratio()*100.0));
             best_node.m()
         };
+        self.set_new_root(&game.play(m).unwrap(), color);
         (m,self.root.plays())
     }
 
