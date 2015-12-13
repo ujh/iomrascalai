@@ -32,14 +32,13 @@ use time::PreciseTime;
 
 #[derive(Clone)]
 pub struct Timer {
+    byo_stones: i32,
     byo_stones_left: i32,
+    byo_time: i64,
     byo_time_left: i64,
     config: Arc<Config>,
     current_budget: Duration,
     main_time_left: i64,
-    byo_stones: i32,
-    byo_time: i64,
-    main_time: i64,
     time_stamp: PreciseTime,
 }
 
@@ -53,18 +52,10 @@ impl Timer {
             byo_time_left: 0,
             config: config,
             current_budget: Duration::milliseconds(0),
-            main_time: 300000, // 5min
             main_time_left: 300000,
             time_stamp: PreciseTime::now(),
         }
 
-    }
-
-    pub fn reset(&mut self) {
-        self.main_time_left  = self.main_time;
-        self.byo_time_left   = self.byo_time;
-        self.byo_stones_left = self.byo_stones;
-        self.reset_time_stamp();
     }
 
     pub fn setup(&mut self, main_in_s: i64, byo_in_s: i64, stones: i32) {
@@ -116,24 +107,12 @@ impl Timer {
         self.adjust_time();
     }
 
-    pub fn byo_stones(&self) -> i32 {
-        self.byo_stones
-    }
-
     pub fn byo_stones_left(&self) -> i32 {
         self.byo_stones_left
     }
 
-    pub fn byo_time(&self) -> i64 {
-        self.byo_time
-    }
-
     pub fn byo_time_left(&self) -> i64 {
         self.byo_time_left
-    }
-
-    pub fn main_time(&self) -> i64 {
-        self.main_time
     }
 
     pub fn main_time_left(&self) -> i64 {
@@ -141,7 +120,6 @@ impl Timer {
     }
 
     fn set_main_time(&mut self, time: i64) {
-        self.main_time = time;
         self.main_time_left = time;
     }
 
