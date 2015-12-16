@@ -39,10 +39,13 @@ pub mod driver;
 mod test;
 
 pub struct GTPInterpreter<'a> {
+    byo_stones: i32,
+    byo_time: i64,
     commands: Vec<&'a str>,
     config: Arc<Config>,
     controller: EngineController<'a>,
     game: Game,
+    main_time: i64,
     running: bool,
     timer: Timer,
 }
@@ -74,10 +77,13 @@ impl<'a> GTPInterpreter<'a> {
             "version",
             ];
         GTPInterpreter {
+            byo_stones: 0,
+            byo_time: 0,
             commands: commands,
             config: config.clone(),
             controller: controller,
             game: Game::new(boardsize, komi, config.ruleset),
+            main_time: 5,
             running: true,
             timer: Timer::new(config),
         }
@@ -173,7 +179,7 @@ impl<'a> GTPInterpreter<'a> {
     fn execute_clear_board(&mut self, _: &[&str]) -> Result<String, String> {
         let size = self.boardsize();
         self.game = Game::new(size, self.komi(), self.ruleset());
-        self.timer.reset();
+        self.timer.setup(self.main_time, self.byo_time, self.byo_stones);
         self.controller.reset(size);
         Ok("".to_string())
     }
@@ -196,7 +202,7 @@ impl<'a> GTPInterpreter<'a> {
         match arguments.get(0) {
             Some(comm) => {
                 let started_at = precise_time_ns();
-                self.timer.start();
+                self.timer.start(&self.game);
         	let color = Color::from_gtp(comm);
                 let (m, playouts) = self.controller.run_and_return_move(color, &self.game, &self.timer);
                 let response = match self.game.play(m) {
@@ -263,8 +269,11 @@ impl<'a> GTPInterpreter<'a> {
         match arguments.get(2) {
             Some(third) => {
             	//command[1] and command[2] should be there
-                match (arguments[0].parse::<u32>(), arguments[1].parse::<u32>(), third.parse::<i32>()) {
+                match (arguments[0].parse::<i64>(), arguments[1].parse::<i64>(), third.parse::<i32>()) {
                     (Ok(main), Ok(byo), Ok(stones)) => {
+                        self.main_time = main;
+                        self.byo_time = byo;
+                        self.byo_stones = stones;
                         self.timer.setup(main, byo, stones);
                         Ok("".to_string())
                     }
@@ -278,7 +287,7 @@ impl<'a> GTPInterpreter<'a> {
     fn execute_time_left(&mut self, arguments: &[&str]) -> Result<String, String> {
         match arguments.get(2) {
             Some(third) => {
-                match (arguments[1].parse::<u32>(), third.parse::<i32>()) {
+                match (arguments[1].parse::<i64>(), third.parse::<i32>()) {
                     (Ok(time), Ok(stones)) => {
                         self.timer.update(time, stones);
                         Ok("".to_string())

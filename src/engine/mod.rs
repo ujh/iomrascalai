@@ -21,12 +21,14 @@
 
 pub use self::controller::EngineController;
 pub use self::engine_impl::EngineImpl;
+pub use self::engine_impl::Node;
 use board::Color;
 use board::Move;
 use config::Config;
 use game::Game;
 use ownership::OwnershipStatistics;
 use patterns::Matcher;
+use timer::Timer;
 
 use std::sync::Arc;
 
@@ -40,7 +42,7 @@ pub fn factory(config: Arc<Config>, matcher: Arc<Matcher>) -> Box<Engine> {
 
 pub trait Engine {
 
-    fn genmove(&mut self, Color, i64, &Game) -> (Move,usize);
+    fn genmove(&mut self, Color, &Game, &Timer) -> (Move,usize);
     fn ownership(&self) -> &OwnershipStatistics;
     fn reset(&mut self, u8) {}
 

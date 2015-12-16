@@ -32,7 +32,8 @@ use ownership::OwnershipStatistics;
 use patterns::Matcher;
 use playout::Playout;
 use playout::PlayoutResult;
-use self::node::Node;
+pub use self::node::Node;
+use timer::Timer;
 
 use rand::weak_rng;
 use std::sync::Arc;
@@ -41,7 +42,6 @@ use std::sync::mpsc::Sender;
 use std::sync::mpsc::channel;
 use thread_scoped::JoinGuard;
 use thread_scoped::scoped;
-use time::Duration;
 use time::PreciseTime;
 
 mod node;
@@ -129,22 +129,6 @@ impl EngineImpl {
         (m,playouts)
     }
 
-    fn stop(&self, budget_ms: i64) -> bool {
-        let budget5 = Duration::milliseconds((budget_ms as f32 * 0.05) as i64);
-        let budget20 = Duration::milliseconds((budget_ms as f32 * 0.2) as i64);
-        let win_ratio = self.root.best().win_ratio();
-        let duration = self.start.to(PreciseTime::now());
-        if duration > budget5 && win_ratio > self.config.time_control.fastplay5_thres {
-            self.config.log(format!("Search stopped. 5% rule triggered"));
-            true
-        } else if duration > budget20 && win_ratio > self.config.time_control.fastplay20_thres {
-            self.config.log(format!("Search stopped. 20% rule triggered"));
-            true
-        } else {
-            duration > Duration::milliseconds(budget_ms)
-        }
-    }
-
 }
 
 impl Engine for EngineImpl {
@@ -153,7 +137,7 @@ impl Engine for EngineImpl {
         &self.ownership
     }
 
-    fn genmove(&mut self, color: Color, budget_ms: i64, game: &Game) -> (Move,usize) {
+    fn genmove(&mut self, color: Color, game: &Game, timer: &Timer) -> (Move,usize) {
         self.genmove_setup(color, game);
         if self.root.has_no_children() {
             self.config.log(format!("No moves to simulate!"));
@@ -162,7 +146,7 @@ impl Engine for EngineImpl {
         let (send_result_to_main, receive_result_from_threads) = channel::<((Vec<usize>, usize, PlayoutResult), Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>();
         let (_guards, halt_senders) = spin_up(self.config.clone(), self.playout.clone(), game, send_result_to_main);
         loop {
-            if self.stop(budget_ms) {
+            if timer.ran_out_of_time(self.root.best().win_ratio()) {
                 return self.finish(game, color, halt_senders);
             }
             select!(
