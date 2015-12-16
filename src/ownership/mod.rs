@@ -38,15 +38,17 @@ mod test;
 #[derive(Debug)]
 pub struct OwnershipStatistics {
     config: Arc<Config>,
+    komi: f32,
     size: u8,
     stats: HashMap<Coord, (usize, usize, usize)>
 }
 
 impl OwnershipStatistics {
 
-    pub fn new(config: Arc<Config>, size: u8) -> OwnershipStatistics {
+    pub fn new(config: Arc<Config>, size: u8, komi: f32) -> OwnershipStatistics {
         let mut os = OwnershipStatistics {
             config: config,
+            komi: komi,
             size: size,
             stats: HashMap::new(),
         };

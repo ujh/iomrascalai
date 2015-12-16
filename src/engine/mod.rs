@@ -44,6 +44,6 @@ pub trait Engine {
 
     fn genmove(&mut self, Color, &Game, &Timer) -> (Move,usize);
     fn ownership(&self) -> &OwnershipStatistics;
-    fn reset(&mut self, u8) {}
+    fn reset(&mut self) {}
 
 }

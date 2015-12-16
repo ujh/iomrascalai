@@ -339,6 +339,7 @@ describe! interpreter {
                 it "returns board of ownership likelihoods" {
                     interpreter.read("boardsize 3\n").unwrap();
                     interpreter.read("clear_board\n").unwrap();
+                    interpreter.read("genmove b\n").unwrap();
                     let response = interpreter.read("imrscl-ownership\n");
                     assert_that(response, is(equal_to(ok("0 0 0 \n0 0 0 \n0 0 0 \n"))));
                 }

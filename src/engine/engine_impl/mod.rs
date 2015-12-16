@@ -80,7 +80,7 @@ impl EngineImpl {
         EngineImpl {
             config: config.clone(),
             matcher: matcher.clone(),
-            ownership: OwnershipStatistics::new(config.clone(), 0),
+            ownership: OwnershipStatistics::new(config.clone(), 0, 0.0),
             playout: Arc::new(Playout::new(config.clone(), matcher.clone())),
             previous_node_count: 0,
             root: Node::new(NoMove, config),
@@ -95,7 +95,7 @@ impl EngineImpl {
     fn genmove_setup(&mut self, color: Color, game: &Game) {
         self.start = PreciseTime::now();
         self.config.gfx(self.ownership.gfx());
-        self.ownership = OwnershipStatistics::new(self.config.clone(), game.size());
+        self.ownership = OwnershipStatistics::new(self.config.clone(), game.size(), game.komi());
         self.previous_node_count = self.root.descendants();
         self.set_new_root(game, color);
         let reused_node_count = self.root.descendants();
@@ -167,10 +167,10 @@ impl Engine for EngineImpl {
         }
     }
 
-    fn reset(&mut self, boardsize: u8) {
+    fn reset(&mut self) {
         self.previous_node_count = 0;
         self.root = Node::new(NoMove, self.config.clone());
-        self.ownership = OwnershipStatistics::new(self.config.clone(), boardsize);
+        self.ownership = OwnershipStatistics::new(self.config.clone(), 0, 0.0);
     }
 
 }

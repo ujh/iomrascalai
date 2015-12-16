@@ -41,7 +41,7 @@ describe! ownership {
 
             before_each {
                 let config = Arc::new(Config::default());
-                let stats = OwnershipStatistics::new(config, 3);
+                let stats = OwnershipStatistics::new(config, 3, 6.5);
             }
 
             it "returns 0 by default" {
