@@ -146,7 +146,7 @@ impl Engine for EngineImpl {
         let (send_result_to_main, receive_result_from_threads) = channel::<((Vec<usize>, usize, PlayoutResult), Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>();
         let (_guards, halt_senders) = spin_up(self.config.clone(), self.playout.clone(), game, send_result_to_main);
         loop {
-            if timer.ran_out_of_time(&self.root) {
+            if timer.ran_out_of_time(self.root.best().win_ratio()) {
                 return self.finish(game, color, halt_senders);
             }
             select!(

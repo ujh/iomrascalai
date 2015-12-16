@@ -21,162 +21,21 @@
 
 #![cfg(test)]
 
-use config::Config;
-use game::Info;
-use super::Timer;
+pub use board::Black;
+pub use config::Config;
+pub use game::Info;
+pub use ruleset::KgsChinese;
+pub use super::Timer;
 
-use std::sync::Arc;
-use std::thread::sleep;
-use std::time::Duration;
+pub use hamcrest::assert_that;
+pub use hamcrest::close_to;
+pub use hamcrest::equal_to;
+pub use hamcrest::is;
+pub use std::sync::Arc;
+pub use time::Duration;
+pub use time::PreciseTime;
 
-fn config() -> Arc<Config> {
-    Arc::new(Config::default())
-}
-
-#[test]
-fn the_timer_has_a_default_of_5_min_sudden_death() {
-    let timer = Timer::new(config());
-    assert_eq!(5*60*1000, timer.main_time);
-    assert_eq!(0, timer.byo_time);
-    assert_eq!(0, timer.byo_stones);
-}
-
-#[test]
-fn reset_resets_everything() {
-    let mut timer = Timer::new(config());
-    timer.main_time_left  = 1;
-    timer.byo_time_left   = 1;
-    timer.byo_stones_left = 1;
-    timer.reset();
-    assert_eq!(timer.main_time, timer.main_time_left);
-    assert_eq!(timer.byo_time, timer.byo_time_left);
-    assert_eq!(timer.byo_stones, timer.byo_stones_left);
-}
-
-#[test]
-fn update_converts_to_ms_and_resets_everything() {
-    let mut timer = Timer::new(config());
-    timer.main_time_left  = 1;
-    timer.byo_time_left   = 1;
-    timer.byo_stones_left = 1;
-    timer.setup(2, 2, 2);
-    assert_eq!(2000, timer.main_time);
-    assert_eq!(2000, timer.main_time_left);
-    assert_eq!(2000, timer.byo_time);
-    assert_eq!(2000, timer.byo_time_left);
-    assert_eq!(2, timer.byo_stones);
-    assert_eq!(2, timer.byo_stones_left);
-}
-
-#[test]
-fn update_sets_the_main_time() {
-    let mut timer = Timer::new(config());
-    timer.update(1, 0);
-    assert_eq!(1000, timer.main_time_left);
-}
-
-#[test]
-fn update_sets_the_byo_time() {
-    let mut timer = Timer::new(config());
-    timer.update(1, 1);
-    assert_eq!(0, timer.main_time_left);
-    assert_eq!(1000, timer.byo_time_left);
-    assert_eq!(1, timer.byo_stones_left);
-}
-
-
-#[test]
-fn stop_changes_the_time_left() {
-    let mut timer = Timer::new(config());
-    let info = TestGameInfo::new(0);
-    timer.start(&info);
-    sleep(Duration::from_millis(10));
-    timer.stop();
-    assert!(timer.main_time_left < timer.main_time);
-}
-
-#[test]
-fn adjust_time_updates_the_main_time() {
-    let mut timer = Timer::new(config());
-    assert_eq!(5*60*1000, timer.main_time_left);
-    timer.clock.start = Some(0);
-    timer.clock.end   = Some(1000000);
-    timer.adjust_time();
-    assert_eq!(5*60*1000-1, timer.main_time_left);
-}
-
-#[test]
-fn adjust_time_updates_the_byo_time() {
-    let mut timer = Timer::new(config());
-    timer.setup(0, 1, 2);
-    timer.clock.start = Some(0);
-    timer.clock.end   = Some(1000000);
-    timer.adjust_time();
-    assert_eq!(0, timer.main_time_left);
-    assert_eq!(999, timer.byo_time_left);
-}
-
-#[test]
-fn adjust_time_updates_the_byo_stones() {
-    let mut timer = Timer::new(config());
-    timer.setup(0, 1, 2);
-    timer.clock.start = Some(0);
-    timer.clock.end   = Some(1000000);
-    timer.adjust_time();
-    assert_eq!(1, timer.byo_stones_left);
-}
-
-#[test]
-fn adjust_time_resets_the_byo_time_after_the_last_move() {
-    let mut timer = Timer::new(config());
-    timer.setup(0, 1, 2);
-    timer.byo_time_left   = 500;
-    timer.byo_stones_left = 1;
-    timer.clock.start = Some(0);
-    timer.clock.end   = Some(1000000);
-    timer.adjust_time();
-    assert_eq!(0, timer.main_time_left);
-    assert_eq!(1000, timer.byo_time_left);
-    assert_eq!(2, timer.byo_stones_left);
-}
-
-#[test]
-fn adjust_time_splits_time_between_main_and_byo_time() {
-    let mut timer = Timer::new(config());
-    timer.setup(1, 2, 2);
-    timer.clock.start = Some(0);
-    timer.clock.end   = Some(1000000*1000*2);
-    timer.adjust_time();
-    assert_eq!(0, timer.main_time_left);
-    assert_eq!(1000, timer.byo_time_left);
-    assert_eq!(1, timer.byo_stones_left);
-}
-
-#[test]
-fn adjust_time_sets_remaining_time_to_zero_in_absolute_time_if_time_is_over() {
-    let mut timer = Timer::new(config());
-    timer.setup(1, 0, 0);
-    timer.clock.start = Some(0);
-    timer.clock.end   = Some(1000000*1000*2);
-    timer.adjust_time();
-    assert_eq!(0, timer.main_time_left);
-    assert_eq!(0, timer.byo_time_left);
-    assert_eq!(0, timer.byo_stones_left);
-}
-
-#[test]
-fn adjust_time_sets_remaining_time_to_zero_in_byo_time_if_time_is_over() {
-    let mut timer = Timer::new(config());
-    timer.setup(0, 1, 0);
-    timer.clock.start = Some(0);
-    timer.clock.end   = Some(1000000*1000*2);
-    timer.adjust_time();
-    assert_eq!(0, timer.main_time_left);
-    assert_eq!(0, timer.byo_time_left);
-    assert_eq!(0, timer.byo_stones_left);
-}
-
-struct TestGameInfo {
+pub struct TestGameInfo {
     vacant_points: u16
 }
 
@@ -196,48 +55,299 @@ impl Info for TestGameInfo {
 
 }
 
-#[test]
-fn budget_returns_zero_if_the_time_is_over() {
-    let mut timer = Timer::new(config());
-    timer.main_time_left  = 0;
-    timer.byo_time_left   = 0;
-    timer.byo_stones_left = 0;
-    let info = TestGameInfo::new(0);
-    assert_eq!(0, timer.budget(&info));
+// This sleep function doesn't take a Duration from the time crate but
+// one from the std library.
+pub fn sleep_ms(ms: u64) {
+    ::std::thread::sleep(::std::time::Duration::from_millis(ms));
 }
 
-#[test]
-fn budget_returns_a_fraction_of_the_byo_time_remaining() {
-    let mut timer = Timer::new(config());
-    timer.main_time_left  = 0;
-    timer.byo_time_left   = 2;
-    timer.byo_stones_left = 2;
-    let info = TestGameInfo::new(0);
-    assert_eq!(1, timer.budget(&info));
-}
+describe! timer {
 
-#[test]
-fn budget_rounds_down_when_calculating_the_byo_time() {
-    let mut timer = Timer::new(config());
-    timer.main_time_left  = 0;
-    timer.byo_time_left   = 3;
-    timer.byo_stones_left = 2;
-    let info = TestGameInfo::new(0);
-    assert_eq!(1, timer.budget(&info));
-}
+    before_each {
+        let mut c = Config::default();
+        c.time_control.c = 0.5;
+        let config = Arc::new(c);
+        let mut timer = Timer::new(config.clone());
+    }
 
-#[test]
-fn budget_during_main_time_uses_the_vacant_points_to_calculate_the_time() {
-    let mut timer = Timer::new(config());
-    timer.main_time_left = 100;
-    let info = TestGameInfo::new(100);
-    assert_eq!(2, timer.budget(&info));
-}
+    describe! setup {
 
-#[test]
-fn budget_during_main_time_uses_a_minimum_of_30_for_vacant_points() {
-    let mut timer = Timer::new(config());
-    timer.main_time_left = 100;
-    let info = TestGameInfo::new(10);
-    assert_eq!(6, timer.budget(&info));
+        it "sets the main time" {
+            timer.setup(30, 20, 10);
+            assert_that(timer.main_time_left, is(equal_to(30_000)));
+        }
+
+        it "sets the byoyomi time" {
+            timer.setup(30, 20, 10);
+            assert_that(timer.byo_time, is(equal_to(20_000)));
+            assert_that(timer.byo_time_left, is(equal_to(20_000)));
+        }
+
+        it "sets the byoyomi stones" {
+            timer.setup(30, 20, 10);
+            assert_that(timer.byo_stones, is(equal_to(10)));
+            assert_that(timer.byo_stones_left, is(equal_to(10)));
+        }
+
+        it "resets the time stamp" {
+            let previous_time_stamp = timer.time_stamp;
+            timer.setup(30, 20, 10);
+            assert!(previous_time_stamp.to(PreciseTime::now()) > Duration::seconds(0));
+        }
+
+    }
+
+    describe! update {
+
+        describe! main_time {
+
+            it "sets the main time" {
+                timer.update(30, 0);
+                assert_that(timer.main_time_left, is(equal_to(30_000)));
+            }
+
+            it "doesn't change the byoyomi time" {
+                let byo_time_left_before = timer.byo_time_left;
+                timer.update(30, 0);
+                assert_that(timer.byo_time_left, is(equal_to(byo_time_left_before)));
+            }
+
+            it "doesn't change the byoyomi stones" {
+                let byo_stones_left_before = timer.byo_stones_left;
+                timer.update(30, 0);
+                assert_that(timer.byo_stones_left, is(equal_to(byo_stones_left_before)));
+            }
+
+            it "updates the time stamp" {
+                let previous_time_stamp = timer.time_stamp;
+                timer.update(30, 0);
+                assert!(previous_time_stamp.to(PreciseTime::now()) > Duration::seconds(0));
+            }
+
+        }
+
+        describe! over_time {
+
+            it "sets the main time to 0" {
+                timer.update(30, 5);
+                assert_that(timer.main_time_left, is(equal_to(0)));
+            }
+
+            it "sets the byoyomi time" {
+                timer.update(30, 5);
+                assert_that(timer.byo_time_left, is(equal_to(30_000)));
+            }
+
+            it "sets the byoyomi stones" {
+                timer.update(30, 5);
+                assert_that(timer.byo_stones_left, is(equal_to(5)));
+            }
+
+            it "updates the time stamp" {
+                let previous_time_stamp = timer.time_stamp;
+                timer.update(30, 5);
+                assert!(previous_time_stamp.to(PreciseTime::now()) > Duration::seconds(0));
+            }
+
+        }
+
+
+    }
+
+    describe! start {
+
+        it "updates the timestamp" {
+            let previous_time_stamp = timer.time_stamp;
+            timer.start(&TestGameInfo::new(0));
+            assert!(previous_time_stamp.to(PreciseTime::now()) > Duration::seconds(0));
+        }
+
+        it "sets the current budget" {
+            let previous_budget = timer.current_budget;
+            timer.setup(30, 0, 0);
+            timer.start(&TestGameInfo::new(9));
+            assert!(timer.current_budget > previous_budget);
+        }
+    }
+
+    describe! budget {
+
+        it "returns zero if there's no time left" {
+            timer.setup(0, 0, 0);
+            let game_info = &TestGameInfo::new(0);
+            assert_that(timer.budget(game_info).num_milliseconds(), is(equal_to(0)));
+        }
+
+        it "returns a fraction of the byo time" {
+            timer.setup(0, 2, 2);
+            let game_info = &TestGameInfo::new(0);
+            assert_that(timer.budget(game_info).num_milliseconds(), is(equal_to(1_000)));
+        }
+
+        it "uses the vacant points to calculate during main time" {
+            timer.setup(100, 0, 0);
+            let game_info = &TestGameInfo::new(100);
+            assert_that(timer.budget(game_info).num_milliseconds(), is(equal_to(2_000)));
+        }
+
+        it "uses a minimum of 30 points to calculate during main time" {
+            timer.setup(300, 0, 0);
+            let game_info = &TestGameInfo::new(10);
+            assert_that(timer.budget(game_info).num_milliseconds(), is(equal_to(20_000)));
+        }
+    }
+
+    describe! stop {
+
+        it "changes the time settings" {
+            timer.setup(300, 0, 0);
+            sleep_ms(10);
+            let previous_time_left = timer.main_time_left;
+            timer.stop();
+            assert!(timer.main_time_left < previous_time_left);
+        }
+    }
+
+    describe! adjust_time {
+
+        describe! main_time {
+
+            before_each {
+                timer.setup(300, 100, 10);
+            }
+
+            it "updates the main time left" {
+                let previous_main_time_left = timer.main_time_left;
+                sleep_ms(10);
+                let elapsed = timer.time_stamp.to(PreciseTime::now()).num_milliseconds();
+                timer.adjust_time();
+                let expected_new_time_left = (previous_main_time_left - elapsed) as f32;
+                assert_that(timer.main_time_left as f32, is(close_to(expected_new_time_left, 5.0)));
+            }
+
+            it "doesn't change the byo time" {
+                let previous_byo_time = timer.byo_time_left;
+                sleep_ms(10);
+                timer.adjust_time();
+                assert_that(timer.byo_time_left, is(equal_to(previous_byo_time)));
+            }
+
+            it "doesn't change the byo stones" {
+                let previous_byo_stones = timer.byo_stones_left;
+                sleep_ms(10);
+                timer.adjust_time();
+                assert_that(timer.byo_stones_left, is(equal_to(previous_byo_stones)));
+            }
+
+        }
+
+        describe! over_time {
+
+            before_each {
+                timer.setup(1, 1, 10);
+                timer.main_time_left = 1;
+            }
+
+            it "sets the main time to zero" {
+                sleep_ms(10);
+                timer.adjust_time();
+                assert_that(timer.main_time_left, is(equal_to(0)));
+            }
+
+            it "reduces the byo time by the remaining amount" {
+                let previous_byo_time = timer.byo_time_left;
+                sleep_ms(10);
+                let elapsed = timer.time_stamp.to(PreciseTime::now()).num_milliseconds();
+                timer.adjust_time();
+                let expected_byo_time_left = (previous_byo_time - 1 - elapsed) as f32;
+                assert_that(timer.byo_time_left as f32, is(close_to(expected_byo_time_left, 5.0)));
+            }
+
+            it "reduces the number of byo stones" {
+                sleep_ms(10);
+                timer.adjust_time();
+                assert_that(timer.byo_stones_left, is(equal_to(9)));
+            }
+
+        }
+
+        describe! last_stone_in_overtime {
+
+            before_each {
+                timer.setup(0, 1, 10);
+                timer.byo_stones_left = 1;
+                timer.byo_time_left = 100;
+                sleep_ms(10);
+                timer.adjust_time();
+            }
+
+            it "resets the byo time" {
+                assert_that(timer.byo_time_left, is(equal_to(1_000)));
+            }
+
+            it "resets the byo stones" {
+                assert_that(timer.byo_stones_left, is(equal_to(10)));
+            }
+        }
+
+    }
+
+    describe! ran_out_of_time {
+
+        it "returns false if there's still time left" {
+            timer.current_budget = Duration::seconds(1);
+            assert!(!timer.ran_out_of_time(0.5));
+        }
+
+        it "returns true if the time is up" {
+            timer.current_budget = Duration::milliseconds(1);
+            sleep_ms(10);
+            assert!(timer.ran_out_of_time(0.5));
+        }
+
+        describe! over_5_percent_threshold {
+
+            before_each {
+                let win_ratio = config.time_control.fastplay5_thres + 0.01;
+            }
+
+            it "returns false if less than 5% of the time is up" {
+                timer.current_budget = Duration::seconds(1);
+                assert!(!timer.ran_out_of_time(win_ratio));
+            }
+
+            it "returns true if more than 5% of the time is up" {
+                timer.current_budget = Duration::milliseconds(100);
+                sleep_ms(10);
+                assert!(timer.ran_out_of_time(win_ratio));
+            }
+
+        }
+
+        describe! over_20_percent_threshold {
+
+            before_each {
+                let win_ratio = config.time_control.fastplay20_thres + 0.01;
+            }
+
+            it "returns false if less than 20% of the time is up" {
+                timer.current_budget = Duration::seconds(1);
+                assert!(!timer.ran_out_of_time(win_ratio));
+            }
+
+            it "returns false if more than 5% but less than 20% of the time is up" {
+                timer.current_budget = Duration::milliseconds(100);
+                sleep_ms(10);
+                assert!(!timer.ran_out_of_time(win_ratio));
+            }
+
+            it "returns true if more than 20% of the time is up" {
+                timer.current_budget = Duration::milliseconds(50);
+                sleep_ms(12);
+                assert!(timer.ran_out_of_time(win_ratio));
+            }
+
+        }
+
+    }
 }

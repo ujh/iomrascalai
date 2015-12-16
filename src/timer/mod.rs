@@ -20,7 +20,6 @@
  ************************************************************************/
 
 use config::Config;
-use engine::Node;
 use game::Info;
 
 use std::cmp::max;
@@ -28,7 +27,7 @@ use std::sync::Arc;
 use time::Duration;
 use time::PreciseTime;
 
-// mod test;
+mod test;
 
 #[derive(Clone)]
 pub struct Timer {
@@ -52,7 +51,7 @@ impl Timer {
             byo_time_left: 0,
             config: config,
             current_budget: Duration::milliseconds(0),
-            main_time_left: 300000,
+            main_time_left: 0,
             time_stamp: PreciseTime::now(),
         }
 
@@ -87,10 +86,9 @@ impl Timer {
         self.config.log(msg);
     }
 
-    pub fn ran_out_of_time(&self, root: &Node) -> bool {
+    pub fn ran_out_of_time(&self, win_ratio: f32) -> bool {
         let budget5 = self.current_budget / 20;
         let budget20 = self.current_budget / 5;
-        let win_ratio = root.best().win_ratio();
         let elapsed = self.elapsed();
         if elapsed > budget5 && win_ratio > self.config.time_control.fastplay5_thres {
             self.config.log(format!("Search stopped. 5% rule triggered"));
