@@ -21,6 +21,7 @@
  ************************************************************************/
 
 use board::Board;
+use board::Color;
 use board::IllegalMove;
 use board::Move;
 use board::NoMove;
@@ -102,6 +103,10 @@ impl Game {
 
     pub fn size(&self) -> u8 {
         self.board.size()
+    }
+
+    pub fn winner(&self) -> Color {
+        self.board.winner()
     }
 
     pub fn set_komi(&mut self, komi: f32) {
