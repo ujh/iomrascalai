@@ -27,6 +27,7 @@ use board::Move;
 use board::NoMove;
 use board::Pass;
 use board::Play;
+use board::Resign;
 use config::Config;
 use game::Game;
 use patterns::Matcher;
@@ -123,7 +124,11 @@ impl Node {
                 Play(..) => if game.play(node.m()).is_err() {
                     to_remove.push(index);
                 },
-                _ => unreachable!()
+                Pass(..) => if game.play(node.m()).is_err() {
+                    to_remove.push(index);
+                },
+                NoMove => {},
+                Resign(_) => {},
             }
         }
         to_remove.reverse();
@@ -171,6 +176,7 @@ impl Node {
                 .iter()
                 .map(|&m| Node::new(m, self.config.clone()))
                 .collect();
+            self.children.push(Node::new(Pass(game.next_player()), self.config.clone()));
             self.descendants = self.children.len();
         }
  }
@@ -183,6 +189,7 @@ impl Node {
                 .map(|m| self.new_leaf(board, m, matcher.clone()))
                 .collect();
             self.priors(&mut children, board);
+            children.push(Node::new(Pass(board.next_player()), self.config.clone()));
             self.children = children;
         }
         self.descendants = self.children.len();
@@ -301,7 +308,9 @@ impl Node {
     pub fn best(&self) -> &Node {
         let mut best = &self.children[0];
         for n in self.children.iter() {
-            if n.plays_with_prior_factor() > best.plays_with_prior_factor() {
+            if best.m.is_pass() {
+                best = n;
+            } else if !n.m.is_pass() && n.plays_with_prior_factor() > best.plays_with_prior_factor() {
                 best = n;
             }
         }

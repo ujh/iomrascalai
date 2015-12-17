@@ -121,8 +121,12 @@ impl EngineImpl {
             let best_node = self.root.best();
             let win_ratio = best_node.win_ratio();
             if win_ratio == 0.0 {
-                self.config.log(format!("All losses. Resigning."));
-                Resign(color)
+                if game.winner() == color {
+                    Pass(color)
+                } else {
+                    self.config.log(format!("All losses. Resigning."));
+                    Resign(color)
+                }
             } else {
                 let msg = format!("Returning the best move ({}% wins)", win_ratio*100.0);
                 self.config.log(msg);
