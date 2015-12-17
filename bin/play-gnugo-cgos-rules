@@ -1,0 +1,64 @@
+#!/bin/bash
+#
+# Copyright (c) 2015 Urban Hafner
+#
+# Permission is hereby granted, free of charge, to any person
+# obtaining a copy of this software and associated documentation files
+# (the "Software"), to deal in the Software without restriction,
+# including without limitation the rights to use, copy, modify, merge,
+# publish, distribute, sublicense, and/or sell copies of the Software,
+# and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+# BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+# ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+if [ -z "$1" ]; then
+    SIZE="9"
+else
+    SIZE=$1
+fi
+
+if [ $SIZE == "9" ]; then
+    TIME="5m"
+elif [ $SIZE == "13" ]; then
+    TIME="10m"
+elif [ $SIZE == "19" ]; then
+    TIME="20m"
+else
+    echo "Size '$SIZE' isn't supported!"
+    exit 1
+fi
+
+cargo build --release
+
+GNUGO="gnugo --mode gtp --level 0 --chinese-rules --positional-superko --capture-all-dead --score aftermath --play-out-aftermath"
+
+TIMESTAMP=`date "+%Y%m%d%H%M%S"`
+CFG="/tmp/iomrascalai-$TIMESTAMP.toml"
+cat > $CFG <<EOF
+ruleset = "cgos"
+EOF
+
+IOMRASCALAI="cargo run --release -- -c $CFG"
+
+
+TWOGTP="gogui-twogtp -black \"$GNUGO\" -white \"$IOMRASCALAI\" -verbose -size $SIZE -time $TIME"
+
+
+set -x
+
+gogui -computer-both -program "$TWOGTP" -size $SIZE
+
+rm $CFG
