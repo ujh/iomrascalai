@@ -123,6 +123,9 @@ impl Node {
                 Play(..) => if game.play(node.m()).is_err() {
                     to_remove.push(index);
                 },
+                Pass(_) => if self.config.play_out_aftermath && game.winner() != game.next_player() {
+                    to_remove.push(index);
+                },
                 _ => unreachable!()
             }
         }
@@ -171,6 +174,14 @@ impl Node {
                 .iter()
                 .map(|&m| Node::new(m, self.config.clone()))
                 .collect();
+            let size = game.size() as usize;
+            if self.children.len() <= (size * size / 10) {
+                if !self.config.play_out_aftermath || game.winner() == game.next_player() {
+                    // Don't pass if we're losing on the board on CGOS,
+                    // but otherwise it's OK.
+                    self.children.push(Node::new(Pass(game.next_player()), self.config.clone()));
+                }
+            }
             self.descendants = self.children.len();
         }
  }
@@ -184,6 +195,13 @@ impl Node {
                 .collect();
             self.priors(&mut children, board);
             self.children = children;
+            let size = board.size() as usize;
+            if self.children.len() <= (size * size / 10) {
+                let player = board.next_player();
+                if !self.config.play_out_aftermath || board.winner() == player {
+                    self.children.push(Node::new(Pass(player), self.config.clone()));
+                }
+            }
         }
         self.descendants = self.children.len();
         not_terminal

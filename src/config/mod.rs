@@ -21,6 +21,7 @@
 
 #![deny(missing_docs)]
 
+use ruleset::CGOS;
 use ruleset::Ruleset;
 
 use num_cpus;
@@ -301,6 +302,11 @@ pub struct Config {
     /// simulations played) is printed to stderr while the engine is
     /// running.
     pub log: bool,
+    /// If `true` then we don't consider passing a valid move while
+    /// there are still other legal moves on the board. This is
+    /// important for rulesets like Tromp/Taylor where all stones on
+    /// the board are assumed to be alive.
+    pub play_out_aftermath: bool,
     /// Holds a configuration object that contains everything related
     /// to the playout policy.
     pub playout: PlayoutConfig,
@@ -360,9 +366,10 @@ impl Config {
         table.extend(default_table.clone());
         table.extend(threads.clone());
         table.extend(opts.clone());
-        Config {
+        let mut c = Config {
             gfx: Self::as_bool(&table, "gfx"),
             log: Self::as_bool(&table, "log"),
+            play_out_aftermath: Self::as_bool(&table, "play_out_aftermath"),
             playout: PlayoutConfig::new(table["playout"].clone(), default_table["playout"].clone()),
             priors: PriorsConfig::new(table["priors"].clone(), default_table["priors"].clone()),
             ruleset: Ruleset::from_str(table["ruleset"].as_str().unwrap()).unwrap(),
@@ -370,7 +377,9 @@ impl Config {
             threads: Self::as_integer(&table, "threads"),
             time_control: TimeControlConfig::new(table["time_control"].clone(), default_table["time_control"].clone()),
             tree: TreeConfig::new(table["tree"].clone(), default_table["tree"].clone()),
-        }
+        };
+        c.set_ruleset_dependent_defaults();
+        c
     }
 
     /// If logging is turned on then the string passed will be printed
@@ -393,6 +402,15 @@ impl Config {
                 Ok(_) => {},
                 Err(x) => panic!("Unable to write to stderr: {}", x)
             }
+        }
+    }
+
+    fn set_ruleset_dependent_defaults(&mut self) {
+        match self.ruleset {
+            CGOS => {
+                self.play_out_aftermath = true;
+            }
+            _ => {}
         }
     }
 
