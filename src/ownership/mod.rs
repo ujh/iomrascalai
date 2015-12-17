@@ -128,6 +128,25 @@ impl OwnershipStatistics {
             .all(|coord| self.owner(coord) != Empty)
     }
 
+    pub fn winner(&self) -> Color {
+        let mut bs = 0.0;
+        let mut ws = self.komi;
+        for coord in Coord::for_board_size(self.size) {
+            match self.owner(&coord) {
+                Black => { bs += 1.0; },
+                White => { ws += 1.0; },
+                Empty => {}
+            }
+        }
+        if ws == bs {
+            Empty
+        } else if ws > bs {
+            White
+        } else {
+            Black
+        }
+    }
+
     fn value_for_coord(&self, coord: Coord) -> f64 {
         match self.owner(&coord) {
             Black => 1.0,

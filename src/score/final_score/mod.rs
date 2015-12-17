@@ -51,9 +51,10 @@ impl FinalScore {
             for coord in &dead {
                 board.remove_dead_stone(coord);
             }
+            let decided = ownership.decided() && board.winner() == ownership.winner();
             FinalScore {
                 board: board,
-                decided: ownership.decided(),
+                decided: decided,
                 dead: dead,
             }
         } else {
