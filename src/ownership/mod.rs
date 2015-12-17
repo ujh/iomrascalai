@@ -103,14 +103,29 @@ impl OwnershipStatistics {
     pub fn gfx(&self) -> String {
         let mut b = String::from("BLACK");
         let mut w = String::from("WHITE");
+        let mut bc = 0;
+        let mut wc = 0;
+        let mut uc = 0;
         for coord in Coord::for_board_size(self.size) {
             match self.owner(&coord) {
-                Black => b.push_str(&format!(" {}", coord.to_gtp())),
-                White => w.push_str(&format!(" {}", coord.to_gtp())),
-                Empty => {}
+                Black => {
+                    b.push_str(&format!(" {}", coord.to_gtp()));
+                    bc += 1;
+                },
+                White => {
+                    w.push_str(&format!(" {}", coord.to_gtp()));
+                    wc += 1
+                },
+                Empty => { uc += 1; }
             }
         }
-        format!("gogui-gfx:\nCLEAR\n{}\n{}\n", b, w)
+        let text = format!("TEXT Black: {}, White: {}(+{}), Undecided: {}", bc, wc, self.komi, uc);
+        format!("gogui-gfx:\nCLEAR\n{}\n{}\n{}\n", b, w, text)
+    }
+
+    pub fn decided(&self) -> bool {
+        Coord::for_board_size(self.size).iter()
+            .all(|coord| self.owner(coord) != Empty)
     }
 
     fn value_for_coord(&self, coord: Coord) -> f64 {

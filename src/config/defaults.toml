@@ -1,6 +1,5 @@
 gfx = true
 log = true
-play_out_aftermath = false
 ruleset = "chinese"
 
 [playout]
@@ -30,11 +29,10 @@ fastplay5_thres = 0.95
 
 [tree]
 
-end_of_game_cutoff = 0.08
 expand_after = 1
 rave_equiv = 20.0
 
 [scoring]
 
-ownership_prior = 100
+ownership_prior = 1
 ownership_cutoff = 0.9

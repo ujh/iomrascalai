@@ -21,7 +21,6 @@
 
 pub use self::controller::EngineController;
 pub use self::engine_impl::EngineImpl;
-pub use self::engine_impl::Node;
 use board::Color;
 use board::Move;
 use config::Config;

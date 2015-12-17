@@ -252,11 +252,6 @@ impl Board {
         self.komi = komi;
     }
 
-    #[cfg(test)]
-    pub fn set_ruleset(&mut self, ruleset: Ruleset) {
-        self.ruleset = ruleset;
-    }
-
     pub fn next_player(&self) -> Color {
         self.previous_player.opposite()
     }
