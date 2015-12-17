@@ -34,5 +34,5 @@ rave_equiv = 20.0
 
 [scoring]
 
-ownership_prior = 1
-ownership_cutoff = 0.9
+ownership_prior = 100
+ownership_cutoff = 0.95
