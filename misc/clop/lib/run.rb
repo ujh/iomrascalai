@@ -69,7 +69,7 @@ def time(seed)
 end
 
 def gnugo
-  "gnugo --mode gtp --level 0 --chinese-rules --positional-superko"
+  "gnugo --mode gtp --level 0 --chinese-rules"
 end
 
 def referee
