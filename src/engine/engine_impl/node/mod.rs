@@ -30,7 +30,7 @@ use config::Config;
 use game::Game;
 use patterns::Matcher;
 use playout::PlayoutResult;
-
+use score::Score;
 
 use std::f32;
 use std::sync::Arc;
@@ -279,7 +279,7 @@ impl Node {
         let winner = playout_result.winner();
         let amaf = playout_result.amaf();
         if self.color() == winner {
-            self.record_win();
+            self.record_win(playout_result.score());
         }
         // We need to switch the color as we see things from the
         // opponent's point of view now.
@@ -290,7 +290,7 @@ impl Node {
                     Some(&c) if c == color => {
                         child.record_amaf_play();
                         if color == winner {
-                            child.record_amaf_win();
+                            child.record_amaf_win(playout_result.score());
                         }
                     }
                     _ => {}
@@ -313,12 +313,17 @@ impl Node {
         best
     }
 
-    fn record_win(&mut self) {
-        self.wins += 1.0;
+    fn weighted_win(&self, score: &Score) -> f32 {
+        let weight = self.config.tree.score_weight;
+        (weight * score.adjusted()) + (1.0 - weight)
     }
 
-    fn record_amaf_win(&mut self) {
-        self.amaf_wins += 1.0;
+    fn record_win(&mut self, score: &Score) {
+        self.wins += self.weighted_win(score);
+    }
+
+    fn record_amaf_win(&mut self, score: &Score) {
+        self.amaf_wins += self.weighted_win(score);
     }
 
     fn record_play(&mut self) {

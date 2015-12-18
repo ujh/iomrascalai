@@ -163,7 +163,9 @@ fn no_super_ko_violations_in_the_children_of_the_root() {
 describe! record_on_path {
 
     before_each {
-        let config = config();
+        let mut c = Config::default();
+        c.tree.score_weight = 0.0;
+        let config = Arc::new(c);
     }
 
     it "only records wins for the correct color" {

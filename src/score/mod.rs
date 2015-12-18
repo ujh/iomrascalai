@@ -86,7 +86,7 @@ impl Score {
         (self.black_stones as f32 - (self.white_stones as f32 + self.komi)).abs()
     }
 
-    fn adjusted(&self) -> f32 {
+    pub fn adjusted(&self) -> f32 {
         let max = self.size as f32 * self.size as f32;
         match self.color() {
             White => {

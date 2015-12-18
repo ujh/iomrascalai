@@ -82,6 +82,9 @@ pub struct TreeConfig {
     /// algorithm. There's no clear way to set this value. It's best
     /// to use parameter optimization to find the best value.
     pub rave_equiv: f32,
+    /// A float between 0.0 and 1.0 that is the part of a win recorded
+    /// in the tree nodes to signify the score of the playout.
+    pub score_weight: f32,
 }
 
 impl TreeConfig {
@@ -95,6 +98,7 @@ impl TreeConfig {
         TreeConfig {
             expand_after: Self::as_integer(&table, "expand_after"),
             rave_equiv: Self::as_float(&table, "rave_equiv"),
+            score_weight: Self::as_float(&table, "score_weight"),
         }
     }
 
