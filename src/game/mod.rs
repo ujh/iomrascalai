@@ -93,10 +93,6 @@ impl Game {
         self.last_move
     }
 
-    pub fn next_player(&self) -> Color {
-        self.board.next_player()
-    }
-
     pub fn is_over(&self) -> bool {
         self.board.is_game_over()
     }

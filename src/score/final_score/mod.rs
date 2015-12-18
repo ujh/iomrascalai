@@ -33,6 +33,7 @@ mod test;
 
 pub struct FinalScore {
     board: Board,
+    decided: bool,
     dead: Vec<Coord>,
 }
 
@@ -40,21 +41,29 @@ impl FinalScore {
 
     pub fn new(config: Arc<Config>, game: &Game, ownership: &OwnershipStatistics) -> FinalScore {
         let mut board = game.board();
-        let mut dead = vec!();
+        let dead = Coord::for_board_size(board.size()).iter()
+            .filter(|c| board.color(c) != Empty)
+            .filter(|c| ownership.owner(c) != Empty)
+            .filter(|c| ownership.owner(c) != board.color(c))
+            .cloned()
+            .collect();
         if config.ruleset == KgsChinese {
-            dead = Coord::for_board_size(board.size()).iter()
-                .filter(|c| board.color(c) != Empty)
-                .filter(|c| ownership.owner(c) != Empty)
-                .filter(|c| ownership.owner(c) != board.color(c))
-                .cloned()
-                .collect();
             for coord in &dead {
                 board.remove_dead_stone(coord);
             }
-        }
-        FinalScore {
-            board: board,
-            dead: dead,
+            let decided = ownership.decided() && board.winner() == ownership.winner();
+            FinalScore {
+                board: board,
+                decided: decided,
+                dead: dead,
+            }
+        } else {
+            let decided = ownership.decided() && dead.len() == 0;
+            FinalScore {
+                board: board,
+                decided: decided,
+                dead: vec!(),
+            }
         }
     }
 
@@ -69,6 +78,10 @@ impl FinalScore {
             "seki" => self.status_list_seki(),
             _ => Err("unknown argument".to_string()),
         }
+    }
+
+    pub fn decided(&self) -> bool {
+        self.decided
     }
 
     fn status_list_dead(&self) -> Result<String, String> {

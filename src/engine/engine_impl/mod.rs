@@ -19,6 +19,7 @@
  *                                                                      *
  ************************************************************************/
 
+pub use self::node::Node;
 use board::Board;
 use board::Color;
 use board::Move;
@@ -32,7 +33,7 @@ use ownership::OwnershipStatistics;
 use patterns::Matcher;
 use playout::Playout;
 use playout::PlayoutResult;
-pub use self::node::Node;
+use score::FinalScore;
 use timer::Timer;
 
 use rand::weak_rng;
@@ -80,7 +81,7 @@ impl EngineImpl {
         EngineImpl {
             config: config.clone(),
             matcher: matcher.clone(),
-            ownership: OwnershipStatistics::new(config.clone(), 0),
+            ownership: OwnershipStatistics::new(config.clone(), 0, 0.0),
             playout: Arc::new(Playout::new(config.clone(), matcher.clone())),
             previous_node_count: 0,
             root: Node::new(NoMove, config),
@@ -95,7 +96,7 @@ impl EngineImpl {
     fn genmove_setup(&mut self, color: Color, game: &Game) {
         self.start = PreciseTime::now();
         self.config.gfx(self.ownership.gfx());
-        self.ownership = OwnershipStatistics::new(self.config.clone(), game.size());
+        self.ownership = OwnershipStatistics::new(self.config.clone(), game.size(), game.komi());
         self.previous_node_count = self.root.descendants();
         self.set_new_root(game, color);
         let reused_node_count = self.root.descendants();
@@ -110,19 +111,27 @@ impl EngineImpl {
         for halt_sender in halt_senders.iter() {
             check!(self.config, halt_sender.send(()));
         }
-        let m = if self.root.mostly_losses(self.config.tree.end_of_game_cutoff) {
-            self.config.log(format!("Almost all simulations were losses"));
-            if game.winner() == color {
-                Pass(color)
-            } else {
-                Resign(color)
-            }
+        let msg = format!("{} simulations ({}% wins on average, {} nodes)", self.root.plays()-1, self.root.win_ratio()*100.0, self.root.descendants());
+        self.config.log(msg);
+        let final_score = FinalScore::new(self.config.clone(), game, self.ownership());
+        let m = if final_score.decided() {
+            self.config.log(format!("Board decided. Passing."));
+            Pass(color)
         } else {
             let best_node = self.root.best();
-            let msg = format!("{} simulations ({}% wins on average, {} nodes)", self.root.plays()-1, self.root.win_ratio()*100.0, self.root.descendants());
-            self.config.log(msg);
-            self.config.log(format!("Returning the best move ({}% wins)", best_node.win_ratio()*100.0));
-            best_node.m()
+            let win_ratio = best_node.win_ratio();
+            if win_ratio == 0.0 {
+                if game.winner() == color {
+                    Pass(color)
+                } else {
+                    self.config.log(format!("All losses. Resigning."));
+                    Resign(color)
+                }
+            } else {
+                let msg = format!("Returning the best move ({}% wins)", win_ratio*100.0);
+                self.config.log(msg);
+                best_node.m()
+            }
         };
         let playouts = self.root.plays();
         self.set_new_root(&game.play(m).unwrap(), color);
@@ -167,10 +176,10 @@ impl Engine for EngineImpl {
         }
     }
 
-    fn reset(&mut self, boardsize: u8) {
+    fn reset(&mut self) {
         self.previous_node_count = 0;
         self.root = Node::new(NoMove, self.config.clone());
-        self.ownership = OwnershipStatistics::new(self.config.clone(), boardsize);
+        self.ownership = OwnershipStatistics::new(self.config.clone(), 0, 0.0);
     }
 
 }

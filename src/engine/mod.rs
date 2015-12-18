@@ -21,7 +21,6 @@
 
 pub use self::controller::EngineController;
 pub use self::engine_impl::EngineImpl;
-pub use self::engine_impl::Node;
 use board::Color;
 use board::Move;
 use config::Config;
@@ -44,6 +43,6 @@ pub trait Engine {
 
     fn genmove(&mut self, Color, &Game, &Timer) -> (Move,usize);
     fn ownership(&self) -> &OwnershipStatistics;
-    fn reset(&mut self, u8) {}
+    fn reset(&mut self) {}
 
 }

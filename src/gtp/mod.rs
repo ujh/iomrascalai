@@ -180,7 +180,7 @@ impl<'a> GTPInterpreter<'a> {
         let size = self.boardsize();
         self.game = Game::new(size, self.komi(), self.ruleset());
         self.timer.setup(self.main_time, self.byo_time, self.byo_stones);
-        self.controller.reset(size);
+        self.controller.reset();
         Ok("".to_string())
     }
 

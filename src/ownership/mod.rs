@@ -38,15 +38,17 @@ mod test;
 #[derive(Debug)]
 pub struct OwnershipStatistics {
     config: Arc<Config>,
+    komi: f32,
     size: u8,
     stats: HashMap<Coord, (usize, usize, usize)>
 }
 
 impl OwnershipStatistics {
 
-    pub fn new(config: Arc<Config>, size: u8) -> OwnershipStatistics {
+    pub fn new(config: Arc<Config>, size: u8, komi: f32) -> OwnershipStatistics {
         let mut os = OwnershipStatistics {
             config: config,
+            komi: komi,
             size: size,
             stats: HashMap::new(),
         };
@@ -101,14 +103,48 @@ impl OwnershipStatistics {
     pub fn gfx(&self) -> String {
         let mut b = String::from("BLACK");
         let mut w = String::from("WHITE");
+        let mut bc = 0;
+        let mut wc = 0;
+        let mut uc = 0;
         for coord in Coord::for_board_size(self.size) {
             match self.owner(&coord) {
-                Black => b.push_str(&format!(" {}", coord.to_gtp())),
-                White => w.push_str(&format!(" {}", coord.to_gtp())),
+                Black => {
+                    b.push_str(&format!(" {}", coord.to_gtp()));
+                    bc += 1;
+                },
+                White => {
+                    w.push_str(&format!(" {}", coord.to_gtp()));
+                    wc += 1
+                },
+                Empty => { uc += 1; }
+            }
+        }
+        let text = format!("TEXT Black: {}, White: {}(+{}), Undecided: {}", bc, wc, self.komi, uc);
+        format!("gogui-gfx:\nCLEAR\n{}\n{}\n{}\n", b, w, text)
+    }
+
+    pub fn decided(&self) -> bool {
+        Coord::for_board_size(self.size).iter()
+            .all(|coord| self.owner(coord) != Empty)
+    }
+
+    pub fn winner(&self) -> Color {
+        let mut bs = 0.0;
+        let mut ws = self.komi;
+        for coord in Coord::for_board_size(self.size) {
+            match self.owner(&coord) {
+                Black => { bs += 1.0; },
+                White => { ws += 1.0; },
                 Empty => {}
             }
         }
-        format!("gogui-gfx:\nCLEAR\n{}\n{}\n", b, w)
+        if ws == bs {
+            Empty
+        } else if ws > bs {
+            White
+        } else {
+            Black
+        }
     }
 
     fn value_for_coord(&self, coord: Coord) -> f64 {
