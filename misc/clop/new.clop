@@ -1,0 +1,12 @@
+# Use for the naming of the .log and .dat files
+Name priors
+Processor main
+Script ./new-runner
+Replications 1
+
+#[tree]
+LinearParameter tree.score_weight 0.0 0.2
+
+#[scoring]
+IntegerParameter scoring.ownership_prior 1 200
+LinearParameter scoring.ownership_cutoff 0.8 1.0
