@@ -82,7 +82,7 @@ fn expand_doesnt_add_children_if_threshold_not_met() {
     let config = expand_after(1);
     let game = Game::new(2, 0.5, KgsChinese);
     let mut node = Node::new(Pass(Black), config);
-    node.plays = 0;
+    node.plays = 0.0;
     node.expand(&game.board(), matcher());
     assert_eq!(0, node.children.len());
 }
@@ -91,7 +91,7 @@ fn expand_doesnt_add_children_if_threshold_not_met() {
 fn expand_adds_children_if_threshold_is_met() {
     let game = Game::new(2, 0.5, KgsChinese);
     let mut node = Node::new(Pass(Black), config());
-    node.plays = 2;
+    node.plays = 2.0;
     node.expand(&game.board(), matcher());
     assert_eq!(4, node.children.len());
 }
@@ -132,7 +132,7 @@ fn find_leaf_and_expand_sets_play_on_the_root() {
     let game = Game::new(2, 0.5, KgsChinese);
     let mut root = Node::root(&game, Black, config());
     root.find_leaf_and_expand(&game, matcher());
-    assert_eq!(2, root.plays);
+    assert_eq!(2.0, root.plays);
 }
 
 #[test]
@@ -147,8 +147,8 @@ fn find_leaf_and_expand_returns_the_number_of_nodes_added() {
 fn the_root_needs_to_be_initialized_with_1_plays_for_correct_uct_calculations() {
     let game = Game::new(2, 0.5, KgsChinese);
     let root = Node::root(&game, Black, config());
-    assert_eq!(1, root.plays);
-    assert_eq!(1, root.wins);
+    assert_eq!(1.0, root.plays);
+    assert_eq!(1.0, root.wins);
  }
 
 #[test]
@@ -178,17 +178,17 @@ describe! record_on_path {
         let score = board.score();
         let playout_result = PlayoutResult::new(score, HashMap::new());
         root.record_on_path(&vec!(0, 0), 0, &playout_result);
-        assert_eq!(1, root.wins);
-        assert_eq!(0, root.children[0].wins);
-        assert_eq!(1, root.children[0].children[0].wins);
+        assert_eq!(1.0, root.wins);
+        assert_eq!(0.0, root.children[0].wins);
+        assert_eq!(1.0, root.children[0].children[0].wins);
 
         let board = Board::new(9, 6.5, KgsChinese);
         let score = board.score();
         let playout_result = PlayoutResult::new(score, HashMap::new());
         root.record_on_path(&vec!(0, 0), 0, &playout_result);
-        assert_eq!(1, root.wins);
-        assert_eq!(1, root.children[0].wins);
-        assert_eq!(1, root.children[0].children[0].wins);
+        assert_eq!(1.0, root.wins);
+        assert_eq!(1.0, root.children[0].wins);
+        assert_eq!(1.0, root.children[0].children[0].wins);
     }
 
     it "updates the descendant counts" {
