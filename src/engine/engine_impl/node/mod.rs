@@ -21,7 +21,6 @@
 
 use board::Board;
 use board::Color;
-use board::Coord;
 use board::Empty;
 use board::Move;
 use board::NoMove;
@@ -30,8 +29,9 @@ use board::Play;
 use config::Config;
 use game::Game;
 use patterns::Matcher;
+use playout::PlayoutResult;
 
-use std::collections::HashMap;
+
 use std::sync::Arc;
 use std::usize;
 
@@ -272,7 +272,9 @@ impl Node {
         }
     }
 
-    pub fn record_on_path(&mut self, path: &[usize], winner: Color, new_nodes: usize, amaf: &HashMap<Coord, Color>) {
+    pub fn record_on_path(&mut self, path: &[usize], new_nodes: usize, playout_result: &PlayoutResult) {
+        let winner = playout_result.winner();
+        let amaf = playout_result.amaf();
         if self.color() == winner {
             self.record_win();
         }
@@ -294,7 +296,7 @@ impl Node {
         }
         if path.len() > 0 {
             self.descendants += new_nodes;
-            self.children[path[0]].record_on_path(&path[1..], winner, new_nodes, amaf);
+            self.children[path[0]].record_on_path(&path[1..], new_nodes, playout_result);
         }
     }
 

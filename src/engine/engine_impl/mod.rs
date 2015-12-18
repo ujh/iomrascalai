@@ -165,9 +165,8 @@ impl Engine for EngineImpl {
                         self.ownership.merge(playout_result.score());
                         self.root.record_on_path(
                             &path,
-                            playout_result.winner(),
                             nodes_added,
-                            playout_result.amaf());
+                            &playout_result);
                         let data = self.root.find_leaf_and_expand(game, self.matcher.clone());
                         check!(self.config, send_to_thread.send(data));
                     });
