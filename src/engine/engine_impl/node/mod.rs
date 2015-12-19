@@ -21,7 +21,6 @@
 
 use board::Board;
 use board::Color;
-use board::Coord;
 use board::Empty;
 use board::Move;
 use board::NoMove;
@@ -30,41 +29,44 @@ use board::Play;
 use config::Config;
 use game::Game;
 use patterns::Matcher;
+use playout::PlayoutResult;
+use score::Score;
 
-use std::collections::HashMap;
+use std::f32;
 use std::sync::Arc;
-use std::usize;
 
 mod test;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Node {
-    amaf_plays: usize,
-    amaf_wins: usize,
+    amaf_plays: f32,
+    amaf_wins: f32,
     children: Vec<Node>,
     config: Arc<Config>,
     descendants: usize,
     m: Move,
-    plays: usize,
+    playouts: usize,
+    plays: f32,
     prior_plays: usize,
     prior_wins: usize,
-    wins: usize,
+    wins: f32,
 }
 
 impl Node {
 
     pub fn new(m: Move, config: Arc<Config>) -> Node {
         Node {
-            amaf_plays: 0,
-            amaf_wins: 0,
+            amaf_plays: 0.0,
+            amaf_wins: 0.0,
             children: vec!(),
             config: config.clone(),
             descendants: 0,
             m: m,
-            plays: 0,
+            playouts: 0,
+            plays: 0.0,
             prior_plays: config.priors.neutral_plays,
             prior_wins: config.priors.neutral_wins,
-            wins: 0,
+            wins: 0.0,
         }
     }
 
@@ -72,10 +74,10 @@ impl Node {
         let mut root = Node::new(Pass(color), config);
         root.reset();
         // So that we don't get NaN on the first UCT calculation
-        root.plays = 1;
+        root.plays = 1.0;
         // Now that plays is 1, this needs to be one too to keep the
         // win ratio calculations correct.
-        root.wins = 1;
+        root.wins = 1.0;
         root.expand_root(&game);
         root
     }
@@ -107,12 +109,13 @@ impl Node {
     }
 
     fn reset(&mut self) {
-        self.amaf_plays = 0;
-        self.amaf_wins = 0;
-        self.plays = 0;
+        self.amaf_plays = 0.0;
+        self.amaf_wins = 0.0;
+        self.playouts = 0;
+        self.plays = 0.0;
         self.prior_plays = 0;
         self.prior_wins = 0;
-        self.wins = 0;
+        self.wins = 0.0;
     }
 
     pub fn remove_illegal_children(&mut self, game: &Game) {
@@ -177,7 +180,7 @@ impl Node {
 
     pub fn expand(&mut self, board: &Board, matcher: Arc<Matcher>) -> bool {
         let not_terminal = !board.is_game_over();
-        if not_terminal && self.plays >= self.config.tree.expand_after {
+        if not_terminal && self.playouts >= self.config.tree.expand_after {
             let mut children = board.legal_moves_without_eyes()
                 .iter()
                 .map(|m| self.new_leaf(board, m, matcher.clone()))
@@ -264,17 +267,19 @@ impl Node {
     }
 
     pub fn mark_as_terminal(&mut self, is_win: bool) {
-        self.plays = usize::MAX;
+        self.plays = f32::MAX;
         if is_win {
-            self.wins = usize::MAX;
+            self.wins = f32::MAX;
         } else {
-            self.wins = 0;
+            self.wins = 0.0;
         }
     }
 
-    pub fn record_on_path(&mut self, path: &[usize], winner: Color, new_nodes: usize, amaf: &HashMap<Coord, Color>) {
+    pub fn record_on_path(&mut self, path: &[usize], new_nodes: usize, playout_result: &PlayoutResult) {
+        let winner = playout_result.winner();
+        let amaf = playout_result.amaf();
         if self.color() == winner {
-            self.record_win();
+            self.record_win(playout_result.score());
         }
         // We need to switch the color as we see things from the
         // opponent's point of view now.
@@ -285,7 +290,7 @@ impl Node {
                     Some(&c) if c == color => {
                         child.record_amaf_play();
                         if color == winner {
-                            child.record_amaf_win();
+                            child.record_amaf_win(playout_result.score());
                         }
                     }
                     _ => {}
@@ -294,7 +299,7 @@ impl Node {
         }
         if path.len() > 0 {
             self.descendants += new_nodes;
-            self.children[path[0]].record_on_path(&path[1..], winner, new_nodes, amaf);
+            self.children[path[0]].record_on_path(&path[1..], new_nodes, playout_result);
         }
     }
 
@@ -308,20 +313,26 @@ impl Node {
         best
     }
 
-    fn record_win(&mut self) {
-        self.wins += 1;
+    fn weighted_win(&self, score: &Score) -> f32 {
+        let weight = self.config.tree.score_weight;
+        (weight * score.adjusted()) + (1.0 - weight)
     }
 
-    fn record_amaf_win(&mut self) {
-        self.amaf_wins += 1;
+    fn record_win(&mut self, score: &Score) {
+        self.wins += self.weighted_win(score);
+    }
+
+    fn record_amaf_win(&mut self, score: &Score) {
+        self.amaf_wins += self.weighted_win(score);
     }
 
     fn record_play(&mut self) {
-        self.plays += 1;
+        self.playouts += 1;
+        self.plays += 1.0;
     }
 
     fn record_amaf_play(&mut self) {
-        self.amaf_plays += 1;
+        self.amaf_plays += 1.0;
     }
 
     fn record_priors(&mut self, prior_plays: usize, prior_wins: usize) {
@@ -345,8 +356,8 @@ impl Node {
         self.m
     }
 
-    pub fn plays(&self) -> usize {
-        self.plays
+    pub fn playouts(&self) -> usize {
+        self.playouts
     }
 
     pub fn descendants(&self) -> usize {
@@ -383,11 +394,11 @@ impl Node {
 
     fn child_value(&self, parent_plays: f32) -> f32 {
         let uct = self.uct_tuned_value(parent_plays);
-        if self.amaf_plays == 0 {
+        if self.amaf_plays == 0.0 {
             uct
         } else {
-            let aw = self.amaf_wins as f32;
-            let ap = self.amaf_plays as f32;
+            let aw = self.amaf_wins;
+            let ap = self.amaf_plays;
             let p = self.plays_with_prior_factor();
             let rave_equiv = self.config.tree.rave_equiv;
             let rave_winrate = aw / ap;
@@ -407,10 +418,10 @@ impl Node {
     }
 
     pub fn win_ratio(&self) -> f32 {
-        if self.plays == 0 {
+        if self.plays == 0.0 {
             0f32
         } else {
-            (self.wins as f32) / (self.plays as f32)
+            self.wins / self.plays
         }
     }
 

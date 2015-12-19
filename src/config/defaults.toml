@@ -31,6 +31,7 @@ fastplay5_thres = 0.95
 
 expand_after = 1
 rave_equiv = 20.0
+score_weight = 0.04
 
 [scoring]
 

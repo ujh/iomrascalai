@@ -21,25 +21,28 @@
 
 #![cfg(test)]
 
-use board::Black;
-use board::Pass;
-use board::Play;
-use board::White;
-use config::Config;
-use game::Game;
-use patterns::Matcher;
-use playout::Playout;
-use ruleset::KgsChinese;
-use sgf::Parser;
-use super::Node;
+pub use board::Black;
+pub use board::Board;
+pub use board::Pass;
+pub use board::Play;
+pub use board::White;
+pub use config::Config;
+pub use game::Game;
+pub use patterns::Matcher;
+pub use playout::Playout;
+pub use playout::PlayoutResult;
+pub use ruleset::KgsChinese;
+pub use score::Score;
+pub use sgf::Parser;
+pub use super::Node;
 
-use rand::weak_rng;
-use std::collections::HashMap;
-use std::path::Path;
-use std::sync::Arc;
-use test::Bencher;
+pub use rand::weak_rng;
+pub use std::collections::HashMap;
+pub use std::path::Path;
+pub use std::sync::Arc;
+pub use test::Bencher;
 
-fn config() -> Arc<Config> {
+pub fn config() -> Arc<Config> {
     let mut config = Config::default();
     config.tree.expand_after = 0;
     Arc::new(config)
@@ -79,7 +82,7 @@ fn expand_doesnt_add_children_if_threshold_not_met() {
     let config = expand_after(1);
     let game = Game::new(2, 0.5, KgsChinese);
     let mut node = Node::new(Pass(Black), config);
-    node.plays = 0;
+    node.plays = 0.0;
     node.expand(&game.board(), matcher());
     assert_eq!(0, node.children.len());
 }
@@ -88,7 +91,7 @@ fn expand_doesnt_add_children_if_threshold_not_met() {
 fn expand_adds_children_if_threshold_is_met() {
     let game = Game::new(2, 0.5, KgsChinese);
     let mut node = Node::new(Pass(Black), config());
-    node.plays = 2;
+    node.plays = 2.0;
     node.expand(&game.board(), matcher());
     assert_eq!(4, node.children.len());
 }
@@ -129,7 +132,7 @@ fn find_leaf_and_expand_sets_play_on_the_root() {
     let game = Game::new(2, 0.5, KgsChinese);
     let mut root = Node::root(&game, Black, config());
     root.find_leaf_and_expand(&game, matcher());
-    assert_eq!(2, root.plays);
+    assert_eq!(2.0, root.plays);
 }
 
 #[test]
@@ -144,8 +147,8 @@ fn find_leaf_and_expand_returns_the_number_of_nodes_added() {
 fn the_root_needs_to_be_initialized_with_1_plays_for_correct_uct_calculations() {
     let game = Game::new(2, 0.5, KgsChinese);
     let root = Node::root(&game, Black, config());
-    assert_eq!(1, root.plays);
-    assert_eq!(1, root.wins);
+    assert_eq!(1.0, root.plays);
+    assert_eq!(1.0, root.wins);
  }
 
 #[test]
@@ -157,44 +160,59 @@ fn no_super_ko_violations_in_the_children_of_the_root() {
     assert!(root.children.iter().all(|n| n.m() != Play(White, 2, 9)));
 }
 
-#[test]
-fn record_on_path_only_records_wins_for_the_correct_color() {
-    let config = config();
-    let amaf = HashMap::new();
-    let grandchild = Node::new(Pass(Black), config.clone());
-    let mut child = Node::new(Pass(White), config.clone());
-    child.children = vec!(grandchild);
-    let mut root = Node::new(Pass(Black), config.clone());
-    root.children = vec!(child);
+describe! record_on_path {
 
-    root.record_on_path(&vec!(0, 0), Black, 0, &amaf);
-    assert_eq!(1, root.wins);
-    assert_eq!(0, root.children[0].wins);
-    assert_eq!(1, root.children[0].children[0].wins);
+    before_each {
+        let mut c = Config::default();
+        c.tree.score_weight = 0.0;
+        let config = Arc::new(c);
+    }
 
-    root.record_on_path(&vec!(0, 0), White, 0, &amaf);
-    assert_eq!(1, root.wins);
-    assert_eq!(1, root.children[0].wins);
-    assert_eq!(1, root.children[0].children[0].wins);
-}
+    it "only records wins for the correct color" {
+        let grandchild = Node::new(Pass(Black), config.clone());
+        let mut child = Node::new(Pass(White), config.clone());
+        child.children = vec!(grandchild);
+        let mut root = Node::new(Pass(Black), config.clone());
+        root.children = vec!(child);
 
-#[test]
-fn record_on_path_updates_the_descendant_counts() {
-    let amaf = HashMap::new();
-    let mut grandchild = Node::new(Pass(Black), config().clone());
-    // The leaf already has the correct value set
-    grandchild.descendants = 5;
-    let mut child = Node::new(Pass(White), config().clone());
-    child.children = vec!(grandchild);
-    child.descendants = 1;
-    let mut root = Node::new(Pass(Black), config().clone());
-    root.children = vec!(child);
-    root.descendants = 2;
+        let mut board = Board::new(9, 6.5, KgsChinese);
+        board.play(Play(Black, 1, 1)).unwrap();
+        let score = board.score();
+        let playout_result = PlayoutResult::new(score, HashMap::new());
+        root.record_on_path(&vec!(0, 0), 0, &playout_result);
+        assert_eq!(1.0, root.wins);
+        assert_eq!(0.0, root.children[0].wins);
+        assert_eq!(1.0, root.children[0].children[0].wins);
 
-    root.record_on_path(&vec!(0, 0), Black, 5, &amaf);
-    assert_eq!(7, root.descendants);
-    assert_eq!(6, root.children[0].descendants);
-    assert_eq!(5, root.children[0].children[0].descendants);
+        let board = Board::new(9, 6.5, KgsChinese);
+        let score = board.score();
+        let playout_result = PlayoutResult::new(score, HashMap::new());
+        root.record_on_path(&vec!(0, 0), 0, &playout_result);
+        assert_eq!(1.0, root.wins);
+        assert_eq!(1.0, root.children[0].wins);
+        assert_eq!(1.0, root.children[0].children[0].wins);
+    }
+
+    it "updates the descendant counts" {
+        let mut grandchild = Node::new(Pass(Black), config.clone());
+        // The leaf already has the correct value set
+        grandchild.descendants = 5;
+        let mut child = Node::new(Pass(White), config.clone());
+        child.children = vec!(grandchild);
+        child.descendants = 1;
+        let mut root = Node::new(Pass(Black), config.clone());
+        root.children = vec!(child);
+        root.descendants = 2;
+
+        let mut board = Board::new(9, 6.5, KgsChinese);
+        board.play(Play(Black, 1, 1)).unwrap();
+        let score = board.score();
+        let playout_result = PlayoutResult::new(score, HashMap::new());
+        root.record_on_path(&vec!(0, 0), 5, &playout_result);
+        assert_eq!(7, root.descendants);
+        assert_eq!(6, root.children[0].descendants);
+        assert_eq!(5, root.children[0].children[0].descendants);
+    }
 }
 
 #[test]
@@ -270,8 +288,6 @@ fn full_uct_cycle(size: u8, b: &mut Bencher) {
             b.play_legal_move(m);
         }
         let playout_result = playout.run(&mut b, None, &mut rng);
-        let winner = playout_result.winner();
-        let amaf = playout_result.amaf();
-        root.record_on_path(&path, winner, nodes_added, amaf);
+        root.record_on_path(&path, nodes_added, &playout_result);
     });
 }

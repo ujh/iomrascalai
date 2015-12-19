@@ -111,7 +111,7 @@ impl EngineImpl {
         for halt_sender in halt_senders.iter() {
             check!(self.config, halt_sender.send(()));
         }
-        let msg = format!("{} simulations ({}% wins on average, {} nodes)", self.root.plays()-1, self.root.win_ratio()*100.0, self.root.descendants());
+        let msg = format!("{} simulations ({}% wins on average, {} nodes)", self.root.playouts(), self.root.win_ratio()*100.0, self.root.descendants());
         self.config.log(msg);
         let final_score = FinalScore::new(self.config.clone(), game, self.ownership());
         let m = if final_score.decided() {
@@ -133,7 +133,7 @@ impl EngineImpl {
                 best_node.m()
             }
         };
-        let playouts = self.root.plays();
+        let playouts = self.root.playouts();
         self.set_new_root(&game.play(m).unwrap(), color);
         (m,playouts)
     }
@@ -150,7 +150,7 @@ impl Engine for EngineImpl {
         self.genmove_setup(color, game);
         if self.root.has_no_children() {
             self.config.log(format!("No moves to simulate!"));
-            return (Pass(color), self.root.plays());
+            return (Pass(color), self.root.playouts());
         }
         let (send_result_to_main, receive_result_from_threads) = channel::<((Vec<usize>, usize, PlayoutResult), Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>();
         let (_guards, halt_senders) = spin_up(self.config.clone(), self.playout.clone(), game, send_result_to_main);
@@ -165,9 +165,8 @@ impl Engine for EngineImpl {
                         self.ownership.merge(playout_result.score());
                         self.root.record_on_path(
                             &path,
-                            playout_result.winner(),
                             nodes_added,
-                            playout_result.amaf());
+                            &playout_result);
                         let data = self.root.find_leaf_and_expand(game, self.matcher.clone());
                         check!(self.config, send_to_thread.send(data));
                     });
