@@ -56,7 +56,7 @@ impl OwnershipStatistics {
         os
     }
 
-    pub fn setup(&mut self) {
+    fn setup(&mut self) {
         let mut stats = HashMap::new();
         for &coord in &Coord::for_board_size(self.size) {
             stats.insert(coord, self.default_entry());
