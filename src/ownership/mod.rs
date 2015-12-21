@@ -29,7 +29,6 @@ use score::Score;
 
 use core::fmt::Display;
 use std::cmp;
-use std::collections::HashMap;
 use std::fmt;
 use std::sync::Arc;
 
@@ -37,56 +36,50 @@ mod test;
 
 #[derive(Debug)]
 pub struct OwnershipStatistics {
+    black: Vec<usize>,
     config: Arc<Config>,
+    empty: Vec<usize>,
     komi: f32,
     size: u8,
-    stats: HashMap<Coord, (usize, usize, usize)>
+    white: Vec<usize>,
 }
 
 impl OwnershipStatistics {
 
     pub fn new(config: Arc<Config>, size: u8, komi: f32) -> OwnershipStatistics {
-        let mut os = OwnershipStatistics {
+        let prior = config.scoring.ownership_prior;
+        let len = size as usize * size as usize;
+        OwnershipStatistics {
+            black: vec![0; len],
             config: config,
+            empty: vec![prior; len],
             komi: komi,
             size: size,
-            stats: HashMap::new(),
-        };
-        os.setup();
-        os
-    }
-
-    fn setup(&mut self) {
-        let mut stats = HashMap::new();
-        for &coord in &Coord::for_board_size(self.size) {
-            stats.insert(coord, self.default_entry());
+            white: vec![0; len],
         }
-        self.stats = stats;
     }
 
     pub fn merge(&mut self, score: &Score) {
         for (i, color) in score.owner().iter().enumerate() {
-            let coord = Coord::from_index(i, self.size);
-            let (b,w,e) = self.stats[&coord];
             match *color {
                 Black => {
-                    self.stats.insert(coord, (b+1,w,e));
+                    self.black[i] += 1;
                 },
                 White => {
-                    self.stats.insert(coord, (b,w+1,e));
+                    self.white[i] += 1;
                 },
                 Empty => {
-                    self.stats.insert(coord, (b,w,e+1));
+                    self.empty[i] += 1;
                 },
             }
         }
     }
 
     pub fn owner(&self, coord: &Coord) -> Color {
-        let (b,w,e) = match self.stats.get(&coord) {
-            Some(v) => *v,
-            None => self.default_entry()
-        };
+        let index = coord.to_index(self.size);
+        let b = self.black[index];
+        let w = self.white[index];
+        let e = self.empty[index];
         let count = b + w + e;
         let fraction = cmp::max(b,w) as f32 / count as f32;
         if fraction > self.config.scoring.ownership_cutoff {
@@ -153,10 +146,6 @@ impl OwnershipStatistics {
             White => -1.0,
             Empty => 0.0
         }
-    }
-
-    fn default_entry(&self) -> (usize,usize,usize) {
-        (1, 1, self.config.scoring.ownership_prior)
     }
 
 }

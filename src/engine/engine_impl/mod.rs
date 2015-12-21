@@ -175,10 +175,10 @@ impl Engine for EngineImpl {
         }
     }
 
-    fn reset(&mut self) {
+    fn reset(&mut self, size: u8, komi: f32) {
         self.previous_node_count = 0;
         self.root = Node::new(NoMove, self.config.clone());
-        self.ownership = OwnershipStatistics::new(self.config.clone(), 0, 0.0);
+        self.ownership = OwnershipStatistics::new(self.config.clone(), size, komi);
     }
 
 }

@@ -222,12 +222,15 @@ describe! interpreter {
         describe! final_score {
 
             it "no move" {
+                interpreter.read("boardsize 9\n").unwrap();
+                interpreter.read("clear_board\n").unwrap();
                 let response = interpreter.read("final_score\n");
                 assert_that(response, is(equal_to(ok("W+6.5"))));
             }
 
             it "one move" {
                 interpreter.read("boardsize 4\n").unwrap();
+                interpreter.read("clear_board\n").unwrap();
                 interpreter.read("play b c2\n").unwrap();
                 let response = interpreter.read("final_score\n");
                 assert_that(response, is(equal_to(ok("B+9.5"))));
@@ -363,12 +366,15 @@ describe! interpreter {
         describe! final_score {
 
             it "no move" {
+                interpreter.read("boardsize 9\n").unwrap();
+                interpreter.read("clear_board\n").unwrap();
                 let response = interpreter.read("final_score\n");
                 assert_that(response, is(equal_to(ok("W+6.5"))));
             }
 
             it "one move" {
                 interpreter.read("boardsize 4\n").unwrap();
+                interpreter.read("clear_board\n").unwrap();
                 interpreter.read("play b c2\n").unwrap();
                 let response = interpreter.read("final_score\n");
                 assert_that(response, is(equal_to(ok("B+9.5"))));
