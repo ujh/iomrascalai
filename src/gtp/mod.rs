@@ -178,9 +178,10 @@ impl<'a> GTPInterpreter<'a> {
 
     fn execute_clear_board(&mut self, _: &[&str]) -> Result<String, String> {
         let size = self.boardsize();
-        self.game = Game::new(size, self.komi(), self.ruleset());
+        let komi = self.komi();
+        self.game = Game::new(size, komi, self.ruleset());
         self.timer.setup(self.main_time, self.byo_time, self.byo_stones);
-        self.controller.reset();
+        self.controller.reset(size, komi);
         Ok("".to_string())
     }
 

@@ -21,13 +21,16 @@
 
 #![cfg(test)]
 
+pub use board::Board;
 pub use config::Config;
+pub use ruleset::KgsChinese;
 pub use super::OwnershipStatistics;
 
 pub use hamcrest::assert_that;
 pub use hamcrest::equal_to;
 pub use hamcrest::is;
 pub use std::sync::Arc;
+pub use test::Bencher;
 
 
 describe! ownership {
@@ -52,4 +55,21 @@ describe! ownership {
         }
     }
 
+}
+
+#[bench]
+fn new(b: &mut Bencher) {
+    let config = Arc::new(Config::default());
+    b.iter(|| OwnershipStatistics::new(config.clone(), 19, 6.5))
+
+}
+
+#[bench]
+fn merge(b: &mut Bencher) {
+    let size = 19;
+    let komi = 6.5;
+    let config = Arc::new(Config::default());
+    let mut ownership = OwnershipStatistics::new(config.clone(), size, komi);
+    let score = Board::new(size, komi, KgsChinese).score();
+    b.iter(|| ownership.merge(&score))
 }

@@ -44,8 +44,8 @@ impl<'a> EngineController<'a> {
         }
     }
 
-    pub fn reset(&mut self) {
-        self.engine.reset();
+    pub fn reset(&mut self, size: u8, komi: f32) {
+        self.engine.reset(size, komi);
     }
 
     pub fn ownership_statistics(&self) -> String {
