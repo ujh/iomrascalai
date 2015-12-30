@@ -324,30 +324,5 @@ describe! timer {
 
         }
 
-        describe! over_20_percent_threshold {
-
-            before_each {
-                let win_ratio = config.time_control.fastplay20_thres + 0.01;
-            }
-
-            it "returns false if less than 20% of the time is up" {
-                timer.current_budget = Duration::seconds(1);
-                assert!(!timer.ran_out_of_time(win_ratio));
-            }
-
-            it "returns false if more than 5% but less than 20% of the time is up" {
-                timer.current_budget = Duration::milliseconds(1000);
-                sleep_ms(55);
-                assert!(!timer.ran_out_of_time(win_ratio));
-            }
-
-            it "returns true if more than 20% of the time is up" {
-                timer.current_budget = Duration::milliseconds(50);
-                sleep_ms(12);
-                assert!(timer.ran_out_of_time(win_ratio));
-            }
-
-        }
-
     }
 }

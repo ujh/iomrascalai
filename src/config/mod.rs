@@ -183,10 +183,6 @@ pub struct TimeControlConfig {
     /// intersection count to 30 if there are less than 30 empty
     /// intersections on the board.
     pub c: f32,
-    /// Once 20% of the allocated time for a move have passed check if
-    /// the best move has a win rate that is higher than this value.
-    /// If so then stop the search and return this move.
-    pub fastplay20_thres: f32,
     /// Once 5% of the allocated time for a move have passed check if
     /// the best move has a win rate that is higher than this value.
     /// If so then stop the search and return this move.
@@ -203,7 +199,6 @@ impl TimeControlConfig {
         table.extend(opts);
         TimeControlConfig {
             c: Self::as_float(&table, "c"),
-            fastplay20_thres: Self::as_float(&table, "fastplay20_thres"),
             fastplay5_thres: Self::as_float(&table, "fastplay5_thres"),
         }
     }
