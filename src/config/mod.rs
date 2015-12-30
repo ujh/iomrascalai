@@ -191,6 +191,9 @@ pub struct TimeControlConfig {
     /// higher than this value. If so then stop the search and return
     /// this move.
     pub fastplay_threshold: f32,
+    /// Minimum number of stones to use when calculating the budget
+    /// for the next move.
+    pub min_stones: usize,
 }
 
 impl TimeControlConfig {
@@ -205,6 +208,7 @@ impl TimeControlConfig {
             c: Self::as_float(&table, "c"),
             fastplay_budget: Self::as_float(&table, "fastplay_budget"),
             fastplay_threshold: Self::as_float(&table, "fastplay_threshold"),
+            min_stones: Self::as_integer(&table, "min_stones"),
         }
     }
 }

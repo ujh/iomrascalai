@@ -166,8 +166,8 @@ impl Timer {
     fn budget<T: Info>(&self, game: &T) -> Duration {
         // If there's still main time left
         let ms = if self.main_time_left > 0 {
-            // Assume at least 30 vacant points
-            let vacant = max(game.vacant_point_count(), 30) as f32;
+            let min_stones = self.config.time_control.min_stones as u16;
+            let vacant = max(game.vacant_point_count(), min_stones) as f32;
             (self.main_time_left as f32 / (self.c() * vacant)).floor() as i64
         } else if self.byo_time_left() == 0 {
             0
