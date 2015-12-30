@@ -91,7 +91,7 @@ impl Timer {
         let budget5 = self.current_budget / fastplay_budget;
         let elapsed = self.elapsed();
         if elapsed > budget5 && win_ratio > self.config.time_control.fastplay_threshold {
-            self.config.log(format!("Search stopped. 5% rule triggered"));
+            self.config.log(format!("Search stopped early. Fastplay rule triggered."));
             true
         } else {
             elapsed > self.current_budget
