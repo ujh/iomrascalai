@@ -25,6 +25,7 @@ self_atari = 10
 
 c = 0.456212
 fastplay_threshold = 0.842075
+fastplay_budget = 0.05
 
 [tree]
 

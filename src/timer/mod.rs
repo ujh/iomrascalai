@@ -87,7 +87,8 @@ impl Timer {
     }
 
     pub fn ran_out_of_time(&self, win_ratio: f32) -> bool {
-        let budget5 = self.current_budget / 20;
+        let fastplay_budget = (1.0 / self.config.time_control.fastplay_budget).floor() as i32;
+        let budget5 = self.current_budget / fastplay_budget;
         let elapsed = self.elapsed();
         if elapsed > budget5 && win_ratio > self.config.time_control.fastplay_threshold {
             self.config.log(format!("Search stopped. 5% rule triggered"));
