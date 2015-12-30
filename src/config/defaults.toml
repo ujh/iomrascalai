@@ -24,7 +24,7 @@ self_atari = 10
 [time_control]
 
 c = 0.456212
-fastplay5_thres = 0.842075
+fastplay_threshold = 0.842075
 
 [tree]
 

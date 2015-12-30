@@ -308,7 +308,7 @@ describe! timer {
         describe! over_5_percent_threshold {
 
             before_each {
-                let win_ratio = config.time_control.fastplay5_thres + 0.01;
+                let win_ratio = config.time_control.fastplay_threshold + 0.01;
             }
 
             it "returns false if less than 5% of the time is up" {

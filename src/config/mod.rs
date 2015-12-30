@@ -186,7 +186,7 @@ pub struct TimeControlConfig {
     /// Once 5% of the allocated time for a move have passed check if
     /// the best move has a win rate that is higher than this value.
     /// If so then stop the search and return this move.
-    pub fastplay5_thres: f32,
+    pub fastplay_threshold: f32,
 }
 
 impl TimeControlConfig {
@@ -199,7 +199,7 @@ impl TimeControlConfig {
         table.extend(opts);
         TimeControlConfig {
             c: Self::as_float(&table, "c"),
-            fastplay5_thres: Self::as_float(&table, "fastplay5_thres"),
+            fastplay_threshold: Self::as_float(&table, "fastplay_threshold"),
         }
     }
 }
