@@ -6,5 +6,6 @@ Replications 1
 
 # [time_control]
 LinearParameter time_control.c 0.1 2.0
-LinearParameter time_control.fastplay20_thres 0.5 1.0
-LinearParameter time_control.fastplay5_thres 0.5 1.0
+LinearParameter time_control.fastplay_threshold 0.0 1.0
+LinearParameter time_control.fastplay_budget 0.0 1.0
+IntegerParameter time_control.min_stones 5 100
