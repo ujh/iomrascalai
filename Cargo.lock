@@ -148,7 +148,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "stainless"
 version = "0.1.3"
-source = "git+https://github.com/reem/stainless.git#75d899a8d362af52532cb97e0f5c146e5c4e98c1"
+source = "git+https://github.com/reem/stainless.git#82392f2e189349470ea565007b9d13b0083295f3"
 
 [[package]]
 name = "thread-scoped"
