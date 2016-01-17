@@ -24,8 +24,8 @@ self_atari = 10
 [time_control]
 
 c = 0.456212
-fastplay_threshold = 0.842075
-fastplay_budget = 0.05
+fastplay_threshold = 0.811985
+fastplay_budget = 0.305821
 min_stones = 30
 
 [tree]
