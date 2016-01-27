@@ -23,17 +23,18 @@ self_atari = 10
 
 [time_control]
 
-c = 0.5
-fastplay20_thres = 0.8
-fastplay5_thres = 0.95
+c = 0.439747
+fastplay_threshold = 0.811985
+fastplay_budget = 0.305821
+min_stones = 35
 
 [tree]
 
 expand_after = 1
 rave_equiv = 20.0
-score_weight = 0.04
+score_weight = 0.0653414
 
 [scoring]
 
-ownership_prior = 100
-ownership_cutoff = 0.95
+ownership_prior = 64
+ownership_cutoff = 0.858546

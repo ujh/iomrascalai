@@ -183,14 +183,17 @@ pub struct TimeControlConfig {
     /// intersection count to 30 if there are less than 30 empty
     /// intersections on the board.
     pub c: f32,
-    /// Once 20% of the allocated time for a move have passed check if
-    /// the best move has a win rate that is higher than this value.
-    /// If so then stop the search and return this move.
-    pub fastplay20_thres: f32,
-    /// Once 5% of the allocated time for a move have passed check if
-    /// the best move has a win rate that is higher than this value.
-    /// If so then stop the search and return this move.
-    pub fastplay5_thres: f32,
+    /// The percentage of the allocated time for the current move
+    /// after which to check for early termination of the search.
+    pub fastplay_budget: f32,
+    /// Once `fastplay_budget` percent of the allocated time for a
+    /// move have passed check if the best move has a win rate that is
+    /// higher than this value. If so then stop the search and return
+    /// this move.
+    pub fastplay_threshold: f32,
+    /// Minimum number of stones to use when calculating the budget
+    /// for the next move.
+    pub min_stones: usize,
 }
 
 impl TimeControlConfig {
@@ -203,8 +206,9 @@ impl TimeControlConfig {
         table.extend(opts);
         TimeControlConfig {
             c: Self::as_float(&table, "c"),
-            fastplay20_thres: Self::as_float(&table, "fastplay20_thres"),
-            fastplay5_thres: Self::as_float(&table, "fastplay5_thres"),
+            fastplay_budget: Self::as_float(&table, "fastplay_budget"),
+            fastplay_threshold: Self::as_float(&table, "fastplay_threshold"),
+            min_stones: Self::as_integer(&table, "min_stones"),
         }
     }
 }

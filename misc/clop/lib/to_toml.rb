@@ -25,6 +25,10 @@ def to_toml(hash)
   hash.map do |namespace, fields|
     str = "[#{namespace}]\n"
     str += fields.map do |key, value|
+      if value.include?(".")
+        # The Rust TOML parser doesn't understand scientific notation.
+        value = sprintf("%3.10f", value.to_f)
+      end
       "#{key} = #{value}"
     end.join("\n")
   end.join("\n\n")

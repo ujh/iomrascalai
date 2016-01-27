@@ -87,14 +87,11 @@ impl Timer {
     }
 
     pub fn ran_out_of_time(&self, win_ratio: f32) -> bool {
-        let budget5 = self.current_budget / 20;
-        let budget20 = self.current_budget / 5;
+        let fastplay_budget = (1.0 / self.config.time_control.fastplay_budget).floor() as i32;
+        let budget5 = self.current_budget / fastplay_budget;
         let elapsed = self.elapsed();
-        if elapsed > budget5 && win_ratio > self.config.time_control.fastplay5_thres {
-            self.config.log(format!("Search stopped. 5% rule triggered"));
-            true
-        } else if elapsed > budget20 && win_ratio > self.config.time_control.fastplay20_thres {
-            self.config.log(format!("Search stopped. 20% rule triggered"));
+        if elapsed > budget5 && win_ratio > self.config.time_control.fastplay_threshold {
+            self.config.log(format!("Search stopped early. Fastplay rule triggered."));
             true
         } else {
             elapsed > self.current_budget
@@ -169,8 +166,8 @@ impl Timer {
     fn budget<T: Info>(&self, game: &T) -> Duration {
         // If there's still main time left
         let ms = if self.main_time_left > 0 {
-            // Assume at least 30 vacant points
-            let vacant = max(game.vacant_point_count(), 30) as f32;
+            let min_stones = self.config.time_control.min_stones as u16;
+            let vacant = max(game.vacant_point_count(), min_stones) as f32;
             (self.main_time_left as f32 / (self.c() * vacant)).floor() as i64
         } else if self.byo_time_left() == 0 {
             0

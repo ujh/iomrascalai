@@ -66,6 +66,8 @@ describe! timer {
     before_each {
         let mut c = Config::default();
         c.time_control.c = 0.5;
+        c.time_control.fastplay_budget = 0.05;
+        c.time_control.min_stones = 30;
         let config = Arc::new(c);
         let mut timer = Timer::new(config.clone());
     }
@@ -308,7 +310,7 @@ describe! timer {
         describe! over_5_percent_threshold {
 
             before_each {
-                let win_ratio = config.time_control.fastplay5_thres + 0.01;
+                let win_ratio = config.time_control.fastplay_threshold + 0.01;
             }
 
             it "returns false if less than 5% of the time is up" {
@@ -319,31 +321,6 @@ describe! timer {
             it "returns true if more than 5% of the time is up" {
                 timer.current_budget = Duration::milliseconds(100);
                 sleep_ms(10);
-                assert!(timer.ran_out_of_time(win_ratio));
-            }
-
-        }
-
-        describe! over_20_percent_threshold {
-
-            before_each {
-                let win_ratio = config.time_control.fastplay20_thres + 0.01;
-            }
-
-            it "returns false if less than 20% of the time is up" {
-                timer.current_budget = Duration::seconds(1);
-                assert!(!timer.ran_out_of_time(win_ratio));
-            }
-
-            it "returns false if more than 5% but less than 20% of the time is up" {
-                timer.current_budget = Duration::milliseconds(1000);
-                sleep_ms(55);
-                assert!(!timer.ran_out_of_time(win_ratio));
-            }
-
-            it "returns true if more than 20% of the time is up" {
-                timer.current_budget = Duration::milliseconds(50);
-                sleep_ms(12);
                 assert!(timer.ran_out_of_time(win_ratio));
             }
 

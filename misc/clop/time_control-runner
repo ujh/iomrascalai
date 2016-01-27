@@ -1,0 +1,3 @@
+#!/bin/bash -l
+
+./runner time_control "$@"
