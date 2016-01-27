@@ -66,6 +66,8 @@ describe! timer {
     before_each {
         let mut c = Config::default();
         c.time_control.c = 0.5;
+        c.time_control.fastplay_budget = 0.05;
+        c.time_control.min_stones = 30;
         let config = Arc::new(c);
         let mut timer = Timer::new(config.clone());
     }
