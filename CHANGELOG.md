@@ -1,3 +1,29 @@
+## 0.3.1 [☰](https://github.com/ujh/iomrascalai/compare/0.3.0...0.3.1)
+
+* Implemented `gogui-analyze_commands` and `imrscl-safe_territory`
+  which shows the intersections on the board that the bot thinks are
+  safe (i.e. definitely belong to one color).
+* Stop playing when all intersections are decided (i.e. the bot thinks
+  they belong to a certain color).
+* Implement `final_status_list`
+* Implement Chinese scoring
+
+### Performance
+
+*Note that we now use Chinese rules instead of CGOS/Tromp Taylor rules
+ which may change the results.*
+
+After running 500 games on 9x9 with komi 6.5 and a time limit of 5
+minutes (sudden death) the win rate against GnuGo 3.8 level 0 was
+**XX.YY% (± A.B at 95%, ± C.D at 99%)** with the default
+configuration.
+
+After running 500 games on 13x13 with komi 6.5 and a time limit of 10
+minutes (sudden death) the win rate against GnuGo 3.8 level 0 was
+**XX.YY% (± A.B at 95%, ± C.D at 99%)** with the default
+configuration.
+
+
 ## 0.3.0 [☰](https://github.com/ujh/iomrascalai/compare/0.2.4...0.3.0)
 
 * Added 3x3 pattern support. These are used as priors in the tree and
