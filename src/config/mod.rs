@@ -29,7 +29,6 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::io::stderr;
 use std::process::exit;
-use std::str::FromStr;
 use toml;
 
 trait FromToml {
@@ -339,8 +338,8 @@ impl Config {
 
     /// Uses the TOML returned by `Config::toml()` and returns a
     /// `Config` object that encodes this data.
-    pub fn default(log: bool, gfx: bool) -> Config {
-        Self::new(String::from(""), Self::toml(), log, gfx)
+    pub fn default(log: bool, gfx: bool, ruleset: Ruleset) -> Config {
+        Self::new(String::from(""), Self::toml(), log, gfx, ruleset)
     }
 
     /// Returns a string representation of the default configuration
@@ -354,14 +353,14 @@ impl Config {
     /// object from the data. The file doesn't need to contain all
     /// possible fields of `Config` or the various structs it
     /// contains. What's missing is taken from `Config::toml()`.
-    pub fn from_file(filename: String, log: bool, gfx: bool) -> Config {
+    pub fn from_file(filename: String, log: bool, gfx: bool, ruleset: Ruleset) -> Config {
         let mut file = File::open(filename).unwrap();
         let mut contents = String::new();
         file.read_to_string(&mut contents).unwrap();
-        Self::new(contents, Self::toml(), log, gfx)
+        Self::new(contents, Self::toml(), log, gfx, ruleset)
     }
 
-    fn new(toml_str: String, default_toml_str: String, log: bool, gfx: bool) -> Config {
+    fn new(toml_str: String, default_toml_str: String, log: bool, gfx: bool, ruleset: Ruleset) -> Config {
         let opts = toml::Parser::new(&toml_str).parse().unwrap();
         let default_table = toml::Parser::new(&default_toml_str).parse().unwrap();
         let threads = toml::Parser::new(&format!("threads = {}", num_cpus::get())).parse().unwrap();
@@ -374,7 +373,7 @@ impl Config {
             log: log,
             playout: PlayoutConfig::new(table["playout"].clone(), default_table["playout"].clone()),
             priors: PriorsConfig::new(table["priors"].clone(), default_table["priors"].clone()),
-            ruleset: Ruleset::from_str(table["ruleset"].as_str().unwrap()).unwrap(),
+            ruleset: ruleset,
             scoring: ScoringConfig::new(table["scoring"].clone(), default_table["scoring"].clone()),
             threads: Self::as_integer(&table, "threads"),
             time_control: TimeControlConfig::new(table["time_control"].clone(), default_table["time_control"].clone()),

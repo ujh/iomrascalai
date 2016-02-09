@@ -1,5 +1,3 @@
-ruleset = "chinese"
-
 [playout]
 
 atari_check = 1.0

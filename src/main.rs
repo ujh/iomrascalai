@@ -49,6 +49,7 @@ extern crate toml;
 pub use config::*;
 use gtp::driver::Driver;
 use patterns::Matcher;
+use ruleset::Ruleset;
 
 use getopts::Options;
 use std::sync::Arc;
@@ -72,12 +73,15 @@ mod version;
 
 fn main() {
     let mut opts = Options::new();
+    let default_ruleset = Ruleset::KgsChinese;
     opts.optflag("d", "dump", "Dump default config to stdout");
     opts.optflag("g", "gfx", "Ouput GoGui live graphics");
     opts.optflag("h", "help", "Print this help menu");
     opts.optflag("l", "log", "Print logging information to STDERR");
     opts.optflag("v", "version", "Print the version number");
     opts.optopt("c", "config", "Config file", "FILE");
+    let r_expl = format!("cgos|chinese|tromp-taylor (defaults to {})", default_ruleset);
+    opts.optopt("r", "rules", "Pick ruleset", &r_expl);
     let args : Vec<String> = args().collect();
 
     let (_, tail) = args.split_first().unwrap();
@@ -102,15 +106,26 @@ fn main() {
         println!("{}", Config::toml());
         exit(0);
     }
-    let config_file_opt = matches.opt_str("c");
     let log = matches.opt_present("l");
     let gfx = matches.opt_present("g");
+    let ruleset = match matches.opt_str("r") {
+        Some(r) => match r.parse() {
+            Ok(ruleset) => ruleset,
+            Err(error) => {
+                println!("{}", error);
+                exit(1);
+            }
+        },
+        None => default_ruleset
+    };
+
+    let config_file_opt = matches.opt_str("c");
     let config = match config_file_opt {
         Some(filename) => {
-            Config::from_file(filename, log, gfx)
+            Config::from_file(filename, log, gfx, ruleset)
         },
         None => {
-            Config::default(log, gfx)
+            Config::default(log, gfx, ruleset)
         }
     };
 
