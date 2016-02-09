@@ -43,7 +43,7 @@ describe! ownership {
         describe! formatting {
 
             before_each {
-                let config = Arc::new(Config::default());
+                let config = Arc::new(Config::test_config());
                 let stats = OwnershipStatistics::new(config, 3, 6.5);
             }
 
@@ -59,7 +59,7 @@ describe! ownership {
 
 #[bench]
 fn new(b: &mut Bencher) {
-    let config = Arc::new(Config::default());
+    let config = Arc::new(Config::test_config());
     b.iter(|| OwnershipStatistics::new(config.clone(), 19, 6.5))
 
 }
@@ -68,7 +68,7 @@ fn new(b: &mut Bencher) {
 fn merge(b: &mut Bencher) {
     let size = 19;
     let komi = 6.5;
-    let config = Arc::new(Config::default());
+    let config = Arc::new(Config::test_config());
     let mut ownership = OwnershipStatistics::new(config.clone(), size, komi);
     let score = Board::new(size, komi, KgsChinese).score();
     b.iter(|| ownership.merge(&score))

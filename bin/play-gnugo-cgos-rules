@@ -1,6 +1,7 @@
 #!/bin/bash
 #
 # Copyright (c) 2015 Urban Hafner
+# Copyright (c) 2016 Urban Hafner
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
@@ -45,13 +46,7 @@ cargo build --release
 
 GNUGO="gnugo --mode gtp --level 0 --chinese-rules --positional-superko --capture-all-dead --score aftermath --play-out-aftermath"
 
-TIMESTAMP=`date "+%Y%m%d%H%M%S"`
-CFG="/tmp/iomrascalai-$TIMESTAMP.toml"
-cat > $CFG <<EOF
-ruleset = "cgos"
-EOF
-
-IOMRASCALAI="cargo run --release -- -c $CFG"
+IOMRASCALAI="cargo run --release -- --log --gfx --rules cgos"
 
 
 TWOGTP="gogui-twogtp -black \"$GNUGO\" -white \"$IOMRASCALAI\" -verbose -size $SIZE -time $TIME"
@@ -60,5 +55,3 @@ TWOGTP="gogui-twogtp -black \"$GNUGO\" -white \"$IOMRASCALAI\" -verbose -size $S
 set -x
 
 gogui -computer-both -program "$TWOGTP" -size $SIZE
-
-rm $CFG

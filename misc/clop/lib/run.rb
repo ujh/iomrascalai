@@ -77,7 +77,7 @@ def referee
 end
 
 def iomrascalai
-  "cargo run --release -- -c config.toml"
+  "cargo run --release -- -c config.toml --rules chinese"
 end
 
 def twogtp(size:, time:, referee:, black:, white:, outfile:)

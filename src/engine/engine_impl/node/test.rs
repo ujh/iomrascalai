@@ -43,7 +43,7 @@ pub use std::sync::Arc;
 pub use test::Bencher;
 
 pub fn config() -> Arc<Config> {
-    let mut config = Config::default();
+    let mut config = Config::test_config();
     config.tree.expand_after = 0;
     Arc::new(config)
 }
@@ -163,7 +163,7 @@ fn no_super_ko_violations_in_the_children_of_the_root() {
 describe! record_on_path {
 
     before_each {
-        let mut c = Config::default();
+        let mut c = Config::test_config();
         c.tree.score_weight = 0.0;
         let config = Arc::new(c);
     }
@@ -277,7 +277,7 @@ fn full_uct_cycle_19x19(b: &mut Bencher) {
 fn full_uct_cycle(size: u8, b: &mut Bencher) {
     let game = Game::new(size, 6.5, KgsChinese);
     let matcher = matcher();
-    let config = Arc::new(Config::default());
+    let config = Arc::new(Config::test_config());
     let mut root = Node::root(&game, Black, config.clone());
     let playout = Playout::new(config.clone(), matcher.clone());
     let mut rng = weak_rng();
