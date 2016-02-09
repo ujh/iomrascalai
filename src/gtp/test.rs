@@ -47,7 +47,7 @@ describe! interpreter {
     describe! cgos {
 
         before_each {
-            let mut c = Config::default();
+            let mut c = Config::test_config();
             c.ruleset = CGOS;
             let config = Arc::new(c);
             let matcher = Arc::new(Matcher::new());
@@ -355,7 +355,7 @@ describe! interpreter {
     describe! chinese {
 
         before_each {
-            let mut c = Config::default();
+            let mut c = Config::test_config();
             c.ruleset = KgsChinese;
             let config = Arc::new(c);
             let matcher = Arc::new(Matcher::new());

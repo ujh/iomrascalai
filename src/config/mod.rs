@@ -336,6 +336,11 @@ pub struct Config {
 
 impl Config {
 
+    #[test]
+    pub fn test_config() -> Config {
+        Self::default(false, false, Ruleset::KgsChinese)
+    }
+
     /// Uses the TOML returned by `Config::toml()` and returns a
     /// `Config` object that encodes this data.
     pub fn default(log: bool, gfx: bool, ruleset: Ruleset) -> Config {

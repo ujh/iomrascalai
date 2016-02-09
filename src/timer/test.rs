@@ -64,7 +64,7 @@ pub fn sleep_ms(ms: u64) {
 describe! timer {
 
     before_each {
-        let mut c = Config::default();
+        let mut c = Config::test_config();
         c.time_control.c = 0.5;
         c.time_control.fastplay_budget = 0.05;
         c.time_control.min_stones = 30;

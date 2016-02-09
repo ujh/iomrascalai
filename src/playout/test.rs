@@ -34,7 +34,7 @@ use std::sync::Arc;
 use test::Bencher;
 
 fn config() -> Arc<Config> {
-    Arc::new(Config::default())
+    Arc::new(Config::test_config())
 }
 
 fn playout(matcher: Arc<Matcher>) -> Playout {
