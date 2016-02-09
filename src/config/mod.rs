@@ -1,6 +1,7 @@
 /************************************************************************
  *                                                                      *
  * Copyright 2015 Urban Hafner, Igor Polyakov                           *
+ * Copyright 2016 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -338,8 +339,8 @@ impl Config {
 
     /// Uses the TOML returned by `Config::toml()` and returns a
     /// `Config` object that encodes this data.
-    pub fn default(log: bool) -> Config {
-        Self::new(String::from(""), Self::toml(), log)
+    pub fn default(log: bool, gfx: bool) -> Config {
+        Self::new(String::from(""), Self::toml(), log, gfx)
     }
 
     /// Returns a string representation of the default configuration
@@ -353,14 +354,14 @@ impl Config {
     /// object from the data. The file doesn't need to contain all
     /// possible fields of `Config` or the various structs it
     /// contains. What's missing is taken from `Config::toml()`.
-    pub fn from_file(filename: String, log: bool) -> Config {
+    pub fn from_file(filename: String, log: bool, gfx: bool) -> Config {
         let mut file = File::open(filename).unwrap();
         let mut contents = String::new();
         file.read_to_string(&mut contents).unwrap();
-        Self::new(contents, Self::toml(), log)
+        Self::new(contents, Self::toml(), log, gfx)
     }
 
-    fn new(toml_str: String, default_toml_str: String, log: bool) -> Config {
+    fn new(toml_str: String, default_toml_str: String, log: bool, gfx: bool) -> Config {
         let opts = toml::Parser::new(&toml_str).parse().unwrap();
         let default_table = toml::Parser::new(&default_toml_str).parse().unwrap();
         let threads = toml::Parser::new(&format!("threads = {}", num_cpus::get())).parse().unwrap();
@@ -369,7 +370,7 @@ impl Config {
         table.extend(threads.clone());
         table.extend(opts.clone());
         Config {
-            gfx: Self::as_bool(&table, "gfx"),
+            gfx: gfx,
             log: log,
             playout: PlayoutConfig::new(table["playout"].clone(), default_table["playout"].clone()),
             priors: PriorsConfig::new(table["priors"].clone(), default_table["priors"].clone()),

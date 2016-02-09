@@ -1,6 +1,7 @@
 #!/bin/bash
 #
 # Copyright (c) 2015 Urban Hafner
+# Copyright (c) 2016 Urban Hafner
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
@@ -51,7 +52,7 @@ cat > $CFG <<EOF
 ruleset = "cgos"
 EOF
 
-IOMRASCALAI="cargo run --release -- -c $CFG --log"
+IOMRASCALAI="cargo run --release -- -c $CFG --log --gfx"
 
 
 TWOGTP="gogui-twogtp -black \"$GNUGO\" -white \"$IOMRASCALAI\" -verbose -size $SIZE -time $TIME"

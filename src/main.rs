@@ -2,6 +2,7 @@
  *                                                                      *
  * Copyright 2014 Urban Hafner, Thomas Poinsot                          *
  * Copyright 2015 Urban Hafner, Thomas Poinsot, Igor Polyakov, Ben Fu   *
+ * Copyright 2016 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -72,6 +73,7 @@ mod version;
 fn main() {
     let mut opts = Options::new();
     opts.optflag("d", "dump", "Dump default config to stdout");
+    opts.optflag("g", "gfx", "Ouput GoGui live graphics");
     opts.optflag("h", "help", "Print this help menu");
     opts.optflag("l", "log", "Print logging information to STDERR");
     opts.optflag("v", "version", "Print the version number");
@@ -102,12 +104,13 @@ fn main() {
     }
     let config_file_opt = matches.opt_str("c");
     let log = matches.opt_present("l");
+    let gfx = matches.opt_present("g");
     let config = match config_file_opt {
         Some(filename) => {
-            Config::from_file(filename, log)
+            Config::from_file(filename, log, gfx)
         },
         None => {
-            Config::default(log)
+            Config::default(log, gfx)
         }
     };
 
