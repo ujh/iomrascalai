@@ -338,8 +338,8 @@ impl Config {
 
     /// Uses the TOML returned by `Config::toml()` and returns a
     /// `Config` object that encodes this data.
-    pub fn default() -> Config {
-        Self::new(String::from(""), Self::toml())
+    pub fn default(log: bool) -> Config {
+        Self::new(String::from(""), Self::toml(), log)
     }
 
     /// Returns a string representation of the default configuration
@@ -353,14 +353,14 @@ impl Config {
     /// object from the data. The file doesn't need to contain all
     /// possible fields of `Config` or the various structs it
     /// contains. What's missing is taken from `Config::toml()`.
-    pub fn from_file(filename: String) -> Config {
+    pub fn from_file(filename: String, log: bool) -> Config {
         let mut file = File::open(filename).unwrap();
         let mut contents = String::new();
         file.read_to_string(&mut contents).unwrap();
-        Self::new(contents, Self::toml())
+        Self::new(contents, Self::toml(), log)
     }
 
-    fn new(toml_str: String, default_toml_str: String) -> Config {
+    fn new(toml_str: String, default_toml_str: String, log: bool) -> Config {
         let opts = toml::Parser::new(&toml_str).parse().unwrap();
         let default_table = toml::Parser::new(&default_toml_str).parse().unwrap();
         let threads = toml::Parser::new(&format!("threads = {}", num_cpus::get())).parse().unwrap();
@@ -370,7 +370,7 @@ impl Config {
         table.extend(opts.clone());
         Config {
             gfx: Self::as_bool(&table, "gfx"),
-            log: Self::as_bool(&table, "log"),
+            log: log,
             playout: PlayoutConfig::new(table["playout"].clone(), default_table["playout"].clone()),
             priors: PriorsConfig::new(table["priors"].clone(), default_table["priors"].clone()),
             ruleset: Ruleset::from_str(table["ruleset"].as_str().unwrap()).unwrap(),

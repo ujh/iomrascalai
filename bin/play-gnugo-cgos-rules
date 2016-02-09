@@ -51,7 +51,7 @@ cat > $CFG <<EOF
 ruleset = "cgos"
 EOF
 
-IOMRASCALAI="cargo run --release -- -c $CFG"
+IOMRASCALAI="cargo run --release -- -c $CFG --log"
 
 
 TWOGTP="gogui-twogtp -black \"$GNUGO\" -white \"$IOMRASCALAI\" -verbose -size $SIZE -time $TIME"

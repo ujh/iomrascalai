@@ -44,7 +44,7 @@ fi
 
 cargo build --release
 
-IOMRASCALAI="cargo run --release -q"
+IOMRASCALAI="cargo run --release -q -- --log"
 
 set -x
 

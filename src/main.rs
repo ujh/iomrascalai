@@ -73,6 +73,7 @@ fn main() {
     let mut opts = Options::new();
     opts.optflag("d", "dump", "Dump default config to stdout");
     opts.optflag("h", "help", "Print this help menu");
+    opts.optflag("l", "log", "Print logging information to STDERR");
     opts.optflag("v", "version", "Print the version number");
     opts.optopt("c", "config", "Config file", "FILE");
     let args : Vec<String> = args().collect();
@@ -100,12 +101,13 @@ fn main() {
         exit(0);
     }
     let config_file_opt = matches.opt_str("c");
+    let log = matches.opt_present("l");
     let config = match config_file_opt {
         Some(filename) => {
-            Config::from_file(filename)
+            Config::from_file(filename, log)
         },
         None => {
-            Config::default()
+            Config::default(log)
         }
     };
 
