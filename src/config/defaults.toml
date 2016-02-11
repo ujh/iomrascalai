@@ -32,5 +32,5 @@ score_weight = 0.0653414
 
 [scoring]
 
-ownership_prior = 64
-ownership_cutoff = 0.858546
+ownership_prior = 87
+ownership_cutoff = 0.892867
