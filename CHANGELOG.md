@@ -7,6 +7,8 @@
   they belong to a certain color).
 * Implement `final_status_list`
 * Implement Chinese scoring
+* Return to command line arguments for turning on/off logging, GoGui
+  effects, and ruleset configuration.
 
 ### Performance
 
