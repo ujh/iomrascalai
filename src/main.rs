@@ -24,7 +24,7 @@
 #![feature(plugin)]
 #![feature(test)]
 #![plugin(regex_macros)]
-#![plugin(stainless)]
+#![cfg_attr(test, plugin(stainless))]
 
 #[cfg(test)]
 extern crate hamcrest;
