@@ -24,7 +24,7 @@ thread-scoped   = "*"
 time            = "*"
 toml            = "*"
 
-[dependencies.hamcrest]
+[dev-dependencies.hamcrest]
 git = "https://github.com/carllerche/hamcrest-rust.git"
 
 [dev-dependencies.stainless]
