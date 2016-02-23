@@ -30,3 +30,4 @@ set -x
 
 ./bin/benchmark 9 $PREFIX
 ./bin/benchmark 13 $PREFIX
+./bin/benchmark 19 $PREFIX
