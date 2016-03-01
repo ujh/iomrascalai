@@ -89,6 +89,7 @@ impl Coord {
         (self.col as usize-1 + (self.row as usize-1)*board_size as usize)
     }
 
+    #[test]
     pub fn from_index(index: usize, board_size: u8) -> Coord {
         let col = (index as isize % board_size as isize) + 1;
         let row = ((index as isize - col + 1) / board_size as isize) + 1;

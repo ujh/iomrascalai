@@ -63,7 +63,7 @@ fn expand_after(expand_after: usize) -> Arc<Config> {
 fn root_expands_the_children() {
     let game = Game::new(2, 0.5, KgsChinese);
     let root = Node::root(&game, Black, config());
-    assert_eq!(4, root.children.len());
+    assert_eq!(5, root.children.len());
 }
 
 // expand()
@@ -93,7 +93,7 @@ fn expand_adds_children_if_threshold_is_met() {
     let mut node = Node::new(Pass(Black), config());
     node.plays = 2.0;
     node.expand(&game.board(), matcher());
-    assert_eq!(4, node.children.len());
+    assert_eq!(5, node.children.len());
 }
 
 #[test]
@@ -102,17 +102,7 @@ fn expand_sets_the_descendant_count_if_the_node_was_expanded() {
     let board = game.board();
     let mut node = Node::new(Pass(Black), config());
     node.expand(&board,matcher());
-    assert_eq!(25, node.descendants);
-}
-
-#[test]
-fn expand_doesnt_add_pass_before_the_endgame() {
-    let game = Game::new(5, 6.5, KgsChinese);
-    let board = game.board();
-    let mut node = Node::new(Pass(Black), config());
-    node.expand(&board, matcher());
-    let found_pass = node.children.iter().any(|node| node.m().is_pass());
-    assert!(!found_pass);
+    assert_eq!(26, node.descendants);
 }
 
 // find_leaf_and_expand()
@@ -120,11 +110,17 @@ fn expand_doesnt_add_pass_before_the_endgame() {
 fn find_leaf_and_expand_expands_the_leaves() {
     let game = Game::new(2, 0.5, KgsChinese);
     let mut root = Node::root(&game, Black, config());
-    for _ in 0..4 {
+    for _ in 0..5 {
         root.find_leaf_and_expand(&game, matcher());
     }
-    assert_eq!(4, root.children.len());
-    assert!(root.children.iter().all(|n| n.children.len() == 3));
+    assert_eq!(5, root.children.len());
+    assert!(root.children.iter().all({|n|
+                                      if n.m().is_pass() {
+                                          n.children.len() == 5
+                                      } else {
+                                          n.children.len() == 4
+                                      }
+    }));
 }
 
 #[test]
@@ -140,7 +136,7 @@ fn find_leaf_and_expand_returns_the_number_of_nodes_added() {
     let game = Game::new(2, 0.5, KgsChinese);
     let mut root = Node::root(&game, Black, config());
     let (_,_,_,count) = root.find_leaf_and_expand(&game, matcher());
-    assert_eq!(3, count);
+    assert_eq!(4, count);
 }
 
 #[test]
@@ -235,16 +231,7 @@ fn expand_root_sets_the_correct_descendant_count_on_the_root() {
     let game = Game::new(5, 6.5, KgsChinese);
     let mut root = Node::new(Pass(Black), config());
     root.expand_root(&game);
-    assert_eq!(25, root.descendants);
-}
-
-#[test]
-fn expand_root_doesnt_add_pass() {
-    let game = Game::new(5, 6.5, KgsChinese);
-    let mut node = Node::new(Pass(Black), config());
-    node.expand_root(&game);
-    let found_pass = node.children.iter().any(|node| node.m().is_pass());
-    assert!(!found_pass);
+    assert_eq!(26, root.descendants);
 }
 
 // remove_illegal_children()

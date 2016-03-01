@@ -33,7 +33,6 @@ mod test;
 
 pub struct FinalScore {
     board: Board,
-    decided: bool,
     dead: Vec<Coord>,
 }
 
@@ -51,17 +50,13 @@ impl FinalScore {
             for coord in &dead {
                 board.remove_dead_stone(coord);
             }
-            let decided = ownership.decided() && board.winner() == ownership.winner();
             FinalScore {
                 board: board,
-                decided: decided,
                 dead: dead,
             }
         } else {
-            let decided = ownership.decided() && dead.len() == 0;
             FinalScore {
                 board: board,
-                decided: decided,
                 dead: vec!(),
             }
         }
@@ -78,10 +73,6 @@ impl FinalScore {
             "seki" => self.status_list_seki(),
             _ => Err("unknown argument".to_string()),
         }
-    }
-
-    pub fn decided(&self) -> bool {
-        self.decided
     }
 
     fn status_list_dead(&self) -> Result<String, String> {

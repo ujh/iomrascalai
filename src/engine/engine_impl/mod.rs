@@ -33,7 +33,7 @@ use ownership::OwnershipStatistics;
 use patterns::Matcher;
 use playout::Playout;
 use playout::PlayoutResult;
-use score::FinalScore;
+use ruleset::KgsChinese;
 use timer::Timer;
 
 use rand::weak_rng;
@@ -113,24 +113,42 @@ impl EngineImpl {
         }
         let msg = format!("{} simulations ({}% wins on average, {} nodes)", self.root.playouts(), self.root.win_ratio()*100.0, self.root.descendants());
         self.config.log(msg);
-        let final_score = FinalScore::new(self.config.clone(), game, self.ownership());
-        let m = if final_score.decided() {
-            self.config.log(format!("Board decided. Passing."));
-            Pass(color)
-        } else {
-            let best_node = self.root.best();
-            let win_ratio = best_node.win_ratio();
-            if win_ratio == 0.0 {
-                if game.winner() == color {
-                    Pass(color)
-                } else {
-                    self.config.log(format!("All losses. Resigning."));
-                    Resign(color)
+        let m = {
+            let (best_node, pass) = self.root.best();
+            let best_win_ratio = best_node.win_ratio();
+            let pass_win_ratio = pass.win_ratio();
+            let n = match game.ruleset() {
+                KgsChinese => {
+                    if best_win_ratio > pass_win_ratio {
+                        best_node
+                    } else {
+                        pass
+                    }
+                },
+                _ => {
+                    // Only allow passing under Tromp/Taylor and CGOS
+                    // when we are winning.
+                    if game.winner() == color {
+                        if best_win_ratio > pass_win_ratio {
+                            best_node
+                        } else {
+                            pass
+                        }
+
+                    } else {
+                        best_node
+                    }
                 }
+            };
+            let win_ratio = n.win_ratio();
+            if win_ratio == 0.0 {
+                Pass(color)
+            } else if win_ratio < 0.01 && game.winner() != color {
+                Resign(color)
             } else {
                 let msg = format!("Returning the best move ({}% wins)", win_ratio*100.0);
                 self.config.log(msg);
-                best_node.m()
+                n.m()
             }
         };
         let playouts = self.root.playouts();
@@ -155,7 +173,11 @@ impl Engine for EngineImpl {
         let (send_result_to_main, receive_result_from_threads) = channel::<((Vec<usize>, usize, PlayoutResult), Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>();
         let (_guards, halt_senders) = spin_up(self.config.clone(), self.playout.clone(), game, send_result_to_main);
         loop {
-            if timer.ran_out_of_time(self.root.best().win_ratio()) {
+            let win_ratio = {
+                let (best, _) = self.root.best();
+                best.win_ratio()
+            };
+            if timer.ran_out_of_time(win_ratio) {
                 return self.finish(game, color, halt_senders);
             }
             select!(
