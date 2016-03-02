@@ -93,6 +93,10 @@ impl Game {
         self.last_move
     }
 
+    pub fn next_player(&self) -> Color {
+        self.board.next_player()
+    }
+
     pub fn is_over(&self) -> bool {
         self.board.is_game_over()
     }
@@ -107,6 +111,10 @@ impl Game {
 
     pub fn winner(&self) -> Color {
         self.board.winner()
+    }
+
+    pub fn ruleset(&self) -> Ruleset {
+        self.board.ruleset()
     }
 
     pub fn set_komi(&mut self, komi: f32) {

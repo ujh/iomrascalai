@@ -597,6 +597,10 @@ impl Board {
         Score::new(self)
     }
 
+    pub fn ruleset(&self) -> Ruleset {
+        self.ruleset
+    }
+
     pub fn winner(&self) -> Color {
         match self.resigned_by {
             Empty => self.score().color(),

@@ -126,6 +126,9 @@ impl Node {
                 Play(..) => if game.play(node.m()).is_err() {
                     to_remove.push(index);
                 },
+                Pass(_) => if game.winner() != game.next_player() {
+                    to_remove.push(index);
+                },
                 _ => unreachable!()
             }
         }
@@ -174,6 +177,7 @@ impl Node {
                 .iter()
                 .map(|&m| Node::new(m, self.config.clone()))
                 .collect();
+            self.children.push(Node::new(Pass(game.next_player()), self.config.clone()));
             self.descendants = self.children.len();
         }
  }
@@ -187,6 +191,7 @@ impl Node {
                 .collect();
             self.priors(&mut children, board);
             self.children = children;
+            self.children.push(Node::new(Pass(board.next_player()), self.config.clone()));
         }
         self.descendants = self.children.len();
         not_terminal
@@ -303,14 +308,17 @@ impl Node {
         }
     }
 
-    pub fn best(&self) -> &Node {
+    pub fn best(&self) -> (&Node, &Node) {
         let mut best = &self.children[0];
+        let mut pass = &self.children[0];
         for n in self.children.iter() {
-            if n.plays_with_prior_factor() > best.plays_with_prior_factor() {
+            if n.m().is_pass() {
+                pass = n;
+            } else if n.plays_with_prior_factor() > best.plays_with_prior_factor() {
                 best = n;
             }
         }
-        best
+        (best, pass)
     }
 
     fn weighted_win(&self, score: &Score) -> f32 {
