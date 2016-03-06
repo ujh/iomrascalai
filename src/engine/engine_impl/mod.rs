@@ -113,28 +113,20 @@ impl EngineImpl {
         let pass_win_ratio = pass.win_ratio();
         let n = match game.ruleset() {
             KgsChinese => {
-                if best_win_ratio > pass_win_ratio {
-                    best_node
-                } else {
-                    pass
-                }
+                if best_win_ratio > pass_win_ratio { best_node } else { pass }
             },
             _ => {
                 // Only allow passing under Tromp/Taylor and CGOS
                 // when we are winning.
                 if game.winner() == color {
-                    if best_win_ratio > pass_win_ratio {
-                        best_node
-                    } else {
-                        pass
-                    }
-
+                    if best_win_ratio > pass_win_ratio { best_node } else { pass }
                 } else {
                     best_node
                 }
             }
         };
         let win_ratio = n.win_ratio();
+        // Special case, when we are winning and all moves are played.
         if win_ratio == 0.0 {
             Pass(color)
         } else if win_ratio < 0.15 {
