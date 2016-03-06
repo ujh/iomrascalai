@@ -143,7 +143,7 @@ impl EngineImpl {
             let win_ratio = n.win_ratio();
             if win_ratio == 0.0 {
                 Pass(color)
-            } else if win_ratio < 0.01 && game.winner() != color {
+            } else if win_ratio < 0.01 {
                 Resign(color)
             } else {
                 let msg = format!("Returning the best move ({}% wins)", win_ratio*100.0);
