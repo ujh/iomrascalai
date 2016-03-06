@@ -126,14 +126,14 @@ impl EngineImpl {
             }
         };
         let win_ratio = n.win_ratio();
+        let msg = format!("Best move win ratio: {}%", win_ratio*100.0);
+        self.config.log(msg);
         // Special case, when we are winning and all moves are played.
         if win_ratio == 0.0 {
             Pass(color)
         } else if win_ratio < 0.15 {
             Resign(color)
         } else {
-            let msg = format!("Returning the best move ({}% wins)", win_ratio*100.0);
-            self.config.log(msg);
             n.m()
         }
     }
