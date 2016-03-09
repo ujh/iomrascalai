@@ -24,11 +24,9 @@ thread-scoped   = "*"
 time            = "*"
 toml            = "*"
 
-[dev-dependencies.hamcrest]
-git = "https://github.com/carllerche/hamcrest-rust.git"
-
-[dev-dependencies.stainless]
-git = "https://github.com/reem/stainless.git"
+[dev-dependencies]
+hamcrest = "*"
+stainless = "*"
 
 [profile.release]
 opt-level = 3
