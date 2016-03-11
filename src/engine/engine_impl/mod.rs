@@ -107,51 +107,45 @@ impl EngineImpl {
         }
     }
 
+    fn best_move(&self, game: &Game, color: Color) -> Move {
+        let (best_node, pass) = self.root.best();
+        let best_win_ratio = best_node.win_ratio();
+        let pass_win_ratio = pass.win_ratio();
+        let n = match game.ruleset() {
+            KgsChinese => {
+                if best_win_ratio > pass_win_ratio { best_node } else { pass }
+            },
+            _ => {
+                // Only allow passing under Tromp/Taylor and CGOS
+                // when we are winning.
+                if game.winner() == color {
+                    if best_win_ratio > pass_win_ratio { best_node } else { pass }
+                } else {
+                    best_node
+                }
+            }
+        };
+        let win_ratio = n.win_ratio();
+        let msg = format!("Best move win ratio: {}%", win_ratio*100.0);
+        self.config.log(msg);
+        // Special case, when we are winning and all moves are played.
+        if win_ratio == 0.0 {
+            Pass(color)
+        } else if win_ratio < 0.15 {
+            Resign(color)
+        } else {
+            n.m()
+        }
+    }
+
     fn finish(&mut self, game: &Game, color: Color, halt_senders: Vec<Sender<()>>) -> (Move,usize) {
         for halt_sender in halt_senders.iter() {
             check!(self.config, halt_sender.send(()));
         }
         let msg = format!("{} simulations ({}% wins on average, {} nodes)", self.root.playouts(), self.root.win_ratio()*100.0, self.root.descendants());
         self.config.log(msg);
-        let m = {
-            let (best_node, pass) = self.root.best();
-            let best_win_ratio = best_node.win_ratio();
-            let pass_win_ratio = pass.win_ratio();
-            let n = match game.ruleset() {
-                KgsChinese => {
-                    if best_win_ratio > pass_win_ratio {
-                        best_node
-                    } else {
-                        pass
-                    }
-                },
-                _ => {
-                    // Only allow passing under Tromp/Taylor and CGOS
-                    // when we are winning.
-                    if game.winner() == color {
-                        if best_win_ratio > pass_win_ratio {
-                            best_node
-                        } else {
-                            pass
-                        }
-
-                    } else {
-                        best_node
-                    }
-                }
-            };
-            let win_ratio = n.win_ratio();
-            if win_ratio == 0.0 {
-                Pass(color)
-            } else if win_ratio < 0.01 && game.winner() != color {
-                Resign(color)
-            } else {
-                let msg = format!("Returning the best move ({}% wins)", win_ratio*100.0);
-                self.config.log(msg);
-                n.m()
-            }
-        };
         let playouts = self.root.playouts();
+        let m = self.best_move(game, color);
         self.set_new_root(&game.play(m).unwrap(), color);
         (m,playouts)
     }
