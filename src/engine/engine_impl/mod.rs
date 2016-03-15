@@ -174,20 +174,17 @@ impl Engine for EngineImpl {
             if timer.ran_out_of_time(win_ratio) {
                 return self.finish(game, color, halt_senders);
             }
-            select!(
-                r = receive_result_from_threads.recv() => {
-                    check!(self.config, res = r => {
-                        let ((path, nodes_added, playout_result), send_to_thread) = res;
-                        self.ownership.merge(playout_result.score());
-                        self.root.record_on_path(
-                            &path,
-                            nodes_added,
-                            &playout_result);
-                        let data = self.root.find_leaf_and_expand(game, self.matcher.clone());
-                        check!(self.config, send_to_thread.send(data));
-                    });
-                }
-                )
+            let r = receive_result_from_threads.recv();
+            check!(self.config, res = r => {
+                let ((path, nodes_added, playout_result), send_to_thread) = res;
+                self.ownership.merge(playout_result.score());
+                self.root.record_on_path(
+                    &path,
+                    nodes_added,
+                    &playout_result);
+                let data = self.root.find_leaf_and_expand(game, self.matcher.clone());
+                check!(self.config, send_to_thread.send(data));
+            });
         }
     }
 
