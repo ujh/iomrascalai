@@ -135,7 +135,7 @@ fn find_leaf_and_expand_sets_play_on_the_root() {
 fn find_leaf_and_expand_returns_the_number_of_nodes_added() {
     let game = Game::new(2, 0.5, KgsChinese);
     let mut root = Node::root(&game, Black, config());
-    let (_,_,_,count) = root.find_leaf_and_expand(&game, matcher());
+    let (_,_,count) = root.find_leaf_and_expand(&game, matcher());
     assert_eq!(4, count);
 }
 
@@ -269,7 +269,7 @@ fn full_uct_cycle(size: u8, b: &mut Bencher) {
     let playout = Playout::new(config.clone(), matcher.clone());
     let mut rng = weak_rng();
     b.iter(|| {
-        let (path, moves, _, nodes_added) = root.find_leaf_and_expand(&game, matcher.clone());
+        let (path, moves, nodes_added) = root.find_leaf_and_expand(&game, matcher.clone());
         let mut b = game.board();
         for &m in moves.iter() {
             b.play_legal_move(m);

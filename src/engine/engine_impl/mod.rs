@@ -164,7 +164,7 @@ impl Engine for EngineImpl {
             self.config.log(format!("No moves to simulate!"));
             return (Pass(color), self.root.playouts());
         }
-        let (send_result_to_main, receive_result_from_threads) = channel::<((Vec<usize>, usize, PlayoutResult), Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>();
+        let (send_result_to_main, receive_result_from_threads) = channel::<((Vec<usize>, usize, PlayoutResult), Sender<(Vec<usize>, Vec<Move>, usize)>)>();
         let (_guards, halt_senders) = spin_up(self.config.clone(), self.playout.clone(), game, send_result_to_main);
         loop {
             let win_ratio = {
@@ -196,7 +196,7 @@ impl Engine for EngineImpl {
 
 }
 
-fn spin_up<'a>(config: Arc<Config>, playout: Arc<Playout>, game: &Game, send_to_main: Sender<((Vec<usize>, usize, PlayoutResult), Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>) -> (Vec<JoinHandle<()>>, Vec<Sender<()>>) {
+fn spin_up<'a>(config: Arc<Config>, playout: Arc<Playout>, game: &Game, send_to_main: Sender<((Vec<usize>, usize, PlayoutResult), Sender<(Vec<usize>, Vec<Move>, usize)>)>) -> (Vec<JoinHandle<()>>, Vec<Sender<()>>) {
     let mut guards = Vec::new();
     let mut halt_senders = Vec::new();
     for _ in 0..config.threads {
@@ -209,10 +209,10 @@ fn spin_up<'a>(config: Arc<Config>, playout: Arc<Playout>, game: &Game, send_to_
     (guards, halt_senders)
 }
 
-fn spin_up_worker(config: Arc<Config>, playout: Arc<Playout>, board: Board, send_to_main: Sender<((Vec<usize>, usize, PlayoutResult),Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>, receive_halt: Receiver<()>) -> JoinHandle<()> {
+fn spin_up_worker(config: Arc<Config>, playout: Arc<Playout>, board: Board, send_to_main: Sender<((Vec<usize>, usize, PlayoutResult),Sender<(Vec<usize>, Vec<Move>, usize)>)>, receive_halt: Receiver<()>) -> JoinHandle<()> {
     spawn(move || {
         let mut rng = weak_rng();
-        let (send_to_self, receive_from_main) = channel::<(Vec<usize>, Vec<Move>, bool, usize)>();
+        let (send_to_self, receive_from_main) = channel::<(Vec<usize>, Vec<Move>, usize)>();
         // Send this empty message to get everything started
         check!(
             config,
@@ -223,7 +223,7 @@ fn spin_up_worker(config: Arc<Config>, playout: Arc<Playout>, board: Board, send
                 task = receive_from_main.recv() => {
                     check!(
                         config,
-                        (path, moves, _unused, nodes_added) = task => {
+                        (path, moves, nodes_added) = task => {
                             let mut b = board.clone();
                             for &m in moves.iter() {
                                 b.play_legal_move(m);
