@@ -1,6 +1,7 @@
 /************************************************************************
  *                                                                      *
  * Copyright 2015 Urban Hafner, Igor Polyakov                           *
+ * Copyright 2016 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -42,7 +43,6 @@ use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 use std::sync::mpsc::channel;
 use std::thread::spawn;
-use std::thread::JoinHandle;
 use time::PreciseTime;
 
 mod node;
@@ -165,7 +165,7 @@ impl Engine for EngineImpl {
             return (Pass(color), self.root.playouts());
         }
         let (send_result_to_main, receive_result_from_threads) = channel::<((Vec<usize>, usize, PlayoutResult), Sender<(Vec<usize>, Vec<Move>, usize)>)>();
-        let (_guards, halt_senders) = spin_up(self.config.clone(), self.playout.clone(), game, send_result_to_main);
+        let halt_senders = spin_up(self.config.clone(), self.playout.clone(), game, send_result_to_main);
         loop {
             let win_ratio = {
                 let (best, _) = self.root.best();
@@ -196,20 +196,18 @@ impl Engine for EngineImpl {
 
 }
 
-fn spin_up<'a>(config: Arc<Config>, playout: Arc<Playout>, game: &Game, send_to_main: Sender<((Vec<usize>, usize, PlayoutResult), Sender<(Vec<usize>, Vec<Move>, usize)>)>) -> (Vec<JoinHandle<()>>, Vec<Sender<()>>) {
-    let mut guards = Vec::new();
+fn spin_up<'a>(config: Arc<Config>, playout: Arc<Playout>, game: &Game, send_to_main: Sender<((Vec<usize>, usize, PlayoutResult), Sender<(Vec<usize>, Vec<Move>, usize)>)>) -> Vec<Sender<()>> {
     let mut halt_senders = Vec::new();
     for _ in 0..config.threads {
         let (send_halt, receive_halt) = channel::<()>();
         halt_senders.push(send_halt);
         let send_to_main = send_to_main.clone();
-        let guard = spin_up_worker(config.clone(), playout.clone(), game.board(), send_to_main, receive_halt);
-        guards.push(guard);
+        spin_up_worker(config.clone(), playout.clone(), game.board(), send_to_main, receive_halt);
     }
-    (guards, halt_senders)
+    halt_senders
 }
 
-fn spin_up_worker(config: Arc<Config>, playout: Arc<Playout>, board: Board, send_to_main: Sender<((Vec<usize>, usize, PlayoutResult),Sender<(Vec<usize>, Vec<Move>, usize)>)>, receive_halt: Receiver<()>) -> JoinHandle<()> {
+fn spin_up_worker(config: Arc<Config>, playout: Arc<Playout>, board: Board, send_to_main: Sender<((Vec<usize>, usize, PlayoutResult),Sender<(Vec<usize>, Vec<Move>, usize)>)>, receive_halt: Receiver<()>){
     spawn(move || {
         let mut rng = weak_rng();
         let (send_to_self, receive_from_main) = channel::<(Vec<usize>, Vec<Move>, usize)>();
@@ -239,5 +237,5 @@ fn spin_up_worker(config: Arc<Config>, playout: Arc<Playout>, board: Board, send
                 }
                 )
         }
-    })
+    });
 }
