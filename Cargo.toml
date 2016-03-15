@@ -20,7 +20,6 @@ rand            = "*"
 regex           = "*"
 regex_macros    = "*"
 smallvec        = "*"
-thread-scoped   = "*"
 time            = "*"
 toml            = "*"
 

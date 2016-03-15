@@ -40,7 +40,6 @@ extern crate regex;
 #[no_link] extern crate regex_macros;
 extern crate smallvec;
 extern crate test;
-extern crate thread_scoped;
 extern crate time;
 extern crate toml;
 

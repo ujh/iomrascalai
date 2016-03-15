@@ -41,8 +41,8 @@ use std::sync::Arc;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 use std::sync::mpsc::channel;
-use thread_scoped::JoinGuard;
-use thread_scoped::scoped;
+use std::thread::spawn;
+use std::thread::JoinHandle;
 use time::PreciseTime;
 
 mod node;
@@ -196,7 +196,7 @@ impl Engine for EngineImpl {
 
 }
 
-fn spin_up<'a>(config: Arc<Config>, playout: Arc<Playout>, game: &Game, send_to_main: Sender<((Vec<usize>, usize, PlayoutResult), Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>) -> (Vec<JoinGuard<'a, ()>>, Vec<Sender<()>>) {
+fn spin_up<'a>(config: Arc<Config>, playout: Arc<Playout>, game: &Game, send_to_main: Sender<((Vec<usize>, usize, PlayoutResult), Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>) -> (Vec<JoinHandle<()>>, Vec<Sender<()>>) {
     let mut guards = Vec::new();
     let mut halt_senders = Vec::new();
     for _ in 0..config.threads {
@@ -209,8 +209,8 @@ fn spin_up<'a>(config: Arc<Config>, playout: Arc<Playout>, game: &Game, send_to_
     (guards, halt_senders)
 }
 
-fn spin_up_worker<'a>(config: Arc<Config>, playout: Arc<Playout>, board: Board, send_to_main: Sender<((Vec<usize>, usize, PlayoutResult),Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>, receive_halt: Receiver<()>) -> JoinGuard<'a, ()> {
-    unsafe { scoped(move || {
+fn spin_up_worker(config: Arc<Config>, playout: Arc<Playout>, board: Board, send_to_main: Sender<((Vec<usize>, usize, PlayoutResult),Sender<(Vec<usize>, Vec<Move>, bool, usize)>)>, receive_halt: Receiver<()>) -> JoinHandle<()> {
+    spawn(move || {
         let mut rng = weak_rng();
         let (send_to_self, receive_from_main) = channel::<(Vec<usize>, Vec<Move>, bool, usize)>();
         // Send this empty message to get everything started
@@ -239,5 +239,5 @@ fn spin_up_worker<'a>(config: Arc<Config>, playout: Arc<Playout>, board: Board, 
                 }
                 )
         }
-    })}
+    })
 }
