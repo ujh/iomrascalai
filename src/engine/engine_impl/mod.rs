@@ -150,6 +150,17 @@ impl EngineImpl {
         (m,playouts)
     }
 
+    fn spin_up(&mut self, game: &Game, send_to_main: Sender<((Vec<usize>, usize, PlayoutResult), Sender<(Vec<usize>, Vec<Move>, usize)>)>) -> Vec<Sender<()>> {
+        let mut halt_senders = Vec::new();
+        for _ in 0..self.config.threads {
+            let (send_halt, receive_halt) = channel::<()>();
+            halt_senders.push(send_halt);
+            let send_to_main = send_to_main.clone();
+            spin_up_worker(self.config.clone(), self.playout.clone(), game.board(), send_to_main, receive_halt);
+        }
+        halt_senders
+    }
+
 }
 
 impl Engine for EngineImpl {
@@ -165,7 +176,7 @@ impl Engine for EngineImpl {
             return (Pass(color), self.root.playouts());
         }
         let (send_result_to_main, receive_result_from_threads) = channel::<((Vec<usize>, usize, PlayoutResult), Sender<(Vec<usize>, Vec<Move>, usize)>)>();
-        let halt_senders = spin_up(self.config.clone(), self.playout.clone(), game, send_result_to_main);
+        let halt_senders = self.spin_up(game, send_result_to_main);
         loop {
             let win_ratio = {
                 let (best, _) = self.root.best();
