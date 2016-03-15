@@ -156,9 +156,47 @@ impl EngineImpl {
             let (send_halt, receive_halt) = channel::<()>();
             halt_senders.push(send_halt);
             let send_to_main = send_to_main.clone();
-            spin_up_worker(self.config.clone(), self.playout.clone(), game.board(), send_to_main, receive_halt);
+            self.spin_up_worker(game.board(), send_to_main, receive_halt);
         }
         halt_senders
+    }
+
+    fn spin_up_worker(&self, board: Board, send_to_main: Sender<((Vec<usize>, usize, PlayoutResult),Sender<(Vec<usize>, Vec<Move>, usize)>)>, receive_halt: Receiver<()>) {
+        let config = self.config.clone();
+        let playout = self.playout.clone();
+        spawn(move || {
+            let mut rng = weak_rng();
+            let (send_to_self, receive_from_main) = channel::<(Vec<usize>, Vec<Move>, usize)>();
+            // Send this empty message to get everything started
+            check!(
+                config,
+                send_to_main.send(((vec!(), 0, PlayoutResult::empty()), send_to_self.clone())));
+            loop {
+                select!(
+                    _ = receive_halt.recv() => { break; },
+                    task = receive_from_main.recv() => {
+                        check!(
+                            config,
+                            (path, moves, nodes_added) = task => {
+                            let mut b = board.clone();
+                                for &m in moves.iter() {
+                                    b.play_legal_move(m);
+                                }
+                                // Playout is smart enough to correctly handle the
+                                // case where the game is already over.
+                                let playout_result = playout.run(&mut b, None, &mut rng);
+                                let send_to_self = send_to_self.clone();
+                                check!(
+                                    config,
+                                    send_to_main.send(
+                                        ((path, nodes_added, playout_result), send_to_self)
+                                    )
+                                );
+                            })
+                    }
+                )
+            }
+        });
     }
 
 }
@@ -205,48 +243,4 @@ impl Engine for EngineImpl {
         self.ownership = OwnershipStatistics::new(self.config.clone(), size, komi);
     }
 
-}
-
-fn spin_up<'a>(config: Arc<Config>, playout: Arc<Playout>, game: &Game, send_to_main: Sender<((Vec<usize>, usize, PlayoutResult), Sender<(Vec<usize>, Vec<Move>, usize)>)>) -> Vec<Sender<()>> {
-    let mut halt_senders = Vec::new();
-    for _ in 0..config.threads {
-        let (send_halt, receive_halt) = channel::<()>();
-        halt_senders.push(send_halt);
-        let send_to_main = send_to_main.clone();
-        spin_up_worker(config.clone(), playout.clone(), game.board(), send_to_main, receive_halt);
-    }
-    halt_senders
-}
-
-fn spin_up_worker(config: Arc<Config>, playout: Arc<Playout>, board: Board, send_to_main: Sender<((Vec<usize>, usize, PlayoutResult),Sender<(Vec<usize>, Vec<Move>, usize)>)>, receive_halt: Receiver<()>){
-    spawn(move || {
-        let mut rng = weak_rng();
-        let (send_to_self, receive_from_main) = channel::<(Vec<usize>, Vec<Move>, usize)>();
-        // Send this empty message to get everything started
-        check!(
-            config,
-            send_to_main.send(((vec!(), 0, PlayoutResult::empty()), send_to_self.clone())));
-        loop {
-            select!(
-                _ = receive_halt.recv() => { break; },
-                task = receive_from_main.recv() => {
-                    check!(
-                        config,
-                        (path, moves, nodes_added) = task => {
-                            let mut b = board.clone();
-                            for &m in moves.iter() {
-                                b.play_legal_move(m);
-                            }
-                            // Playout is smart enough to correctly handle the
-                            // case where the game is already over.
-                            let playout_result = playout.run(&mut b, None, &mut rng);
-                            let send_to_self = send_to_self.clone();
-                            check!(
-                                config,
-                                send_to_main.send(((path, nodes_added, playout_result), send_to_self)));
-                        })
-                }
-                )
-        }
-    });
 }
