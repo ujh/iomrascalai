@@ -65,30 +65,39 @@ macro_rules! check {
 
 }
 
-type Payload = (Vec<usize>, Vec<Move>, usize);
-type Answer = (Vec<usize>, usize, PlayoutResult);
+type Payload = (Vec<usize>, Vec<Move>, usize, usize);
+type Answer = (Vec<usize>, usize, PlayoutResult, usize);
 type Response = (Answer, Sender<Payload>);
 
 pub struct EngineImpl {
     config: Arc<Config>,
+    halt_senders: Vec<Sender<()>>,
+    id: usize,
     matcher: Arc<Matcher>,
     ownership: OwnershipStatistics,
     playout: Arc<Playout>,
     previous_node_count: usize,
+    receive_from_threads: Receiver<Response>,
     root: Node,
+    send_to_main: Sender<Response>,
     start: PreciseTime,
 }
 
 impl EngineImpl {
 
     pub fn new(config: Arc<Config>, matcher: Arc<Matcher>) -> EngineImpl {
+        let (send_to_main, receive_from_threads) = channel();
         EngineImpl {
             config: config.clone(),
+            halt_senders: vec!(),
+            id: 0,
             matcher: matcher.clone(),
             ownership: OwnershipStatistics::new(config.clone(), 0, 0.0),
             playout: Arc::new(Playout::new(config.clone(), matcher.clone())),
             previous_node_count: 0,
+            receive_from_threads: receive_from_threads,
             root: Node::new(NoMove, config),
+            send_to_main: send_to_main,
             start: PreciseTime::now(),
         }
     }
@@ -142,10 +151,12 @@ impl EngineImpl {
         }
     }
 
-    fn finish(&mut self, game: &Game, color: Color, halt_senders: Vec<Sender<()>>) -> (Move,usize) {
-        for halt_sender in halt_senders.iter() {
+    fn finish(&mut self, game: &Game, color: Color) -> (Move,usize) {
+        self.id += 1;
+        for halt_sender in &self.halt_senders {
             check!(self.config, halt_sender.send(()));
         }
+        self.halt_senders = vec!();
         let msg = format!("{} simulations ({}% wins on average, {} nodes)", self.root.playouts(), self.root.win_ratio()*100.0, self.root.descendants());
         self.config.log(msg);
         let playouts = self.root.playouts();
@@ -154,34 +165,34 @@ impl EngineImpl {
         (m,playouts)
     }
 
-    fn spin_up(&mut self, game: &Game, send_to_main: Sender<Response>) -> Vec<Sender<()>> {
-        let mut halt_senders = Vec::new();
+    fn spin_up(&mut self, game: &Game) {
+        self.halt_senders = vec!();
         for _ in 0..self.config.threads {
-            let (send_halt, receive_halt) = channel::<()>();
-            halt_senders.push(send_halt);
-            let send_to_main = send_to_main.clone();
-            self.spin_up_worker(game.board(), send_to_main, receive_halt);
+            self.spin_up_worker(game.board());
         }
-        halt_senders
     }
 
-    fn spin_up_worker(&self, board: Board, send_to_main: Sender<Response>, receive_halt: Receiver<()>) {
+    fn spin_up_worker(&mut self, board: Board) {
+        let (send_halt, receive_halt) = channel();
+        self.halt_senders.push(send_halt);
         let config = self.config.clone();
         let playout = self.playout.clone();
+        let send_to_main = self.send_to_main.clone();
+        let id = self.id;
         spawn(move || {
             let mut rng = weak_rng();
             let (send_to_self, receive_from_main) = channel();
             // Send this empty message to get everything started
             check!(
                 config,
-                send_to_main.send(((vec!(), 0, PlayoutResult::empty()), send_to_self.clone())));
+                send_to_main.send(((vec!(), 0, PlayoutResult::empty(), id), send_to_self.clone())));
             loop {
                 select!(
                     _ = receive_halt.recv() => { break; },
                     payload = receive_from_main.recv() => {
                         check!(
                             config,
-                            (path, moves, nodes_added) = payload => {
+                            (path, moves, nodes_added, id) = payload => {
                             let mut b = board.clone();
                                 for &m in moves.iter() {
                                     b.play_legal_move(m);
@@ -193,7 +204,7 @@ impl EngineImpl {
                                 check!(
                                     config,
                                     send_to_main.send(
-                                        ((path, nodes_added, playout_result), send_to_self)
+                                        ((path, nodes_added, playout_result, id), send_to_self)
                                     )
                                 );
                             })
@@ -217,26 +228,29 @@ impl Engine for EngineImpl {
             self.config.log(format!("No moves to simulate!"));
             return (Pass(color), self.root.playouts());
         }
-        let (send_result_to_main, receive_result_from_threads) = channel();
-        let halt_senders = self.spin_up(game, send_result_to_main);
+        self.spin_up(game);
         loop {
             let win_ratio = {
                 let (best, _) = self.root.best();
                 best.win_ratio()
             };
             if timer.ran_out_of_time(win_ratio) {
-                return self.finish(game, color, halt_senders);
+                return self.finish(game, color);
             }
-            let r = receive_result_from_threads.recv();
+            let r = self.receive_from_threads.recv();
             check!(self.config, res = r => {
-                let ((path, nodes_added, playout_result), send_to_thread) = res;
-                self.ownership.merge(playout_result.score());
-                self.root.record_on_path(
-                    &path,
-                    nodes_added,
-                    &playout_result);
-                let data = self.root.find_leaf_and_expand(game, self.matcher.clone());
-                check!(self.config, send_to_thread.send(data));
+                let ((path, nodes_added, playout_result, id), send_to_thread) = res;
+                // Ignore responses from the previous genmove
+                if self.id == id {
+                    self.ownership.merge(playout_result.score());
+                    self.root.record_on_path(
+                        &path,
+                        nodes_added,
+                        &playout_result);
+                    let (path, moves, nodes_added) = self.root.find_leaf_and_expand(game, self.matcher.clone());
+                    let data = (path, moves, nodes_added, self.id);
+                    check!(self.config, send_to_thread.send(data));
+                }
             });
         }
     }
