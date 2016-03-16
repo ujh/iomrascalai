@@ -37,6 +37,7 @@ use playout::PlayoutResult;
 use ruleset::KgsChinese;
 use timer::Timer;
 
+use rand::XorShiftRng;
 use rand::weak_rng;
 use std::sync::Arc;
 use std::sync::mpsc::Receiver;
@@ -183,31 +184,14 @@ impl EngineImpl {
             let mut rng = weak_rng();
             let (send_to_self, receive_from_main) = channel();
             // Send this empty message to get everything started
-            check!(
-                config,
-                send_to_main.send(((vec!(), 0, PlayoutResult::empty(), id), send_to_self.clone())));
+            init(config.clone(), send_to_main.clone(), send_to_self.clone(), id);
             loop {
                 select!(
                     _ = receive_halt.recv() => { break; },
-                    payload = receive_from_main.recv() => {
-                        check!(
-                            config,
-                            (path, moves, nodes_added, id) = payload => {
-                            let mut b = board.clone();
-                                for &m in moves.iter() {
-                                    b.play_legal_move(m);
-                                }
-                                // Playout is smart enough to correctly handle the
-                                // case where the game is already over.
-                                let playout_result = playout.run(&mut b, None, &mut rng);
-                                let send_to_self = send_to_self.clone();
-                                check!(
-                                    config,
-                                    send_to_main.send(
-                                        ((path, nodes_added, playout_result, id), send_to_self)
-                                    )
-                                );
-                            })
+                    r = receive_from_main.recv() => {
+                        check!(config, payload = r => {
+                            run_playout(config.clone(), send_to_main.clone(), send_to_self.clone(), &board, payload, playout.clone(), &mut rng);
+                        });
                     }
                 )
             }
@@ -261,4 +245,28 @@ impl Engine for EngineImpl {
         self.ownership = OwnershipStatistics::new(self.config.clone(), size, komi);
     }
 
+}
+
+
+fn init(config: Arc<Config>, send_to_main: Sender<Response>, send_to_self: Sender<Payload>, id: usize) {
+    let answer = (vec!(), 0, PlayoutResult::empty(), id);
+    check!(config, send_to_main.send((answer, send_to_self)));
+}
+
+fn run_playout(config: Arc<Config>, send_to_main: Sender<Response>, send_to_self: Sender<Payload>, board: &Board, payload: Payload, playout: Arc<Playout>, mut rng: &mut XorShiftRng) {
+    let (path, moves, nodes_added, id) = payload;
+    let mut b = board.clone();
+    for &m in moves.iter() {
+        b.play_legal_move(m);
+    }
+    // Playout is smart enough to correctly handle the case where the
+    // game is already over.
+    let playout_result = playout.run(&mut b, None, &mut rng);
+    let send_to_self = send_to_self.clone();
+    check!(
+        config,
+        send_to_main.send(
+            ((path, nodes_added, playout_result, id), send_to_self)
+        )
+    );
 }
