@@ -66,6 +66,7 @@ macro_rules! check {
 }
 
 type Payload = (Vec<usize>, Vec<Move>, usize);
+type Answer = (Vec<usize>, usize, PlayoutResult);
 
 pub struct EngineImpl {
     config: Arc<Config>,
@@ -152,7 +153,7 @@ impl EngineImpl {
         (m,playouts)
     }
 
-    fn spin_up(&mut self, game: &Game, send_to_main: Sender<((Vec<usize>, usize, PlayoutResult), Sender<(Vec<usize>, Vec<Move>, usize)>)>) -> Vec<Sender<()>> {
+    fn spin_up(&mut self, game: &Game, send_to_main: Sender<(Answer, Sender<(Vec<usize>, Vec<Move>, usize)>)>) -> Vec<Sender<()>> {
         let mut halt_senders = Vec::new();
         for _ in 0..self.config.threads {
             let (send_halt, receive_halt) = channel::<()>();
@@ -163,7 +164,7 @@ impl EngineImpl {
         halt_senders
     }
 
-    fn spin_up_worker(&self, board: Board, send_to_main: Sender<((Vec<usize>, usize, PlayoutResult),Sender<Payload>)>, receive_halt: Receiver<()>) {
+    fn spin_up_worker(&self, board: Board, send_to_main: Sender<(Answer, Sender<Payload>)>, receive_halt: Receiver<()>) {
         let config = self.config.clone();
         let playout = self.playout.clone();
         spawn(move || {
@@ -215,7 +216,7 @@ impl Engine for EngineImpl {
             self.config.log(format!("No moves to simulate!"));
             return (Pass(color), self.root.playouts());
         }
-        let (send_result_to_main, receive_result_from_threads) = channel::<((Vec<usize>, usize, PlayoutResult), Sender<Payload>)>();
+        let (send_result_to_main, receive_result_from_threads) = channel::<(Answer, Sender<Payload>)>();
         let halt_senders = self.spin_up(game, send_result_to_main);
         loop {
             let win_ratio = {
