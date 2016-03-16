@@ -65,6 +65,8 @@ macro_rules! check {
 
 }
 
+type Payload = (Vec<usize>, Vec<Move>, usize);
+
 pub struct EngineImpl {
     config: Arc<Config>,
     matcher: Arc<Matcher>,
@@ -161,12 +163,12 @@ impl EngineImpl {
         halt_senders
     }
 
-    fn spin_up_worker(&self, board: Board, send_to_main: Sender<((Vec<usize>, usize, PlayoutResult),Sender<(Vec<usize>, Vec<Move>, usize)>)>, receive_halt: Receiver<()>) {
+    fn spin_up_worker(&self, board: Board, send_to_main: Sender<((Vec<usize>, usize, PlayoutResult),Sender<Payload>)>, receive_halt: Receiver<()>) {
         let config = self.config.clone();
         let playout = self.playout.clone();
         spawn(move || {
             let mut rng = weak_rng();
-            let (send_to_self, receive_from_main) = channel::<(Vec<usize>, Vec<Move>, usize)>();
+            let (send_to_self, receive_from_main) = channel();
             // Send this empty message to get everything started
             check!(
                 config,
@@ -174,10 +176,10 @@ impl EngineImpl {
             loop {
                 select!(
                     _ = receive_halt.recv() => { break; },
-                    task = receive_from_main.recv() => {
+                    payload = receive_from_main.recv() => {
                         check!(
                             config,
-                            (path, moves, nodes_added) = task => {
+                            (path, moves, nodes_added) = payload => {
                             let mut b = board.clone();
                                 for &m in moves.iter() {
                                     b.play_legal_move(m);
@@ -213,7 +215,7 @@ impl Engine for EngineImpl {
             self.config.log(format!("No moves to simulate!"));
             return (Pass(color), self.root.playouts());
         }
-        let (send_result_to_main, receive_result_from_threads) = channel::<((Vec<usize>, usize, PlayoutResult), Sender<(Vec<usize>, Vec<Move>, usize)>)>();
+        let (send_result_to_main, receive_result_from_threads) = channel::<((Vec<usize>, usize, PlayoutResult), Sender<Payload>)>();
         let halt_senders = self.spin_up(game, send_result_to_main);
         loop {
             let win_ratio = {
