@@ -35,18 +35,15 @@ use patterns::Matcher;
 use playout::Playout;
 use playout::PlayoutResult;
 use ruleset::KgsChinese;
+use self::worker::Worker;
 use timer::Timer;
 
-use rand::XorShiftRng;
-use rand::weak_rng;
 use std::sync::Arc;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 use std::sync::mpsc::channel;
 use std::thread::spawn;
 use time::PreciseTime;
-
-mod node;
 
 macro_rules! check {
     ($config:expr, $r:expr) => {
@@ -66,9 +63,12 @@ macro_rules! check {
 
 }
 
-type Payload = (Vec<usize>, Vec<Move>, usize, usize);
-type Answer = (Vec<usize>, usize, PlayoutResult, usize);
-type Response = (Answer, Sender<Payload>);
+mod node;
+mod worker;
+
+pub type Payload = (Vec<usize>, Vec<Move>, usize, usize);
+pub type Answer = (Vec<usize>, usize, PlayoutResult, usize);
+pub type Response = (Answer, Sender<Payload>);
 
 pub struct EngineImpl {
     config: Arc<Config>,
@@ -233,78 +233,4 @@ impl Engine for EngineImpl {
         self.ownership = OwnershipStatistics::new(self.config.clone(), size, komi);
     }
 
-}
-
-
-struct Worker {
-    board: Board,
-    config: Arc<Config>,
-    id: usize,
-    playout: Arc<Playout>,
-    rng: XorShiftRng,
-    send_to_main: Sender<Response>,
-    send_to_self: Option<Sender<Payload>>,
-}
-
-impl Worker {
-
-    pub fn new(config: &Arc<Config>, playout: &Arc<Playout>, id: usize, board: Board, send_to_main: &Sender<Response>) -> Worker {
-        let rng = weak_rng();
-        Worker {
-            board: board,
-            config: config.clone(),
-            id: id,
-            playout: playout.clone(),
-            rng: rng,
-            send_to_main: send_to_main.clone(),
-            send_to_self: None,
-        }
-    }
-
-    pub fn run(&mut self, stop: Receiver<()>) {
-        let (send_to_self, receive_from_main) = channel();
-        self.send_to_self = Some(send_to_self);
-        self.init();
-        loop {
-            select!(
-                _ = stop.recv() => { break; },
-                r = receive_from_main.recv() => {
-                    check!(self.config, message = r => {
-                        self.run_playout(message);
-                    });
-                }
-            );
-        }
-
-    }
-
-    fn init(&self) {
-        let answer = (vec!(), 0, PlayoutResult::empty(), self.id);
-        self.respond(answer);
-    }
-
-    fn run_playout(&mut self, message: Payload) {
-        let (path, moves, nodes_added, id) = message;
-        let mut b = self.board.clone();
-        for &m in moves.iter() {
-            b.play_legal_move(m);
-        }
-        // Playout is smart enough to correctly handle the case where
-        // the game is already over.
-        let playout_result = self.playout.run(&mut b, None, &mut self.rng);
-        let answer = (path, nodes_added, playout_result, id);
-        self.respond(answer);
-    }
-
-    fn respond(&self, answer: Answer) {
-        match self.send_to_self {
-            Some(ref sender) => {
-                let response = (answer, sender.clone());
-                check!(self.config, self.send_to_main.send(response));
-            }
-            None => {
-                panic!("Can't send message from Worker!")
-            }
-        }
-    }
 }
