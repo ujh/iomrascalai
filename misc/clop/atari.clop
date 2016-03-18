@@ -7,3 +7,6 @@ Replications 1
 # [playout]
 LinearParameter playout.atari_check 0.0 1.0
 LinearParameter playout.ladder_check 0.0 1.0
+
+# [tree]
+IntegerParameter tree.expand_after 0 100
