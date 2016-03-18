@@ -174,28 +174,16 @@ impl EngineImpl {
     }
 
     fn spin_up_worker(&mut self, board: Board) {
+        let mut worker = Worker::new(
+            &self.config,
+            &self.playout,
+            self.id,
+            board,
+            &self.send_to_main
+        );
         let (send_halt, receive_halt) = channel();
         self.halt_senders.push(send_halt);
-        let config = self.config.clone();
-        let playout = self.playout.clone();
-        let send_to_main = self.send_to_main.clone();
-        let id = self.id;
-        spawn(move || {
-            let mut rng = weak_rng();
-            let (send_to_self, receive_from_main) = channel();
-            // Send this empty message to get everything started
-            init(config.clone(), send_to_main.clone(), send_to_self.clone(), id);
-            loop {
-                select!(
-                    _ = receive_halt.recv() => { break; },
-                    r = receive_from_main.recv() => {
-                        check!(config, payload = r => {
-                            run_playout(config.clone(), send_to_main.clone(), send_to_self.clone(), &board, payload, playout.clone(), &mut rng);
-                        });
-                    }
-                )
-            }
-        });
+        spawn(move || worker.run(receive_halt));
     }
 
 }
@@ -248,25 +236,75 @@ impl Engine for EngineImpl {
 }
 
 
-fn init(config: Arc<Config>, send_to_main: Sender<Response>, send_to_self: Sender<Payload>, id: usize) {
-    let answer = (vec!(), 0, PlayoutResult::empty(), id);
-    check!(config, send_to_main.send((answer, send_to_self)));
+struct Worker {
+    board: Board,
+    config: Arc<Config>,
+    id: usize,
+    playout: Arc<Playout>,
+    rng: XorShiftRng,
+    send_to_main: Sender<Response>,
+    send_to_self: Option<Sender<Payload>>,
 }
 
-fn run_playout(config: Arc<Config>, send_to_main: Sender<Response>, send_to_self: Sender<Payload>, board: &Board, payload: Payload, playout: Arc<Playout>, mut rng: &mut XorShiftRng) {
-    let (path, moves, nodes_added, id) = payload;
-    let mut b = board.clone();
-    for &m in moves.iter() {
-        b.play_legal_move(m);
+impl Worker {
+
+    pub fn new(config: &Arc<Config>, playout: &Arc<Playout>, id: usize, board: Board, send_to_main: &Sender<Response>) -> Worker {
+        let rng = weak_rng();
+        Worker {
+            board: board,
+            config: config.clone(),
+            id: id,
+            playout: playout.clone(),
+            rng: rng,
+            send_to_main: send_to_main.clone(),
+            send_to_self: None,
+        }
     }
-    // Playout is smart enough to correctly handle the case where the
-    // game is already over.
-    let playout_result = playout.run(&mut b, None, &mut rng);
-    let send_to_self = send_to_self.clone();
-    check!(
-        config,
-        send_to_main.send(
-            ((path, nodes_added, playout_result, id), send_to_self)
-        )
-    );
+
+    pub fn run(&mut self, stop: Receiver<()>) {
+        let (send_to_self, receive_from_main) = channel();
+        self.send_to_self = Some(send_to_self);
+        self.init();
+        loop {
+            select!(
+                _ = stop.recv() => { break; },
+                r = receive_from_main.recv() => {
+                    check!(self.config, message = r => {
+                        self.run_playout(message);
+                    });
+                }
+            );
+        }
+
+    }
+
+    fn init(&self) {
+        let answer = (vec!(), 0, PlayoutResult::empty(), self.id);
+        self.respond(answer);
+    }
+
+    fn run_playout(&mut self, message: Payload) {
+        let (path, moves, nodes_added, id) = message;
+        let mut b = self.board.clone();
+        for &m in moves.iter() {
+            b.play_legal_move(m);
+        }
+        // Playout is smart enough to correctly handle the case where
+        // the game is already over.
+        let playout_result = self.playout.run(&mut b, None, &mut self.rng);
+        let answer = (path, nodes_added, playout_result, id);
+        self.respond(answer);
+    }
+
+    fn respond(&self, answer: Answer) {
+        match self.send_to_self {
+            Some(ref sender) => {
+                let response = (answer, sender.clone());
+                check!(self.config, self.send_to_main.send(response));
+            }
+            None => {
+                panic!("Can't send message from Worker!")
+            }
+        }
+    }
 }
