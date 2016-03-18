@@ -2,6 +2,7 @@
  *                                                                      *
  * Copyright 2014 Urban Hafner, Thomas Poinsot                          *
  * Copyright 2015 Thomas Poinsot, Igor Polyakov                         *
+ * Copyright 2016 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -30,7 +31,7 @@ use std::sync::Arc;
 pub struct Driver;
 
 impl Driver {
-    pub fn new(config: Arc<Config>, engine: Box<Engine>) {
+    pub fn new(config: Arc<Config>, engine: Engine) {
         let mut interpreter = GTPInterpreter::new(config, engine);
         let reader = stdin();
         let mut command = String::new();

@@ -1,6 +1,7 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2014-2015 Thomas Poinsot, Urban Hafner                     *
+ * Copyright 2015 Urban Hafner, Igor Polyakov                           *
+ * Copyright 2016 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -20,29 +21,213 @@
  ************************************************************************/
 
 pub use self::controller::EngineController;
-pub use self::engine_impl::EngineImpl;
+pub use self::node::Node;
+use board::Board;
 use board::Color;
 use board::Move;
+use board::NoMove;
+use board::Pass;
+use board::Resign;
 use config::Config;
 use game::Game;
 use ownership::OwnershipStatistics;
 use patterns::Matcher;
+use playout::Playout;
+use playout::PlayoutResult;
+use ruleset::KgsChinese;
+use self::worker::Worker;
 use timer::Timer;
 
 use std::sync::Arc;
+use std::sync::mpsc::Receiver;
+use std::sync::mpsc::Sender;
+use std::sync::mpsc::channel;
+use std::thread::spawn;
+use time::PreciseTime;
 
-mod controller;
-mod engine_impl;
-mod test;
+macro_rules! check {
+    ($config:expr, $r:expr) => {
+        check!($config, _unused_result = $r => {})
+    };
+    ($config:expr, $res:pat = $r:expr => $body:expr) => {
+        match $r {
+            Ok(res) => {
+                let $res = res;
+                $body
+            },
+            Err(e) => {
+                $config.log(format!("[DEBUG] unwrap failed with {:?} at {}:{}", e, file!(), line!()));
+            }
+        }
+    };
 
-pub fn factory(config: Arc<Config>, matcher: Arc<Matcher>) -> Box<Engine> {
-    Box::new(EngineImpl::new(config, matcher))
 }
 
-pub trait Engine {
+mod controller;
+mod node;
+mod worker;
 
-    fn genmove(&mut self, Color, &Game, &Timer) -> (Move,usize);
-    fn ownership(&self) -> &OwnershipStatistics;
-    fn reset(&mut self, _:u8, _:f32) {}
+pub type Payload = (Vec<usize>, Vec<Move>, usize, usize);
+pub type Answer = (Vec<usize>, usize, PlayoutResult, usize);
+pub type Response = (Answer, Sender<Payload>);
+
+pub struct Engine {
+    config: Arc<Config>,
+    halt_senders: Vec<Sender<()>>,
+    id: usize,
+    matcher: Arc<Matcher>,
+    ownership: OwnershipStatistics,
+    playout: Arc<Playout>,
+    previous_node_count: usize,
+    receive_from_threads: Receiver<Response>,
+    root: Node,
+    send_to_main: Sender<Response>,
+    start: PreciseTime,
+}
+
+impl Engine {
+
+    pub fn new(config: Arc<Config>, matcher: Arc<Matcher>) -> Engine {
+        let (send_to_main, receive_from_threads) = channel();
+        Engine {
+            config: config.clone(),
+            halt_senders: vec!(),
+            id: 0,
+            matcher: matcher.clone(),
+            ownership: OwnershipStatistics::new(config.clone(), 0, 0.0),
+            playout: Arc::new(Playout::new(config.clone(), matcher.clone())),
+            previous_node_count: 0,
+            receive_from_threads: receive_from_threads,
+            root: Node::new(NoMove, config),
+            send_to_main: send_to_main,
+            start: PreciseTime::now(),
+        }
+    }
+
+    pub fn ownership(&self) -> &OwnershipStatistics {
+        &self.ownership
+    }
+
+    pub fn genmove(&mut self, color: Color, game: &Game, timer: &Timer) -> (Move,usize) {
+        self.genmove_setup(color, game);
+        if self.root.has_no_children() {
+            self.config.log(format!("No moves to simulate!"));
+            return (Pass(color), self.root.playouts());
+        }
+        self.spin_up(game);
+        loop {
+            let win_ratio = {
+                let (best, _) = self.root.best();
+                best.win_ratio()
+            };
+            if timer.ran_out_of_time(win_ratio) {
+                return self.finish(game, color);
+            }
+            let r = self.receive_from_threads.recv();
+            check!(self.config, res = r => {
+                let ((path, nodes_added, playout_result, id), send_to_thread) = res;
+                // Ignore responses from the previous genmove
+                if self.id == id {
+                    self.ownership.merge(playout_result.score());
+                    self.root.record_on_path(
+                        &path,
+                        nodes_added,
+                        &playout_result);
+                    let (path, moves, nodes_added) = self.root.find_leaf_and_expand(game, self.matcher.clone());
+                    let data = (path, moves, nodes_added, self.id);
+                    check!(self.config, send_to_thread.send(data));
+                }
+            });
+        }
+    }
+
+    pub fn reset(&mut self, size: u8, komi: f32) {
+        self.previous_node_count = 0;
+        self.root = Node::new(NoMove, self.config.clone());
+        self.ownership = OwnershipStatistics::new(self.config.clone(), size, komi);
+    }
+
+    fn set_new_root(&mut self, game: &Game, color: Color) {
+        self.root = self.root.find_new_root(game, color);
+    }
+
+    fn genmove_setup(&mut self, color: Color, game: &Game) {
+        self.start = PreciseTime::now();
+        self.config.gfx(self.ownership.gfx());
+        self.ownership = OwnershipStatistics::new(self.config.clone(), game.size(), game.komi());
+        self.previous_node_count = self.root.descendants();
+        self.set_new_root(game, color);
+        let reused_node_count = self.root.descendants();
+        if self.previous_node_count > 0 {
+            let percentage = reused_node_count as f32 / self.previous_node_count as f32;
+            let msg = format!("Reusing {} nodes ({}%)", reused_node_count, percentage*100.0);
+            self.config.log(msg);
+        }
+    }
+
+    fn best_move(&self, game: &Game, color: Color) -> Move {
+        let (best_node, pass) = self.root.best();
+        let best_win_ratio = best_node.win_ratio();
+        let pass_win_ratio = pass.win_ratio();
+        let n = match game.ruleset() {
+            KgsChinese => {
+                if best_win_ratio > pass_win_ratio { best_node } else { pass }
+            },
+            _ => {
+                // Only allow passing under Tromp/Taylor and CGOS
+                // when we are winning.
+                if game.winner() == color {
+                    if best_win_ratio > pass_win_ratio { best_node } else { pass }
+                } else {
+                    best_node
+                }
+            }
+        };
+        let win_ratio = n.win_ratio();
+        let msg = format!("Best move win ratio: {}%", win_ratio*100.0);
+        self.config.log(msg);
+        // Special case, when we are winning and all moves are played.
+        if win_ratio == 0.0 {
+            Pass(color)
+        } else if win_ratio < 0.15 {
+            Resign(color)
+        } else {
+            n.m()
+        }
+    }
+
+    fn finish(&mut self, game: &Game, color: Color) -> (Move,usize) {
+        self.id += 1;
+        for halt_sender in &self.halt_senders {
+            check!(self.config, halt_sender.send(()));
+        }
+        self.halt_senders = vec!();
+        let msg = format!("{} simulations ({}% wins on average, {} nodes)", self.root.playouts(), self.root.win_ratio()*100.0, self.root.descendants());
+        self.config.log(msg);
+        let playouts = self.root.playouts();
+        let m = self.best_move(game, color);
+        self.set_new_root(&game.play(m).unwrap(), color);
+        (m,playouts)
+    }
+
+    fn spin_up(&mut self, game: &Game) {
+        self.halt_senders = vec!();
+        for _ in 0..self.config.threads {
+            self.spin_up_worker(game.board());
+        }
+    }
+
+    fn spin_up_worker(&mut self, board: Board) {
+        let mut worker = Worker::new(
+            &self.config,
+            &self.playout,
+            self.id,
+            board,
+            &self.send_to_main
+        );
+        let (send_halt, receive_halt) = channel();
+        self.halt_senders.push(send_halt);
+        spawn(move || worker.run(receive_halt));
+    }
 
 }

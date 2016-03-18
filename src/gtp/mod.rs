@@ -2,6 +2,7 @@
  *                                                                      *
  * Copyright 2014 Thomas Poinsot, Urban Hafner                          *
  * Copyright 2015 Urban Hafner, Thomas Poinsot, Igor Polyakov           *
+ * Copyright 2016 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -43,7 +44,7 @@ pub struct GTPInterpreter<'a> {
     byo_time: i64,
     commands: Vec<&'a str>,
     config: Arc<Config>,
-    controller: EngineController<'a>,
+    controller: EngineController,
     game: Game,
     main_time: i64,
     running: bool,
@@ -51,7 +52,7 @@ pub struct GTPInterpreter<'a> {
 }
 
 impl<'a> GTPInterpreter<'a> {
-    pub fn new(config: Arc<Config>, engine: Box<Engine>) -> GTPInterpreter<'a> {
+    pub fn new(config: Arc<Config>, engine: Engine) -> GTPInterpreter<'a> {
         let controller = EngineController::new(config.clone(), engine);
         let komi = 6.5;
         let boardsize = 19;

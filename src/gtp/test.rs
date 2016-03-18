@@ -2,6 +2,7 @@
  *                                                                      *
  * Copyright 2014 Urban Hafner                                          *
  * Copyright 2015 Thomas Poinsot, Igor Polyakov, Urban Hafner           *
+ * Copyright 2016 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -23,7 +24,7 @@
 #![cfg(test)]
 
 pub use config::Config;
-pub use engine::EngineImpl;
+pub use engine::Engine;
 pub use patterns::Matcher;
 pub use ruleset::CGOS;
 pub use ruleset::KgsChinese;
@@ -51,7 +52,7 @@ describe! interpreter {
             c.ruleset = CGOS;
             let config = Arc::new(c);
             let matcher = Arc::new(Matcher::new());
-            let engine = Box::new(EngineImpl::new(config.clone(), matcher));
+            let engine = Engine::new(config.clone(), matcher);
             let mut interpreter = GTPInterpreter::new(config.clone(), engine);
         }
 
@@ -359,7 +360,7 @@ describe! interpreter {
             c.ruleset = KgsChinese;
             let config = Arc::new(c);
             let matcher = Arc::new(Matcher::new());
-            let engine = Box::new(EngineImpl::new(config.clone(), matcher));
+            let engine = Engine::new(config.clone(), matcher);
             let mut interpreter = GTPInterpreter::new(config.clone(), engine);
         }
 
