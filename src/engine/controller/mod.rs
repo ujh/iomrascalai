@@ -1,6 +1,7 @@
 /************************************************************************
  *                                                                      *
  * Copyright 2015 Urban Hafner, Igor Polyakov                           *
+ * Copyright 2016 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -30,14 +31,14 @@ use timer::Timer;
 
 use std::sync::Arc;
 
-pub struct EngineController<'a> {
+pub struct EngineController {
     config: Arc<Config>,
-    engine: Box<Engine + 'a>,
+    engine: Engine,
 }
 
-impl<'a> EngineController<'a> {
+impl EngineController {
 
-    pub fn new<'b>(config: Arc<Config>, engine: Box<Engine + 'b>) -> EngineController<'b> {
+    pub fn new(config: Arc<Config>, engine: Engine) -> EngineController {
         EngineController {
             config: config,
             engine: engine,

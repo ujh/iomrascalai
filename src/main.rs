@@ -40,13 +40,13 @@ extern crate regex;
 #[no_link] extern crate regex_macros;
 extern crate smallvec;
 extern crate test;
-extern crate thread_scoped;
 extern crate time;
 extern crate toml;
 
 // Use everything in config publicly to force the generation of
 // documentation.
 pub use config::*;
+use engine::Engine;
 use gtp::driver::Driver;
 use patterns::Matcher;
 use ruleset::Ruleset;
@@ -134,7 +134,7 @@ fn main() {
     // during setup.
     let matcher = Arc::new(Matcher::new());
 
-    let engine = engine::factory(config.clone(), matcher);
+    let engine = Engine::new(config.clone(), matcher);
 
     config.log(format!("Current configuration: {:#?}", config));
 
