@@ -125,17 +125,9 @@ impl Engine {
             }
             let r = self.receive_from_threads.recv();
             check!(self.config, res = r => {
-                let ((path, nodes_added, playout_result, id), send_to_thread) = res;
-                // Ignore responses from the previous genmove
-                if self.id == id {
-                    self.ownership.merge(playout_result.score());
-                    self.root.record_on_path(
-                        &path,
-                        nodes_added,
-                        &playout_result);
-                    let (path, moves, nodes_added) = self.root.find_leaf_and_expand(game, self.matcher.clone());
-                    let data = (path, moves, nodes_added, self.id);
-                    check!(self.config, send_to_thread.send(data));
+                match self.record_playout(res) {
+                    Some(send_to_thread) => self.run_playout(game, send_to_thread),
+                    None => {}
                 }
             });
         }
@@ -145,6 +137,27 @@ impl Engine {
         self.previous_node_count = 0;
         self.root = Node::new(NoMove, self.config.clone());
         self.ownership = OwnershipStatistics::new(self.config.clone(), size, komi);
+    }
+
+    fn run_playout(&mut self, game: &Game, send_to_thread: Sender<Payload>) {
+        let (path, moves, nodes_added) = self.root.find_leaf_and_expand(game, self.matcher.clone());
+        let data = (path, moves, nodes_added, self.id);
+        check!(self.config, send_to_thread.send(data));
+    }
+
+    fn record_playout(&mut self, response: Response) -> Option<Sender<Payload>> {
+        let ((path, nodes_added, playout_result, id), send_to_thread) = response;
+        // Ignore responses from the previous genmove
+        if self.id == id {
+            self.ownership.merge(playout_result.score());
+            self.root.record_on_path(
+                &path,
+                nodes_added,
+                &playout_result);
+            Some(send_to_thread)
+        } else {
+            None
+        }
     }
 
     fn set_new_root(&mut self, game: &Game, color: Color) {
