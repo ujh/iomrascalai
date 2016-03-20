@@ -39,7 +39,9 @@ impl Driver {
         loop {
             command.clear();
             reader.read_line(&mut command).unwrap();
-
+            if command.is_empty() {
+                return; // EOF or Ctrl-D
+            }
             let response = interpreter.read(&*command);
 
             match response {
