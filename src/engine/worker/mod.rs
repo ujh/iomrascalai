@@ -20,11 +20,12 @@
  ************************************************************************/
 
 use board::Board;
+use board::Move;
 use config::Config;
 use playout::Playout;
 use playout::PlayoutResult;
 use super::Answer;
-use super::Payload;
+use super::Message;
 use super::Response;
 
 use rand::XorShiftRng;
@@ -34,6 +35,8 @@ use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 use std::sync::mpsc::channel;
 
+type Payload = (Vec<usize>, Vec<Move>, usize, usize);
+
 pub struct Worker {
     board: Board,
     config: Arc<Config>,
@@ -41,7 +44,7 @@ pub struct Worker {
     playout: Arc<Playout>,
     rng: XorShiftRng,
     send_to_main: Sender<Response>,
-    send_to_self: Option<Sender<Payload>>,
+    send_to_self: Option<Sender<Message>>,
 }
 
 impl Worker {
@@ -68,7 +71,9 @@ impl Worker {
                 _ = stop.recv() => { break; },
                 r = receive_from_main.recv() => {
                     check!(self.config, message = r => {
-                        self.run_playout(message);
+                        match message {
+                            Message::RunPlayout(payload) => self.run_playout(payload)
+                        }
                     });
                 }
             );
