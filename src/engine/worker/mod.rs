@@ -35,8 +35,6 @@ use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 use std::sync::mpsc::channel;
 
-type Payload = (Vec<usize>, Vec<Move>, usize, usize);
-
 pub struct Worker {
     board: Board,
     config: Arc<Config>,
@@ -72,7 +70,9 @@ impl Worker {
                 r = receive_from_main.recv() => {
                     check!(self.config, message = r => {
                         match message {
-                            Message::RunPlayout(payload) => self.run_playout(payload)
+                            Message::RunPlayout {path, moves, nodes_added, id} => {
+                                self.run_playout(path, moves, nodes_added, id)
+                            }
                         }
                     });
                 }
@@ -86,8 +86,7 @@ impl Worker {
         self.respond(answer);
     }
 
-    fn run_playout(&mut self, message: Payload) {
-        let (path, moves, nodes_added, id) = message;
+    fn run_playout(&mut self, path: Vec<usize>, moves: Vec<Move>, nodes_added: usize, id: usize) {
         let mut b = self.board.clone();
         for &m in moves.iter() {
             b.play_legal_move(m);

@@ -68,7 +68,12 @@ mod node;
 mod worker;
 
 pub enum Message {
-    RunPlayout((Vec<usize>, Vec<Move>, usize, usize))
+    RunPlayout {
+        id: usize,
+        moves: Vec<Move>,
+        nodes_added: usize,
+        path: Vec<usize>,
+    }
 }
 pub type Answer = (Vec<usize>, usize, PlayoutResult, usize);
 pub type Response = (Answer, Sender<Message>);
@@ -143,8 +148,12 @@ impl Engine {
 
     fn run_playout(&mut self, game: &Game, send_to_thread: Sender<Message>) {
         let (path, moves, nodes_added) = self.root.find_leaf_and_expand(game, self.matcher.clone());
-        let data = (path, moves, nodes_added, self.id);
-        let message = Message::RunPlayout(data);
+        let message = Message::RunPlayout {
+            id: self.id,
+            moves: moves,
+            nodes_added: nodes_added,
+            path: path,
+        };
         check!(self.config, send_to_thread.send(message));
     }
 
