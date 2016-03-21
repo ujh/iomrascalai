@@ -187,9 +187,9 @@ impl Node {
         if not_terminal && self.playouts >= self.config.tree.expand_after {
             let mut children = board.legal_moves_without_eyes()
                 .iter()
-                .map(|m| self.new_leaf(board, m, matcher.clone()))
+                .map(|m| Node::new(*m, self.config.clone()))
                 .collect();
-            self.priors(&mut children, board);
+            self.priors(&mut children, board, matcher);
             self.children = children;
             self.children.push(Node::new(Pass(board.next_player()), self.config.clone()));
         }
@@ -197,7 +197,7 @@ impl Node {
         not_terminal
     }
 
-    pub fn priors(&self, children: &mut Vec<Node>, board: &Board) {
+    pub fn priors(&self, children: &mut Vec<Node>, board: &Board, matcher: Arc<Matcher>) {
         let color = board.next_player().opposite();
 
         let in_danger = board.chains().iter()
@@ -221,11 +221,13 @@ impl Node {
                 }
             }
         }
+        for child in children {
+            self.child_priors(child, board, &matcher);
+        }
     }
 
-    pub fn new_leaf(&self, board: &Board, m: &Move, matcher: Arc<Matcher>) -> Node {
-        let mut node = Node::new(*m, self.config.clone());
-
+    fn child_priors(&self, node: &mut Node, board: &Board, matcher: &Arc<Matcher>) {
+        let m = &node.m();
         if !board.is_not_self_atari(m) {
             // That's a negative prior
             node.record_priors(self.config.priors.self_atari, 0);
@@ -246,14 +248,13 @@ impl Node {
             let prior = count * self.config.priors.patterns;
             node.record_even_prior(prior);
         }
-        node
     }
 
     fn use_patterns(&self) -> bool {
         self.config.priors.patterns > 0
     }
 
-    fn matching_patterns_count(&self, board: &Board, m: &Move, matcher: Arc<Matcher>) -> usize {
+    fn matching_patterns_count(&self, board: &Board, m: &Move, matcher: &Arc<Matcher>) -> usize {
         matcher.pattern_count(board, &m.coord())
     }
 
