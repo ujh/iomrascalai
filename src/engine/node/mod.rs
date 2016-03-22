@@ -45,6 +45,7 @@ pub struct Node {
     config: Arc<Config>,
     descendants: usize,
     m: Move,
+    marked_for_expansion: bool,
     playouts: usize,
     plays: f32,
     prior_plays: usize,
@@ -62,6 +63,7 @@ impl Node {
             config: config.clone(),
             descendants: 0,
             m: m,
+            marked_for_expansion: false,
             playouts: 0,
             plays: 0.0,
             prior_plays: config.priors.neutral_plays,
@@ -139,20 +141,22 @@ impl Node {
         }
     }
 
-    pub fn find_leaf_and_expand(&mut self, game: &Game, matcher: Arc<Matcher>) -> (Vec<usize>, Vec<Move>, usize) {
+    pub fn find_leaf_and_expand(&mut self, game: &Game) -> (Vec<usize>, Vec<Move>, Option<Vec<Node>>) {
         let (path, moves, leaf) = self.find_leaf_and_mark(vec!(), vec!());
+        if leaf.marked_for_expansion {
+            return (path, moves, None);
+        }
+        leaf.marked_for_expansion = true;
         let mut board = game.board();
         for &m in moves.iter() {
             board.play_legal_move(m);
         }
-        let previous_desc = leaf.descendants;
-        let not_terminal = leaf.expand(&board, matcher);
+        let (not_terminal, ns) = leaf.expand(&board);
         if !not_terminal {
             let is_win = board.winner() == leaf.color();
             leaf.mark_as_terminal(is_win);
         }
-        let new_desc = leaf.descendants - previous_desc;
-        (path, moves, new_desc)
+        (path, moves, ns)
     }
 
     /// Finds the next leave to simulate. To make sure that different
@@ -182,22 +186,25 @@ impl Node {
         }
  }
 
-    pub fn expand(&mut self, board: &Board, matcher: Arc<Matcher>) -> bool {
+    pub fn expand(&mut self, board: &Board) -> (bool, Option<Vec<Node>>) {
         let not_terminal = !board.is_game_over();
         if not_terminal && self.playouts >= self.config.tree.expand_after {
-            let mut children = board.legal_moves_without_eyes()
+            let mut children: Vec<Node> = board.legal_moves_without_eyes()
                 .iter()
                 .map(|m| Node::new(*m, self.config.clone()))
                 .collect();
-            self.priors(&mut children, board, matcher);
-            self.children = children;
-            self.children.push(Node::new(Pass(board.next_player()), self.config.clone()));
+            children.push(Node::new(Pass(board.next_player()), self.config.clone()));
+            (not_terminal, Some(children))
+        } else {
+            (not_terminal, None)
         }
-        self.descendants = self.children.len();
-        not_terminal
     }
 
-    pub fn priors(&self, children: &mut Vec<Node>, board: &Board, matcher: Arc<Matcher>) {
+    pub fn priors(&self, children: &mut Vec<Node>, game: &Game, moves: &Vec<Move>, matcher: Arc<Matcher>) {
+        let mut board = game.board();
+        for &m in moves.iter() {
+            board.play_legal_move(m);
+        }
         let color = board.next_player().opposite();
 
         let in_danger = board.chains().iter()
@@ -222,12 +229,13 @@ impl Node {
             }
         }
         for child in children {
-            self.child_priors(child, board, &matcher);
+            self.child_priors(child, &board, &matcher);
         }
     }
 
     fn child_priors(&self, node: &mut Node, board: &Board, matcher: &Arc<Matcher>) {
         let m = &node.m();
+        if m.is_pass() { return; }
         if !board.is_not_self_atari(m) {
             // That's a negative prior
             node.record_priors(self.config.priors.self_atari, 0);
@@ -278,6 +286,15 @@ impl Node {
             self.wins = f32::MAX;
         } else {
             self.wins = 0.0;
+        }
+    }
+
+    pub fn find_leaf_and_attach_children(&mut self, path: &[usize], children: Vec<Node>) {
+        self.descendants += children.len();
+        if path.len() > 0 {
+            self.children[path[0]].find_leaf_and_attach_children(&path[1..], children);
+        } else {
+            self.children = children;
         }
     }
 

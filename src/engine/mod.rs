@@ -147,7 +147,15 @@ impl Engine {
     }
 
     fn run_playout(&mut self, game: &Game, send_to_thread: Sender<Message>) {
-        let (path, moves, nodes_added) = self.root.find_leaf_and_expand(game, self.matcher.clone());
+        let (path, moves, ns) = self.root.find_leaf_and_expand(game);
+        let nodes_added = if let Some(mut nodes) = ns {
+            let count = nodes.len();
+            self.root.priors(&mut nodes, game, &moves, self.matcher.clone());
+            self.root.find_leaf_and_attach_children(&path, nodes);
+            count
+        } else {
+            0
+        };
         let message = Message::RunPlayout {
             id: self.id,
             moves: moves,
