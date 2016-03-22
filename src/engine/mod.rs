@@ -65,6 +65,7 @@ macro_rules! check {
 
 mod controller;
 mod node;
+mod priors;
 mod worker;
 
 pub enum Message {
@@ -148,9 +149,9 @@ impl Engine {
 
     fn run_playout(&mut self, game: &Game, send_to_thread: Sender<Message>) {
         let (path, moves, ns) = self.root.find_leaf_and_expand(game);
-        let nodes_added = if let Some(mut nodes) = ns {
+        let nodes_added = if let Some(children) = ns {
+            let nodes = priors::calculate(children, game, &moves, self.matcher.clone(), self.config.clone());
             let count = nodes.len();
-            self.root.priors(&mut nodes, game, &moves, self.matcher.clone());
             self.root.find_leaf_and_attach_children(&path, nodes);
             count
         } else {

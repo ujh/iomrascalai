@@ -1,6 +1,7 @@
 /************************************************************************
  *                                                                      *
  * Copyright 2015 Urban Hafner, Igor Polyakov                           *
+ * Copyright 2016 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -21,14 +22,12 @@
 
 use board::Board;
 use board::Color;
-use board::Empty;
 use board::Move;
 use board::NoMove;
 use board::Pass;
 use board::Play;
 use config::Config;
 use game::Game;
-use patterns::Matcher;
 use playout::PlayoutResult;
 use score::Score;
 
@@ -200,78 +199,6 @@ impl Node {
         }
     }
 
-    pub fn priors(&self, children: &mut Vec<Node>, game: &Game, moves: &Vec<Move>, matcher: Arc<Matcher>) {
-        let mut board = game.board();
-        for &m in moves.iter() {
-            board.play_legal_move(m);
-        }
-        let color = board.next_player().opposite();
-
-        let in_danger = board.chains().iter()
-            .filter(|chain| chain.color() == color && chain.coords().len() == 1 && chain.liberties().len() <= 2);
-
-        for one_stone in in_danger {
-            if let Some(solution) = board.capture_ladder(one_stone) {
-                if let Some(node) = children.iter_mut().find(|c| c.m() == solution) {
-                    node.record_even_prior(self.config.priors.capture_one);
-                }
-            }
-        }
-
-        let in_danger = board.chains().iter()
-            .filter(|chain| chain.color() == color && chain.coords().len() > 1 && chain.liberties().len() <= 2);
-
-        for many_stones in in_danger {
-            if let Some(solution) = board.capture_ladder(many_stones) {
-                if let Some(node) = children.iter_mut().find(|c| c.m() == solution) {
-                    node.record_even_prior(self.config.priors.capture_many);
-                }
-            }
-        }
-        for child in children {
-            self.child_priors(child, &board, &matcher);
-        }
-    }
-
-    fn child_priors(&self, node: &mut Node, board: &Board, matcher: &Arc<Matcher>) {
-        let m = &node.m();
-        if m.is_pass() { return; }
-        if !board.is_not_self_atari(m) {
-            // That's a negative prior
-            node.record_priors(self.config.priors.self_atari, 0);
-        }
-        if self.use_empty() {
-            let distance = m.coord().distance_to_border(board.size());
-            if distance <= 2 && self.in_empty_area(board, m) {
-                if distance <= 1 {
-                    // That's a negative prior
-                    node.record_priors(self.config.priors.empty, 0);
-                } else {
-                    node.record_even_prior(self.config.priors.empty);
-                }
-            }
-        }
-        if self.use_patterns() {
-            let count = self.matching_patterns_count(board, m, matcher);
-            let prior = count * self.config.priors.patterns;
-            node.record_even_prior(prior);
-        }
-    }
-
-    fn use_patterns(&self) -> bool {
-        self.config.priors.patterns > 0
-    }
-
-    fn matching_patterns_count(&self, board: &Board, m: &Move, matcher: &Arc<Matcher>) -> usize {
-        matcher.pattern_count(board, &m.coord())
-    }
-
-    fn in_empty_area(&self, board: &Board, m: &Move) -> bool {
-        m.coord().manhattan_distance_three_neighbours(board.size())
-            .iter()
-            .all(|c| board.color(c) == Empty)
-    }
-
     pub fn has_no_children(&self) -> bool {
         self.children.len() == 0
     }
@@ -361,12 +288,12 @@ impl Node {
         self.amaf_plays += 1.0;
     }
 
-    fn record_priors(&mut self, prior_plays: usize, prior_wins: usize) {
+    pub fn record_priors(&mut self, prior_plays: usize, prior_wins: usize) {
         self.prior_plays += prior_plays;
         self.prior_wins += prior_wins;
     }
 
-    fn record_even_prior(&mut self, prior: usize) {
+    pub fn record_even_prior(&mut self, prior: usize) {
         self.record_priors(prior, prior);
     }
 
@@ -453,10 +380,6 @@ impl Node {
 
     pub fn color(&self) -> Color {
         *self.m().color()
-    }
-
-    fn use_empty(&self) -> bool {
-        self.config.priors.empty > 0
     }
 
 
