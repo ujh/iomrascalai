@@ -72,11 +72,10 @@ pub enum Message {
     RunPlayout {
         id: usize,
         moves: Vec<Move>,
-        nodes_added: usize,
         path: Vec<usize>,
     }
 }
-pub type Answer = (Vec<usize>, usize, PlayoutResult, usize);
+pub type Answer = (Vec<usize>, PlayoutResult, usize);
 pub type Response = (Answer, Sender<Message>);
 
 pub struct Engine {
@@ -149,31 +148,25 @@ impl Engine {
 
     fn run_playout(&mut self, game: &Game, send_to_thread: Sender<Message>) {
         let (path, moves, ns) = self.root.find_leaf_and_expand(game);
-        let nodes_added = if let Some(children) = ns {
+        if let Some(children) = ns {
             let nodes = priors::calculate(children, game, &moves, self.matcher.clone(), self.config.clone());
-            let count = nodes.len();
             self.root.find_leaf_and_attach_children(&path, nodes);
-            count
-        } else {
-            0
-        };
+        }
         let message = Message::RunPlayout {
             id: self.id,
             moves: moves,
-            nodes_added: nodes_added,
             path: path,
         };
         check!(self.config, send_to_thread.send(message));
     }
 
     fn record_playout(&mut self, response: Response) -> Option<Sender<Message>> {
-        let ((path, nodes_added, playout_result, id), send_to_thread) = response;
+        let ((path, playout_result, id), send_to_thread) = response;
         // Ignore responses from the previous genmove
         if self.id == id {
             self.ownership.merge(playout_result.score());
             self.root.record_on_path(
                 &path,
-                nodes_added,
                 &playout_result);
             Some(send_to_thread)
         } else {

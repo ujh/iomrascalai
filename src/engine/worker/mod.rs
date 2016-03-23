@@ -70,8 +70,8 @@ impl Worker {
                 r = receive_from_main.recv() => {
                     check!(self.config, message = r => {
                         match message {
-                            Message::RunPlayout {path, moves, nodes_added, id} => {
-                                self.run_playout(path, moves, nodes_added, id)
+                            Message::RunPlayout {path, moves, id} => {
+                                self.run_playout(path, moves, id)
                             }
                         }
                     });
@@ -82,11 +82,11 @@ impl Worker {
     }
 
     fn init(&self) {
-        let answer = (vec!(), 0, PlayoutResult::empty(), self.id);
+        let answer = (vec!(), PlayoutResult::empty(), self.id);
         self.respond(answer);
     }
 
-    fn run_playout(&mut self, path: Vec<usize>, moves: Vec<Move>, nodes_added: usize, id: usize) {
+    fn run_playout(&mut self, path: Vec<usize>, moves: Vec<Move>, id: usize) {
         let mut b = self.board.clone();
         for &m in moves.iter() {
             b.play_legal_move(m);
@@ -94,7 +94,7 @@ impl Worker {
         // Playout is smart enough to correctly handle the case where
         // the game is already over.
         let playout_result = self.playout.run(&mut b, None, &mut self.rng);
-        let answer = (path, nodes_added, playout_result, id);
+        let answer = (path, playout_result, id);
         self.respond(answer);
     }
 

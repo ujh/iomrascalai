@@ -225,7 +225,7 @@ impl Node {
         }
     }
 
-    pub fn record_on_path(&mut self, path: &[usize], new_nodes: usize, playout_result: &PlayoutResult) {
+    pub fn record_on_path(&mut self, path: &[usize], playout_result: &PlayoutResult) {
         let winner = playout_result.winner();
         let amaf = playout_result.amaf();
         if self.color() == winner {
@@ -248,8 +248,7 @@ impl Node {
             }
         }
         if path.len() > 0 {
-            self.descendants += new_nodes;
-            self.children[path[0]].record_on_path(&path[1..], new_nodes, playout_result);
+            self.children[path[0]].record_on_path(&path[1..], playout_result);
         }
     }
 
