@@ -73,6 +73,12 @@ pub enum Message {
         id: usize,
         moves: Vec<Move>,
         path: Vec<usize>,
+    },
+    CalculatePriors {
+        id: usize,
+        moves: Vec<Move>,
+        nodes: Vec<Node>,
+        path: Vec<usize>,
     }
 }
 
@@ -82,6 +88,11 @@ pub enum Answer {
         path: Vec<usize>,
         playout_result: PlayoutResult,
         sender: Sender<Message>,
+    },
+    CalculatePriors {
+        id: usize,
+        nodes: Vec<Node>,
+        path: Vec<usize>,
     }
 }
 
@@ -156,8 +167,13 @@ impl Engine {
     fn run_playout(&mut self, game: &Game, send_to_thread: Sender<Message>) {
         let (path, moves, ns) = self.root.find_leaf_and_expand(game);
         if let Some(children) = ns {
-            let nodes = priors::calculate(children, game, &moves, self.matcher.clone(), self.config.clone());
-            self.root.find_leaf_and_attach_children(&path, nodes);
+            let message = Message::CalculatePriors {
+                id: self.id,
+                moves: moves.clone(),
+                nodes: children,
+                path: path.clone(),
+            };
+            check!(self.config, send_to_thread.send(message));
         }
         let message = Message::RunPlayout {
             id: self.id,
@@ -177,6 +193,14 @@ impl Engine {
                 } else {
                     None
                 }
+            },
+            Answer::CalculatePriors {id, path, nodes} => {
+                if self.id == id {
+                    self.root.find_leaf_and_attach_children(&path, nodes);
+                }
+                // No need to trigger another send as this is second
+                // response triggered by the run_playout above.
+                None
             }
         }
     }
@@ -265,7 +289,8 @@ impl Engine {
             &self.playout,
             self.id,
             board,
-            &self.send_to_main
+            &self.send_to_main,
+            &self.matcher,
         );
         let (send_halt, receive_halt) = channel();
         self.halt_senders.push(send_halt);

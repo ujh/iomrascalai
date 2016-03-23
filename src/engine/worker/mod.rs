@@ -22,10 +22,13 @@
 use board::Board;
 use board::Move;
 use config::Config;
+use patterns::Matcher;
 use playout::Playout;
 use playout::PlayoutResult;
 use super::Answer;
 use super::Message;
+use super::Node;
+use super::priors;
 
 use rand::XorShiftRng;
 use rand::weak_rng;
@@ -38,6 +41,7 @@ pub struct Worker {
     board: Board,
     config: Arc<Config>,
     id: usize,
+    matcher: Arc<Matcher>,
     playout: Arc<Playout>,
     rng: XorShiftRng,
     send_to_main: Sender<Answer>,
@@ -46,12 +50,13 @@ pub struct Worker {
 
 impl Worker {
 
-    pub fn new(config: &Arc<Config>, playout: &Arc<Playout>, id: usize, board: Board, send_to_main: &Sender<Answer>) -> Worker {
+    pub fn new(config: &Arc<Config>, playout: &Arc<Playout>, id: usize, board: Board, send_to_main: &Sender<Answer>, matcher: &Arc<Matcher>) -> Worker {
         let rng = weak_rng();
         Worker {
             board: board,
             config: config.clone(),
             id: id,
+            matcher: matcher.clone(),
             playout: playout.clone(),
             rng: rng,
             send_to_main: send_to_main.clone(),
@@ -71,6 +76,9 @@ impl Worker {
                         match message {
                             Message::RunPlayout {path, moves, id} => {
                                 self.run_playout(path, moves, id)
+                            },
+                            Message::CalculatePriors {path, moves, nodes, id} => {
+                                self.calculate_priors(path, moves, nodes, id)
                             }
                         }
                     });
@@ -93,6 +101,20 @@ impl Worker {
         // the game is already over.
         let playout_result = self.playout.run(&mut b, None, &mut self.rng);
         self.respond(path, playout_result, id);
+    }
+
+    fn calculate_priors(&self, path: Vec<usize>, moves: Vec<Move>, nodes: Vec<Node>, id: usize) {
+        let mut b = self.board.clone();
+        for &m in moves.iter() {
+            b.play_legal_move(m);
+        }
+        let new_nodes = priors::calculate(nodes, &b, &self.matcher, &self.config);
+        let answer = Answer::CalculatePriors {
+            id: id,
+            nodes: new_nodes,
+            path: path,
+        };
+        check!(self.config, self.send_to_main.send(answer));
     }
 
     fn respond(&self, path: Vec<usize>, playout_result: PlayoutResult, id: usize) {

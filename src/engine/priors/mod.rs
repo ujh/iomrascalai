@@ -24,17 +24,12 @@ use board::Board;
 use board::Empty;
 use board::Move;
 use config::Config;
-use game::Game;
 use patterns::Matcher;
 use super::Node;
 
 use std::sync::Arc;
 
-pub fn calculate(mut nodes: Vec<Node>, game: &Game, moves: &Vec<Move>, matcher: Arc<Matcher>, config: Arc<Config>) -> Vec<Node> {
-    let mut board = game.board();
-    for &m in moves.iter() {
-        board.play_legal_move(m);
-    }
+pub fn calculate(mut nodes: Vec<Node>, board: &Board, matcher: &Arc<Matcher>, config: &Arc<Config>) -> Vec<Node> {
     let color = board.next_player().opposite();
 
     let in_danger = board.chains().
