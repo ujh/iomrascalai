@@ -26,7 +26,6 @@ use playout::Playout;
 use playout::PlayoutResult;
 use super::Answer;
 use super::Message;
-use super::Response;
 
 use rand::XorShiftRng;
 use rand::weak_rng;
@@ -41,13 +40,13 @@ pub struct Worker {
     id: usize,
     playout: Arc<Playout>,
     rng: XorShiftRng,
-    send_to_main: Sender<Response>,
+    send_to_main: Sender<Answer>,
     send_to_self: Option<Sender<Message>>,
 }
 
 impl Worker {
 
-    pub fn new(config: &Arc<Config>, playout: &Arc<Playout>, id: usize, board: Board, send_to_main: &Sender<Response>) -> Worker {
+    pub fn new(config: &Arc<Config>, playout: &Arc<Playout>, id: usize, board: Board, send_to_main: &Sender<Answer>) -> Worker {
         let rng = weak_rng();
         Worker {
             board: board,
@@ -82,8 +81,7 @@ impl Worker {
     }
 
     fn init(&self) {
-        let answer = (vec!(), PlayoutResult::empty(), self.id);
-        self.respond(answer);
+        self.respond(vec!(), PlayoutResult::empty(), self.id);
     }
 
     fn run_playout(&mut self, path: Vec<usize>, moves: Vec<Move>, id: usize) {
@@ -94,15 +92,19 @@ impl Worker {
         // Playout is smart enough to correctly handle the case where
         // the game is already over.
         let playout_result = self.playout.run(&mut b, None, &mut self.rng);
-        let answer = (path, playout_result, id);
-        self.respond(answer);
+        self.respond(path, playout_result, id);
     }
 
-    fn respond(&self, answer: Answer) {
+    fn respond(&self, path: Vec<usize>, playout_result: PlayoutResult, id: usize) {
         match self.send_to_self {
             Some(ref sender) => {
-                let response = (answer, sender.clone());
-                check!(self.config, self.send_to_main.send(response));
+                let answer = Answer::RunPlayout {
+                    id: id,
+                    path: path,
+                    playout_result: playout_result,
+                    sender: sender.clone(),
+                };
+                check!(self.config, self.send_to_main.send(answer));
             }
             None => {
                 panic!("Can't send message from Worker!")

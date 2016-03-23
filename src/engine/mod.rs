@@ -75,8 +75,15 @@ pub enum Message {
         path: Vec<usize>,
     }
 }
-pub type Answer = (Vec<usize>, PlayoutResult, usize);
-pub type Response = (Answer, Sender<Message>);
+
+pub enum Answer {
+    RunPlayout {
+        id: usize,
+        path: Vec<usize>,
+        playout_result: PlayoutResult,
+        sender: Sender<Message>,
+    }
+}
 
 pub struct Engine {
     config: Arc<Config>,
@@ -86,9 +93,9 @@ pub struct Engine {
     ownership: OwnershipStatistics,
     playout: Arc<Playout>,
     previous_node_count: usize,
-    receive_from_threads: Receiver<Response>,
+    receive_from_threads: Receiver<Answer>,
     root: Node,
-    send_to_main: Sender<Response>,
+    send_to_main: Sender<Answer>,
     start: PreciseTime,
 }
 
@@ -132,7 +139,7 @@ impl Engine {
             }
             let r = self.receive_from_threads.recv();
             check!(self.config, res = r => {
-                match self.record_playout(res) {
+                match self.handle_answer(res) {
                     Some(send_to_thread) => self.run_playout(game, send_to_thread),
                     None => {}
                 }
@@ -160,18 +167,26 @@ impl Engine {
         check!(self.config, send_to_thread.send(message));
     }
 
-    fn record_playout(&mut self, response: Response) -> Option<Sender<Message>> {
-        let ((path, playout_result, id), send_to_thread) = response;
-        // Ignore responses from the previous genmove
-        if self.id == id {
-            self.ownership.merge(playout_result.score());
-            self.root.record_on_path(
-                &path,
-                &playout_result);
-            Some(send_to_thread)
-        } else {
-            None
+    fn handle_answer(&mut self, answer: Answer) -> Option<Sender<Message>> {
+        match answer {
+            Answer::RunPlayout {id, path, playout_result, sender} => {
+                // Ignore responses from the previous genmove
+                if self.id == id {
+                    self.record_playout(path, playout_result);
+                    Some(sender)
+                } else {
+                    None
+                }
+            }
         }
+    }
+
+    fn record_playout(&mut self, path: Vec<usize>, playout_result: PlayoutResult) {
+        self.ownership.merge(playout_result.score());
+        self.root.record_on_path(
+            &path,
+            &playout_result
+        );
     }
 
     fn set_new_root(&mut self, game: &Game, color: Color) {
