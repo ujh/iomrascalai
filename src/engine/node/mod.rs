@@ -1,6 +1,7 @@
 /************************************************************************
  *                                                                      *
  * Copyright 2015 Urban Hafner, Igor Polyakov                           *
+ * Copyright 2016 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -21,16 +22,15 @@
 
 use board::Board;
 use board::Color;
-use board::Empty;
 use board::Move;
 use board::NoMove;
 use board::Pass;
 use board::Play;
 use config::Config;
 use game::Game;
-use patterns::Matcher;
 use playout::PlayoutResult;
 use score::Score;
+use super::Prior;
 
 use std::f32;
 use std::sync::Arc;
@@ -139,20 +139,18 @@ impl Node {
         }
     }
 
-    pub fn find_leaf_and_expand(&mut self, game: &Game, matcher: Arc<Matcher>) -> (Vec<usize>, Vec<Move>, usize) {
+    pub fn find_leaf_and_expand(&mut self, game: &Game) -> (Vec<usize>, Vec<Move>, bool) {
         let (path, moves, leaf) = self.find_leaf_and_mark(vec!(), vec!());
         let mut board = game.board();
         for &m in moves.iter() {
             board.play_legal_move(m);
         }
-        let previous_desc = leaf.descendants;
-        let not_terminal = leaf.expand(&board, matcher);
+        let (not_terminal, expanded) = leaf.expand(&board);
         if !not_terminal {
             let is_win = board.winner() == leaf.color();
             leaf.mark_as_terminal(is_win);
         }
-        let new_desc = leaf.descendants - previous_desc;
-        (path, moves, new_desc)
+        (path, moves, expanded)
     }
 
     /// Finds the next leave to simulate. To make sure that different
@@ -182,85 +180,19 @@ impl Node {
         }
  }
 
-    pub fn expand(&mut self, board: &Board, matcher: Arc<Matcher>) -> bool {
+    pub fn expand(&mut self, board: &Board) -> (bool, bool) {
         let not_terminal = !board.is_game_over();
         if not_terminal && self.playouts >= self.config.tree.expand_after {
-            let mut children = board.legal_moves_without_eyes()
+            let mut children: Vec<Node> = board.legal_moves_without_eyes()
                 .iter()
-                .map(|m| self.new_leaf(board, m, matcher.clone()))
+                .map(|m| Node::new(*m, self.config.clone()))
                 .collect();
-            self.priors(&mut children, board);
+            children.push(Node::new(Pass(board.next_player()), self.config.clone()));
             self.children = children;
-            self.children.push(Node::new(Pass(board.next_player()), self.config.clone()));
+            (not_terminal, true)
+        } else {
+            (not_terminal, false)
         }
-        self.descendants = self.children.len();
-        not_terminal
-    }
-
-    pub fn priors(&self, children: &mut Vec<Node>, board: &Board) {
-        let color = board.next_player().opposite();
-
-        let in_danger = board.chains().iter()
-            .filter(|chain| chain.color() == color && chain.coords().len() == 1 && chain.liberties().len() <= 2);
-
-        for one_stone in in_danger {
-            if let Some(solution) = board.capture_ladder(one_stone) {
-                if let Some(node) = children.iter_mut().find(|c| c.m() == solution) {
-                    node.record_even_prior(self.config.priors.capture_one);
-                }
-            }
-        }
-
-        let in_danger = board.chains().iter()
-            .filter(|chain| chain.color() == color && chain.coords().len() > 1 && chain.liberties().len() <= 2);
-
-        for many_stones in in_danger {
-            if let Some(solution) = board.capture_ladder(many_stones) {
-                if let Some(node) = children.iter_mut().find(|c| c.m() == solution) {
-                    node.record_even_prior(self.config.priors.capture_many);
-                }
-            }
-        }
-    }
-
-    pub fn new_leaf(&self, board: &Board, m: &Move, matcher: Arc<Matcher>) -> Node {
-        let mut node = Node::new(*m, self.config.clone());
-
-        if !board.is_not_self_atari(m) {
-            // That's a negative prior
-            node.record_priors(self.config.priors.self_atari, 0);
-        }
-        if self.use_empty() {
-            let distance = m.coord().distance_to_border(board.size());
-            if distance <= 2 && self.in_empty_area(board, m) {
-                if distance <= 1 {
-                    // That's a negative prior
-                    node.record_priors(self.config.priors.empty, 0);
-                } else {
-                    node.record_even_prior(self.config.priors.empty);
-                }
-            }
-        }
-        if self.use_patterns() {
-            let count = self.matching_patterns_count(board, m, matcher);
-            let prior = count * self.config.priors.patterns;
-            node.record_even_prior(prior);
-        }
-        node
-    }
-
-    fn use_patterns(&self) -> bool {
-        self.config.priors.patterns > 0
-    }
-
-    fn matching_patterns_count(&self, board: &Board, m: &Move, matcher: Arc<Matcher>) -> usize {
-        matcher.pattern_count(board, &m.coord())
-    }
-
-    fn in_empty_area(&self, board: &Board, m: &Move) -> bool {
-        m.coord().manhattan_distance_three_neighbours(board.size())
-            .iter()
-            .all(|c| board.color(c) == Empty)
     }
 
     pub fn has_no_children(&self) -> bool {
@@ -280,7 +212,19 @@ impl Node {
         }
     }
 
-    pub fn record_on_path(&mut self, path: &[usize], new_nodes: usize, playout_result: &PlayoutResult) {
+    pub fn find_leaf_and_record_priors(&mut self, path: &[usize], priors: Vec<Prior>) {
+        self.descendants += priors.len();
+        if path.len() > 0 {
+            self.children[path[0]].find_leaf_and_record_priors(&path[1..], priors);
+        } else {
+            for (i, prior) in priors.iter().enumerate() {
+                self.children[i].prior_plays = prior.plays();
+                self.children[i].prior_wins = prior.wins();
+            }
+        }
+    }
+
+    pub fn record_on_path(&mut self, path: &[usize], playout_result: &PlayoutResult) {
         let winner = playout_result.winner();
         let amaf = playout_result.amaf();
         if self.color() == winner {
@@ -303,8 +247,7 @@ impl Node {
             }
         }
         if path.len() > 0 {
-            self.descendants += new_nodes;
-            self.children[path[0]].record_on_path(&path[1..], new_nodes, playout_result);
+            self.children[path[0]].record_on_path(&path[1..], playout_result);
         }
     }
 
@@ -341,15 +284,6 @@ impl Node {
 
     fn record_amaf_play(&mut self) {
         self.amaf_plays += 1.0;
-    }
-
-    fn record_priors(&mut self, prior_plays: usize, prior_wins: usize) {
-        self.prior_plays += prior_plays;
-        self.prior_wins += prior_wins;
-    }
-
-    fn record_even_prior(&mut self, prior: usize) {
-        self.record_priors(prior, prior);
     }
 
     fn plays_with_prior_factor(&self) -> f32 {
@@ -435,10 +369,6 @@ impl Node {
 
     pub fn color(&self) -> Color {
         *self.m().color()
-    }
-
-    fn use_empty(&self) -> bool {
-        self.config.priors.empty > 0
     }
 
 

@@ -20,12 +20,14 @@
  ************************************************************************/
 
 use board::Board;
+use board::Move;
 use config::Config;
+use patterns::Matcher;
 use playout::Playout;
 use playout::PlayoutResult;
 use super::Answer;
-use super::Payload;
-use super::Response;
+use super::Message;
+use super::priors;
 
 use rand::XorShiftRng;
 use rand::weak_rng;
@@ -38,20 +40,22 @@ pub struct Worker {
     board: Board,
     config: Arc<Config>,
     id: usize,
+    matcher: Arc<Matcher>,
     playout: Arc<Playout>,
     rng: XorShiftRng,
-    send_to_main: Sender<Response>,
-    send_to_self: Option<Sender<Payload>>,
+    send_to_main: Sender<Answer>,
+    send_to_self: Option<Sender<Message>>,
 }
 
 impl Worker {
 
-    pub fn new(config: &Arc<Config>, playout: &Arc<Playout>, id: usize, board: Board, send_to_main: &Sender<Response>) -> Worker {
+    pub fn new(config: &Arc<Config>, playout: &Arc<Playout>, id: usize, board: Board, send_to_main: &Sender<Answer>, matcher: &Arc<Matcher>) -> Worker {
         let rng = weak_rng();
         Worker {
             board: board,
             config: config.clone(),
             id: id,
+            matcher: matcher.clone(),
             playout: playout.clone(),
             rng: rng,
             send_to_main: send_to_main.clone(),
@@ -68,7 +72,14 @@ impl Worker {
                 _ = stop.recv() => { break; },
                 r = receive_from_main.recv() => {
                     check!(self.config, message = r => {
-                        self.run_playout(message);
+                        match message {
+                            Message::RunPlayout {path, moves, id} => {
+                                self.run_playout(path, moves, id)
+                            },
+                            Message::CalculatePriors {path, moves, id} => {
+                                self.calculate_priors(path, moves, id)
+                            }
+                        }
                     });
                 }
             );
@@ -77,12 +88,10 @@ impl Worker {
     }
 
     fn init(&self) {
-        let answer = (vec!(), 0, PlayoutResult::empty(), self.id);
-        self.respond(answer);
+        self.respond(vec!(), PlayoutResult::empty(), self.id);
     }
 
-    fn run_playout(&mut self, message: Payload) {
-        let (path, moves, nodes_added, id) = message;
+    fn run_playout(&mut self, path: Vec<usize>, moves: Vec<Move>, id: usize) {
         let mut b = self.board.clone();
         for &m in moves.iter() {
             b.play_legal_move(m);
@@ -90,15 +99,33 @@ impl Worker {
         // Playout is smart enough to correctly handle the case where
         // the game is already over.
         let playout_result = self.playout.run(&mut b, None, &mut self.rng);
-        let answer = (path, nodes_added, playout_result, id);
-        self.respond(answer);
+        self.respond(path, playout_result, id);
     }
 
-    fn respond(&self, answer: Answer) {
+    fn calculate_priors(&self, path: Vec<usize>, moves: Vec<Move>, id: usize) {
+        let mut b = self.board.clone();
+        for &m in moves.iter() {
+            b.play_legal_move(m);
+        }
+        let priors = priors::calculate(&b, &self.matcher, &self.config);
+        let answer = Answer::CalculatePriors {
+            id: id,
+            priors: priors,
+            path: path,
+        };
+        check!(self.config, self.send_to_main.send(answer));
+    }
+
+    fn respond(&self, path: Vec<usize>, playout_result: PlayoutResult, id: usize) {
         match self.send_to_self {
             Some(ref sender) => {
-                let response = (answer, sender.clone());
-                check!(self.config, self.send_to_main.send(response));
+                let answer = Answer::RunPlayout {
+                    id: id,
+                    path: path,
+                    playout_result: playout_result,
+                    sender: sender.clone(),
+                };
+                check!(self.config, self.send_to_main.send(answer));
             }
             None => {
                 panic!("Can't send message from Worker!")

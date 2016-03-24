@@ -22,6 +22,7 @@
 
 pub use self::controller::EngineController;
 pub use self::node::Node;
+pub use self::priors::Prior;
 use board::Board;
 use board::Color;
 use board::Move;
@@ -65,11 +66,35 @@ macro_rules! check {
 
 mod controller;
 mod node;
+mod priors;
 mod worker;
 
-pub type Payload = (Vec<usize>, Vec<Move>, usize, usize);
-pub type Answer = (Vec<usize>, usize, PlayoutResult, usize);
-pub type Response = (Answer, Sender<Payload>);
+pub enum Message {
+    RunPlayout {
+        id: usize,
+        moves: Vec<Move>,
+        path: Vec<usize>,
+    },
+    CalculatePriors {
+        id: usize,
+        moves: Vec<Move>,
+        path: Vec<usize>,
+    }
+}
+
+pub enum Answer {
+    RunPlayout {
+        id: usize,
+        path: Vec<usize>,
+        playout_result: PlayoutResult,
+        sender: Sender<Message>,
+    },
+    CalculatePriors {
+        id: usize,
+        path: Vec<usize>,
+        priors: Vec<Prior>,
+    }
+}
 
 pub struct Engine {
     config: Arc<Config>,
@@ -79,9 +104,9 @@ pub struct Engine {
     ownership: OwnershipStatistics,
     playout: Arc<Playout>,
     previous_node_count: usize,
-    receive_from_threads: Receiver<Response>,
+    receive_from_threads: Receiver<Answer>,
     root: Node,
-    send_to_main: Sender<Response>,
+    send_to_main: Sender<Answer>,
     start: PreciseTime,
 }
 
@@ -125,17 +150,9 @@ impl Engine {
             }
             let r = self.receive_from_threads.recv();
             check!(self.config, res = r => {
-                let ((path, nodes_added, playout_result, id), send_to_thread) = res;
-                // Ignore responses from the previous genmove
-                if self.id == id {
-                    self.ownership.merge(playout_result.score());
-                    self.root.record_on_path(
-                        &path,
-                        nodes_added,
-                        &playout_result);
-                    let (path, moves, nodes_added) = self.root.find_leaf_and_expand(game, self.matcher.clone());
-                    let data = (path, moves, nodes_added, self.id);
-                    check!(self.config, send_to_thread.send(data));
+                match self.handle_answer(res) {
+                    Some(send_to_thread) => self.run_playout(game, send_to_thread),
+                    None => {}
                 }
             });
         }
@@ -145,6 +162,54 @@ impl Engine {
         self.previous_node_count = 0;
         self.root = Node::new(NoMove, self.config.clone());
         self.ownership = OwnershipStatistics::new(self.config.clone(), size, komi);
+    }
+
+    fn run_playout(&mut self, game: &Game, send_to_thread: Sender<Message>) {
+        let (path, moves, expanded) = self.root.find_leaf_and_expand(game);
+        if expanded {
+            let message = Message::CalculatePriors {
+                id: self.id,
+                moves: moves.clone(),
+                path: path.clone(),
+            };
+            check!(self.config, send_to_thread.send(message));
+        }
+        let message = Message::RunPlayout {
+            id: self.id,
+            moves: moves,
+            path: path,
+        };
+        check!(self.config, send_to_thread.send(message));
+    }
+
+    fn handle_answer(&mut self, answer: Answer) -> Option<Sender<Message>> {
+        match answer {
+            Answer::RunPlayout {id, path, playout_result, sender} => {
+                // Ignore responses from the previous genmove
+                if self.id == id {
+                    self.record_playout(path, playout_result);
+                    Some(sender)
+                } else {
+                    None
+                }
+            },
+            Answer::CalculatePriors {id, path, priors} => {
+                if self.id == id {
+                    self.root.find_leaf_and_record_priors(&path, priors);
+                }
+                // No need to trigger another send as this is second
+                // response triggered by the run_playout above.
+                None
+            }
+        }
+    }
+
+    fn record_playout(&mut self, path: Vec<usize>, playout_result: PlayoutResult) {
+        self.ownership.merge(playout_result.score());
+        self.root.record_on_path(
+            &path,
+            &playout_result
+        );
     }
 
     fn set_new_root(&mut self, game: &Game, color: Color) {
@@ -223,7 +288,8 @@ impl Engine {
             &self.playout,
             self.id,
             board,
-            &self.send_to_main
+            &self.send_to_main,
+            &self.matcher,
         );
         let (send_halt, receive_halt) = channel();
         self.halt_senders.push(send_halt);
