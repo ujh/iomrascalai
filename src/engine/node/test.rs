@@ -28,7 +28,6 @@ pub use board::Play;
 pub use board::White;
 pub use config::Config;
 pub use game::Game;
-pub use patterns::Matcher;
 pub use playout::Playout;
 pub use playout::PlayoutResult;
 pub use ruleset::KgsChinese;
@@ -46,10 +45,6 @@ pub fn config() -> Arc<Config> {
     let mut config = Config::test_config();
     config.tree.expand_after = 0;
     Arc::new(config)
-}
-
-fn matcher() -> Arc<Matcher> {
-    Arc::new(Matcher::new())
 }
 
 fn expand_after(expand_after: usize) -> Arc<Config> {
@@ -73,7 +68,7 @@ fn expand_doesnt_add_children_to_terminal_nodes() {
     game = game.play(Pass(Black)).unwrap();
     game = game.play(Pass(White)).unwrap();
     let mut node = Node::new(Pass(Black), config());
-    node.expand(&game.board(), matcher());
+    node.expand(&game.board());
     assert_eq!(0, node.children.len());
 }
 
@@ -83,7 +78,7 @@ fn expand_doesnt_add_children_if_threshold_not_met() {
     let game = Game::new(2, 0.5, KgsChinese);
     let mut node = Node::new(Pass(Black), config);
     node.plays = 0.0;
-    node.expand(&game.board(), matcher());
+    node.expand(&game.board());
     assert_eq!(0, node.children.len());
 }
 
@@ -92,17 +87,8 @@ fn expand_adds_children_if_threshold_is_met() {
     let game = Game::new(2, 0.5, KgsChinese);
     let mut node = Node::new(Pass(Black), config());
     node.plays = 2.0;
-    node.expand(&game.board(), matcher());
+    node.expand(&game.board());
     assert_eq!(5, node.children.len());
-}
-
-#[test]
-fn expand_sets_the_descendant_count_if_the_node_was_expanded() {
-    let game = Game::new(5, 6.5, KgsChinese);
-    let board = game.board();
-    let mut node = Node::new(Pass(Black), config());
-    node.expand(&board,matcher());
-    assert_eq!(26, node.descendants);
 }
 
 // find_leaf_and_expand()
@@ -111,7 +97,7 @@ fn find_leaf_and_expand_expands_the_leaves() {
     let game = Game::new(2, 0.5, KgsChinese);
     let mut root = Node::root(&game, Black, config());
     for _ in 0..5 {
-        root.find_leaf_and_expand(&game, matcher());
+        root.find_leaf_and_expand(&game);
     }
     assert_eq!(5, root.children.len());
     assert!(root.children.iter().all({|n|
@@ -127,16 +113,8 @@ fn find_leaf_and_expand_expands_the_leaves() {
 fn find_leaf_and_expand_sets_play_on_the_root() {
     let game = Game::new(2, 0.5, KgsChinese);
     let mut root = Node::root(&game, Black, config());
-    root.find_leaf_and_expand(&game, matcher());
+    root.find_leaf_and_expand(&game);
     assert_eq!(2.0, root.plays);
-}
-
-#[test]
-fn find_leaf_and_expand_returns_the_number_of_nodes_added() {
-    let game = Game::new(2, 0.5, KgsChinese);
-    let mut root = Node::root(&game, Black, config());
-    let (_,_,count) = root.find_leaf_and_expand(&game, matcher());
-    assert_eq!(4, count);
 }
 
 #[test]
@@ -175,7 +153,7 @@ describe! record_on_path {
         board.play(Play(Black, 1, 1)).unwrap();
         let score = board.score();
         let playout_result = PlayoutResult::new(score, HashMap::new());
-        root.record_on_path(&vec!(0, 0), 0, &playout_result);
+        root.record_on_path(&vec!(0, 0), &playout_result);
         assert_eq!(1.0, root.wins);
         assert_eq!(0.0, root.children[0].wins);
         assert_eq!(1.0, root.children[0].children[0].wins);
@@ -183,32 +161,12 @@ describe! record_on_path {
         let board = Board::new(9, 6.5, KgsChinese);
         let score = board.score();
         let playout_result = PlayoutResult::new(score, HashMap::new());
-        root.record_on_path(&vec!(0, 0), 0, &playout_result);
+        root.record_on_path(&vec!(0, 0), &playout_result);
         assert_eq!(1.0, root.wins);
         assert_eq!(1.0, root.children[0].wins);
         assert_eq!(1.0, root.children[0].children[0].wins);
     }
 
-    it "updates the descendant counts" {
-        let mut grandchild = Node::new(Pass(Black), config.clone());
-        // The leaf already has the correct value set
-        grandchild.descendants = 5;
-        let mut child = Node::new(Pass(White), config.clone());
-        child.children = vec!(grandchild);
-        child.descendants = 1;
-        let mut root = Node::new(Pass(Black), config.clone());
-        root.children = vec!(child);
-        root.descendants = 2;
-
-        let mut board = Board::new(9, 6.5, KgsChinese);
-        board.play(Play(Black, 1, 1)).unwrap();
-        let score = board.score();
-        let playout_result = PlayoutResult::new(score, HashMap::new());
-        root.record_on_path(&vec!(0, 0), 5, &playout_result);
-        assert_eq!(7, root.descendants);
-        assert_eq!(6, root.children[0].descendants);
-        assert_eq!(5, root.children[0].children[0].descendants);
-    }
 }
 
 #[test]
@@ -244,37 +202,4 @@ fn remove_illegal_children_removes_superko_violations() {
     node.children.push(Node::new(Play(White, 2, 9), config()));
     node.remove_illegal_children(&game);
     assert!(node.children.iter().all(|n| n.m() != Play(White, 2, 9)));
-}
-
-#[bench]
-fn full_uct_cycle_09x09(b: &mut Bencher) {
-    full_uct_cycle(9, b);
-}
-
-#[bench]
-fn full_uct_cycle_13x13(b: &mut Bencher) {
-    full_uct_cycle(13, b);
-}
-
-#[bench]
-fn full_uct_cycle_19x19(b: &mut Bencher) {
-    full_uct_cycle(19, b);
-}
-
-fn full_uct_cycle(size: u8, b: &mut Bencher) {
-    let game = Game::new(size, 6.5, KgsChinese);
-    let matcher = matcher();
-    let config = Arc::new(Config::test_config());
-    let mut root = Node::root(&game, Black, config.clone());
-    let playout = Playout::new(config.clone(), matcher.clone());
-    let mut rng = weak_rng();
-    b.iter(|| {
-        let (path, moves, nodes_added) = root.find_leaf_and_expand(&game, matcher.clone());
-        let mut b = game.board();
-        for &m in moves.iter() {
-            b.play_legal_move(m);
-        }
-        let playout_result = playout.run(&mut b, None, &mut rng);
-        root.record_on_path(&path, nodes_added, &playout_result);
-    });
 }
