@@ -27,7 +27,6 @@ use playout::Playout;
 use playout::PlayoutResult;
 use super::Answer;
 use super::Message;
-use super::Node;
 use super::priors;
 
 use rand::XorShiftRng;
@@ -77,8 +76,8 @@ impl Worker {
                             Message::RunPlayout {path, moves, id} => {
                                 self.run_playout(path, moves, id)
                             },
-                            Message::CalculatePriors {path, moves, nodes, id} => {
-                                self.calculate_priors(path, moves, nodes, id)
+                            Message::CalculatePriors {path, moves, id} => {
+                                self.calculate_priors(path, moves, id)
                             }
                         }
                     });
@@ -103,15 +102,15 @@ impl Worker {
         self.respond(path, playout_result, id);
     }
 
-    fn calculate_priors(&self, path: Vec<usize>, moves: Vec<Move>, nodes: Vec<Node>, id: usize) {
+    fn calculate_priors(&self, path: Vec<usize>, moves: Vec<Move>, id: usize) {
         let mut b = self.board.clone();
         for &m in moves.iter() {
             b.play_legal_move(m);
         }
-        let new_nodes = priors::calculate(nodes, &b, &self.matcher, &self.config);
+        let priors = priors::calculate(&b, &self.matcher, &self.config);
         let answer = Answer::CalculatePriors {
             id: id,
-            nodes: new_nodes,
+            priors: priors,
             path: path,
         };
         check!(self.config, self.send_to_main.send(answer));

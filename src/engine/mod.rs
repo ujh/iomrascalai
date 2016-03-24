@@ -22,6 +22,7 @@
 
 pub use self::controller::EngineController;
 pub use self::node::Node;
+pub use self::priors::Prior;
 use board::Board;
 use board::Color;
 use board::Move;
@@ -77,7 +78,6 @@ pub enum Message {
     CalculatePriors {
         id: usize,
         moves: Vec<Move>,
-        nodes: Vec<Node>,
         path: Vec<usize>,
     }
 }
@@ -91,8 +91,8 @@ pub enum Answer {
     },
     CalculatePriors {
         id: usize,
-        nodes: Vec<Node>,
         path: Vec<usize>,
+        priors: Vec<Prior>,
     }
 }
 
@@ -165,12 +165,11 @@ impl Engine {
     }
 
     fn run_playout(&mut self, game: &Game, send_to_thread: Sender<Message>) {
-        let (path, moves, ns) = self.root.find_leaf_and_expand(game);
-        if let Some(children) = ns {
+        let (path, moves, expanded) = self.root.find_leaf_and_expand(game);
+        if expanded {
             let message = Message::CalculatePriors {
                 id: self.id,
                 moves: moves.clone(),
-                nodes: children,
                 path: path.clone(),
             };
             check!(self.config, send_to_thread.send(message));
@@ -194,9 +193,9 @@ impl Engine {
                     None
                 }
             },
-            Answer::CalculatePriors {id, path, nodes} => {
+            Answer::CalculatePriors {id, path, priors} => {
                 if self.id == id {
-                    self.root.find_leaf_and_attach_children(&path, nodes);
+                    self.root.find_leaf_and_record_priors(&path, priors);
                 }
                 // No need to trigger another send as this is second
                 // response triggered by the run_playout above.

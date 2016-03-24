@@ -30,6 +30,7 @@ use config::Config;
 use game::Game;
 use playout::PlayoutResult;
 use score::Score;
+use super::Prior;
 
 use std::f32;
 use std::sync::Arc;
@@ -44,7 +45,6 @@ pub struct Node {
     config: Arc<Config>,
     descendants: usize,
     m: Move,
-    marked_for_expansion: bool,
     playouts: usize,
     plays: f32,
     prior_plays: usize,
@@ -62,7 +62,6 @@ impl Node {
             config: config.clone(),
             descendants: 0,
             m: m,
-            marked_for_expansion: false,
             playouts: 0,
             plays: 0.0,
             prior_plays: config.priors.neutral_plays,
@@ -140,22 +139,18 @@ impl Node {
         }
     }
 
-    pub fn find_leaf_and_expand(&mut self, game: &Game) -> (Vec<usize>, Vec<Move>, Option<Vec<Node>>) {
+    pub fn find_leaf_and_expand(&mut self, game: &Game) -> (Vec<usize>, Vec<Move>, bool) {
         let (path, moves, leaf) = self.find_leaf_and_mark(vec!(), vec!());
-        if leaf.marked_for_expansion {
-            return (path, moves, None);
-        }
-        leaf.marked_for_expansion = true;
         let mut board = game.board();
         for &m in moves.iter() {
             board.play_legal_move(m);
         }
-        let (not_terminal, ns) = leaf.expand(&board);
+        let not_terminal = leaf.expand(&board);
         if !not_terminal {
             let is_win = board.winner() == leaf.color();
             leaf.mark_as_terminal(is_win);
         }
-        (path, moves, ns)
+        (path, moves, not_terminal)
     }
 
     /// Finds the next leave to simulate. To make sure that different
@@ -185,7 +180,7 @@ impl Node {
         }
  }
 
-    pub fn expand(&mut self, board: &Board) -> (bool, Option<Vec<Node>>) {
+    pub fn expand(&mut self, board: &Board) -> bool {
         let not_terminal = !board.is_game_over();
         if not_terminal && self.playouts >= self.config.tree.expand_after {
             let mut children: Vec<Node> = board.legal_moves_without_eyes()
@@ -193,10 +188,9 @@ impl Node {
                 .map(|m| Node::new(*m, self.config.clone()))
                 .collect();
             children.push(Node::new(Pass(board.next_player()), self.config.clone()));
-            (not_terminal, Some(children))
-        } else {
-            (not_terminal, None)
+            self.children = children;
         }
+        not_terminal
     }
 
     pub fn has_no_children(&self) -> bool {
@@ -216,12 +210,15 @@ impl Node {
         }
     }
 
-    pub fn find_leaf_and_attach_children(&mut self, path: &[usize], children: Vec<Node>) {
-        self.descendants += children.len();
+    pub fn find_leaf_and_record_priors(&mut self, path: &[usize], priors: Vec<Prior>) {
+        self.descendants += priors.len();
         if path.len() > 0 {
-            self.children[path[0]].find_leaf_and_attach_children(&path[1..], children);
+            self.children[path[0]].find_leaf_and_record_priors(&path[1..], priors);
         } else {
-            self.children = children;
+            for (i, prior) in priors.iter().enumerate() {
+                self.children[i].prior_plays = prior.plays();
+                self.children[i].prior_wins = prior.wins();
+            }
         }
     }
 
@@ -285,15 +282,6 @@ impl Node {
 
     fn record_amaf_play(&mut self) {
         self.amaf_plays += 1.0;
-    }
-
-    pub fn record_priors(&mut self, prior_plays: usize, prior_wins: usize) {
-        self.prior_plays += prior_plays;
-        self.prior_wins += prior_wins;
-    }
-
-    pub fn record_even_prior(&mut self, prior: usize) {
-        self.record_priors(prior, prior);
     }
 
     fn plays_with_prior_factor(&self) -> f32 {
