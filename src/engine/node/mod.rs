@@ -145,12 +145,12 @@ impl Node {
         for &m in moves.iter() {
             board.play_legal_move(m);
         }
-        let not_terminal = leaf.expand(&board);
+        let (not_terminal, expanded) = leaf.expand(&board);
         if !not_terminal {
             let is_win = board.winner() == leaf.color();
             leaf.mark_as_terminal(is_win);
         }
-        (path, moves, not_terminal)
+        (path, moves, expanded)
     }
 
     /// Finds the next leave to simulate. To make sure that different
@@ -180,7 +180,7 @@ impl Node {
         }
  }
 
-    pub fn expand(&mut self, board: &Board) -> bool {
+    pub fn expand(&mut self, board: &Board) -> (bool, bool) {
         let not_terminal = !board.is_game_over();
         if not_terminal && self.playouts >= self.config.tree.expand_after {
             let mut children: Vec<Node> = board.legal_moves_without_eyes()
@@ -189,8 +189,10 @@ impl Node {
                 .collect();
             children.push(Node::new(Pass(board.next_player()), self.config.clone()));
             self.children = children;
+            (not_terminal, true)
+        } else {
+            (not_terminal, false)
         }
-        not_terminal
     }
 
     pub fn has_no_children(&self) -> bool {
