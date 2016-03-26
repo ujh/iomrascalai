@@ -20,11 +20,12 @@
  ************************************************************************/
 
 use board::Board;
+use board::Move;
 use config::Config;
 use playout::Playout;
 use playout::PlayoutResult;
 use super::Answer;
-use super::Payload;
+use super::Message;
 use super::Response;
 
 use rand::XorShiftRng;
@@ -41,7 +42,7 @@ pub struct Worker {
     playout: Arc<Playout>,
     rng: XorShiftRng,
     send_to_main: Sender<Response>,
-    send_to_self: Option<Sender<Payload>>,
+    send_to_self: Option<Sender<Message>>,
 }
 
 impl Worker {
@@ -68,7 +69,11 @@ impl Worker {
                 _ = stop.recv() => { break; },
                 r = receive_from_main.recv() => {
                     check!(self.config, message = r => {
-                        self.run_playout(message);
+                        match message {
+                            Message::RunPlayout {path, moves, nodes_added, id} => {
+                                self.run_playout(path, moves, nodes_added, id);
+                            }
+                        }
                     });
                 }
             );
@@ -81,8 +86,7 @@ impl Worker {
         self.respond(answer);
     }
 
-    fn run_playout(&mut self, message: Payload) {
-        let (path, moves, nodes_added, id) = message;
+    fn run_playout(&mut self, path: Vec<usize>, moves: Vec<Move>, nodes_added: usize, id: usize) {
         let mut b = self.board.clone();
         for &m in moves.iter() {
             b.play_legal_move(m);
