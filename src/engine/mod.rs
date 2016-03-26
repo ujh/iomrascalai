@@ -67,9 +67,16 @@ mod controller;
 mod node;
 mod worker;
 
-pub type Payload = (Vec<usize>, Vec<Move>, usize, usize);
+pub enum Message {
+    RunPlayout {
+        id: usize,
+        moves: Vec<Move>,
+        nodes_added: usize,
+        path: Vec<usize>,
+    }
+}
 pub type Answer = (Vec<usize>, usize, PlayoutResult, usize);
-pub type Response = (Answer, Sender<Payload>);
+pub type Response = (Answer, Sender<Message>);
 
 pub struct Engine {
     config: Arc<Config>,
@@ -134,8 +141,13 @@ impl Engine {
                         nodes_added,
                         &playout_result);
                     let (path, moves, nodes_added) = self.root.find_leaf_and_expand(game, self.matcher.clone());
-                    let data = (path, moves, nodes_added, self.id);
-                    check!(self.config, send_to_thread.send(data));
+                    let message = Message::RunPlayout {
+                        path: path,
+                        moves: moves,
+                        nodes_added: nodes_added,
+                        id: self.id
+                    };
+                    check!(self.config, send_to_thread.send(message));
                 }
             });
         }
