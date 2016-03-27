@@ -75,8 +75,14 @@ pub enum Message {
         path: Vec<usize>,
     }
 }
-pub type Answer = (Vec<usize>, usize, PlayoutResult, usize);
-pub type Response = (Answer, Sender<Message>);
+pub enum Answer {
+    RunPlayout {
+        nodes_added: usize,
+        path: Vec<usize>,
+        playout_result: PlayoutResult
+    }
+}
+pub type Response = (Answer, usize, Sender<Message>);
 
 pub struct Engine {
     config: Arc<Config>,
@@ -132,9 +138,17 @@ impl Engine {
             }
             let r = self.receive_from_threads.recv();
             check!(self.config, res = r => {
-                let ((path, nodes_added, playout_result, id), send_to_thread) = res;
-                // Ignore responses from the previous genmove
-                if self.id == id {
+                self.handle_response(res, &game);
+            });
+        }
+    }
+
+    fn handle_response(&mut self, response: Response, game: &Game) {
+        let (answer, id, send_to_thread) = response;
+        // Ignore responses from the previous genmove
+        if self.id == id {
+            match answer {
+                Answer::RunPlayout {path, nodes_added, playout_result} => {
                     self.ownership.merge(playout_result.score());
                     self.root.record_on_path(
                         &path,
@@ -149,7 +163,7 @@ impl Engine {
                     };
                     check!(self.config, send_to_thread.send(message));
                 }
-            });
+            }
         }
     }
 

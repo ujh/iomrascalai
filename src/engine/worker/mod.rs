@@ -82,8 +82,12 @@ impl Worker {
     }
 
     fn init(&self) {
-        let answer = (vec!(), 0, PlayoutResult::empty(), self.id);
-        self.respond(answer);
+        let answer = Answer::RunPlayout {
+            nodes_added: 0,
+            path: vec!(),
+            playout_result: PlayoutResult::empty(),
+        };
+        self.respond(answer, self.id);
     }
 
     fn run_playout(&mut self, path: Vec<usize>, moves: Vec<Move>, nodes_added: usize, id: usize) {
@@ -94,14 +98,18 @@ impl Worker {
         // Playout is smart enough to correctly handle the case where
         // the game is already over.
         let playout_result = self.playout.run(&mut b, None, &mut self.rng);
-        let answer = (path, nodes_added, playout_result, id);
-        self.respond(answer);
+        let answer = Answer::RunPlayout {
+            nodes_added: nodes_added,
+            path: path,
+            playout_result: playout_result
+        };
+        self.respond(answer, id);
     }
 
-    fn respond(&self, answer: Answer) {
+    fn respond(&self, answer: Answer, id: usize) {
         match self.send_to_self {
             Some(ref sender) => {
-                let response = (answer, sender.clone());
+                let response = (answer, id, sender.clone());
                 check!(self.config, self.send_to_main.send(response));
             }
             None => {
