@@ -53,7 +53,7 @@ set -x
 cargo build --release
 
 GNUGO="gnugo --mode gtp --level 0 --chinese-rules --positional-superko"
-IOMRASCALAI="cargo run --release -- --log --rules chinese"
+IOMRASCALAI="./target/release/iomrascalai --log --rules chinese"
 REFEREE="$GNUGO"
 
 gogui-twogtp -auto -black "$GNUGO" -white "$IOMRASCALAI" \
