@@ -1,6 +1,7 @@
 /************************************************************************
  *                                                                      *
  * Copyright 2015 Urban Hafner, Igor Polyakov                           *
+ * Copyright 2016 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -21,7 +22,6 @@
 
 use board::Board;
 use board::Color;
-use board::Empty;
 use board::Move;
 use board::NoMove;
 use board::Pass;
@@ -31,6 +31,7 @@ use game::Game;
 use patterns::Matcher;
 use playout::PlayoutResult;
 use score::Score;
+use super::Prior;
 
 use std::f32;
 use std::sync::Arc;
@@ -225,42 +226,10 @@ impl Node {
 
     pub fn new_leaf(&self, board: &Board, m: &Move, matcher: Arc<Matcher>) -> Node {
         let mut node = Node::new(*m, self.config.clone());
-
-        if !board.is_not_self_atari(m) {
-            // That's a negative prior
-            node.record_priors(self.config.priors.self_atari, 0);
-        }
-        if self.use_empty() {
-            let distance = m.coord().distance_to_border(board.size());
-            if distance <= 2 && self.in_empty_area(board, m) {
-                if distance <= 1 {
-                    // That's a negative prior
-                    node.record_priors(self.config.priors.empty, 0);
-                } else {
-                    node.record_even_prior(self.config.priors.empty);
-                }
-            }
-        }
-        if self.use_patterns() {
-            let count = self.matching_patterns_count(board, m, matcher);
-            let prior = count * self.config.priors.patterns;
-            node.record_even_prior(prior);
-        }
+        let prior = Prior::new(board, m, matcher, self.config.clone());
+        node.prior_plays += prior.plays();
+        node.prior_wins += prior.wins();
         node
-    }
-
-    fn use_patterns(&self) -> bool {
-        self.config.priors.patterns > 0
-    }
-
-    fn matching_patterns_count(&self, board: &Board, m: &Move, matcher: Arc<Matcher>) -> usize {
-        matcher.pattern_count(board, &m.coord())
-    }
-
-    fn in_empty_area(&self, board: &Board, m: &Move) -> bool {
-        m.coord().manhattan_distance_three_neighbours(board.size())
-            .iter()
-            .all(|c| board.color(c) == Empty)
     }
 
     pub fn has_no_children(&self) -> bool {
@@ -437,9 +406,6 @@ impl Node {
         *self.m().color()
     }
 
-    fn use_empty(&self) -> bool {
-        self.config.priors.empty > 0
-    }
 
 
 }
