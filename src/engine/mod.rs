@@ -22,6 +22,7 @@
 
 pub use self::controller::EngineController;
 pub use self::node::Node;
+pub use self::prior::Prior;
 use board::Board;
 use board::Color;
 use board::Move;
@@ -65,6 +66,7 @@ macro_rules! check {
 
 mod controller;
 mod node;
+mod prior;
 mod worker;
 
 pub enum Message {
