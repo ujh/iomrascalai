@@ -35,7 +35,7 @@ pub struct Prior {
 
 impl Prior {
 
-    pub fn new(board: &Board, m: &Move, matcher: Arc<Matcher>, config: Arc<Config>) -> Prior {
+    pub fn new(board: &Board, m: &Move, matcher: &Arc<Matcher>, config: Arc<Config>) -> Prior {
         let mut prior = Prior {
             config: config,
             plays: 0,
@@ -53,7 +53,7 @@ impl Prior {
         self.wins
     }
 
-    fn calculate(&mut self, board: &Board, m: &Move, matcher: Arc<Matcher>) {
+    fn calculate(&mut self, board: &Board, m: &Move, matcher: &Arc<Matcher>) {
         if !board.is_not_self_atari(m) {
             let value = self.config.priors.self_atari;
             self.record_negative_prior(value);
@@ -90,7 +90,7 @@ impl Prior {
         self.config.priors.patterns > 0
     }
 
-    fn matching_patterns_count(&self, board: &Board, m: &Move, matcher: Arc<Matcher>) -> usize {
+    fn matching_patterns_count(&self, board: &Board, m: &Move, matcher: &Arc<Matcher>) -> usize {
         matcher.pattern_count(board, &m.coord())
     }
 

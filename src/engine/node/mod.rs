@@ -188,9 +188,9 @@ impl Node {
         if not_terminal && self.playouts >= self.config.tree.expand_after {
             let mut children = board.legal_moves_without_eyes()
                 .iter()
-                .map(|m| self.new_leaf(board, m, matcher.clone()))
+                .map(|m| self.new_leaf(m))
                 .collect();
-            self.priors(&mut children, board);
+            self.priors(&mut children, board, &matcher);
             self.children = children;
             self.children.push(Node::new(Pass(board.next_player()), self.config.clone()));
         }
@@ -198,7 +198,12 @@ impl Node {
         not_terminal
     }
 
-    pub fn priors(&self, children: &mut Vec<Node>, board: &Board) {
+    pub fn priors(&self, children: &mut Vec<Node>, board: &Board, matcher: &Arc<Matcher>) {
+        for node in children.iter_mut() {
+            let prior = Prior::new(board, &node.m, matcher, self.config.clone());
+            node.prior_plays += prior.plays();
+            node.prior_wins += prior.wins();
+        }
         let color = board.next_player().opposite();
 
         let in_danger = board.chains().iter()
@@ -224,12 +229,8 @@ impl Node {
         }
     }
 
-    pub fn new_leaf(&self, board: &Board, m: &Move, matcher: Arc<Matcher>) -> Node {
-        let mut node = Node::new(*m, self.config.clone());
-        let prior = Prior::new(board, m, matcher, self.config.clone());
-        node.prior_plays += prior.plays();
-        node.prior_wins += prior.wins();
-        node
+    pub fn new_leaf(&self, m: &Move) -> Node {
+        Node::new(*m, self.config.clone())
     }
 
     pub fn has_no_children(&self) -> bool {
