@@ -168,6 +168,19 @@ impl PriorsConfig {
         }
     }
 
+    /// Returns false if the empty prior is zero, which allows for
+    /// turning of the code that calculates the empty area prior
+    /// altogether.
+    pub fn use_empty(&self) -> bool {
+        self.empty > 0
+    }
+
+    /// Returns false if the patterns prior is zero, which allows for
+    /// turning of the code that calculates the empty area prior
+    /// altogether.
+    pub fn use_patterns(&self) -> bool {
+        self.patterns > 0
+    }
 }
 
 impl FromToml for PriorsConfig {

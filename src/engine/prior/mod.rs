@@ -28,7 +28,6 @@ use patterns::Matcher;
 use std::sync::Arc;
 
 pub struct Prior {
-    config: Arc<Config>,
     m: Move,
     plays: usize,
     wins: usize,
@@ -38,12 +37,11 @@ impl Prior {
 
     pub fn new(board: &Board, m: &Move, matcher: &Arc<Matcher>, config: Arc<Config>) -> Prior {
         let mut prior = Prior {
-            config: config,
             m: *m,
             plays: 0,
             wins: 0,
         };
-        prior.calculate(board, m, matcher);
+        prior.calculate(board, m, matcher, &config);
         prior
     }
 
@@ -55,15 +53,15 @@ impl Prior {
         self.wins
     }
 
-    fn calculate(&mut self, board: &Board, m: &Move, matcher: &Arc<Matcher>) {
+    fn calculate(&mut self, board: &Board, m: &Move, matcher: &Arc<Matcher>, config: &Arc<Config>) {
         if !board.is_not_self_atari(m) {
-            let value = self.config.priors.self_atari;
+            let value = config.priors.self_atari;
             self.record_negative_prior(value);
         }
-        if self.use_empty() {
+        if config.priors.use_empty() {
             let distance = m.coord().distance_to_border(board.size());
             if distance <= 2 && self.in_empty_area(board, m) {
-                let value = self.config.priors.empty;
+                let value = config.priors.empty;
                 if distance <= 1 {
                     self.record_negative_prior(value);
                 } else {
@@ -71,25 +69,17 @@ impl Prior {
                 }
             }
         }
-        if self.use_patterns() {
+        if config.priors.use_patterns() {
             let count = self.matching_patterns_count(board, m, matcher);
-            let prior = count * self.config.priors.patterns;
+            let prior = count * config.priors.patterns;
             self.record_even_prior(prior);
         }
-    }
-
-    fn use_empty(&self) -> bool {
-        self.config.priors.empty > 0
     }
 
     fn in_empty_area(&self, board: &Board, m: &Move) -> bool {
         m.coord().manhattan_distance_three_neighbours(board.size())
             .iter()
             .all(|c| board.color(c) == Empty)
-    }
-
-    fn use_patterns(&self) -> bool {
-        self.config.priors.patterns > 0
     }
 
     fn matching_patterns_count(&self, board: &Board, m: &Move, matcher: &Arc<Matcher>) -> usize {
