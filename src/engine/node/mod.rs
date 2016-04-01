@@ -31,7 +31,8 @@ use game::Game;
 use patterns::Matcher;
 use playout::PlayoutResult;
 use score::Score;
-use super::Prior;
+use super::prior;
+use super::prior::Prior;
 
 use std::f32;
 use std::sync::Arc;
@@ -199,34 +200,16 @@ impl Node {
     }
 
     pub fn priors(&self, children: &mut Vec<Node>, board: &Board, matcher: &Arc<Matcher>) {
-        for node in children.iter_mut() {
-            let prior = Prior::new(board, &node.m, matcher, self.config.clone());
-            node.prior_plays += prior.plays();
-            node.prior_wins += prior.wins();
+        let moves = children.iter().map(|n| n.m()).collect();
+        let priors = prior::calculate(moves, board, matcher, &self.config);
+        for (index, prior) in priors.iter().enumerate() {
+            children[index].update_prior(prior);
         }
-        let color = board.next_player().opposite();
+    }
 
-        let in_danger = board.chains().iter()
-            .filter(|chain| chain.color() == color && chain.coords().len() == 1 && chain.liberties().len() <= 2);
-
-        for one_stone in in_danger {
-            if let Some(solution) = board.capture_ladder(one_stone) {
-                if let Some(node) = children.iter_mut().find(|c| c.m() == solution) {
-                    node.record_even_prior(self.config.priors.capture_one);
-                }
-            }
-        }
-
-        let in_danger = board.chains().iter()
-            .filter(|chain| chain.color() == color && chain.coords().len() > 1 && chain.liberties().len() <= 2);
-
-        for many_stones in in_danger {
-            if let Some(solution) = board.capture_ladder(many_stones) {
-                if let Some(node) = children.iter_mut().find(|c| c.m() == solution) {
-                    node.record_even_prior(self.config.priors.capture_many);
-                }
-            }
-        }
+    fn update_prior(&mut self, prior: &Prior) {
+        self.prior_plays += prior.plays();
+        self.prior_wins += prior.wins();
     }
 
     pub fn new_leaf(&self, m: &Move) -> Node {
@@ -311,15 +294,6 @@ impl Node {
 
     fn record_amaf_play(&mut self) {
         self.amaf_plays += 1.0;
-    }
-
-    fn record_priors(&mut self, prior_plays: usize, prior_wins: usize) {
-        self.prior_plays += prior_plays;
-        self.prior_wins += prior_wins;
-    }
-
-    fn record_even_prior(&mut self, prior: usize) {
-        self.record_priors(prior, prior);
     }
 
     fn plays_with_prior_factor(&self) -> f32 {
