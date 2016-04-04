@@ -31,7 +31,8 @@ use game::Game;
 use patterns::Matcher;
 use playout::PlayoutResult;
 use score::Score;
-use super::Prior;
+use super::prior;
+use super::prior::Prior;
 
 use std::f32;
 use std::sync::Arc;
@@ -188,9 +189,9 @@ impl Node {
         if not_terminal && self.playouts >= self.config.tree.expand_after {
             let mut children = board.legal_moves_without_eyes()
                 .iter()
-                .map(|m| self.new_leaf(board, m, matcher.clone()))
+                .map(|m| self.new_leaf(m))
                 .collect();
-            self.priors(&mut children, board);
+            self.priors(&mut children, board, &matcher);
             self.children = children;
             self.children.push(Node::new(Pass(board.next_player()), self.config.clone()));
         }
@@ -198,38 +199,21 @@ impl Node {
         not_terminal
     }
 
-    pub fn priors(&self, children: &mut Vec<Node>, board: &Board) {
-        let color = board.next_player().opposite();
-
-        let in_danger = board.chains().iter()
-            .filter(|chain| chain.color() == color && chain.coords().len() == 1 && chain.liberties().len() <= 2);
-
-        for one_stone in in_danger {
-            if let Some(solution) = board.capture_ladder(one_stone) {
-                if let Some(node) = children.iter_mut().find(|c| c.m() == solution) {
-                    node.record_even_prior(self.config.priors.capture_one);
-                }
-            }
-        }
-
-        let in_danger = board.chains().iter()
-            .filter(|chain| chain.color() == color && chain.coords().len() > 1 && chain.liberties().len() <= 2);
-
-        for many_stones in in_danger {
-            if let Some(solution) = board.capture_ladder(many_stones) {
-                if let Some(node) = children.iter_mut().find(|c| c.m() == solution) {
-                    node.record_even_prior(self.config.priors.capture_many);
-                }
-            }
+    pub fn priors(&self, children: &mut Vec<Node>, board: &Board, matcher: &Arc<Matcher>) {
+        let moves = children.iter().map(|n| n.m()).collect();
+        let priors = prior::calculate(moves, board, matcher, &self.config);
+        for (index, prior) in priors.iter().enumerate() {
+            children[index].update_prior(prior);
         }
     }
 
-    pub fn new_leaf(&self, board: &Board, m: &Move, matcher: Arc<Matcher>) -> Node {
-        let mut node = Node::new(*m, self.config.clone());
-        let prior = Prior::new(board, m, matcher, self.config.clone());
-        node.prior_plays += prior.plays();
-        node.prior_wins += prior.wins();
-        node
+    fn update_prior(&mut self, prior: &Prior) {
+        self.prior_plays += prior.plays();
+        self.prior_wins += prior.wins();
+    }
+
+    pub fn new_leaf(&self, m: &Move) -> Node {
+        Node::new(*m, self.config.clone())
     }
 
     pub fn has_no_children(&self) -> bool {
@@ -310,15 +294,6 @@ impl Node {
 
     fn record_amaf_play(&mut self) {
         self.amaf_plays += 1.0;
-    }
-
-    fn record_priors(&mut self, prior_plays: usize, prior_wins: usize) {
-        self.prior_plays += prior_plays;
-        self.prior_wins += prior_wins;
-    }
-
-    fn record_even_prior(&mut self, prior: usize) {
-        self.record_priors(prior, prior);
     }
 
     fn plays_with_prior_factor(&self) -> f32 {
