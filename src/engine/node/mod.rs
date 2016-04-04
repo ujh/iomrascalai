@@ -28,10 +28,8 @@ use board::Pass;
 use board::Play;
 use config::Config;
 use game::Game;
-use patterns::Matcher;
 use playout::PlayoutResult;
 use score::Score;
-use super::prior;
 use super::prior::Prior;
 
 use std::f32;
@@ -141,20 +139,20 @@ impl Node {
         }
     }
 
-    pub fn find_leaf_and_expand(&mut self, game: &Game, matcher: Arc<Matcher>) -> (Vec<usize>, Vec<Move>, usize) {
+    pub fn find_leaf_and_expand(&mut self, game: &Game) -> (Vec<usize>, Vec<Move>, usize, Vec<Move>) {
         let (path, moves, leaf) = self.find_leaf_and_mark(vec!(), vec!());
         let mut board = game.board();
         for &m in moves.iter() {
             board.play_legal_move(m);
         }
         let previous_desc = leaf.descendants;
-        let not_terminal = leaf.expand(&board, matcher);
+        let (not_terminal, child_moves) = leaf.expand(&board);
         if !not_terminal {
             let is_win = board.winner() == leaf.color();
             leaf.mark_as_terminal(is_win);
         }
         let new_desc = leaf.descendants - previous_desc;
-        (path, moves, new_desc)
+        (path, moves, new_desc, child_moves)
     }
 
     /// Finds the next leave to simulate. To make sure that different
@@ -184,27 +182,18 @@ impl Node {
         }
  }
 
-    pub fn expand(&mut self, board: &Board, matcher: Arc<Matcher>) -> bool {
+    pub fn expand(&mut self, board: &Board) -> (bool, Vec<Move>) {
         let not_terminal = !board.is_game_over();
         if not_terminal && self.playouts >= self.config.tree.expand_after {
-            let mut children = board.legal_moves_without_eyes()
+            self.children = board.legal_moves_without_eyes()
                 .iter()
                 .map(|m| self.new_leaf(m))
                 .collect();
-            self.priors(&mut children, board, &matcher);
-            self.children = children;
             self.children.push(Node::new(Pass(board.next_player()), self.config.clone()));
         }
         self.descendants = self.children.len();
-        not_terminal
-    }
-
-    pub fn priors(&self, children: &mut Vec<Node>, board: &Board, matcher: &Arc<Matcher>) {
-        let moves = children.iter().map(|n| n.m()).collect();
-        let priors = prior::calculate(moves, board, matcher, &self.config);
-        for (index, prior) in priors.iter().enumerate() {
-            children[index].update_prior(prior);
-        }
+        let child_moves = self.children.iter().map(|n| n.m()).collect();
+        (not_terminal, child_moves)
     }
 
     fn update_prior(&mut self, prior: &Prior) {
@@ -258,6 +247,16 @@ impl Node {
         if path.len() > 0 {
             self.descendants += new_nodes;
             self.children[path[0]].record_on_path(&path[1..], new_nodes, playout_result);
+        }
+    }
+
+    pub fn record_priors(&mut self, path: &[usize], priors: Vec<Prior>) {
+        if path.len() == 0 {
+            for (index, prior) in priors.iter().enumerate() {
+                self.children[index].update_prior(prior);
+            }
+        } else {
+            self.children[path[0]].record_priors(&path[1..], priors);
         }
     }
 

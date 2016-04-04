@@ -155,7 +155,9 @@ impl Engine {
                         &path,
                         nodes_added,
                         &playout_result);
-                    let (path, moves, nodes_added) = self.root.find_leaf_and_expand(game, self.matcher.clone());
+                    let (path, moves, nodes_added, child_moves) = self.root.find_leaf_and_expand(game);
+                    let priors = prior::calculate(&moves, game, child_moves, &self.matcher, &self.config);
+                    self.root.record_priors(&path, priors);
                     let message = Message::RunPlayout {
                         path: path,
                         moves: moves,
