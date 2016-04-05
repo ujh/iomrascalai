@@ -23,6 +23,7 @@ use board::Board;
 use board::Empty;
 use board::Move;
 use config::Config;
+use game::Game;
 use patterns::Matcher;
 
 use std::sync::Arc;
@@ -41,7 +42,9 @@ impl Prior {
             plays: 0,
             wins: 0,
         };
-        prior.calculate(board, m, matcher, &config);
+        if !m.is_pass() {
+            prior.calculate(board, m, matcher, &config);
+        }
         prior
     }
 
@@ -100,9 +103,13 @@ impl Prior {
     }
 }
 
-pub fn calculate(moves: Vec<Move>, board: &Board, matcher: &Arc<Matcher>, config: &Arc<Config>) -> Vec<Prior> {
-    let mut priors: Vec<Prior> = moves.iter()
-        .map(|m| Prior::new(board, m, matcher, config.clone()))
+pub fn calculate(moves: &Vec<Move>, game: &Game, child_moves: Vec<Move>, matcher: &Arc<Matcher>, config: &Arc<Config>) -> Vec<Prior> {
+    let mut board = game.board();
+    for &m in moves.iter() {
+        board.play_legal_move(m);
+    }
+    let mut priors: Vec<Prior> = child_moves.iter()
+        .map(|m| Prior::new(&board, m, matcher, config.clone()))
         .collect();
     let color = board.next_player().opposite();
     let in_danger = board.chains().iter()
