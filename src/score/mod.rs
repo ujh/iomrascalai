@@ -57,16 +57,6 @@ impl Score {
         }
     }
 
-    pub fn empty() -> Score {
-        Score {
-            black_stones: 0,
-            komi: 0.0,
-            owner: vec![],
-            size: 0,
-            white_stones: 0,
-        }
-    }
-
     pub fn color(&self) -> Color {
         let white_adjusted = self.white_stones as f32 + self.komi;
         if self.black_stones as f32 == white_adjusted {
