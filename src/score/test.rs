@@ -192,9 +192,13 @@ describe! score {
     describe! adjusted {
 
         before_each {
-            let mut score = Score::empty();
-            score.komi = 6.5;
-            score.size = 9;
+            let mut score = Score {
+                black_stones: 0,
+                komi: 6.5,
+                owner: vec!(),
+                size: 9,
+                white_stones: 0,
+            };
         }
 
         it "returns the correct score when black wins" {
