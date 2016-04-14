@@ -21,8 +21,6 @@
 
 use board::{Board, Chain, Coord, Empty, Move, Pass, Play};
 
-use smallvec::SmallVec4;
-
 impl Board {
 
     ///returns all the possible moves that save the group, 
@@ -61,29 +59,19 @@ impl Board {
         let mut solutions = vec![];
         let player = group.color();
         let enemy = group.color().opposite();
-        
-        let mut it;
-        let mut one_liberty_enemy_groups: SmallVec4<Coord> = SmallVec4::new();
+
         for &coord in group.coords().iter() {
-            it = self.neighbours(coord).iter()
-                .filter(|c| self.color(c) == enemy)
-                .map(|&c| self.get_chain(c).unwrap())
-                .filter(|chain| chain.liberties().len() == 1)
-                .flat_map(|chain| chain.liberties());
-            for liberty in it {
-                if !one_liberty_enemy_groups.contains(&liberty) {
-                    one_liberty_enemy_groups.push(*liberty);
-                }
-            }
+            let m = self.neighbours(coord).iter()
+                .filter(|coord| self.color(coord) == enemy)
+                .map(|&coord| self.get_chain(coord).unwrap().liberties())
+                .filter(|ref libs| libs.len() == 1)
+                .flat_map(|set| set.into_iter())
+                .map(|coord| Play(player, coord.col,coord.row))
+                .filter(|&play| self.is_legal(play).is_ok());
+
+            solutions.extend(m);
         }
 
-        for atari in one_liberty_enemy_groups.iter() {
-            let m = Play(player, atari.col, atari.row);
-            if self.is_legal(m).is_ok() {
-                solutions.push(m);
-            }
-        }
-        
         solutions
     }
 
