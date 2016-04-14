@@ -21,9 +21,6 @@
 
 use board::{Board, Chain, Coord, Empty, Move, Pass, Play};
 
-//use std::collections::HashSet;
-use smallvec::SmallVec4;
-
 impl Board {
 
     ///returns all the possible moves that save the group, 
