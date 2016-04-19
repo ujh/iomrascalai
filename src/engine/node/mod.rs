@@ -139,20 +139,18 @@ impl Node {
         }
     }
 
-    pub fn find_leaf_and_expand(&mut self, game: &Game) -> (Vec<usize>, Vec<Move>, usize, Vec<Move>) {
+    pub fn find_leaf_and_expand(&mut self, game: &Game) -> (Vec<usize>, Vec<Move>, Vec<Move>) {
         let (path, moves, leaf) = self.find_leaf_and_mark(vec!(), vec!());
         let mut board = game.board();
         for &m in moves.iter() {
             board.play_legal_move(m);
         }
-        let previous_desc = leaf.descendants;
         let (not_terminal, child_moves) = leaf.expand(&board);
         if !not_terminal {
             let is_win = board.winner() == leaf.color();
             leaf.mark_as_terminal(is_win);
         }
-        let new_desc = leaf.descendants - previous_desc;
-        (path, moves, new_desc, child_moves)
+        (path, moves, child_moves)
     }
 
     /// Finds the next leave to simulate. To make sure that different

@@ -163,22 +163,7 @@ impl Engine {
         if self.id == id {
             let message = match answer {
                 Answer::SpinUp => {
-                    let (path, moves, nodes_added, child_moves) = self.root.find_leaf_and_expand(game);
-                    if nodes_added > 0 {
-                        Message::CalculatePriors {
-                            child_moves: child_moves,
-                            id: self.id,
-                            moves: moves,
-                            path: path,
-                        }
-                    } else {
-                        Message::RunPlayout {
-                            id: self.id,
-                            moves: moves,
-                            nodes_added: nodes_added,
-                            path: path,
-                        }
-                    }
+                    self.expand(game)
                 },
                 Answer::RunPlayout {path, nodes_added, playout_result} => {
                     self.ownership.merge(playout_result.score());
@@ -186,22 +171,7 @@ impl Engine {
                         &path,
                         nodes_added,
                         &playout_result);
-                    let (path, moves, nodes_added, child_moves) = self.root.find_leaf_and_expand(game);
-                    if nodes_added > 0 {
-                        Message::CalculatePriors {
-                            child_moves: child_moves,
-                            id: self.id,
-                            moves: moves,
-                            path: path,
-                        }
-                    } else {
-                        Message::RunPlayout {
-                            id: self.id,
-                            moves: moves,
-                            nodes_added: nodes_added,
-                            path: path,
-                        }
-                    }
+                    self.expand(game)
                 },
                 Answer::CalculatePriors {path, moves, priors} => {
                     let nodes_added = priors.len();
@@ -216,6 +186,26 @@ impl Engine {
                 }
             };
             check!(self.config, send_to_thread.send(message));
+        }
+    }
+
+    fn expand(&mut self, game: &Game) -> Message {
+        let (path, moves, child_moves) = self.root.find_leaf_and_expand(game);
+        let nodes_added = child_moves.len();
+        if nodes_added > 0 {
+            Message::CalculatePriors {
+                child_moves: child_moves,
+                id: self.id,
+                moves: moves,
+                path: path,
+            }
+        } else {
+            Message::RunPlayout {
+                id: self.id,
+                moves: moves,
+                nodes_added: nodes_added,
+                path: path,
+            }
         }
     }
 
