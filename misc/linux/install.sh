@@ -6,7 +6,7 @@ set -x
 
 sudo apt-get -y update
 sudo apt-get -y upgrade
-sudo apt-get -y install htop wget emacs24 default-jre binutils gcc git
+sudo apt-get -y install htop wget emacs24 default-jre binutils gcc git ruby
 
 # TODO: Install a custom GnuGo that doesn't crash when playing certain ladders
 sudo apt-get -y install gnugo
@@ -21,7 +21,6 @@ fi
 if [ ! -d gogui-1.4.9 ]; then
   unzip gogui-1.4.9.zip
   echo "export PATH=~/gogui-1.4.9/bin:\$PATH" >> .bashrc
-  source .bashrc
 fi
 
 # Get the latest source for Iomrascálaí
@@ -29,6 +28,6 @@ if [ ! -d iomrascalai ]; then
   git clone https://github.com/ujh/iomrascalai.git
 fi
 cd iomrascalai
-git co master
+git checkout master
 git pull
 cd ..
