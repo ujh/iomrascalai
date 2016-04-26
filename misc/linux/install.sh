@@ -6,7 +6,7 @@ set -x
 
 sudo apt-get -y update
 sudo apt-get -y upgrade
-sudo apt-get -y install htop wget emacs24 default-jre binutils gcc git ruby
+sudo apt-get -y install htop wget emacs24 default-jre binutils gcc git ruby unzip
 
 # TODO: Install a custom GnuGo that doesn't crash when playing certain ladders
 sudo apt-get -y install gnugo
