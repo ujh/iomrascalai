@@ -44,7 +44,7 @@ fi
 
 cargo build --release
 
-IOMRASCALAI="./target/release/iomrascalai --log --gfx"
+IOMRASCALAI="cargo run --release -- --log --gfx"
 
 TWOGTP="gogui-twogtp -black \"$IOMRASCALAI\" -white \"$IOMRASCALAI\" -verbose -size $SIZE -time $TIME"
 

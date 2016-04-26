@@ -45,7 +45,7 @@ fi
 
 cargo build --release
 
-IOMRASCALAI="./target/release/iomrascalai --log --rules chinese"
+IOMRASCALAI="cargo run --release -- --log --rules chinese"
 
 set -x
 
