@@ -333,9 +333,9 @@ pub struct Config {
     /// Holds a configuration object that contains everything related
     /// to estimating the score of a board
     pub scoring: ScoringConfig,
-    /// The number of threads to use. The best results are achieved
-    /// right now if this is the same number as the number of (logical)
-    /// cores the computer has that the program runs on.
+    /// The number of threads to use for the workers. The default is
+    /// one less that the number of cores of the machine you're running
+    /// on.
     pub threads: usize,
     /// Holds a configuration object that contains everything related
     /// to allocating the time to use for the next move, stopping the
@@ -381,7 +381,9 @@ impl Config {
     fn new(toml_str: String, default_toml_str: String, log: bool, gfx: bool, ruleset: Ruleset) -> Config {
         let opts = toml::Parser::new(&toml_str).parse().unwrap();
         let default_table = toml::Parser::new(&default_toml_str).parse().unwrap();
-        let threads = toml::Parser::new(&format!("threads = {}", num_cpus::get())).parse().unwrap();
+        let threads = toml::Parser::new(
+            &format!("threads = {}", num_cpus::get()-1)
+        ).parse().unwrap();
         let mut table = toml::Table::new();
         table.extend(default_table.clone());
         table.extend(threads.clone());
