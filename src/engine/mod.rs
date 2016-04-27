@@ -35,6 +35,7 @@ use patterns::Matcher;
 use playout::Playout;
 use playout::PlayoutResult;
 use ruleset::KgsChinese;
+use self::prior::Prior;
 use self::worker::Worker;
 use timer::Timer;
 
@@ -74,6 +75,12 @@ pub enum Message {
         moves: Vec<Move>,
         nodes_added: usize,
         path: Vec<usize>,
+    },
+    CalculatePriors {
+        child_moves: Vec<Move>,
+        id: usize,
+        moves: Vec<Move>,
+        path: Vec<usize>,
     }
 }
 pub enum Answer {
@@ -81,7 +88,13 @@ pub enum Answer {
         nodes_added: usize,
         path: Vec<usize>,
         playout_result: PlayoutResult
-    }
+    },
+    CalculatePriors {
+        moves: Vec<Move>,
+        path: Vec<usize>,
+        priors: Vec<Prior>,
+    },
+    SpinUp
 }
 pub type Response = (Answer, usize, Sender<Message>);
 
@@ -148,24 +161,50 @@ impl Engine {
         let (answer, id, send_to_thread) = response;
         // Ignore responses from the previous genmove
         if self.id == id {
-            match answer {
+            let message = match answer {
+                Answer::SpinUp => {
+                    self.expand(game)
+                },
                 Answer::RunPlayout {path, nodes_added, playout_result} => {
                     self.ownership.merge(playout_result.score());
                     self.root.record_on_path(
                         &path,
                         nodes_added,
                         &playout_result);
-                    let (path, moves, nodes_added, child_moves) = self.root.find_leaf_and_expand(game);
-                    let priors = prior::calculate(&moves, game, child_moves, &self.matcher, &self.config);
+                    self.expand(game)
+                },
+                Answer::CalculatePriors {path, moves, priors} => {
+                    let nodes_added = priors.len();
                     self.root.record_priors(&path, priors);
-                    let message = Message::RunPlayout {
-                        path: path,
+                    Message::RunPlayout {
+                        id: self.id,
                         moves: moves,
                         nodes_added: nodes_added,
-                        id: self.id
-                    };
-                    check!(self.config, send_to_thread.send(message));
+                        path: path,
+                    }
+
                 }
+            };
+            check!(self.config, send_to_thread.send(message));
+        }
+    }
+
+    fn expand(&mut self, game: &Game) -> Message {
+        let (path, moves, child_moves) = self.root.find_leaf_and_expand(game);
+        let nodes_added = child_moves.len();
+        if nodes_added > 0 {
+            Message::CalculatePriors {
+                child_moves: child_moves,
+                id: self.id,
+                moves: moves,
+                path: path,
+            }
+        } else {
+            Message::RunPlayout {
+                id: self.id,
+                moves: moves,
+                nodes_added: nodes_added,
+                path: path,
             }
         }
     }
@@ -250,6 +289,7 @@ impl Engine {
         let mut worker = Worker::new(
             &self.config,
             &self.playout,
+            &self.matcher,
             self.id,
             board,
             &self.send_to_main

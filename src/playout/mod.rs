@@ -229,13 +229,6 @@ impl PlayoutResult {
         }
     }
 
-    pub fn empty() -> PlayoutResult {
-        PlayoutResult {
-            amaf: HashMap::new(),
-            score: Score::empty(),
-        }
-    }
-
     pub fn winner(&self) -> Color {
         self.score.color()
     }

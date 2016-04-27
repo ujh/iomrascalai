@@ -45,7 +45,7 @@ fi
 cargo build --release
 
 GNUGO="gnugo --mode gtp --level 0 --chinese-rules --positional-superko"
-IOMRASCALAI="./target/release/iomrascalai --log --rules chinese --gfx"
+IOMRASCALAI="cargo run --release -- --log --rules chinese --gfx"
 
 
 TWOGTP="gogui-twogtp -black \"$GNUGO\" -white \"$IOMRASCALAI\" -verbose -size $SIZE -time $TIME"
