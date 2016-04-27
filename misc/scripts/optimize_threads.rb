@@ -10,11 +10,7 @@ THREADS = ARGV[0] ? ARGV[0].to_i : 36
 INPUT = "boardsize 9\nclear_board\ntime_settings 300 0 0\ngenmove b\nboardsize 13\nclear_board\ntime_settings 600 0 0\ngenmove b\nboardsize 19\nclear_board\ntime_settings 1200 0 0\ngenmove b\n"
 
 def run(threads)
-  cfg = "config.toml"
-  File.open(cfg, "w") do |f|
-    f.puts "threads = #{threads}"
-  end
-  cmd = "cargo run --release -- -l -c #{cfg}"
+  cmd = "cargo run --release -- -l -t #{threads}"
   stderr = Open3.popen3(cmd) {|i,o,e,t| i.puts(INPUT); i.close; e.read }
   stderr.split($/).find_all do |l|
     l =~/pps per thread/

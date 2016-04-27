@@ -80,6 +80,7 @@ fn main() {
     opts.optflag("l", "log", "Print logging information to STDERR");
     opts.optflag("v", "version", "Print the version number");
     opts.optopt("c", "config", "Config file", "FILE");
+    opts.optopt("t", "threads", "Number of worker threads", "INTEGER");
     let r_expl = format!("cgos|chinese|tromp-taylor (defaults to {})", default_ruleset);
     opts.optopt("r", "rules", "Pick ruleset", &r_expl);
     let args : Vec<String> = args().collect();
@@ -118,14 +119,24 @@ fn main() {
         },
         None => default_ruleset
     };
+    let threads = match matches.opt_str("t") {
+        Some(ts) => match ts.parse() {
+            Ok(threads) => threads,
+            Err(error) => {
+                println!("{}", error);
+                exit(1);
+            }
+        },
+        None => num_cpus::get() - 1
+    };
 
     let config_file_opt = matches.opt_str("c");
     let config = match config_file_opt {
         Some(filename) => {
-            Config::from_file(filename, log, gfx, ruleset)
+            Config::from_file(filename, log, gfx, ruleset, threads)
         },
         None => {
-            Config::default(log, gfx, ruleset)
+            Config::default(log, gfx, ruleset, threads)
         }
     };
 
