@@ -1,5 +1,5 @@
 #!/bin/sh
-# Script to install prerequisites on a Linux box (like an Amazon EC2 instance).
+# Script to install prerequisites on a Linux (Ubuntu 14.04) box (like an Amazon EC2 instance).
 
 set -e
 set -x
