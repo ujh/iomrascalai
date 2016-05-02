@@ -121,13 +121,13 @@ fn main() {
     };
     let threads = match matches.opt_str("t") {
         Some(ts) => match ts.parse() {
-            Ok(threads) => threads,
+            Ok(threads) => Some(threads),
             Err(error) => {
                 println!("{}", error);
                 exit(1);
             }
         },
-        None => num_cpus::get() - 1
+        None => None
     };
 
     let config_file_opt = matches.opt_str("c");
