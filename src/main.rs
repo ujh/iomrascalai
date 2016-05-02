@@ -80,7 +80,12 @@ fn main() {
     opts.optflag("l", "log", "Print logging information to STDERR");
     opts.optflag("v", "version", "Print the version number");
     opts.optopt("c", "config", "Config file", "FILE");
-    opts.optopt("t", "threads", "Number of worker threads", "INTEGER");
+    opts.optopt(
+        "t",
+        "threads",
+        "Number of worker threads (overrides value set in the config file)",
+        "INTEGER"
+    );
     let r_expl = format!("cgos|chinese|tromp-taylor (defaults to {})", default_ruleset);
     opts.optopt("r", "rules", "Pick ruleset", &r_expl);
     let args : Vec<String> = args().collect();
