@@ -351,13 +351,13 @@ impl Config {
 
     #[test]
     pub fn test_config() -> Config {
-        Self::default(false, false, Ruleset::KgsChinese)
+        Self::default(false, false, Ruleset::KgsChinese, Some(1))
     }
 
     /// Uses the TOML returned by `Config::toml()` and returns a
     /// `Config` object that encodes this data.
-    pub fn default(log: bool, gfx: bool, ruleset: Ruleset) -> Config {
-        Self::new(String::from(""), Self::toml(), log, gfx, ruleset)
+    pub fn default(log: bool, gfx: bool, ruleset: Ruleset, threads: Option<usize>) -> Config {
+        Self::new(String::from(""), Self::toml(), log, gfx, ruleset, threads)
     }
 
     /// Returns a string representation of the default configuration
@@ -371,23 +371,34 @@ impl Config {
     /// object from the data. The file doesn't need to contain all
     /// possible fields of `Config` or the various structs it
     /// contains. What's missing is taken from `Config::toml()`.
-    pub fn from_file(filename: String, log: bool, gfx: bool, ruleset: Ruleset) -> Config {
+    pub fn from_file(filename: String, log: bool, gfx: bool, ruleset: Ruleset, threads: Option<usize>) -> Config {
         let mut file = File::open(filename).unwrap();
         let mut contents = String::new();
         file.read_to_string(&mut contents).unwrap();
-        Self::new(contents, Self::toml(), log, gfx, ruleset)
+        Self::new(contents, Self::toml(), log, gfx, ruleset, threads)
     }
 
-    fn new(toml_str: String, default_toml_str: String, log: bool, gfx: bool, ruleset: Ruleset) -> Config {
+    fn new(toml_str: String, default_toml_str: String, log: bool, gfx: bool, ruleset: Ruleset, threads: Option<usize>) -> Config {
         let opts = toml::Parser::new(&toml_str).parse().unwrap();
         let default_table = toml::Parser::new(&default_toml_str).parse().unwrap();
-        let threads = toml::Parser::new(
-            &format!("threads = {}", num_cpus::get()-1)
-        ).parse().unwrap();
         let mut table = toml::Table::new();
         table.extend(default_table.clone());
-        table.extend(threads.clone());
+        let default_threads = toml::Parser::new(
+            &format!("threads = {}", num_cpus::get()-1)
+        ).parse().unwrap();
+        table.extend(default_threads);
+        // The threads value set in the config file overrides the default threads value.
         table.extend(opts.clone());
+        // The threads command line switch overrides the threads value set in the config file.
+        match threads {
+            Some(ts) => {
+                let cmd_threads = toml::Parser::new(
+                    &format!("threads = {}", ts)
+                ).parse().unwrap();
+                table.extend(cmd_threads);
+            },
+            None => {}
+        };
         Config {
             gfx: gfx,
             log: log,
