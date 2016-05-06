@@ -1,0 +1,697 @@
+<?xml version="1.0"?>
+
+<!--
+  $URL: svn+ssh://svn.igoweb.org/svn/kgs/trunk/doc/info/kgsGtp.xhtml $
+  $Revision: 11200 $
+  $Date: 2013-12-06 00:04:21 -0500 (Fri, 06 Dec 2013) $
+-->
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"/>
+  <meta http-equiv="Content-Style-Type" content="text/css"/>
+  <title>Running a GTP Engine on KGS</title>
+</head><body>
+
+<h1>Running a GTP Engine on KGS</h1>
+
+<h2>Basics</h2>
+
+<p>GTP (Go Text Protocol) is a protocol that allows computer go playing
+programs (called "engines") to communicate with other programs. It was
+designed to be an improvement on the older "Go Modem Protocol". It is
+easy to implement and very useful for controlling go programs. Documentation
+on this standard can be found
+<a href="http://www.lysator.liu.se/~gunnar/gtp/">at the GTP home page</a>.</p>
+
+<p>There is a KGS client called kgsGtp which understands both GTP and
+the KGS server's protocol. It can serve as a bridge, connecting the GTP
+engine to the KGS server, allowing the GTP engine to play on KGS.</p>
+
+<h2>How to Run kgsGtp</h2>
+
+<p>First, you need to create an account on KGS, using the standard KGS client.
+Then you need to set up a configuration file for kgsGtp. Lastly, you need
+to run both it and the GTP engine together. Since kgsGtp is a java program
+that comes bundled as a jar file, you usually run it with a command line
+like this:</p>
+
+<blockquote>
+<pre>java -jar kgsGtp.jar <i>&lt;config file&gt;</i> <i>&lt;extra options&gt;</i></pre></blockquote>
+
+<p>kgsGtp requires java 1.5 or later to run. No external libraries are
+needed.</p>
+
+<p>When you run kgsGtp, you must specify a config file. This is a standard
+Java properties file. It is plain text, with one option specified per line,
+in the format:</p>
+
+<blockquote>
+<pre><i>optionName</i>=<i>optionValue</i></pre></blockquote>
+
+<p>Like all java properties files, the file is encoded in ISO-8859-1; if
+you need to represent other characters, you will need to use escape sequences.
+The standard Java programs "native2ascii" or "ascii2native" is the best
+way to write these secape sequences. Search
+<a href="java.sun.com">java.sun.com</a> for more information on using these
+tools.</p>
+
+<p>In addition to these options, you can put options in the command line.
+Any options in both the command line and the config file will use the command
+line value and ignore what is in the config file.</p>
+
+<h3>Connecting kgsGtp to the GTP Engine</h3>
+
+<p>There are five ways that kgsGtp can be connected to the GTP engine:</p>
+
+<h4>1. Have kgsGtp start the engine</h4>
+<p>To do this, just use the "<code>engine=<i>engine command line</i></code>"
+option in either the config file or on the command line. The engine must read
+from its standard input to get the GTP commands, and write its responses to
+its standard output.</p>
+
+<h4>2. Use named pipes</h4>
+<p>You need two named pipes - one for the engine to kgsGtp, and one for kgsGtp
+to the engine. Run kgsGtp, and instead of specifying the engine, you need
+to specify "<code>gtp.in=<i>Engine to kgsGtp file</i></code>" and
+"<code>gtp.out=<i>kgsGtp to engine file</i></code>". If you have an engine
+set, that will override these settings, and they will be ignored!</p>
+
+<h4>3. Use TCP/IP sockets</h4>
+<p>If you specify "<code>engine.port=<i>port number</i></code>" then
+kgsGtp will open up a TCP port and start listening. It expects the
+next inbound connection to be the engine.</p>
+
+<h4>4. Use stdin/stdout</h4>
+<p>This system is used if no options are present. You just need to make sure
+that stdin for kgsGtp it connected to the engine's output and stdout for
+kgsGtp is connected to the engine's input. Usually, the easiest way to do
+this is by <tt>fork</tt>ing and <tt>exec</tt>ing kgsGtp from within
+your engine.</p>
+
+<h4>5. Use kgsGtp as a library in a Java engine</h4>
+<p>kgsGtp can be used as a library in a java engine. You need to
+construct a set of configuration options, construct the client, then
+tell it to start:</p>
+
+<div style="border: thin solid #000000; padding: 2pt; margin: 10pt">
+<pre>package com.gokgs.client.gtp;
+
+public class GtpClient {
+
+  /**
+   * Create a new GTP Client.
+   *
+   * @param in An input stream that will give us any responses from the engine.
+   * @param out An output stream that will go to the engine with our commands.
+   * @param args Our options.
+   */
+  public GtpClient(java.io.InputStream in, java.io.OutputStream out,
+                   Options options);
+
+  /**
+   * Connect to the server and operate the GTP interface.
+   *
+   * @return &lt;code&gt;true&lt;/code&gt; on success, &lt;code&gt;false&lt;/code&gt; if we were
+   *   unable to do what was requested.
+   */
+  public boolean go();
+}
+
+public class Options {
+
+  /**
+   * Construct a new set of options for the kgsGtp client by pulling values
+   * out of a set of properties. Any values that we use will be removed from
+   * the properties, so anything left over is unused.
+   *
+   * @param props The properties that holds our options as string values.
+   * @param logName The name of the java logger that we will construct.
+   * @throws IllegalArgumentException If any required values are missing or if
+   *   any illegal values are detected.
+   */
+  public Options(java.util.Properties props, String logName);
+}</pre></div>
+
+<p>Just add kgsGtp.jar to your classpath, then construct a set of
+options from a <tt>Properties</tt> object. Once you have the options,
+you can construct a client. The input and output streams must be from
+your engine. Once you have build a GTP client, just call
+<code>go()</code> and it will start running. It will return only after
+shutting down.</p>
+
+<h3>kgsGtp Options</h3>
+
+<p>Running kgsGtp with the single option <tt>-help</tt> lists all options.
+Here is a more detailed list:</p>
+
+<table border="1" rules="rows">
+  <tr><th colspan="2" style="background: #cccccc">Logging Options</th></tr>
+  <tr><td><tt>logFile</tt></td>
+      <td>Specifies that logging should be done to a file instead of to
+          stderr. The value is the name of the file to use.</td></tr>
+  <tr><td><tt>verbose</tt></td>
+      <td>Setting this to <tt>t</tt> will make kgsGtp emit a lot of logging
+          info. Every message between kgsGtp and the engine will be logged
+          and a lot of KGS server events will be logged as well.</td></tr>
+
+  <tr><th colspan="2" style="background: #cccccc">Engine Connection
+      Options</th></tr>
+  <tr><td><tt>gtp.in</tt></td>
+      <td>Specifies a named pipe to read GTP responses from. Ignored if the
+          option <tt>engine</tt> is set.</td></tr>
+  <tr><td><tt>gtp.out</tt></td>
+      <td>Specifies a named pipe to write GTP commands to. Ignored if the
+          option <tt>engine</tt> is set.</td></tr>
+  <tr><td><tt>engine</tt></td>
+      <td>Specifies the command line to run to create the engine.</td></tr>
+
+  <tr><th colspan="2" style="background: #cccccc">KGS Connection
+      Options</th></tr>
+  <tr><td><tt>server.host</tt></td>
+      <td>Sets the host name or IP address of the KGS server. You only
+          need to set this if you are tunneling through a port
+          forwarder (for example, to get through a firewall).</td></tr>
+  <tr><td><tt>server.port</tt></td>
+      <td>Sets the TCP port of the KGS server. You only
+          need to set this if you are going through a port forwarder.</td></tr>
+  <tr><td><tt>reconnect</tt></td>
+      <td>If set, the client will try to reconnect to the server if it gets
+          cut off. It will not reconnect if the GTP engine dies or if there is
+          an error in the GTP protocol.</td></tr>
+  <tr><td><tt>name</tt></td>
+      <td>The user name of your KGS account. <b>Required.</b></td></tr>
+  <tr><td><tt>password</tt></td>
+      <td>The password of your KGS account. <b>Required.</b></td></tr>
+  <tr><td><tt>room</tt></td>
+      <td>The room that the engine should join. If this isn't set, then it
+          will join the same room it was in last time it connected. The
+          engine can only be in one room.</td></tr>
+  <tr><th colspan="2" style="background: #cccccc">Automatch Mode
+       Options</th></tr>
+  <tr><td><tt>mode=auto</tt></td>
+      <td>Puts client into automatch mode. This can be omitted, it is the
+          default.</td></tr>
+  <tr><td><tt>automatch.speed</tt></td>
+      <td>A comma-separated set with the elements <tt>blitz</tt>,
+          <tt>medium</tt>, and <tt>fast</tt>. Sets which automatch games the
+          engine will play. The default is
+          <tt>blitz,medium,fast</tt>.</td></tr>
+  <tr><td><tt>automatch.rank</tt></td>
+      <td>A rank from 30k to 1k. This is required unless the account has a
+          rank already.</td></tr>
+  <tr><th colspan="2" style="background: #cccccc">Custom Mode
+       Options</th></tr>
+  <tr><td><tt>mode=custom</tt></td>
+      <td>Puts client into custom game setup mode.</td></tr>
+  <tr><td><tt>mode=both</tt></td>
+      <td>Puts the client into both automatch and custom modes at the
+      same time.</td></tr>
+  <tr><td><tt>gameNotes</tt></td>
+      <td>Sets the notes that will appear in any open games that are
+          created.</td></tr>
+  <tr><td><tt>rules</tt></td>
+      <td>Should be one of <tt>japanese</tt>, <tt>chinese</tt>, <tt>aga</tt>,
+          or <tt>newzealand</tt>. Sets the rules that will be used when it
+          creates an open game. People can override this though, so this
+          doesn't guarantee that the rules will actually be used.</td></tr>
+  <tr><td><tt>rules.boardSize</tt></td>
+      <td>Sets the size of the board that will be in open games. Again, it
+          can be overridden.</td></tr>
+  <tr><td><tt>rules.time</tt></td>
+      <td>Sets the time system that will appear in open games. There are
+          several formats:
+<ul>
+<li>"<tt>0</tt>" for no time limit.</li>
+<li>"<tt>m:ss</tt>" for absolute time. For example, <tt>30:00</tt> for a game
+  where each player has a half hour for all their moves.</li>
+<li>"<tt>m:ss+nxm:ss</tt>" for byo-yomi time. For example,
+  <tt>30:00+5x0:30</tt> for a half hour of main time and 5 byo-yomi periods
+  of 30 seconds each.</li>
+<li>"<tt>m:ss+n/m:ss</tt>" for canadian time. For example,
+  <tt>30:00+25/10:00</tt> means a half hour of main time, with 10 minute
+  byo-yomi periods of 25 stones each.</li></ul></td></tr>
+  <tr><td><tt>opponent</tt></td>
+      <td>Sets the user name who the engine is to play. If <tt>mode</tt> is
+          set to <tt>custom</tt>, then challenges from any other player will
+          be rejected.</td></tr>
+
+  <tr><th colspan="2" style="background: #cccccc">Wait Mode
+       Options</th></tr>
+  <tr><td><tt>mode=wait</tt></td>
+      <td>Puts client into wait mode.</td></tr>
+  <tr><td><tt>opponent</tt></td>
+      <td>Sets the user name who the engine is to play. If <tt>mode</tt> is
+          set to <tt>wait</tt>, then the engine will look
+          for open games by the given opponent, and challenge them.</td></tr>
+  <tr><th colspan="2" style="background: #cccccc">Tournament Mode
+       Options</th></tr>
+  <tr><td><tt>mode=tournament</tt></td>
+      <td>Puts client into tournament mode. The client will do nothing but
+          wait for tournament games to start, then play in them.</td></tr>
+
+  <tr><th colspan="2" style="background: #cccccc">Options on the
+      servers</th></tr>
+  <tr><td><tt>talk</tt></td>
+      <td>If anybody tries to talk to the engine in a private
+          conversation, it will answer with
+          this message. Should be something like "I'm a computer program
+          and cannot talk."</td></tr>
+  <tr><td><tt>hint.noArguing</tt></td>
+      <td>If your engine does not support the
+          <tt>kgs-genmove_cleanup</tt> command (or the game uses
+          Japanese rules, where <tt>kgs-genmove_cleanup</tt> can't be
+          used), and your opponent does not agree with the dead stones
+          that the engine settled on, then this message will be
+          written to your opponent. It should tell them that they must either
+          agree with the engine or leave the game. The default message
+          does exactly that, in English.</td></tr>
+  <tr><td><tt>hint.cleanup</tt></td>
+      <td>If <tt>kgs-genmove_cleanup</tt> is usable in this game, and
+          your opponent disagrees on which stones are dead, then this
+          message is sent to them. It should tell them to undo if they
+          want to play out the game to determine which stones are
+          dead. The default message says exactly that, in English.</td></tr>
+  <tr>
+    <td><tt>undo</tt></td>
+    <td>
+      Setting this to <tt>f</tt> will refuse all undos. Normally, undo is
+      allowed in free games the engine allows it and refused in ranked games.
+    </td>
+  </tr>
+</table>
+
+<h3>Example kgsGtp Config File</h3>
+
+<p>This example config file was used when I was testing kgsGtp. It
+connects as "gtpProg" and plays anybody who challenges. Gnugo is run
+by kgsGtp to provide the engine.</p>
+
+<div style="border: thin solid #000000; padding: 2pt; margin: 10pt">
+<pre>name=gtpProg
+password=pxss!rd
+room=English Room
+mode=auto
+automatch.speed=blitz,medium
+automatch.rank=20k
+verbose=t
+engine=/home/wms/src/gnugo-3.4/interface/gnugo --mode gtp</pre></div>
+
+<h2>kgsGtp's use of GTP</h2>
+
+<p>kgsGtp does not use all of GTP's commands. Only a very small set of
+commands (three, in fact) are absolutely required. Any non-required
+commands may be sent to the engine, but it is acceptable for the
+engine to simply return errors for all of them. These are the commands
+that it will send to engines:</p>
+
+<h3>Administrative Commands</h3>
+
+<dl>
+<dt><tt>list_commands</tt> &mdash; <i>Recommended</i></dt>
+<dd>Sent when first connecting to the client. kgsGtp will never send
+  nonstandard commands unless the engine states that they are supported. kgsGtp
+  may send standard commands even though the engine does not claim to support
+  them. If you do not support <tt>list_commands</tt> then only very
+  basic functionality will be used in your engine.</dd>
+
+<dt><tt>name</tt> &mdash; <i>Optional</i></dt>
+<dt><tt>version</tt> &mdash; <i>Optional</i></dt>
+<dd>The name and version are added as comments every time that kgsGtp starts
+  a game. If the engine does not provide a name and version,
+  then nothing will be written. If you use non-ASCII characters in the
+  name or version of your engine, these characters must be encoded using
+  UTF-8.</dd>
+
+<dt><tt>quit</tt> &mdash; <i>Optional</i></dt>
+<dd>If <tt>clear_board</tt> is not supported, then we send a <tt>quit</tt>
+  after the game ends because there is nothing else we can do. If the
+  <tt>quit</tt> fails, then we just close everything up with an error.</dd>
+
+<dt><tt>kgs-chat</tt> &mdash; <i>Optional</i></dt>
+<dd>This extension may be used for the engine to be able to chat with opponents
+  and other players on the server. The format of this command will be
+  "<tt>kgs-chat&nbsp;</tt>(<tt>game</tt>|<tt>private</tt>)<tt>&nbsp;</tt><i>Name</i><tt>&nbsp;</tt><i>Message</i>".
+  The first parameter indicates whether the message came from
+  the engine's opponent in the game or from a private chat. <i>Name</i> is the
+  name of the user who sent the message. <i>Message</i> (which may include
+  spaces but will not include line feeds or any other escape characters at or
+  below character code 31) is the message itself. If the engine responds with a
+  non-error value, then the response will be sent back to the user who sent the
+  message. If the engine responsds with an error, the default message
+  (as specified by the <tt>talk</tt> option) is
+  sent instead. Messages in chat rooms and from game observers are always
+  ignored.</dd>
+</dl>
+
+<h3>Setup Commands</h3>
+
+<dl>
+<dt><tt>boardsize</tt> &mdash; <b>Required</b></dt>
+<dd>This will be sent before the game starts. If you cannot play the
+  size specified, reply with an error. Any challenges that come with
+  board sizes that your engine cannot support will not be accepted. Note
+  that you will often get multiple <tt>boardsize</tt> commands before
+  the game start - one or more as each challenge comes in to ensure that
+  your engine can play the board size specified, then a final
+  <tt>boardsize</tt> when the game actually starts.</dd>
+
+<dt><tt>clear_board</tt> &mdash; <i>Recommended</i></dt>
+<dd>Used before each game to ensure a clean starting point. If you
+  don't support this, then you will be limited to one game for each time
+  you run kgsGtp.</dd>
+
+<dt><tt>komi</tt> &mdash; <i>Optional</i></dt>
+<dd>Sent when each game starts up.</dd>
+
+<dt><tt>place_free_handicap</tt> &mdash; <i>Recommended</i></dt>
+<dt><tt>set_free_handicap</tt> &mdash; <i>Recommended</i></dt>
+<dd>Used to set or ask for handicap stone positions. The fixed handicap
+  GTP command is <em>not</em> used. If the game is fixed handicap, you
+  will get the <tt>set_free_handicap</tt> command instead. GTP does
+  not have enough flexibility in its fixed handicap command to support
+  KGS. If your engine does not support these commands then handicap
+  games will be refused.</dd>
+</dl>
+
+<h3>Core Play Commands</h3>
+
+<dl>
+<dt><tt>play</tt> &mdash; <b>Required</b></dt>
+<dt><tt>genmove</tt> &mdash; <b>Required</b></dt>
+<dd>Used as normal.</dd>
+
+<dt><tt>undo</tt> &mdash; <i>Optional</i></dt>
+<dd>If your engine supports this command, you will get it as normal. If your
+  engine does not include <tt>undo</tt> as a response to
+  <tt>list_commands</tt>, then KGS will use <tt>clear_board</tt>
+  followed by a series of <tt>play</tt> commands when an undo is
+  required. If your engine supports neither of these commands, then
+  any undos that your opponents request will be denied.</dd>
+<dt><tt>kgs-game_over</tt> &mdash; <i>Optional</i></dt>
+<dd>If your engine supports this command, it will be sent whenever a game
+  ends, either through scoring or due to your opponent leaving. This can
+  be used as a cue that it is a good time for the engine to log out (usually
+  done by the engine exiting after receiving this command).</dd>
+
+<dt><tt>kgs-rules</tt> &mdash; <i>Optional</i></dt>
+<dd>If your engine supports this command, it will be sent each time a
+  game starts. It has one parameter, which is the rules of the game;
+  one of <tt>japanese</tt>, <tt>chinese</tt>, <tt>aga</tt>,
+  or <tt>new_zealand</tt>. The response to this command is
+  ignored. In the future, this command may be extended by adding
+  more parameters, so please code your engine to
+  treat "<tt>kgs-rules&nbsp;japanese</tt>"
+  and "<tt>kgs-rules&nbsp;japanese&nbsp;blah&nbsp;blah&nbsp;blah</tt>"
+  as equivalent.</dd>
+</dl>
+
+<h3>Tournament Commands</h3>
+
+<dl>
+<dt><tt>time_settings</tt> &mdash; <i>Optional</i></dt>
+<dt><tt>kgs-time_settings</tt> &mdash; <i>Optional</i></dt>
+<dd>Similar to the <tt>boardsize</tt> command, you may get several
+  time settings commands; any settings that your engine cannot play with,
+  you should return an error. If your engine supports the
+  <tt>kgs-time_settings</tt> command, then you will get that instead of
+  the standard <tt>time_settings</tt> command. The reson for the
+  KGS-specific time setting is that GTP's standard time settings has no
+  way to describe the byo-yomi time system. This system is quite popular
+  in tournaments and is used often on KGS. The format for the
+  <tt>kgs-time_settings</tt> command is the same as
+  <tt>time_settings</tt>, but another parameter is inserted 
+  as the first parameter, which describes the time system as either
+  <tt>none</tt>, <tt>absolute</tt>, <tt>byoyomi</tt>, or <tt>canadian</tt>.
+  For the <tt>none</tt> and <tt>absolute</tt> time systems there will be
+  fewer than two options. If you do not support <tt>kgs-time_settings</tt>
+  and your engine is put into a byo-yomi game, kgsGtp will tell your engine
+  that it is an absolute time game with no byo-yomi periods and a total time
+  equal to the main time and all of the periods.</dd>
+
+<dt><tt>time_left</tt> &mdash; <i>Optional</i></dt>
+<dd>Used as normal.</dd>
+
+<dt><tt>final_status_list</tt> &mdash; <i>Optional, required for rated
+  games</i></dt>
+<dd>After the game enters scoring kgsGtp will send this command,
+  asking for dead stones. kgsGtp will never ask questions about seki,
+  only about dead stones. If you successfully return a list of dead
+  stones, then kgsGtp will mark those on the board. If you return an
+  error, then kgsGtp will not mark any stones dead and your opponent
+  will have to do that instead. In tournament games, this command is only
+  used if you also support <tt>kgs-genmove_cleanup</tt>; otherwise it is
+  assumed that your engine believes all stones on the board to be alive.</dd>
+
+<dt><tt>kgs-genmove_cleanup</tt> &mdash; <i>Optional, recommended for
+  playing ranked or tournament games</i></dt>
+<dd>This is a kgsGtp-specific command. Engines that support it should treat
+  it the same as the <tt>genmove</tt> command, except that they should not pass
+  until all dead stones are removed from the board. This is used by kgsGtp
+  when the engine and the opponent disagree on which stones are dead at the
+  end of the game. In tournament games, if you do not support this command,
+  then you must play until all dead stones are removed from the board -
+  that is, regular <tt>genmove</tt> must behave the way that
+  <tt>kgs-genmove_cleanup</tt> is described.</dd>
+
+</dl>
+
+<h2>KGS and Ranked Games</h2>
+
+<p>It is important that ranked games do not allow people to "cheat" and abuse
+the engine or kgsGtp to inflate their personal ranks. The possible ways to
+cheat include:</p>
+
+<ol>
+<li>Marking living stones dead, or dead stones living, to change the score
+  of a lost game to a won game.</li>
+<li>Escaping from games that you are losing.</li>
+<li>Setting time parameters so that the engine cannot hope to win (for example,
+  if the engine always uses at least 5 seconds per move, you can set the time
+  to give only 3 seconds per move, then play random moves very fast until you
+  win).</li>
+<li>Running kgsGtp in your own account to inflate your rank (this obviously
+  only works if you have an engine that is stronger than yourself).</li>
+<li>Running the engine standalone, and copying its moves into your games
+  that you play with the standard client.</li>
+</ol>
+
+<p>Clearly
+there is no way to stop #5, but fortunately that technique is fairly tedious
+so most players probably will not be interested in doing that.</p>
+
+<p>To try to keep a handle on ranked game play on the server, to
+prevent players from cheating on the engines (or using engines to
+cheat for themselves), kgsGtp will behave as follows when playing
+ranked games:</p>
+
+<ol>
+<li>"Normal" accounts cannot play ranked games when connected by GTP,
+  only when using one of the "human" clients.</li>
+<li>Accounts can be set to "Ranked Robot" authorization. Please email to
+  <a href="mailto:admin@gokgs.com">admin@gokgs.com</a> to ask for this
+  authorization. Once it is set for an account, the GTP engine can play
+  ranked against other GTP engines or against "human" clients, and humans who
+  log in to that account cannot play ranked games.</li>
+<li>A kgsGtp engine will refuse to start a new ranked game with a
+  player if there is already an unfinished ranked game against that
+  player.</li>
+<li>To play ranked games, an engine must support the
+  <tt>final_status_list</tt> command.</li>
+<li>All undos are declined in ranked games.</li>
+<li>The kgsGtp engine will refuse to play ranked unless the rules of the game
+  exactly match what is specified in the configuration file and/or command
+  line.</li>
+<li>If the engine and the human disagree on the status of living and dead
+  stones at the end of the game, one of two things will happen: If the game
+  uses non-Japanese rules and the engine supports the
+  <tt>kgs-genmove_cleanup</tt> command, then kgsGtp will recommend
+  that the human press "undo", after which play will continue but the engine
+  will get <tt>kgs-genmove_cleanup</tt> commands (in place of <tt>genmove</tt>
+  commands). In all other cases, kgsGtp will simply refuse to finish the game
+  unless the human agrees to the dead stones that the engine listed in its
+  response to the <tt>final_status_list</tt> command.</li>
+<li>It is recommended that engines that play ranked games support the
+  <tt>kgs-genmove_cleanup</tt> command and play non-Japanese rules
+  games. It is especially important that your engine support that
+  command if it isn't so good at computing living/dead groups at the
+  end of the game, otherwise you will get a lot of angry opponents
+  left standing around in an unfinished game!</li>
+</ol>
+
+<h2>KGS and Tournament Games</h2>
+
+<p>Tournament games are similar to ranked games but even stricter. Tournament
+play with kgsGtp is designed with a goal of allowing GTP vs. GTP play with
+no human intervention and no scoring disputes. Because of this, it is required
+that engines prove the status of dead groups, either with the
+<tt>kgs-genmove_cleanup</tt> command or by playing until all dead stones
+are removed from the board.</p>
+
+<p>In tournament play, when the game ends, there are two possibilities:</p>
+
+<p><strong>Engine Supports <tt>kgs-genmove_cleanup</tt> and
+<tt>final_status_list</tt></strong>:
+The engine will be queried as normal at the end of the game. If the engine
+disagrees with the stones that the opponent marks dead, then play will continue
+with the <tt>genmove</tt> requests replaced by <tt>kgs-genmove_cleanup</tt>.
+After the engine passes, it will be assumed that all stones in play are alive.
+This is the same as normal ranked play.</p>
+
+<p><strong>Engine is Missing Support for <tt>kgs-genmove_cleanup</tt> and/or
+<tt>final_status_list</tt></strong>:
+In this case the engine is not capable of resolving disputes after scoring,
+so the engine must resolve all disputes during play. The engine will claim
+that all stones on the board (by either player) are alive. If the opponent
+disagrees, then kgsGtp will continue to insist all stones are alive.</p>
+
+<p>Thus, if two engines that both support the cleanup system play, any
+disagreements will be resolved by continuing play; after the cleanup phase,
+all stones will be considered alive by both engines. If one that supports
+cleanup plays one that does not, the engine that supports cleanup will be
+forced to play on until it also considers all stones alive. If neither engine
+supports cleanup, then disagreement is not possible, since both engines must
+play until all dead stones are removed.</p>
+
+<h2>Changes</h2>
+
+<p>Version 3.3.9:</p>
+
+<ul>
+<li>Got rid of <tt>open</tt> and <tt>tournament</tt> commands, replaced with
+  <tt>mode</tt> options.</li>
+<li>Fixed bug that would crash frequently when kgsGtp was used as a
+  library.</li>
+<li>Fixed bug that required you to be already subscribed to the room
+  specified in your properties file.</li>
+</ul>
+
+<p>Version 3.0.0beta1:</p>
+
+<ul>
+<li>Added <tt>kgs-chat</tt> and <tt>kgs-game_over</tt> commands.</li>
+<li>Forced tournament play to either support <tt>kgs-genmove_cleanup</tt> or
+  else play until all dead stones are removed from the board.</li>
+</ul>
+
+<p>Version 2.6.11:</p>
+
+<ul>
+<li>Fixed bug that would send <tt>kgs-genmove_cleanup</tt> in games with
+  Japanese rules.</li>
+</ul>
+
+<p>Version 2.6.10:</p>
+
+<ul>
+<li>Will now claim win when opponent runs out of time.</li>
+<li>Fixed several bugs that made it impossible to use kgsGtp as a java
+  library.</li>
+<li>Added ability to play in tournaments.</li>
+<li>Added <tt>undo</tt> option.</li>
+<li>Fixed a bug that would make the client hang when it got an error response
+  from <tt>final_status_list</tt>.</li>
+<li>Fixed a bug that would hit if the engine is playing black in a handicap
+  game, supports <tt>clear_board</tt> but not <tt>undo</tt>, and the opponent
+  chooses to make an undo.</li>
+</ul>
+
+<p>Version 2.6.2:</p>
+<ul>
+<li>Added <tt>reconnect</tt> option.</li>
+<li>Let boolean options accept "<tt>true</tt>" and "<tt>false</tt>" as well
+  as "<tt>t</tt>" and "<tt>f</tt>".</li>
+</ul>
+
+<p>Version 2.5.9:</p>
+<ul>
+<li>Fixed bug, gtp-vs-gtp games on KGS wouldn't always end properly.</li>
+<li>Fixed bug, reloading free handicap placement games where GTP
+  engine was black wouldn't work.</li>
+<li>Fixed bug, engines that returned an error to the final_status_list command
+  would not finish games properly.</li>
+</ul>
+
+<p>Version 2.5.8 beta2:</p>
+<ul>
+<li>Added <tt>engine.port</tt> configure option.</li>
+</ul>
+
+<p>Version 2.5.8:</p>
+<ul>
+<li>Fixed a bug that would cause occasional failures in engines thot do not
+  support the "undo" command.</li>
+</ul>
+
+<p>Version 2.5.7:</p>
+<ul>
+<li>Passes in handicap placement would send illegal "pass" as one of
+  the moves.</li>
+</ul>
+
+<p>Version 2.5.6:</p>
+<ul>
+<li>Fixed a bug - kgsGtp wouldn't send an undo if the server sent us
+  an undo after we submitted the move but before it was returned to
+  us.</li>
+</ul>
+
+<p>Version 2.5.6 beta6:</p>
+<ul>
+<li>Fixed a bug - kgsGtp would crash if engine didn't know
+  time_settings command.</li>
+<li>Made the handicap commands optional.</li>
+</ul>
+
+<p>Version 2.5.6 beta5:</p>
+<ul>
+<li>Added <tt>server.host</tt> and <tt>server.port</tt> options.</li>
+<li>Fixed a bug that would make it crash when the engine reported no
+  dead stones.</li>
+</ul>
+
+<p>Version 2.5.6 beta4:</p>
+<ul>
+<li>Fixed a bug that made it crash on startup</li>
+</ul>
+
+<p>Version 2.5.6 beta3:</p>
+<ul>
+<li>Undo will use <tt>clear_board</tt> and a rebuild of the whole board if
+  either the client doesn't support <tt>undo</tt> or if an <tt>undo</tt>
+  fails.</li>
+<li>If you enter a game and your opponent is not there when you enter, it
+  sets up a timer to give up and leave as if the opponent had left the
+  game.</li>
+<li>If you support the <tt>kgs-genmove_cleanup</tt> command, you can play
+  rated.</li>
+<li>The "<tt>talk</tt>" option works now.</li>
+<li>If the engine gets stuck and never answers a command, it will not
+  make an open game until the command is answered.</li>
+<li>Ranked games works (on server 2.5.6 or later).</li>
+</ul>
+
+<p>Version 2.5.6 beta2:</p>
+<ul>
+<li>Now checks to make sure that <tt>boardsize</tt> and
+  <tt>time_settings</tt> succeed before a challenge is
+  accepted.</li>
+<li>Does a <tt>clear_board</tt> before starting a game,
+  instead of after.</li>
+<li>Shuts down cleanly when the engine goes away instead of
+  stalling.</li>
+<li>Can now resume games. When your opponent loads a game, if kgsGtp
+  is waiting for a challenge, then it drops the challenge and joins
+  the game. <em>Note</em>: This will not work on server 2.5.5 because
+  of a server bug that prevents you from loading games when your
+  opponent is waiting for a match. When KGS server 2.5.6 is out, this
+  will work.</li>
+<li>Is better about returning errors instead of exiting when there is
+  a problem.</li>
+</ul>
+
+</body></html>
