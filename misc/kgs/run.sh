@@ -5,4 +5,4 @@ set -x
 
 cargo build --release
 
-java -jar kgsGtp.jar Imrscl.cfg
+java -jar kgsGtp.jar Imrscl.cfg 2>&1 | tee -a Imrscl.log
