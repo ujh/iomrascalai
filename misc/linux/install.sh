@@ -6,7 +6,14 @@ set -x
 
 sudo apt-get -y update
 sudo apt-get -y upgrade
-sudo apt-get -y install htop wget emacs24 default-jre binutils gcc git ruby unzip tmux
+sudo apt-get -y install htop wget emacs24 binutils gcc git ruby unzip tmux
+
+# Oracle Java is required by the kgsGtp client
+sudo echo "deb http://ppa.launchpad.net/webupd8team/java/ubuntu xenial main" | sudo tee /etc/apt/sources.list.d/webupd8team-java.list
+sudo echo "deb-src http://ppa.launchpad.net/webupd8team/java/ubuntu xenial main" | sudo tee -a /etc/apt/sources.list.d/webupd8team-java.list
+sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys EEA14886
+sudo apt-get update
+sudo apt-get -y install oracle-java8-installer
 
 # TODO: Install a custom GnuGo that doesn't crash when playing certain ladders
 sudo apt-get -y install gnugo
