@@ -64,7 +64,6 @@ impl<'a> GTPInterpreter<'a> {
             "genmove",
             "gogui-analyze_commands",
             "imrscl-ownership",
-            "kgs-chat",
             "known_command",
             "komi",
             "list_commands",
@@ -125,7 +124,6 @@ impl<'a> GTPInterpreter<'a> {
             "genmove" => self.execute_genmove(arguments),
             "gogui-analyze_commands" => self.execute_gogui_analyze_commands(arguments),
             "imrscl-ownership" => self.execute_imrscl_ownership(arguments),
-            "kgs-chat" => self.execute_kgs_chat(arguments),
             "known_command" => self.execute_known_command(arguments),
             "komi" => self.execute_komi(arguments),
             "list_commands" => self.execute_list_commands(arguments),
@@ -141,10 +139,6 @@ impl<'a> GTPInterpreter<'a> {
             _ => Err("unknown command".to_string())
         }
 
-    }
-
-    fn execute_kgs_chat(&mut self, _: &[&str]) -> Result<String, String> {
-        Ok("I'm a program. I cannot talk".to_string())
     }
 
     fn execute_name(&mut self, _: &[&str]) -> Result<String, String> {

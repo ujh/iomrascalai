@@ -61,14 +61,6 @@ describe! interpreter {
             assert_that(response, is(equal_to(err("empty command"))));
         }
 
-        describe! kgs_chat {
-
-            it "returns a static string" {
-                let response = interpreter.read("kgs-chat private user the rest is the message\n");
-                assert_that(response, is(equal_to(ok("I'm a program. I cannot talk"))));
-            }
-        }
-
         describe! loadsgf {
 
             it "wrong file" {
@@ -211,7 +203,7 @@ describe! interpreter {
 
             it "no newline at end" {
                 let response = interpreter.read("list_commands\n");
-                let expected = "boardsize\nclear_board\nfinal_score\nfinal_status_list\ngenmove\ngogui-analyze_commands\nimrscl-ownership\nkgs-chat\nknown_command\nkomi\nlist_commands\nloadsgf\nname\nplay\nprotocol_version\nquit\nshowboard\ntime_left\ntime_settings\nversion";
+                let expected = "boardsize\nclear_board\nfinal_score\nfinal_status_list\ngenmove\ngogui-analyze_commands\nimrscl-ownership\nknown_command\nkomi\nlist_commands\nloadsgf\nname\nplay\nprotocol_version\nquit\nshowboard\ntime_left\ntime_settings\nversion";
                 assert_that(response, is(equal_to(ok(expected))));
             }
 
