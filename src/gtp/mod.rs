@@ -64,6 +64,7 @@ impl<'a> GTPInterpreter<'a> {
             "genmove",
             "gogui-analyze_commands",
             "imrscl-ownership",
+            "kgs-genmove_cleanup",
             "known_command",
             "komi",
             "list_commands",
@@ -125,6 +126,7 @@ impl<'a> GTPInterpreter<'a> {
             "genmove" => self.execute_genmove(arguments),
             "gogui-analyze_commands" => self.execute_gogui_analyze_commands(arguments),
             "imrscl-ownership" => self.execute_imrscl_ownership(arguments),
+            "kgs-genmove_cleanup" => self.execute_kgs_genmove_cleanup(arguments),
             "known_command" => self.execute_known_command(arguments),
             "komi" => self.execute_komi(arguments),
             "list_commands" => self.execute_list_commands(arguments),
@@ -207,8 +209,8 @@ impl<'a> GTPInterpreter<'a> {
             Some(c) => {
                 let started_at = precise_time_ns();
                 self.timer.start(&self.game);
-        	let color = Color::from_gtp(c);
-                let (m, playouts) = self.controller.run_and_return_move(color, &self.game, &self.timer);
+                let color = Color::from_gtp(c);
+                let (m, playouts) = self.controller.genmove(color, &self.game, &self.timer);
                 let response = match self.game.play(m) {
                     Ok(_) => {
                         self.timer.reset();
@@ -220,7 +222,6 @@ impl<'a> GTPInterpreter<'a> {
                 };
                 Self::measure_playout_speed(started_at, playouts, &self.config);
                 response
-
             },
             None => Err("missing argument".to_string())
         }
@@ -231,8 +232,33 @@ impl<'a> GTPInterpreter<'a> {
             Some(comm) => {
                 let started_at = precise_time_ns();
                 self.timer.start(&self.game);
-        	let color = Color::from_gtp(comm);
-                let (m, playouts) = self.controller.run_and_return_move(color, &self.game, &self.timer);
+                let color = Color::from_gtp(comm);
+                let (m, playouts) = self.controller.genmove(color, &self.game, &self.timer);
+                let response = match self.game.play(m) {
+                    Ok(g) => {
+                        self.game = g;
+                        self.timer.stop();
+                        Ok(m.to_gtp())
+                    },
+                    Err(e) => {
+                        Err(format!("Illegal move {:?} ({:?})", m, e))
+                    }
+                };
+                Self::measure_playout_speed(started_at, playouts, &self.config);
+                response
+            },
+            None => Err("missing argument".to_string())
+        }
+    }
+
+    fn execute_kgs_genmove_cleanup(&mut self, arguments: &[&str]) -> Result<String, String> {
+        match arguments.get(0) {
+            Some(comm) => {
+                self.game.reset_game_over();
+                let started_at = precise_time_ns();
+                self.timer.start(&self.game);
+                let color = Color::from_gtp(comm);
+                let (m, playouts) = self.controller.genmove_cleanup(color, &self.game, &self.timer);
                 let response = match self.game.play(m) {
                     Ok(g) => {
                         self.game = g;

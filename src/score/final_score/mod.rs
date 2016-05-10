@@ -75,6 +75,10 @@ impl FinalScore {
         }
     }
 
+    pub fn dead_stones_on_board(&self) -> bool {
+        self.dead.len() > 0
+    }
+
     fn status_list_dead(&self) -> Result<String, String> {
         let s = self.dead.iter()
             .fold(String::new(), |acc, el| format!("{} {}", acc, el.to_gtp()));

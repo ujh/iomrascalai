@@ -612,6 +612,11 @@ impl Board {
         self.consecutive_passes == 2 || self.resigned_by != Empty
     }
 
+    pub fn reset_game_over(&mut self) {
+        self.consecutive_passes = 0;
+        self.resigned_by = Empty;
+    }
+
     pub fn size(&self) -> u8 {
         self.size
     }
