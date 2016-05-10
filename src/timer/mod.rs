@@ -102,6 +102,10 @@ impl Timer {
         self.adjust_time();
     }
 
+    pub fn reset(&mut self) {
+        // Do nothing
+    }
+
     pub fn byo_stones_left(&self) -> i32 {
         self.byo_stones_left
     }

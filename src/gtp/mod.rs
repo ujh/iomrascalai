@@ -72,6 +72,7 @@ impl<'a> GTPInterpreter<'a> {
             "play",
             "protocol_version",
             "quit",
+            "reg_genmove",
             "showboard",
             "time_left",
             "time_settings",
@@ -132,6 +133,7 @@ impl<'a> GTPInterpreter<'a> {
             "play" => self.execute_play(arguments),
             "protocol_version" => self.execute_protocol_version(arguments),
             "quit" => self.execute_quit(arguments),
+            "reg_genmove" => self.execute_reg_genmove(arguments),
             "showboard" => self.execute_showboard(arguments),
             "time_left" => self.execute_time_left(arguments),
             "time_settings" => self.execute_time_settings(arguments),
@@ -196,6 +198,30 @@ impl<'a> GTPInterpreter<'a> {
                     },
                     Err(e) => Err(format!("{:?}", e))
                 },
+            None => Err("missing argument".to_string())
+        }
+    }
+
+    fn execute_reg_genmove(&mut self, arguments: &[&str]) -> Result<String, String> {
+        match arguments.get(0) {
+            Some(c) => {
+                let started_at = precise_time_ns();
+                self.timer.start(&self.game);
+        	let color = Color::from_gtp(c);
+                let (m, playouts) = self.controller.run_and_return_move(color, &self.game, &self.timer);
+                let response = match self.game.play(m) {
+                    Ok(_) => {
+                        self.timer.reset();
+                        Ok(m.to_gtp())
+                    },
+                    Err(e) => {
+                        Err(format!("Illegal move {:?} ({:?})", m, e))
+                    }
+                };
+                Self::measure_playout_speed(started_at, playouts, &self.config);
+                response
+
+            },
             None => Err("missing argument".to_string())
         }
     }

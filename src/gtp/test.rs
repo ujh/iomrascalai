@@ -203,7 +203,7 @@ describe! interpreter {
 
             it "no newline at end" {
                 let response = interpreter.read("list_commands\n");
-                let expected = "boardsize\nclear_board\nfinal_score\nfinal_status_list\ngenmove\ngogui-analyze_commands\nimrscl-ownership\nknown_command\nkomi\nlist_commands\nloadsgf\nname\nplay\nprotocol_version\nquit\nshowboard\ntime_left\ntime_settings\nversion";
+                let expected = "boardsize\nclear_board\nfinal_score\nfinal_status_list\ngenmove\ngogui-analyze_commands\nimrscl-ownership\nknown_command\nkomi\nlist_commands\nloadsgf\nname\nplay\nprotocol_version\nquit\nreg_genmove\nshowboard\ntime_left\ntime_settings\nversion";
                 assert_that(response, is(equal_to(ok(expected))));
             }
 
@@ -216,6 +216,18 @@ describe! interpreter {
                 let response = interpreter.read("clear_board\n");
                 assert_that(response, is(equal_to(ok(""))));
                 assert_eq!(361, interpreter.game.board().vacant_point_count());
+            }
+
+        }
+
+        describe! reg_genmove {
+
+            it "returns a move" {
+                interpreter.read("boardsize 9\n").unwrap();
+                interpreter.read("clear_board\n").unwrap();
+                interpreter.read("time_settings 100 0 0\n").unwrap();
+                let response = interpreter.read("reg_genmove b\n");
+                assert!(response.is_ok());
             }
 
         }
