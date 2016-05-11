@@ -13,14 +13,25 @@ before_script:
 - |
   pip install 'travis-cargo<0.2' --user &&
   export PATH=$HOME/.local/bin:$PATH
+before_install:
+  - export PATH="$PATH:$HOME/.cargo/bin"
+install:
+  - bash ci/install.sh
 script:
-- |
-  travis-cargo build &&
-  travis-cargo test &&
-  travis-cargo doc
+  - bash ci/script.sh
 after_success:
-- travis-cargo doc-upload
 - travis-cargo coveralls --no-sudo --verify
+before_deploy:
+  - bash ci/before_deploy.sh
+deploy:
+  provider: releases
+  api_key:
+    secure: "CDCHvMuYl6IfYfSOcrlOWrMSSSJCG6aCnWOZp484nnbR1NTQ/QS5+ZXxMNqxK6sfhZoH6xwHmiqQN43GwdtgSqVANtvlf9OORdJyXmrWzJPdDJc5RrHYP3n4DunS1mq95InC7aLBgGd8pvNeNP3GjXMJFCx7pPhO9yiNwJEkwWQ="
+  file_glob: true
+  file: ${PROJECT_NAME}-${TRAVIS_TAG}-${TARGET}.*
+  skip_cleanup: true
+  on:
+    tags: true
 notifications:
   webhooks:
     urls:
@@ -29,3 +40,12 @@ env:
   global:
     - TRAVIS_CARGO_NIGHTLY_FEATURE=""
     - secure: Afu8edoY4oE9U+BhZGrhzYmmO+3K5jRCGX2d8pqn+SON+SCBBfxzE27Hzl/mUKJg/OmMcxF/XtM65ojNEfuUifR/dPq2BazVPOTfimx/a6kU/Rzvw+qpFVLFNhE8CZ1I7wYpZLYyfqLUFIxjum70GAXgIaULzxzEMVgVtQS4j0w=
+    - PROJECT_NAME=iomrascalai
+matrix:
+  include:
+    - os: linux
+      rust: nightly
+      env: TARGET=x86_64-unknown-linux-musl
+    - os: osx
+      rust: nightly
+      env: TARGET=x86_64-apple-darwin
