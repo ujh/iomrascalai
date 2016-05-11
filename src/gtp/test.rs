@@ -143,6 +143,32 @@ describe! interpreter {
             }
         }
 
+        describe! kgs {
+            describe! genmove_cleanup {
+
+                it "one argument" {
+                    let response = interpreter.read("kgs-genmove_cleanup\n");
+                    assert_that(response, is(equal_to(err("missing argument"))));
+                }
+
+                it "generates a move" {
+                    let response = interpreter.read("kgs-genmove_cleanup b\n");
+                    assert!(response.is_ok());
+                }
+
+                it "generates a move after two passes" {
+                    interpreter.read("boardsize 9\n").unwrap();
+                    interpreter.read("clear_board\n").unwrap();
+                    interpreter.read("play b pass\n").unwrap();
+                    interpreter.read("play w pass\n").unwrap();
+                    let response = interpreter.read("kgs-genmove_cleanup b\n");
+                    println!("{:?}", response);
+                    assert!(response.is_ok());
+                }
+            }
+
+        }
+
         describe! komi {
 
             it "one argument" {
@@ -203,7 +229,7 @@ describe! interpreter {
 
             it "no newline at end" {
                 let response = interpreter.read("list_commands\n");
-                let expected = "boardsize\nclear_board\nfinal_score\nfinal_status_list\ngenmove\ngogui-analyze_commands\nimrscl-ownership\nknown_command\nkomi\nlist_commands\nloadsgf\nname\nplay\nprotocol_version\nquit\nreg_genmove\nshowboard\ntime_left\ntime_settings\nversion";
+                let expected = "boardsize\nclear_board\nfinal_score\nfinal_status_list\ngenmove\ngogui-analyze_commands\nimrscl-ownership\nkgs-genmove_cleanup\nknown_command\nkomi\nlist_commands\nloadsgf\nname\nplay\nprotocol_version\nquit\nreg_genmove\nshowboard\ntime_left\ntime_settings\nversion";
                 assert_that(response, is(equal_to(ok(expected))));
             }
 

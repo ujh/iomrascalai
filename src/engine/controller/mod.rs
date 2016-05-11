@@ -62,8 +62,12 @@ impl EngineController {
 
     }
 
-    pub fn run_and_return_move(&mut self, color: Color, game: &Game, timer: &Timer) -> (Move, usize) {
+    pub fn genmove(&mut self, color: Color, game: &Game, timer: &Timer) -> (Move, usize) {
         self.engine.genmove(color, game, timer)
+    }
+
+    pub fn genmove_cleanup(&mut self, color: Color, game: &Game, timer: &Timer) -> (Move, usize) {
+        self.engine.genmove_cleanup(color, game, timer)
     }
 
     fn ownership(&self) -> &OwnershipStatistics {

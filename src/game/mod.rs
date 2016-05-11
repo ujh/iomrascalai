@@ -85,6 +85,10 @@ impl Game {
         }
     }
 
+    pub fn reset_game_over(&mut self) {
+        self.board.reset_game_over();
+    }
+
     fn check_and_update_super_ko(&mut self, m: &Move) -> Result<(),()>{
         self.zobrist_hash_table.check_and_update_super_ko(m, &self.board)
     }
