@@ -7,7 +7,6 @@ addons:
     - libdw-dev
     - binutils-dev
 language: rust
-rust: nightly
 cache: cargo
 before_script:
 - |
