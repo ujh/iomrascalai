@@ -8,18 +8,16 @@ addons:
     - binutils-dev
 language: rust
 cache: cargo
-before_script:
-- |
-  pip install 'travis-cargo<0.2' --user &&
-  export PATH=$HOME/.local/bin:$PATH
 before_install:
   - export PATH="$PATH:$HOME/.cargo/bin"
 install:
   - bash ci/install.sh
+before_script:
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then pip install 'travis-cargo<0.2' --user && export PATH=$HOME/.local/bin:$PATH; fi
 script:
   - bash ci/script.sh
 after_success:
-- travis-cargo coveralls --no-sudo --verify
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then travis-cargo coveralls --no-sudo --verify; fi
 before_deploy:
   - bash ci/before_deploy.sh
 deploy:
