@@ -275,6 +275,12 @@ describe! interpreter {
                 assert_that(response, is(equal_to(ok("B+9.5"))));
             }
 
+            it "doesn't crash after loading a SGF file" {
+                interpreter.read("loadsgf fixtures/sgf/twomoves.sgf\n").unwrap();
+                let response = interpreter.read("final_score\n");
+                assert!(response.is_ok());
+            }
+
         }
 
         describe! name {
@@ -356,6 +362,13 @@ describe! interpreter {
                 let response = interpreter.read("final_status_list\n");
                 assert_that(response, is(equal_to(err("missing argument"))));
             }
+
+            it "doesn't crash after loading a SGF file" {
+                interpreter.read("loadsgf fixtures/sgf/twomoves.sgf\n").unwrap();
+                let response = interpreter.read("final_status_list dead\n");
+                assert!(response.is_ok());
+            }
+
         }
 
         // Gogui extensions
