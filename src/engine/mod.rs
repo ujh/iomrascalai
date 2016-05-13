@@ -28,6 +28,7 @@ use board::Move;
 use board::NoMove;
 use board::Pass;
 use board::Resign;
+use board::White;
 use config::Config;
 use game::Game;
 use ownership::OwnershipStatistics;
@@ -45,6 +46,7 @@ use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 use std::sync::mpsc::channel;
 use std::thread::spawn;
+use time::Duration;
 use time::PreciseTime;
 
 macro_rules! check {
@@ -145,25 +147,60 @@ impl Engine {
     }
 
     fn generic_genmove(&mut self, color: Color, game: &Game, timer: &Timer, cleanup: bool) -> (Move,usize) {
-        self.genmove_setup(color, game);
         if self.root.has_no_children() {
             self.config.log(format!("No moves to simulate!"));
             return (Pass(color), self.root.playouts());
         }
+        let stop = |win_ratio, _: &OwnershipStatistics| { timer.ran_out_of_time(win_ratio) };
+        self.genmove_setup(color, game);
+        self.search(game, stop);
+        let msg = format!("{} simulations ({}% wins on average, {} nodes)", self.root.playouts(), self.root.win_ratio()*100.0, self.root.descendants());
+        self.config.log(msg);
+        let playouts = self.root.playouts();
+        let m = self.best_move(game, color, cleanup);
+        self.set_new_root(&game.play(m).unwrap(), color);
+        (m,playouts)
+    }
+
+    fn search<F>(&mut self, game: &Game, stop: F) where F: for<'r> Fn(f32, &'r OwnershipStatistics) -> bool {
         self.spin_up(game);
         loop {
             let win_ratio = {
                 let (best, _) = self.root.best();
                 best.win_ratio()
             };
-            if timer.ran_out_of_time(win_ratio) {
-                return self.finish(game, color, cleanup);
+            let done = {
+                stop(win_ratio, &self.ownership)
+            };
+            if done {
+                return self.spin_down();
             }
             let r = self.receive_from_threads.recv();
             check!(self.config, res = r => {
                 self.handle_response(res, &game);
             });
         }
+    }
+
+    /// Run playouts until all coordinates have a clear owner.
+    pub fn calculate_score(&mut self, game: &Game) {
+        let start = PreciseTime::now();
+        self.ownership = OwnershipStatistics::new(self.config.clone(), game.size(), game.komi());
+        if self.root.has_no_children() {
+            let color = match game.last_move() {
+                NoMove => White,
+                _ => *game.last_move().color()
+            };
+            self.root = Node::root(game, color, self.config.clone());
+        }
+        let stop = |_, ownership: &OwnershipStatistics| {
+            if start.to(PreciseTime::now()) < Duration::seconds(10) {
+                false
+            } else {
+                ownership.decided(game) || (start.to(PreciseTime::now()) > Duration::seconds(30))
+            }
+        };
+        self.search(game, stop);
     }
 
     fn dead_stones_on_board(&self, game: &Game) -> bool {
@@ -283,18 +320,12 @@ impl Engine {
         }
     }
 
-    fn finish(&mut self, game: &Game, color: Color, cleanup: bool) -> (Move,usize) {
+    fn spin_down(&mut self) {
         self.id += 1;
         for halt_sender in &self.halt_senders {
             check!(self.config, halt_sender.send(()));
         }
         self.halt_senders = vec!();
-        let msg = format!("{} simulations ({}% wins on average, {} nodes)", self.root.playouts(), self.root.win_ratio()*100.0, self.root.descendants());
-        self.config.log(msg);
-        let playouts = self.root.playouts();
-        let m = self.best_move(game, color, cleanup);
-        self.set_new_root(&game.play(m).unwrap(), color);
-        (m,playouts)
     }
 
     fn spin_up(&mut self, game: &Game) {

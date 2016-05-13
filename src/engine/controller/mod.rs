@@ -34,6 +34,7 @@ use std::sync::Arc;
 pub struct EngineController {
     config: Arc<Config>,
     engine: Engine,
+    scoring: bool,
 }
 
 impl EngineController {
@@ -42,31 +43,37 @@ impl EngineController {
         EngineController {
             config: config,
             engine: engine,
+            scoring: false,
         }
     }
 
     pub fn reset(&mut self, size: u8, komi: f32) {
         self.engine.reset(size, komi);
+        self.scoring = false;
     }
 
     pub fn ownership_statistics(&self) -> String {
         format!("{}", self.ownership())
     }
 
-    pub fn final_score(&self, game: &Game) -> String {
+    pub fn final_score(&mut self, game: &Game) -> String {
+        self.calculate_score(game);
         FinalScore::new(self.config.clone(), game, self.ownership()).score()
     }
 
-    pub fn final_status_list(&self, game: &Game, kind: &str) -> Result<String, String> {
+    pub fn final_status_list(&mut self, game: &Game, kind: &str) -> Result<String, String> {
+        self.calculate_score(game);
         FinalScore::new(self.config.clone(), game, self.ownership()).status_list(kind)
 
     }
 
     pub fn genmove(&mut self, color: Color, game: &Game, timer: &Timer) -> (Move, usize) {
+        self.scoring = false;
         self.engine.genmove(color, game, timer)
     }
 
     pub fn genmove_cleanup(&mut self, color: Color, game: &Game, timer: &Timer) -> (Move, usize) {
+        self.scoring = false;
         self.engine.genmove_cleanup(color, game, timer)
     }
 
@@ -74,4 +81,9 @@ impl EngineController {
         &self.engine.ownership()
     }
 
+    fn calculate_score(&mut self, game: &Game) {
+        if self.scoring { return; }
+        self.scoring = true;
+        self.engine.calculate_score(game);
+    }
 }
