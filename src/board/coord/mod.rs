@@ -2,6 +2,7 @@
  *                                                                      *
  * Copyright 2014 Urban Hafner, Thomas Poinsot                          *
  * Copyright 2015 Urban Hafner, Igor Polyakov                           *
+ * Copyright 2016 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -20,7 +21,6 @@
  *                                                                      *
  ************************************************************************/
 use core::fmt;
-use std::cmp::Eq;
 
 mod test;
 
