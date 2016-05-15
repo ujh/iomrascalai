@@ -281,6 +281,12 @@ describe! interpreter {
                 assert!(response.is_ok());
             }
 
+            it "doesn't crash after loading a completed game" {
+                interpreter.read("loadsgf fixtures/sgf/final_score_crash.sgf\n").unwrap();
+                let response = interpreter.read("final_score\n");
+                assert_that(response, is(equal_to(ok("W+7.5"))))
+            }
+
         }
 
         describe! name {
@@ -367,6 +373,12 @@ describe! interpreter {
                 interpreter.read("loadsgf fixtures/sgf/twomoves.sgf\n").unwrap();
                 let response = interpreter.read("final_status_list dead\n");
                 assert!(response.is_ok());
+            }
+
+            it "doesn't crash after loading a completed game" {
+                interpreter.read("loadsgf fixtures/sgf/final_score_crash.sgf\n").unwrap();
+                let response = interpreter.read("final_status_list dead\n");
+                assert_that(response, is(equal_to(ok("TBD"))))
             }
 
         }
