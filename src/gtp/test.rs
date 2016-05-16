@@ -282,10 +282,21 @@ describe! interpreter {
             }
 
             it "doesn't crash after loading a completed game" {
+                interpreter.read("boardsize 9\n").unwrap();
+                interpreter.read("clear_board\n").unwrap();
+                interpreter.read("play b pass\n").unwrap();
+                interpreter.read("play w pass\n").unwrap();
+                let response = interpreter.read("final_score\n");
+                assert_that(response, is(equal_to(ok("W+6.5"))));
+            }
+
+            it "reports the correct score" {
                 interpreter.read("loadsgf fixtures/sgf/final_score_crash.sgf\n").unwrap();
                 let response = interpreter.read("final_score\n");
                 assert_that(response, is(equal_to(ok("W+7.5"))))
             }
+
+
 
         }
 
@@ -376,6 +387,15 @@ describe! interpreter {
             }
 
             it "doesn't crash after loading a completed game" {
+                interpreter.read("boardsize 9\n").unwrap();
+                interpreter.read("clear_board\n").unwrap();
+                interpreter.read("play b pass\n").unwrap();
+                interpreter.read("play w pass\n").unwrap();
+                let response = interpreter.read("final_status_list dead\n");
+                assert_that(response, is(equal_to(ok(""))));
+            }
+
+            it "reports the correct list of dead stones" {
                 interpreter.read("loadsgf fixtures/sgf/final_score_crash.sgf\n").unwrap();
                 let response = interpreter.read("final_status_list dead\n");
                 assert_that(response, is(equal_to(ok("TBD"))))
