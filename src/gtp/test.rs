@@ -33,6 +33,7 @@ pub use super::GTPInterpreter;
 pub use hamcrest::assert_that;
 pub use hamcrest::equal_to;
 pub use hamcrest::is;
+pub use hamcrest::is_not;
 pub use std::sync::Arc;
 
 pub fn err(s: &'static str) -> Result<String, String> {
@@ -140,6 +141,14 @@ describe! interpreter {
             it "generates a move" {
                 let response = interpreter.read("genmove b\n");
                 assert!(response.is_ok());
+            }
+
+            it "does not generate a pass on an empty board" {
+                interpreter.read("boardsize 9\n").unwrap();
+                interpreter.read("clear_board\n").unwrap();
+                let response = interpreter.read("genmove b\n");
+                assert!(response.is_ok());
+                assert_that(response.unwrap(), is_not(equal_to("pass".to_string())));
             }
         }
 
