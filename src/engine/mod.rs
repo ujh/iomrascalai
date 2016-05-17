@@ -147,12 +147,12 @@ impl Engine {
     }
 
     fn generic_genmove(&mut self, color: Color, game: &Game, timer: &Timer, cleanup: bool) -> (Move,usize) {
+        self.genmove_setup(color, game);
         if self.root.has_no_children() {
             self.config.log(format!("No moves to simulate!"));
             return (Pass(color), self.root.playouts());
         }
         let stop = |win_ratio, _: &OwnershipStatistics| { timer.ran_out_of_time(win_ratio) };
-        self.genmove_setup(color, game);
         self.search(game, stop);
         let msg = format!("{} simulations ({}% wins on average, {} nodes)", self.root.playouts(), self.root.win_ratio()*100.0, self.root.descendants());
         self.config.log(msg);
