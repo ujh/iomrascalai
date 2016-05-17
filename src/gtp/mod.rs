@@ -307,12 +307,14 @@ impl<'a> GTPInterpreter<'a> {
     }
 
     fn execute_final_score(&mut self, _: &[&str]) -> Result<String, String> {
+        self.game.reset_game_over();
         Ok(self.controller.final_score(&self.game))
     }
 
     fn execute_final_status_list(&mut self, arguments: &[&str]) -> Result<String, String> {
         match arguments.get(0) {
             Some(kind) => {
+                self.game.reset_game_over();
                 self.controller.final_status_list(&self.game, kind)
             },
             None => Err("missing argument".to_string())
