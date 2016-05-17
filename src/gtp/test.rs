@@ -290,14 +290,6 @@ describe! interpreter {
                 assert_that(response, is(equal_to(ok("W+6.5"))));
             }
 
-            it "reports the correct score" {
-                interpreter.read("loadsgf fixtures/sgf/final_score_crash.sgf\n").unwrap();
-                let response = interpreter.read("final_score\n");
-                assert_that(response, is(equal_to(ok("W+7.5"))))
-            }
-
-
-
         }
 
         describe! name {
@@ -349,10 +341,10 @@ describe! interpreter {
         describe! final_status_list {
 
             before_each {
-                interpreter.read("boardsize 3\n").unwrap();
+                interpreter.read("boardsize 9\n").unwrap();
                 interpreter.read("clear_board\n").unwrap();
                 interpreter.read("play b a1\n").unwrap();
-                interpreter.read("play w b2\n").unwrap();
+                interpreter.read("play w b9\n").unwrap();
             }
 
             it "reports no dead stones" {
@@ -360,9 +352,9 @@ describe! interpreter {
                 assert_that(response, is(equal_to(ok(""))));
             }
 
-            it "reports one alive stone" {
+            it "reports two alive stone" {
                 let response = interpreter.read("final_status_list alive\n");
-                assert_that(response, is(equal_to(ok("A1 B2"))));
+                assert_that(response, is(equal_to(ok("A1 B9"))));
             }
 
             it "reports no seki stones" {
@@ -393,12 +385,6 @@ describe! interpreter {
                 interpreter.read("play w pass\n").unwrap();
                 let response = interpreter.read("final_status_list dead\n");
                 assert_that(response, is(equal_to(ok(""))));
-            }
-
-            it "reports the correct list of dead stones" {
-                interpreter.read("loadsgf fixtures/sgf/final_score_crash.sgf\n").unwrap();
-                let response = interpreter.read("final_status_list dead\n");
-                assert_that(response, is(equal_to(ok("TBD"))))
             }
 
         }
@@ -469,10 +455,10 @@ describe! interpreter {
         describe! final_status_list {
 
             before_each {
-                interpreter.read("boardsize 3\n").unwrap();
+                interpreter.read("boardsize 9\n").unwrap();
                 interpreter.read("clear_board\n").unwrap();
                 interpreter.read("play b a1\n").unwrap();
-                interpreter.read("play w b2\n").unwrap();
+                interpreter.read("play w b9\n").unwrap();
             }
 
             it "reports no dead stones" {
@@ -480,9 +466,9 @@ describe! interpreter {
                 assert_that(response, is(equal_to(ok(""))));
             }
 
-            it "reports one alive stone" {
+            it "reports two alive stone" {
                 let response = interpreter.read("final_status_list alive\n");
-                assert_that(response, is(equal_to(ok("A1 B2"))));
+                assert_that(response, is(equal_to(ok("A1 B9"))));
             }
 
             it "reports no seki stones" {
