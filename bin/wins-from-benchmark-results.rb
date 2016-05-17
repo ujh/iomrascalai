@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (c) 2015 Urban Hafner
+# Copyright (c) 2016 Urban Hafner
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
@@ -21,20 +22,35 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+require 'csv'
 
-def data(contents)
-  contents.each_line.find_all {|l| l !~ /^#/ }.map do |l|
-    l.split(/\s+/)[3]
-  end
+def parse_file(fn)
+  contents = File.read(fn)
+  relevant_lines = contents.each_line.find_all {|l| l !~ /^#/ }
+  CSV.parse(relevant_lines.map(&:strip).join("\n"), col_sep: "\t")
 end
 
-def wins(file)
-  contents = File.read(file)
-  white = data(contents).find_all {|l| l =~ /W\+/ }.count
-  black = data(contents).find_all {|l| l =~ /B\+/ }.count
+RES_B = 1
+RES_W = 2
+RES_R = 3
+
+def wins(fn)
+  data = parse_file(fn)
+  white = data.find_all {|row| row[RES_R] =~ /W\+/ }.count
+  black = data.find_all {|row| row[RES_R] =~ /B\+/ }.count
   n = white + black
   p = white.to_f/n
   "#{(p*100).round(2)}% wins (#{white} games of #{n}, ± #{error(p: p, n: n, confidence: 0.95).round(2)} at 95%, ± #{error(p: p, n: n, confidence: 0.99).round(2)} at 99%)"
+end
+
+def scoring(fn)
+  data = parse_file(fn)
+  relevant = data.find_all {|row| row[RES_R] !~ /[BW]\+R/ }
+  relevant.map {|row| row[RES_R] }.uniq.each {|s| puts s }
+  agreeing = relevant.find_all {|row| row[RES_W] == row[RES_B] }.count
+  n = relevant.length
+  p = agreeing.to_f/n
+  "#{(p*100).round(2)}% same score as GnuGo (#{agreeing} of #{n}, ± #{error(p: p, n: n, confidence: 0.95).round(2)} at 95%, ± #{error(p: p, n: n, confidence: 0.99).round(2)} at 99%)"
 end
 
 def z(confidence:)
@@ -48,5 +64,7 @@ end
 
 Dir["*.dat"].each do |fn|
   next if fn =~ /summary\.dat/
-  puts "#{fn}: #{wins(fn)}"
+  puts "#{fn}:"
+  puts "\t\t#{wins(fn)}"
+  puts "\t\t#{scoring(fn)}"
 end
