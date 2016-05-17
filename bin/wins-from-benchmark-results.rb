@@ -46,7 +46,6 @@ end
 def scoring(fn)
   data = parse_file(fn)
   relevant = data.find_all {|row| row[RES_R] !~ /[BW]\+R/ }
-  relevant.map {|row| row[RES_R] }.uniq.each {|s| puts s }
   agreeing = relevant.find_all {|row| row[RES_W] == row[RES_B] }.count
   n = relevant.length
   p = agreeing.to_f/n
