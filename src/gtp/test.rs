@@ -299,6 +299,11 @@ describe! interpreter {
                 assert_that(response, is(equal_to(ok("W+6.5"))));
             }
 
+            it "doesn't crash after loading a game with no legal moves" {
+                interpreter.read("loadsgf fixtures/sgf/no-legal-moves-left.sgf\n").unwrap();
+                let response = interpreter.read("final_score\n");
+                assert_that(response, is(equal_to(ok("B+9"))));
+            }
         }
 
         describe! name {
@@ -361,7 +366,7 @@ describe! interpreter {
                 assert_that(response, is(equal_to(ok(""))));
             }
 
-            it "reports two alive stone" {
+            it "reports two alive stones" {
                 let response = interpreter.read("final_status_list alive\n");
                 assert_that(response, is(equal_to(ok("A1 B9"))));
             }
@@ -392,6 +397,12 @@ describe! interpreter {
                 interpreter.read("clear_board\n").unwrap();
                 interpreter.read("play b pass\n").unwrap();
                 interpreter.read("play w pass\n").unwrap();
+                let response = interpreter.read("final_status_list dead\n");
+                assert_that(response, is(equal_to(ok(""))));
+            }
+
+            it "doesn't crash after loading a game with no legal moves" {
+                interpreter.read("loadsgf fixtures/sgf/no-legal-moves-left.sgf\n").unwrap();
                 let response = interpreter.read("final_status_list dead\n");
                 assert_that(response, is(equal_to(ok(""))));
             }
