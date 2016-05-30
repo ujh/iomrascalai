@@ -1,0 +1,3 @@
+#!/bin/bash -l
+
+./runner expand_after "$@"
