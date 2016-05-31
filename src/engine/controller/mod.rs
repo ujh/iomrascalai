@@ -34,7 +34,7 @@ use std::sync::Arc;
 pub struct EngineController {
     config: Arc<Config>,
     engine: Engine,
-    scoring: bool,
+    run_playouts_for_scoring: bool,
 }
 
 impl EngineController {
@@ -43,13 +43,13 @@ impl EngineController {
         EngineController {
             config: config,
             engine: engine,
-            scoring: false,
+            run_playouts_for_scoring: true,
         }
     }
 
     pub fn reset(&mut self, size: u8, komi: f32) {
+        self.run_playouts_for_scoring = true;
         self.engine.reset(size, komi);
-        self.scoring = false;
     }
 
     pub fn ownership_statistics(&self) -> String {
@@ -57,23 +57,27 @@ impl EngineController {
     }
 
     pub fn final_score(&mut self, game: &Game) -> String {
-        self.calculate_score(game);
+        self.run_playouts(game);
         FinalScore::new(self.config.clone(), game, self.ownership()).score()
     }
 
     pub fn final_status_list(&mut self, game: &Game, kind: &str) -> Result<String, String> {
-        self.calculate_score(game);
+        self.run_playouts(game);
         FinalScore::new(self.config.clone(), game, self.ownership()).status_list(kind)
+    }
 
+    pub fn donplayouts(&mut self, game: &Game, playouts: usize) {
+        self.run_playouts_for_scoring = false;
+        self.engine.donplayouts(game, playouts);
     }
 
     pub fn genmove(&mut self, color: Color, game: &Game, timer: &Timer) -> (Move, usize) {
-        self.scoring = false;
+        self.run_playouts_for_scoring = true;
         self.engine.genmove(color, game, timer)
     }
 
     pub fn genmove_cleanup(&mut self, color: Color, game: &Game, timer: &Timer) -> (Move, usize) {
-        self.scoring = false;
+        self.run_playouts_for_scoring = true;
         self.engine.genmove_cleanup(color, game, timer)
     }
 
@@ -81,9 +85,9 @@ impl EngineController {
         &self.engine.ownership()
     }
 
-    fn calculate_score(&mut self, game: &Game) {
-        if self.scoring { return; }
-        self.scoring = true;
-        self.engine.calculate_score(game);
+    fn run_playouts(&mut self, game: &Game) {
+        if !self.run_playouts_for_scoring { return; }
+        let playouts = self.config.scoring.playouts;
+        self.donplayouts(game, playouts);
     }
 }

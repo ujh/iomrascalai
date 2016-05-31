@@ -26,7 +26,6 @@ use board::Coord;
 use board::Empty;
 use board::White;
 use config::Config;
-use game::Game;
 use score::Score;
 
 use core::fmt::Display;
@@ -100,11 +99,6 @@ impl OwnershipStatistics {
         let count = b + w + e;
         let fraction = cmp::max(b,w) as f32 / count as f32;
         fraction > self.config.scoring.ownership_cutoff
-    }
-
-    pub fn decided(&self, game: &Game) -> bool {
-        Coord::for_board_size(game.size()).iter()
-            .all(|coord| self.coord_decided(coord))
     }
 
     pub fn gfx(&self) -> String {

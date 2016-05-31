@@ -63,6 +63,7 @@ impl<'a> GTPInterpreter<'a> {
             "final_status_list",
             "genmove",
             "gogui-analyze_commands",
+            "imrscl-donplayouts",
             "imrscl-ownership",
             "kgs-genmove_cleanup",
             "known_command",
@@ -125,6 +126,7 @@ impl<'a> GTPInterpreter<'a> {
             "final_status_list" => self.execute_final_status_list(arguments),
             "genmove" => self.execute_genmove(arguments),
             "gogui-analyze_commands" => self.execute_gogui_analyze_commands(arguments),
+            "imrscl-donplayouts" => self.execute_imrscl_donplayouts(arguments),
             "imrscl-ownership" => self.execute_imrscl_ownership(arguments),
             "kgs-genmove_cleanup" => self.execute_kgs_genmove_cleanup(arguments),
             "known_command" => self.execute_known_command(arguments),
@@ -274,6 +276,21 @@ impl<'a> GTPInterpreter<'a> {
             },
             None => Err("missing argument".to_string())
     	}
+    }
+
+    fn execute_imrscl_donplayouts(&mut self, arguments: &[&str]) -> Result<String, String> {
+        match arguments.get(0) {
+            Some(playouts_str) => {
+                match playouts_str.parse() {
+                    Ok(playouts) => {
+                        self.controller.donplayouts(&self.game, playouts);
+                        Ok("".to_string())
+                    },
+                    Err(e) => Err(format!("{:?}", e))
+                }
+            }
+            None => Err("missing argument".to_string()),
+        }
     }
 
     fn execute_imrscl_ownership(&mut self, _: &[&str]) -> Result<String, String> {

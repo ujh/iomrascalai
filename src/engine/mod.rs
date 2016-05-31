@@ -46,7 +46,6 @@ use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 use std::sync::mpsc::channel;
 use std::thread::spawn;
-use time::Duration;
 use time::PreciseTime;
 
 macro_rules! check {
@@ -152,7 +151,7 @@ impl Engine {
             self.config.log(format!("No moves to simulate!"));
             return (Pass(color), self.root.playouts());
         }
-        let stop = |win_ratio, _: &OwnershipStatistics| { timer.ran_out_of_time(win_ratio) };
+        let stop = |win_ratio, _| { timer.ran_out_of_time(win_ratio) };
         self.search(game, stop);
         let msg = format!("{} simulations ({}% wins on average, {} nodes)", self.root.playouts(), self.root.win_ratio()*100.0, self.root.descendants());
         self.config.log(msg);
@@ -162,7 +161,7 @@ impl Engine {
         (m,playouts)
     }
 
-    fn search<F>(&mut self, game: &Game, stop: F) where F: for<'r> Fn(f32, &'r OwnershipStatistics) -> bool {
+    fn search<F>(&mut self, game: &Game, stop: F) where F: Fn(f32, usize) -> bool {
         self.spin_up(game);
         loop {
             let win_ratio = {
@@ -170,7 +169,7 @@ impl Engine {
                 best.win_ratio()
             };
             let done = {
-                stop(win_ratio, &self.ownership)
+                stop(win_ratio, self.root.playouts())
             };
             if done {
                 return self.spin_down();
@@ -182,9 +181,7 @@ impl Engine {
         }
     }
 
-    /// Run playouts until all coordinates have a clear owner.
-    pub fn calculate_score(&mut self, game: &Game) {
-        let start = PreciseTime::now();
+    pub fn donplayouts(&mut self, game: &Game, playouts: usize) {
         self.ownership = OwnershipStatistics::new(self.config.clone(), game.size(), game.komi());
         if self.root.has_no_children() {
             let color = match game.last_move() {
@@ -193,12 +190,9 @@ impl Engine {
             };
             self.root = Node::root(game, color, self.config.clone());
         }
-        let stop = |_, ownership: &OwnershipStatistics| {
-            if start.to(PreciseTime::now()) < Duration::seconds(10) {
-                false
-            } else {
-                ownership.decided(game) || (start.to(PreciseTime::now()) > Duration::seconds(30))
-            }
+        let initial_playouts = self.root.playouts();
+        let stop = |_, current_playouts: usize| {
+            (current_playouts - initial_playouts) > playouts
         };
         self.search(game, stop);
     }
