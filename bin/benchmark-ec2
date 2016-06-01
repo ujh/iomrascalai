@@ -29,7 +29,7 @@
 set -e
 
 if [ $1 == "9" ]; then
-    TIME="5m"
+    TIME="2m"
     GAMES=500
 elif [ $1 == "13" ]; then
     TIME="10m"
