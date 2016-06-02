@@ -1,8 +1,0 @@
-# Use for the naming of the .log and .dat files
-Name expand_after
-Processor main
-Script ./expand_after-runner
-Replications 1
-
-# [tree]
-IntegerParameter tree.expand_after 0 10
