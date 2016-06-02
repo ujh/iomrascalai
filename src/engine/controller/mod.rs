@@ -34,6 +34,7 @@ use std::sync::Arc;
 pub struct EngineController {
     config: Arc<Config>,
     engine: Engine,
+    run_playouts_for_scoring: bool,
 }
 
 impl EngineController {
@@ -42,10 +43,12 @@ impl EngineController {
         EngineController {
             config: config,
             engine: engine,
+            run_playouts_for_scoring: true,
         }
     }
 
     pub fn reset(&mut self, size: u8, komi: f32) {
+        self.run_playouts_for_scoring = true;
         self.engine.reset(size, komi);
     }
 
@@ -53,20 +56,28 @@ impl EngineController {
         format!("{}", self.ownership())
     }
 
-    pub fn final_score(&self, game: &Game) -> String {
+    pub fn final_score(&mut self, game: &Game) -> String {
+        self.run_playouts(game);
         FinalScore::new(self.config.clone(), game, self.ownership()).score()
     }
 
-    pub fn final_status_list(&self, game: &Game, kind: &str) -> Result<String, String> {
+    pub fn final_status_list(&mut self, game: &Game, kind: &str) -> Result<String, String> {
+        self.run_playouts(game);
         FinalScore::new(self.config.clone(), game, self.ownership()).status_list(kind)
+    }
 
+    pub fn donplayouts(&mut self, game: &Game, playouts: usize) {
+        self.run_playouts_for_scoring = false;
+        self.engine.donplayouts(game, playouts);
     }
 
     pub fn genmove(&mut self, color: Color, game: &Game, timer: &Timer) -> (Move, usize) {
+        self.run_playouts_for_scoring = true;
         self.engine.genmove(color, game, timer)
     }
 
     pub fn genmove_cleanup(&mut self, color: Color, game: &Game, timer: &Timer) -> (Move, usize) {
+        self.run_playouts_for_scoring = true;
         self.engine.genmove_cleanup(color, game, timer)
     }
 
@@ -74,4 +85,9 @@ impl EngineController {
         &self.engine.ownership()
     }
 
+    fn run_playouts(&mut self, game: &Game) {
+        if !self.run_playouts_for_scoring { return; }
+        let playouts = self.config.scoring.playouts;
+        self.donplayouts(game, playouts);
+    }
 }

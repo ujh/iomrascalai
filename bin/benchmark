@@ -25,14 +25,15 @@
 
 set -e
 
-GAMES=500
-
 if [ $1 == "9" ]; then
-    TIME="5m"
+    TIME="2m"
+    GAMES=500
 elif [ $1 == "13" ]; then
     TIME="10m"
+    GAMES=1000
 elif [ $1 == "19" ]; then
     TIME="20m"
+    GAMES=1000
 else
     echo "Size '$1' isn't supported!"
     exit 1

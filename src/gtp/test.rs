@@ -33,6 +33,7 @@ pub use super::GTPInterpreter;
 pub use hamcrest::assert_that;
 pub use hamcrest::equal_to;
 pub use hamcrest::is;
+pub use hamcrest::is_not;
 pub use std::sync::Arc;
 
 pub fn err(s: &'static str) -> Result<String, String> {
@@ -141,6 +142,14 @@ describe! interpreter {
                 let response = interpreter.read("genmove b\n");
                 assert!(response.is_ok());
             }
+
+            it "does not generate a pass on an empty board" {
+                interpreter.read("boardsize 9\n").unwrap();
+                interpreter.read("clear_board\n").unwrap();
+                let response = interpreter.read("genmove b\n");
+                assert!(response.is_ok());
+                assert_that(response.unwrap(), is_not(equal_to("pass".to_string())));
+            }
         }
 
         describe! kgs {
@@ -229,7 +238,7 @@ describe! interpreter {
 
             it "no newline at end" {
                 let response = interpreter.read("list_commands\n");
-                let expected = "boardsize\nclear_board\nfinal_score\nfinal_status_list\ngenmove\ngogui-analyze_commands\nimrscl-ownership\nkgs-genmove_cleanup\nknown_command\nkomi\nlist_commands\nloadsgf\nname\nplay\nprotocol_version\nquit\nreg_genmove\nshowboard\ntime_left\ntime_settings\nversion";
+                let expected = "boardsize\nclear_board\nfinal_score\nfinal_status_list\ngenmove\ngogui-analyze_commands\nimrscl-donplayouts\nimrscl-ownership\nkgs-genmove_cleanup\nknown_command\nkomi\nlist_commands\nloadsgf\nname\nplay\nprotocol_version\nquit\nreg_genmove\nshowboard\ntime_left\ntime_settings\nversion";
                 assert_that(response, is(equal_to(ok(expected))));
             }
 
@@ -275,6 +284,26 @@ describe! interpreter {
                 assert_that(response, is(equal_to(ok("B+9.5"))));
             }
 
+            it "doesn't crash after loading a SGF file" {
+                interpreter.read("loadsgf fixtures/sgf/twomoves.sgf\n").unwrap();
+                let response = interpreter.read("final_score\n");
+                assert!(response.is_ok());
+            }
+
+            it "doesn't crash after loading a completed game" {
+                interpreter.read("boardsize 9\n").unwrap();
+                interpreter.read("clear_board\n").unwrap();
+                interpreter.read("play b pass\n").unwrap();
+                interpreter.read("play w pass\n").unwrap();
+                let response = interpreter.read("final_score\n");
+                assert_that(response, is(equal_to(ok("W+6.5"))));
+            }
+
+            it "doesn't crash after loading a game with no legal moves" {
+                interpreter.read("loadsgf fixtures/sgf/no-legal-moves-left.sgf\n").unwrap();
+                let response = interpreter.read("final_score\n");
+                assert_that(response, is(equal_to(ok("B+9"))));
+            }
         }
 
         describe! name {
@@ -326,10 +355,10 @@ describe! interpreter {
         describe! final_status_list {
 
             before_each {
-                interpreter.read("boardsize 3\n").unwrap();
+                interpreter.read("boardsize 9\n").unwrap();
                 interpreter.read("clear_board\n").unwrap();
                 interpreter.read("play b a1\n").unwrap();
-                interpreter.read("play w b2\n").unwrap();
+                interpreter.read("play w b9\n").unwrap();
             }
 
             it "reports no dead stones" {
@@ -337,9 +366,9 @@ describe! interpreter {
                 assert_that(response, is(equal_to(ok(""))));
             }
 
-            it "reports one alive stone" {
+            it "reports two alive stones" {
                 let response = interpreter.read("final_status_list alive\n");
-                assert_that(response, is(equal_to(ok("A1 B2"))));
+                assert_that(response, is(equal_to(ok("A1 B9"))));
             }
 
             it "reports no seki stones" {
@@ -356,6 +385,28 @@ describe! interpreter {
                 let response = interpreter.read("final_status_list\n");
                 assert_that(response, is(equal_to(err("missing argument"))));
             }
+
+            it "doesn't crash after loading a SGF file" {
+                interpreter.read("loadsgf fixtures/sgf/twomoves.sgf\n").unwrap();
+                let response = interpreter.read("final_status_list dead\n");
+                assert!(response.is_ok());
+            }
+
+            it "doesn't crash after loading a completed game" {
+                interpreter.read("boardsize 9\n").unwrap();
+                interpreter.read("clear_board\n").unwrap();
+                interpreter.read("play b pass\n").unwrap();
+                interpreter.read("play w pass\n").unwrap();
+                let response = interpreter.read("final_status_list dead\n");
+                assert_that(response, is(equal_to(ok(""))));
+            }
+
+            it "doesn't crash after loading a game with no legal moves" {
+                interpreter.read("loadsgf fixtures/sgf/no-legal-moves-left.sgf\n").unwrap();
+                let response = interpreter.read("final_status_list dead\n");
+                assert_that(response, is(equal_to(ok(""))));
+            }
+
         }
 
         // Gogui extensions
@@ -424,10 +475,10 @@ describe! interpreter {
         describe! final_status_list {
 
             before_each {
-                interpreter.read("boardsize 3\n").unwrap();
+                interpreter.read("boardsize 9\n").unwrap();
                 interpreter.read("clear_board\n").unwrap();
                 interpreter.read("play b a1\n").unwrap();
-                interpreter.read("play w b2\n").unwrap();
+                interpreter.read("play w b9\n").unwrap();
             }
 
             it "reports no dead stones" {
@@ -435,9 +486,9 @@ describe! interpreter {
                 assert_that(response, is(equal_to(ok(""))));
             }
 
-            it "reports one alive stone" {
+            it "reports two alive stone" {
                 let response = interpreter.read("final_status_list alive\n");
-                assert_that(response, is(equal_to(ok("A1 B2"))));
+                assert_that(response, is(equal_to(ok("A1 B9"))));
             }
 
             it "reports no seki stones" {

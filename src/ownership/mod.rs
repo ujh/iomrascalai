@@ -1,6 +1,7 @@
 /************************************************************************
  *                                                                      *
  * Copyright 2015 Urban Hafner                                          *
+ * Copyright 2016 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -79,10 +80,7 @@ impl OwnershipStatistics {
         let index = coord.to_index(self.size);
         let b = self.black[index];
         let w = self.white[index];
-        let e = self.empty[index];
-        let count = b + w + e;
-        let fraction = cmp::max(b,w) as f32 / count as f32;
-        if fraction > self.config.scoring.ownership_cutoff {
+        if self.coord_decided(coord) {
             if b > w {
                 Black
             } else {
@@ -91,6 +89,16 @@ impl OwnershipStatistics {
         } else {
             Empty
         }
+    }
+
+    fn coord_decided(&self, coord: &Coord) -> bool {
+        let index = coord.to_index(self.size);
+        let b = self.black[index];
+        let w = self.white[index];
+        let e = self.empty[index];
+        let count = b + w + e;
+        let fraction = cmp::max(b,w) as f32 / count as f32;
+        fraction > self.config.scoring.ownership_cutoff
     }
 
     pub fn gfx(&self) -> String {

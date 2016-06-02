@@ -286,6 +286,8 @@ pub struct ScoringConfig {
     /// Value between 0.0 and 1.0 which is the cutoff above which a
     /// point is considered to be owned by a color.
     pub ownership_cutoff: f32,
+    /// Number of playouts to run when trying to determine the final score of a board.
+    pub playouts: usize,
 }
 
 impl ScoringConfig {
@@ -299,6 +301,7 @@ impl ScoringConfig {
         ScoringConfig {
             ownership_prior: Self::as_integer(&table, "ownership_prior"),
             ownership_cutoff: Self::as_float(&table, "ownership_cutoff"),
+            playouts: Self::as_integer(&table, "playouts"),
         }
     }
 
@@ -351,7 +354,9 @@ impl Config {
 
     #[test]
     pub fn test_config() -> Config {
-        Self::default(false, false, Ruleset::KgsChinese, Some(1))
+        let mut config = Self::default(false, false, Ruleset::KgsChinese, Some(1));
+        config.scoring.playouts = 10;
+        config
     }
 
     /// Uses the TOML returned by `Config::toml()` and returns a
