@@ -355,7 +355,7 @@ impl Config {
     #[test]
     pub fn test_config() -> Config {
         let mut config = Self::default(false, false, Ruleset::KgsChinese, Some(1));
-        config.scoring.playouts = 10;
+        config.scoring.playouts = 100;
         config
     }
 
