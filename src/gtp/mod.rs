@@ -78,6 +78,7 @@ impl<'a> GTPInterpreter<'a> {
             "showboard",
             "time_left",
             "time_settings",
+            "uct_gfx",
             "version",
             ];
         GTPInterpreter {
@@ -141,6 +142,7 @@ impl<'a> GTPInterpreter<'a> {
             "showboard" => self.execute_showboard(arguments),
             "time_left" => self.execute_time_left(arguments),
             "time_settings" => self.execute_time_settings(arguments),
+            "uct_gfx" => self.execute_uct_gfx(arguments),
             "version" => self.execute_version(arguments),
             _ => Err("unknown command".to_string())
         }
@@ -356,6 +358,11 @@ impl<'a> GTPInterpreter<'a> {
             None => Err("missing argument(s)".to_string())
         }
     }
+    
+    fn execute_uct_gfx(&mut self, _: &[&str]) -> Result<String, String> {
+        let stats = self.controller.uct_gfx();
+        Ok(stats)
+    }
 
     fn execute_time_left(&mut self, arguments: &[&str]) -> Result<String, String> {
         match arguments.get(2) {
@@ -399,7 +406,8 @@ impl<'a> GTPInterpreter<'a> {
         let analyze_commands = vec![
             "dboard/Ownership/imrscl-ownership",
             "plist/Final Status List Dead/final_status_list dead",
-            "plist/Final Status List Alive/final_status_list alive"
+            "plist/Final Status List Alive/final_status_list alive",
+            "gfx/Uct Gfx/uct_gfx"
                 ];
         Ok(analyze_commands[1..].iter().fold(analyze_commands[0].to_string(), |acc, &el| format!("{}\n{}", acc, el)))
     }
