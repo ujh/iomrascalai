@@ -58,7 +58,7 @@ impl EngineController {
     }
     
     pub fn uct_gfx(&self) -> String {
-        format!("{}", UctGfx::new(self.config.clone(), &self.engine.root))
+        format!("{}", UctGfx::new(&self.engine.root))
     }
 
     pub fn final_score(&mut self, game: &Game) -> String {

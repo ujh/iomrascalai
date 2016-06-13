@@ -1,20 +1,16 @@
-use config::Config;
 use engine::Node;
 
 use core::fmt::Display;
 use std::fmt;
-use std::sync::Arc;
 
 pub struct UctGfx<'a> {
-    config: Arc<Config>,
     root: &'a Node,
 }
 
 impl<'a> UctGfx<'a> {
 
-    pub fn new(config: Arc<Config>, root: &Node) -> UctGfx{
+    pub fn new(root: &Node) -> UctGfx{
         UctGfx { 
-            config: config,
             root: root,
         }
     }
