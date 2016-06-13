@@ -378,6 +378,8 @@ impl Node {
         *self.m().color()
     }
 
-
+    pub fn children(&self) -> &Vec<Node> {
+        &(*self).children
+    }
 
 }
