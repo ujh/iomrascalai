@@ -379,7 +379,7 @@ impl Node {
     }
 
     pub fn children(&self) -> &Vec<Node> {
-        &(*self).children
+        &self.children
     }
 
 }
