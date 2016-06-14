@@ -238,7 +238,7 @@ describe! interpreter {
 
             it "no newline at end" {
                 let response = interpreter.read("list_commands\n");
-                let expected = "boardsize\nclear_board\nfinal_score\nfinal_status_list\ngenmove\ngogui-analyze_commands\nimrscl-donplayouts\nimrscl-ownership\nkgs-genmove_cleanup\nknown_command\nkomi\nlist_commands\nloadsgf\nname\nplay\nprotocol_version\nquit\nreg_genmove\nshowboard\ntime_left\ntime_settings\nversion";
+                let expected = "boardsize\nclear_board\nfinal_score\nfinal_status_list\ngenmove\ngogui-analyze_commands\nimrscl-donplayouts\nimrscl-ownership\nimrscl-uct_gfx\nkgs-genmove_cleanup\nknown_command\nkomi\nlist_commands\nloadsgf\nname\nplay\nprotocol_version\nquit\nreg_genmove\nshowboard\ntime_left\ntime_settings\nversion";
                 assert_that(response, is(equal_to(ok(expected))));
             }
 
@@ -415,7 +415,7 @@ describe! interpreter {
             describe! analyze_commands {
 
                 it "returns the supported analyze commands" {
-                    let expected = "dboard/Ownership/imrscl-ownership\nplist/Final Status List Dead/final_status_list dead\nplist/Final Status List Alive/final_status_list alive";
+                    let expected = "dboard/Ownership/imrscl-ownership\nplist/Final Status List Dead/final_status_list dead\nplist/Final Status List Alive/final_status_list alive\ngfx/Uct Gfx/imrscl-uct_gfx";
                     let response = interpreter.read("gogui-analyze_commands\n");
                     assert_that(response, is(equal_to(ok(expected))));
                 }

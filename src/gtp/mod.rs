@@ -65,6 +65,7 @@ impl<'a> GTPInterpreter<'a> {
             "gogui-analyze_commands",
             "imrscl-donplayouts",
             "imrscl-ownership",
+            "imrscl-uct_gfx",
             "kgs-genmove_cleanup",
             "known_command",
             "komi",
@@ -128,6 +129,7 @@ impl<'a> GTPInterpreter<'a> {
             "gogui-analyze_commands" => self.execute_gogui_analyze_commands(arguments),
             "imrscl-donplayouts" => self.execute_imrscl_donplayouts(arguments),
             "imrscl-ownership" => self.execute_imrscl_ownership(arguments),
+            "imrscl-uct_gfx" => self.execute_uct_gfx(arguments),
             "kgs-genmove_cleanup" => self.execute_kgs_genmove_cleanup(arguments),
             "known_command" => self.execute_known_command(arguments),
             "komi" => self.execute_komi(arguments),
@@ -356,6 +358,11 @@ impl<'a> GTPInterpreter<'a> {
             None => Err("missing argument(s)".to_string())
         }
     }
+    
+    fn execute_uct_gfx(&mut self, _: &[&str]) -> Result<String, String> {
+        let stats = self.controller.uct_gfx();
+        Ok(stats)
+    }
 
     fn execute_time_left(&mut self, arguments: &[&str]) -> Result<String, String> {
         match arguments.get(2) {
@@ -399,7 +406,8 @@ impl<'a> GTPInterpreter<'a> {
         let analyze_commands = vec![
             "dboard/Ownership/imrscl-ownership",
             "plist/Final Status List Dead/final_status_list dead",
-            "plist/Final Status List Alive/final_status_list alive"
+            "plist/Final Status List Alive/final_status_list alive",
+            "gfx/Uct Gfx/imrscl-uct_gfx"
                 ];
         Ok(analyze_commands[1..].iter().fold(analyze_commands[0].to_string(), |acc, &el| format!("{}\n{}", acc, el)))
     }

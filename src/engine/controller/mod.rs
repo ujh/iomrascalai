@@ -28,6 +28,7 @@ use game::Game;
 use ownership::OwnershipStatistics;
 use score::FinalScore;
 use timer::Timer;
+use uct_gfx::UctGfx;
 
 use std::sync::Arc;
 
@@ -54,6 +55,10 @@ impl EngineController {
 
     pub fn ownership_statistics(&self) -> String {
         format!("{}", self.ownership())
+    }
+    
+    pub fn uct_gfx(&self) -> String {
+        format!("{}", UctGfx::new(&self.engine.root))
     }
 
     pub fn final_score(&mut self, game: &Game) -> String {

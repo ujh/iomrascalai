@@ -69,6 +69,7 @@ mod ruleset;
 mod score;
 mod sgf;
 mod timer;
+mod uct_gfx;
 mod version;
 
 fn main() {
