@@ -65,6 +65,7 @@ impl<'a> GTPInterpreter<'a> {
             "gogui-analyze_commands",
             "imrscl-donplayouts",
             "imrscl-ownership",
+            "imrscl-uct_gfx",
             "kgs-genmove_cleanup",
             "known_command",
             "komi",
@@ -78,7 +79,6 @@ impl<'a> GTPInterpreter<'a> {
             "showboard",
             "time_left",
             "time_settings",
-            "uct_gfx",
             "version",
             ];
         GTPInterpreter {
@@ -129,6 +129,7 @@ impl<'a> GTPInterpreter<'a> {
             "gogui-analyze_commands" => self.execute_gogui_analyze_commands(arguments),
             "imrscl-donplayouts" => self.execute_imrscl_donplayouts(arguments),
             "imrscl-ownership" => self.execute_imrscl_ownership(arguments),
+            "imrscl-uct_gfx" => self.execute_uct_gfx(arguments),
             "kgs-genmove_cleanup" => self.execute_kgs_genmove_cleanup(arguments),
             "known_command" => self.execute_known_command(arguments),
             "komi" => self.execute_komi(arguments),
@@ -142,7 +143,6 @@ impl<'a> GTPInterpreter<'a> {
             "showboard" => self.execute_showboard(arguments),
             "time_left" => self.execute_time_left(arguments),
             "time_settings" => self.execute_time_settings(arguments),
-            "uct_gfx" => self.execute_uct_gfx(arguments),
             "version" => self.execute_version(arguments),
             _ => Err("unknown command".to_string())
         }
@@ -407,7 +407,7 @@ impl<'a> GTPInterpreter<'a> {
             "dboard/Ownership/imrscl-ownership",
             "plist/Final Status List Dead/final_status_list dead",
             "plist/Final Status List Alive/final_status_list alive",
-            "gfx/Uct Gfx/uct_gfx"
+            "gfx/Uct Gfx/imrscl-uct_gfx"
                 ];
         Ok(analyze_commands[1..].iter().fold(analyze_commands[0].to_string(), |acc, &el| format!("{}\n{}", acc, el)))
     }
