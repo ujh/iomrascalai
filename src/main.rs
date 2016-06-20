@@ -152,8 +152,6 @@ fn main() {
     // Instantiate only one matcher as it does a lot of computation
     // during setup.
     let matcher = Arc::new(Matcher::new());
-    // Instantiate only one DCNN
-    let dcnn = dcnn::DCNN::new();
 
     let engine = Engine::new(config.clone(), matcher);
 

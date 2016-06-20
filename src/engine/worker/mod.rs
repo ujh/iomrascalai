@@ -22,6 +22,7 @@
 use board::Board;
 use board::Move;
 use config::Config;
+use dcnn::DCNN;
 use patterns::Matcher;
 use playout::Playout;
 use playout::PlayoutResult;
@@ -73,6 +74,7 @@ pub type Response = (Answer, usize, Sender<Message>);
 pub struct Worker {
     board: Option<Board>,
     config: Arc<Config>,
+    dcnn: DCNN,
     id: Option<usize>,
     matcher: Arc<Matcher>,
     playout: Arc<Playout>,
@@ -88,6 +90,7 @@ impl Worker {
         Worker {
             board: None,
             config: config.clone(),
+            dcnn: DCNN::new(),
             id: None,
             matcher: matcher.clone(),
             playout: playout.clone(),
