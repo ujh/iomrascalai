@@ -23,6 +23,7 @@ use board::Board;
 use board::Empty;
 use board::Move;
 use config::Config;
+use dcnn::DCNN;
 use patterns::Matcher;
 
 use std::sync::Arc;
@@ -102,7 +103,7 @@ impl Prior {
     }
 }
 
-pub fn calculate(board: Board, child_moves: Vec<Move>, matcher: &Arc<Matcher>, config: &Arc<Config>) -> Vec<Prior> {
+pub fn calculate(board: Board, child_moves: Vec<Move>, matcher: &Arc<Matcher>, config: &Arc<Config>, dcnn: &DCNN) -> Vec<Prior> {
     let mut priors: Vec<Prior> = child_moves.iter()
         .map(|m| Prior::new(&board, m, matcher, config.clone()))
         .collect();
