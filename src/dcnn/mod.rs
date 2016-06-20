@@ -19,6 +19,9 @@
  *                                                                      *
  ************************************************************************/
 
+use board::Board;
+use engine::Prior;
+
 use caffe::Net;
 use caffe::Phase;
 use std::path::Path;
@@ -34,4 +37,6 @@ impl DCNN {
         net.copy_trained_layers_from(Path::new("/Users/uh/Personal/detlefs-caffe-dcnn/movepredict.caffemodel"));
         DCNN { net: net }
     }
+
+    pub fn update_priors(&self, priors: &mut Vec<Prior>, board: &Board) {}
 }

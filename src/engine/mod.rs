@@ -22,6 +22,8 @@
 
 pub use self::controller::EngineController;
 pub use self::node::Node;
+pub use self::prior::Prior;
+use board::Board;
 use board::Color;
 use board::Move;
 use board::NoMove;

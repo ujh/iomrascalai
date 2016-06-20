@@ -130,5 +130,10 @@ pub fn calculate(board: Board, child_moves: Vec<Move>, matcher: &Arc<Matcher>, c
             }
         }
     }
+    calculate_dcnn_priors(priors, &board, dcnn)
+}
+
+fn calculate_dcnn_priors(mut priors: Vec<Prior>, board: &Board, dcnn: &DCNN) -> Vec<Prior> {
+    dcnn.update_priors(&mut priors, board);
     priors
 }
