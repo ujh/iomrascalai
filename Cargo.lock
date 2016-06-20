@@ -53,7 +53,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "caffe"
 version = "0.1.0"
-source = "git+https://github.com/ujh/caffe.rs.git#d64dde372e016e6859bc49d607365ca655144ddc"
+source = "git+https://github.com/ujh/caffe.rs.git#8122b54f8128234a846e9c2685460e1e119a56d4"
 dependencies = [
  "bindgen 0.18.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "clippy 0.0.76 (registry+https://github.com/rust-lang/crates.io-index)",
