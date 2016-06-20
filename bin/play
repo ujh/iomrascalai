@@ -49,4 +49,4 @@ IOMRASCALAI="cargo run --release -- --log --rules chinese"
 
 set -x
 
-gogui -computer-black -program "$IOMRASCALAI" -size $SIZE
+gogui -computer-black -program "$IOMRASCALAI" -size $SIZE -time $TIME
