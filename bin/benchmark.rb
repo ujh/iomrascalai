@@ -150,6 +150,7 @@ def done?
 end
 
 loop do
+  check_for_crashes
   run_benchmark
   check_for_crashes
   break if done?
