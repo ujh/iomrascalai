@@ -46,7 +46,7 @@ else
   raise "Size #{SIZE} isn't supported!"
 end
 
-GOGUI_TWOGTP = %Q/gogui-twogtp -auto -black "#{GNUGO}" -white "#{IOMRASCALAI}" -size #{SIZE} -alternate -games #{GAMES} -sgffile #{FILENAME} -time #{TIME} -referee #{REFEREE} -verbose/
+GOGUI_TWOGTP = %Q/gogui-twogtp -auto -black "#{GNUGO}" -white "#{IOMRASCALAI}" -size #{SIZE} -alternate -games #{GAMES} -sgffile #{FILENAME} -time #{TIME} -referee "#{REFEREE}" -verbose/
 
 DAT_FILE = "#{FILENAME}.dat"
 
