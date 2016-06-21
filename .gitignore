@@ -3,7 +3,7 @@ target/
 
 # Ignore gogui-twogtp output in the root directory
 /*.sgf
-/*.dat
+/*.dat*
 /*.html
 /*.lock
 
