@@ -284,7 +284,6 @@ impl Engine {
     }
 
     fn spin_down(&mut self) {
-        self.id += 1;
         for direct_message_sender in &self.direct_message_senders {
             check!(self.config, direct_message_sender.send(DirectMessage::SpinDown));
         }
@@ -296,6 +295,11 @@ impl Engine {
         for _ in 0..self.config.threads {
             self.spin_up_worker();
         }
+        self.send_new_state_to_workers(game);
+    }
+
+    fn send_new_state_to_workers(&mut self, game: &Game) {
+        self.id += 1;
         for direct_message_sender in &self.direct_message_senders {
             let dm = DirectMessage::NewState {
                 board: game.board(),
