@@ -193,7 +193,6 @@ impl Engine {
                     let nodes_added = priors.len();
                     self.root.record_priors(&path, priors);
                     Message::RunPlayout {
-                        id: self.id,
                         moves: moves,
                         nodes_added: nodes_added,
                         path: path,
@@ -211,13 +210,11 @@ impl Engine {
         if nodes_added > 0 {
             Message::CalculatePriors {
                 child_moves: child_moves,
-                id: self.id,
                 moves: moves,
                 path: path,
             }
         } else {
             Message::RunPlayout {
-                id: self.id,
                 moves: moves,
                 nodes_added: nodes_added,
                 path: path,
