@@ -45,14 +45,12 @@ pub enum DirectMessage {
 
 pub enum Message {
     RunPlayout {
-        id: usize,
         moves: Vec<Move>,
         nodes_added: usize,
         path: Vec<usize>,
     },
     CalculatePriors {
         child_moves: Vec<Move>,
-        id: usize,
         moves: Vec<Move>,
         path: Vec<usize>,
     }
@@ -117,11 +115,11 @@ impl Worker {
                 r = receive_from_main.recv() => {
                     check!(self.config, message = r => {
                         match message {
-                            Message::RunPlayout {path, moves, nodes_added, id} => {
-                                self.run_playout(path, moves, nodes_added, id);
+                            Message::RunPlayout {path, moves, nodes_added} => {
+                                self.run_playout(path, moves, nodes_added);
                             },
-                            Message::CalculatePriors {path, moves, child_moves, id} => {
-                                self.run_prior_calculation(path, moves, child_moves, id);
+                            Message::CalculatePriors {path, moves, child_moves} => {
+                                self.run_prior_calculation(path, moves, child_moves);
                             }
                         }
                     });
@@ -134,10 +132,10 @@ impl Worker {
     fn set_new_state(&mut self, board: Board, id: usize) {
         self.board = Some(board);
         self.id = Some(id);
-        self.respond(Answer::NewState, self.id.expect("id not set in set_new_state"));
+        self.respond(Answer::NewState);
     }
 
-    fn run_playout(&mut self, path: Vec<usize>, moves: Vec<Move>, nodes_added: usize, id: usize) {
+    fn run_playout(&mut self, path: Vec<usize>, moves: Vec<Move>, nodes_added: usize) {
         let mut b = self.board.clone().expect("no board for run_playout");
         for &m in moves.iter() {
             b.play_legal_move(m);
@@ -150,10 +148,10 @@ impl Worker {
             path: path,
             playout_result: playout_result
         };
-        self.respond(answer, id);
+        self.respond(answer);
     }
 
-    fn run_prior_calculation(&self, path: Vec<usize>, moves: Vec<Move>, child_moves: Vec<Move>, id: usize) {
+    fn run_prior_calculation(&self, path: Vec<usize>, moves: Vec<Move>, child_moves: Vec<Move>) {
         let mut b = self.board.clone().expect("no board for run_prior_calculation");
         for &m in moves.iter() {
             b.play_legal_move(m);
@@ -164,13 +162,13 @@ impl Worker {
             path: path,
             priors: priors,
         };
-        self.respond(answer, id);
+        self.respond(answer);
     }
 
-    fn respond(&self, answer: Answer, id: usize) {
+    fn respond(&self, answer: Answer) {
         match self.send_to_self {
             Some(ref sender) => {
-                let response = (answer, id, sender.clone());
+                let response = (answer, self.id.unwrap(), sender.clone());
                 check!(self.config, self.send_to_main.send(response));
             }
             None => {
