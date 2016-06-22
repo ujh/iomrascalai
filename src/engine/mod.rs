@@ -300,7 +300,10 @@ impl Engine {
             self.spin_up_worker();
         }
         for direct_message_sender in &self.direct_message_senders {
-            let dm = DirectMessage::NewState { board: game.board() };
+            let dm = DirectMessage::NewState {
+                board: game.board(),
+                id: self.id,
+            };
             check!(self.config, direct_message_sender.send(dm));
         }
     }
@@ -310,7 +313,6 @@ impl Engine {
             &self.config,
             &self.playout,
             &self.matcher,
-            self.id,
             &self.send_to_main
         );
         let (send_direct_message, receive_direct_message) = channel();
