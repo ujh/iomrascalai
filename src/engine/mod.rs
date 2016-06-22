@@ -90,7 +90,7 @@ impl Engine {
 
     pub fn new(config: Arc<Config>, matcher: Arc<SmallPatternMatcher>) -> Engine {
         let (send_to_main, receive_from_threads) = channel();
-        Engine {
+        let mut engine = Engine {
             config: config.clone(),
             direct_message_senders: vec!(),
             id: 0,
@@ -102,7 +102,9 @@ impl Engine {
             root: Node::new(NoMove, config),
             send_to_main: send_to_main,
             start: PreciseTime::now(),
-        }
+        };
+        engine.spin_up();
+        engine
     }
 
     pub fn ownership(&self) -> &OwnershipStatistics {
@@ -134,7 +136,7 @@ impl Engine {
     }
 
     fn search<F>(&mut self, game: &Game, stop: F) where F: Fn(f32, usize) -> bool {
-        self.spin_up(game);
+        self.send_new_state_to_workers(game);
         loop {
             let win_ratio = {
                 let (best, _) = self.root.best();
@@ -143,9 +145,7 @@ impl Engine {
             let done = {
                 stop(win_ratio, self.root.playouts())
             };
-            if done {
-                return self.spin_down();
-            }
+            if done { return; }
             let r = self.receive_from_threads.recv();
             check!(self.config, res = r => {
                 self.handle_response(res, &game);
@@ -290,12 +290,11 @@ impl Engine {
         self.direct_message_senders = vec!();
     }
 
-    fn spin_up(&mut self, game: &Game) {
+    fn spin_up(&mut self) {
         self.direct_message_senders = vec!();
         for _ in 0..self.config.threads {
             self.spin_up_worker();
         }
-        self.send_new_state_to_workers(game);
     }
 
     fn send_new_state_to_workers(&mut self, game: &Game) {
@@ -321,4 +320,11 @@ impl Engine {
         spawn(move || worker.run(receive_direct_message));
     }
 
+}
+
+impl Drop for Engine {
+
+    fn drop(&mut self) {
+        self.spin_down();
+    }
 }
