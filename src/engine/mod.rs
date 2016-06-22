@@ -37,6 +37,7 @@ use playout::Playout;
 use ruleset::KgsChinese;
 use score::FinalScore;
 use self::worker::Answer;
+use self::worker::DirectMessage;
 use self::worker::Message;
 use self::worker::Response;
 use self::worker::Worker;
@@ -74,7 +75,7 @@ mod worker;
 
 pub struct Engine {
     config: Arc<Config>,
-    halt_senders: Vec<Sender<()>>,
+    direct_message_senders: Vec<Sender<DirectMessage>>,
     id: usize,
     matcher: Arc<SmallPatternMatcher>,
     ownership: OwnershipStatistics,
@@ -92,7 +93,7 @@ impl Engine {
         let (send_to_main, receive_from_threads) = channel();
         Engine {
             config: config.clone(),
-            halt_senders: vec!(),
+            direct_message_senders: vec!(),
             id: 0,
             matcher: matcher.clone(),
             ownership: OwnershipStatistics::new(config.clone(), 0, 0.0),
@@ -288,14 +289,14 @@ impl Engine {
 
     fn spin_down(&mut self) {
         self.id += 1;
-        for halt_sender in &self.halt_senders {
-            check!(self.config, halt_sender.send(()));
+        for direct_message_sender in &self.direct_message_senders {
+            check!(self.config, direct_message_sender.send(DirectMessage::SpinDown));
         }
-        self.halt_senders = vec!();
+        self.direct_message_senders = vec!();
     }
 
     fn spin_up(&mut self, game: &Game) {
-        self.halt_senders = vec!();
+        self.direct_message_senders = vec!();
         for _ in 0..self.config.threads {
             self.spin_up_worker(game.board());
         }
@@ -310,9 +311,9 @@ impl Engine {
             board,
             &self.send_to_main
         );
-        let (send_halt, receive_halt) = channel();
-        self.halt_senders.push(send_halt);
-        spawn(move || worker.run(receive_halt));
+        let (send_direct_message, receive_direct_message) = channel();
+        self.direct_message_senders.push(send_direct_message);
+        spawn(move || worker.run(receive_direct_message));
     }
 
 }

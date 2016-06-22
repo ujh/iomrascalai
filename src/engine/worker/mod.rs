@@ -35,6 +35,10 @@ use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 use std::sync::mpsc::channel;
 
+pub enum DirectMessage {
+    SpinDown
+}
+
 pub enum Message {
     RunPlayout {
         id: usize,
@@ -91,13 +95,19 @@ impl Worker {
         }
     }
 
-    pub fn run(&mut self, stop: Receiver<()>) {
+    pub fn run(&mut self, direct_messages: Receiver<DirectMessage>) {
         let (send_to_self, receive_from_main) = channel();
         self.send_to_self = Some(send_to_self);
         self.init();
         loop {
             select!(
-                _ = stop.recv() => { break; },
+                r = direct_messages.recv() => {
+                    check!(self.config, direct_message = r => {
+                        match direct_message {
+                            DirectMessage::SpinDown => { break; }
+                        }
+                    });
+                },
                 r = receive_from_main.recv() => {
                     check!(self.config, message = r => {
                         match message {
