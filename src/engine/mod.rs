@@ -34,10 +34,11 @@ use game::Game;
 use ownership::OwnershipStatistics;
 use patterns::SmallPatternMatcher;
 use playout::Playout;
-use playout::PlayoutResult;
 use ruleset::KgsChinese;
 use score::FinalScore;
-use self::prior::Prior;
+use self::worker::Answer;
+use self::worker::Message;
+use self::worker::Response;
 use self::worker::Worker;
 use timer::Timer;
 
@@ -70,35 +71,6 @@ mod controller;
 mod node;
 mod prior;
 mod worker;
-
-pub enum Message {
-    RunPlayout {
-        id: usize,
-        moves: Vec<Move>,
-        nodes_added: usize,
-        path: Vec<usize>,
-    },
-    CalculatePriors {
-        child_moves: Vec<Move>,
-        id: usize,
-        moves: Vec<Move>,
-        path: Vec<usize>,
-    }
-}
-pub enum Answer {
-    RunPlayout {
-        nodes_added: usize,
-        path: Vec<usize>,
-        playout_result: PlayoutResult
-    },
-    CalculatePriors {
-        moves: Vec<Move>,
-        path: Vec<usize>,
-        priors: Vec<Prior>,
-    },
-    SpinUp
-}
-pub type Response = (Answer, usize, Sender<Message>);
 
 pub struct Engine {
     config: Arc<Config>,

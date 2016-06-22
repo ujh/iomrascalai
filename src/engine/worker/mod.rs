@@ -24,10 +24,9 @@ use board::Move;
 use config::Config;
 use patterns::SmallPatternMatcher;
 use playout::Playout;
-use super::Answer;
-use super::Message;
-use super::Response;
+use playout::PlayoutResult;
 use super::prior;
+use super::prior::Prior;
 
 use rand::XorShiftRng;
 use rand::weak_rng;
@@ -35,6 +34,35 @@ use std::sync::Arc;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 use std::sync::mpsc::channel;
+
+pub enum Message {
+    RunPlayout {
+        id: usize,
+        moves: Vec<Move>,
+        nodes_added: usize,
+        path: Vec<usize>,
+    },
+    CalculatePriors {
+        child_moves: Vec<Move>,
+        id: usize,
+        moves: Vec<Move>,
+        path: Vec<usize>,
+    }
+}
+pub enum Answer {
+    RunPlayout {
+        nodes_added: usize,
+        path: Vec<usize>,
+        playout_result: PlayoutResult
+    },
+    CalculatePriors {
+        moves: Vec<Move>,
+        path: Vec<usize>,
+        priors: Vec<Prior>,
+    },
+    SpinUp
+}
+pub type Response = (Answer, usize, Sender<Message>);
 
 pub struct Worker {
     board: Board,
