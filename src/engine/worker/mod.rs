@@ -37,7 +37,10 @@ use std::sync::mpsc::channel;
 
 pub enum DirectMessage {
     SpinDown,
-    NewState { board: Board }
+    NewState {
+        board: Board,
+        id: usize,
+    }
 }
 
 pub enum Message {
@@ -72,7 +75,7 @@ pub type Response = (Answer, usize, Sender<Message>);
 pub struct Worker {
     board: Option<Board>,
     config: Arc<Config>,
-    id: usize,
+    id: Option<usize>,
     matcher: Arc<SmallPatternMatcher>,
     playout: Arc<Playout>,
     rng: XorShiftRng,
@@ -82,12 +85,12 @@ pub struct Worker {
 
 impl Worker {
 
-    pub fn new(config: &Arc<Config>, playout: &Arc<Playout>, matcher: &Arc<SmallPatternMatcher>, id: usize, send_to_main: &Sender<Response>) -> Worker {
+    pub fn new(config: &Arc<Config>, playout: &Arc<Playout>, matcher: &Arc<SmallPatternMatcher>, send_to_main: &Sender<Response>) -> Worker {
         let rng = weak_rng();
         Worker {
             board: None,
             config: config.clone(),
-            id: id,
+            id: None,
             matcher: matcher.clone(),
             playout: playout.clone(),
             rng: rng,
@@ -105,8 +108,8 @@ impl Worker {
                     check!(self.config, direct_message = r => {
                         match direct_message {
                             DirectMessage::SpinDown => { break; },
-                            DirectMessage::NewState {board} => {
-                                self.set_new_state(board);
+                            DirectMessage::NewState {board, id} => {
+                                self.set_new_state(board, id);
                             }
                         }
                     });
@@ -128,9 +131,10 @@ impl Worker {
 
     }
 
-    fn set_new_state(&mut self, board: Board) {
+    fn set_new_state(&mut self, board: Board, id: usize) {
         self.board = Some(board);
-        self.respond(Answer::NewState, self.id);
+        self.id = Some(id);
+        self.respond(Answer::NewState, self.id.expect("id not set in set_new_state"));
     }
 
     fn run_playout(&mut self, path: Vec<usize>, moves: Vec<Move>, nodes_added: usize, id: usize) {
