@@ -143,13 +143,6 @@ describe! interpreter {
                 assert!(response.is_ok());
             }
 
-            it "does not generate a pass on an empty board" {
-                interpreter.read("boardsize 9\n").unwrap();
-                interpreter.read("clear_board\n").unwrap();
-                let response = interpreter.read("genmove b\n");
-                assert!(response.is_ok());
-                assert_that(response.unwrap(), is_not(equal_to("pass".to_string())));
-            }
         }
 
         describe! kgs {
