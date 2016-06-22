@@ -65,7 +65,7 @@ pub enum Answer {
         path: Vec<usize>,
         priors: Vec<Prior>,
     },
-    SpinUp
+    NewState
 }
 pub type Response = (Answer, usize, Sender<Message>);
 
@@ -99,7 +99,6 @@ impl Worker {
     pub fn run(&mut self, direct_messages: Receiver<DirectMessage>) {
         let (send_to_self, receive_from_main) = channel();
         self.send_to_self = Some(send_to_self);
-        self.init();
         loop {
             select!(
                 r = direct_messages.recv() => {
@@ -107,7 +106,7 @@ impl Worker {
                         match direct_message {
                             DirectMessage::SpinDown => { break; },
                             DirectMessage::NewState {board} => {
-                                self.board = Some(board);
+                                self.set_new_state(board);
                             }
                         }
                     });
@@ -129,8 +128,9 @@ impl Worker {
 
     }
 
-    fn init(&self) {
-        self.respond(Answer::SpinUp, self.id);
+    fn set_new_state(&mut self, board: Board) {
+        self.board = Some(board);
+        self.respond(Answer::NewState, self.id);
     }
 
     fn run_playout(&mut self, path: Vec<usize>, moves: Vec<Move>, nodes_added: usize, id: usize) {
