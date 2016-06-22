@@ -22,7 +22,6 @@
 
 pub use self::controller::EngineController;
 pub use self::node::Node;
-use board::Board;
 use board::Color;
 use board::Move;
 use board::NoMove;
@@ -298,17 +297,20 @@ impl Engine {
     fn spin_up(&mut self, game: &Game) {
         self.direct_message_senders = vec!();
         for _ in 0..self.config.threads {
-            self.spin_up_worker(game.board());
+            self.spin_up_worker();
+        }
+        for direct_message_sender in &self.direct_message_senders {
+            let dm = DirectMessage::NewState { board: game.board() };
+            check!(self.config, direct_message_sender.send(dm));
         }
     }
 
-    fn spin_up_worker(&mut self, board: Board) {
+    fn spin_up_worker(&mut self) {
         let mut worker = Worker::new(
             &self.config,
             &self.playout,
             &self.matcher,
             self.id,
-            board,
             &self.send_to_main
         );
         let (send_direct_message, receive_direct_message) = channel();
