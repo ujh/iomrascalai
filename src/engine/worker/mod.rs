@@ -36,7 +36,8 @@ use std::sync::mpsc::Sender;
 use std::sync::mpsc::channel;
 
 pub enum DirectMessage {
-    SpinDown
+    SpinDown,
+    NewState { board: Board }
 }
 
 pub enum Message {
@@ -69,7 +70,7 @@ pub enum Answer {
 pub type Response = (Answer, usize, Sender<Message>);
 
 pub struct Worker {
-    board: Board,
+    board: Option<Board>,
     config: Arc<Config>,
     id: usize,
     matcher: Arc<SmallPatternMatcher>,
@@ -81,10 +82,10 @@ pub struct Worker {
 
 impl Worker {
 
-    pub fn new(config: &Arc<Config>, playout: &Arc<Playout>, matcher: &Arc<SmallPatternMatcher>, id: usize, board: Board, send_to_main: &Sender<Response>) -> Worker {
+    pub fn new(config: &Arc<Config>, playout: &Arc<Playout>, matcher: &Arc<SmallPatternMatcher>, id: usize, send_to_main: &Sender<Response>) -> Worker {
         let rng = weak_rng();
         Worker {
-            board: board,
+            board: None,
             config: config.clone(),
             id: id,
             matcher: matcher.clone(),
@@ -104,7 +105,10 @@ impl Worker {
                 r = direct_messages.recv() => {
                     check!(self.config, direct_message = r => {
                         match direct_message {
-                            DirectMessage::SpinDown => { break; }
+                            DirectMessage::SpinDown => { break; },
+                            DirectMessage::NewState {board} => {
+                                self.board = Some(board);
+                            }
                         }
                     });
                 },
@@ -130,7 +134,7 @@ impl Worker {
     }
 
     fn run_playout(&mut self, path: Vec<usize>, moves: Vec<Move>, nodes_added: usize, id: usize) {
-        let mut b = self.board.clone();
+        let mut b = self.board.clone().expect("no board for run_playout");
         for &m in moves.iter() {
             b.play_legal_move(m);
         }
@@ -146,7 +150,7 @@ impl Worker {
     }
 
     fn run_prior_calculation(&self, path: Vec<usize>, moves: Vec<Move>, child_moves: Vec<Move>, id: usize) {
-        let mut b = self.board.clone();
+        let mut b = self.board.clone().expect("no board for run_prior_calculation");
         for &m in moves.iter() {
             b.play_legal_move(m);
         }
