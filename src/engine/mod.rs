@@ -178,7 +178,7 @@ impl Engine {
         // Ignore responses from the previous genmove
         if self.id == id {
             let message = match answer {
-                Answer::SpinUp => {
+                Answer::NewState => {
                     self.expand(game)
                 },
                 Answer::RunPlayout {path, nodes_added, playout_result} => {
