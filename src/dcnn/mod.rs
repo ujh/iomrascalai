@@ -24,7 +24,6 @@ use board::Board;
 use board::Coord;
 use board::Empty;
 use board::White;
-use engine::Prior;
 
 use caffe::Net;
 use caffe::Phase;
@@ -42,25 +41,21 @@ impl DCNN {
         DCNN { net: net }
     }
 
-    pub fn update_priors(&mut self, priors: Vec<Prior>, board: &Board) -> Vec<Prior> {
+    pub fn calculate_priors(&mut self, board: &Board) -> Vec<usize> {
         self.set_nn_input(board);
-        self.run_net_and_update_priors(priors, board)
+        self.run_net_and_return_priors(board)
     }
 
-    fn run_net_and_update_priors(&mut self, mut priors: Vec<Prior>, board: &Board) -> Vec<Prior> {
+    fn run_net_and_return_priors(&mut self, board: &Board) -> Vec<usize> {
         self.net.forward_prefilled();
         let mut output = vec![0.0; 722];
         output.clone_from_slice(self.net.output());
+        let mut priors = vec!();
         for coord in &Coord::for_board_size(board.size()) {
             let (j,k) = self.coord_as_dcnn_indexes(coord);
             let value = output[j*19+k];
-            // TODO: Move this somewhere else so that we can avoid the search
-            match priors.iter_mut().find(|p| !p.pass_move() && p.coord() == *coord) {
-                Some(prior) => {
-                    prior.record_even_prior((1000.0 * value).round() as usize);
-                }
-                None => {}
-            }
+            let prior = (1000.0 * value).round() as usize;
+            priors.push(prior);
         }
         priors
     }
