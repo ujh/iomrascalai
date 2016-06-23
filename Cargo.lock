@@ -29,7 +29,7 @@ dependencies = [
 [[package]]
 name = "caffe"
 version = "0.1.0"
-source = "git+https://github.com/ujh/caffe.rs.git#3c81c8ff143e58d609f49d88140d43a5582281a9"
+source = "git+https://github.com/ujh/caffe.rs.git#077bda6a0d2b708e8208cdec00c443712d8a903a"
 dependencies = [
  "libc 0.2.12 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
