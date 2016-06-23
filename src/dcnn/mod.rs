@@ -49,8 +49,8 @@ impl DCNN {
 
     fn run_net_and_update_priors(&mut self, mut priors: Vec<Prior>, board: &Board) -> Vec<Prior> {
         self.net.forward_prefilled();
-        let prop_blob = self.net.blob("ip_zw");
-        let output = prop_blob.as_slice();
+        let mut output = vec![0.0; 722];
+        output.clone_from_slice(self.net.output());
         for coord in &Coord::for_board_size(board.size()) {
             let (j,k) = self.coord_as_dcnn_indexes(coord);
             let value = output[j*19+k];
