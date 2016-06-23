@@ -27,6 +27,8 @@ use config::Config;
 use dcnn::DCNN;
 use patterns::Matcher;
 
+use rand::Rng;
+use rand::XorShiftRng;
 use std::sync::Arc;
 
 pub struct Prior {
@@ -112,7 +114,7 @@ impl Prior {
     }
 }
 
-pub fn calculate(board: Board, child_moves: Vec<Move>, matcher: &Arc<Matcher>, config: &Arc<Config>, dcnn: &mut DCNN) -> Vec<Prior> {
+pub fn calculate(board: Board, child_moves: Vec<Move>, matcher: &Arc<Matcher>, config: &Arc<Config>, dcnn: &mut DCNN, rng: &mut XorShiftRng) -> Vec<Prior> {
     let mut priors: Vec<Prior> = child_moves.iter()
         .map(|m| Prior::new(&board, m, matcher, config.clone()))
         .collect();
@@ -139,9 +141,13 @@ pub fn calculate(board: Board, child_moves: Vec<Move>, matcher: &Arc<Matcher>, c
             }
         }
     }
-    calculate_dcnn_priors(priors, &board, dcnn)
+    calculate_dcnn_priors(priors, &board, dcnn, rng)
 }
 
-fn calculate_dcnn_priors(priors: Vec<Prior>, board: &Board, dcnn: &mut DCNN) -> Vec<Prior> {
-    dcnn.update_priors(priors, board)
+fn calculate_dcnn_priors(priors: Vec<Prior>, board: &Board, dcnn: &mut DCNN, rng: &mut XorShiftRng) -> Vec<Prior> {
+    if rng.gen_range(0f32, 1f32) < 0.1 {
+        dcnn.update_priors(priors, board)
+    } else {
+        priors
+    }
 }

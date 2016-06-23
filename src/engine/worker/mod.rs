@@ -159,7 +159,7 @@ impl Worker {
         for &m in moves.iter() {
             b.play_legal_move(m);
         }
-        let priors = prior::calculate(b, child_moves, &self.matcher, &self.config, &mut self.dcnn);
+        let priors = prior::calculate(b, child_moves, &self.matcher, &self.config, &mut self.dcnn, &mut self.rng);
         let answer = Answer::CalculatePriors {
             moves: moves,
             path: path,
