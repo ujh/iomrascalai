@@ -159,7 +159,8 @@ impl Worker {
         for &m in moves.iter() {
             b.play_legal_move(m);
         }
-        let priors = prior::calculate(b, child_moves, &self.matcher, &self.config, &mut self.dcnn, &mut self.rng);
+        let dcnn_probability = if path.len() == 1 { 1.0 } else { 0.0 };
+        let priors = prior::calculate(b, child_moves, &self.matcher, &self.config, &mut self.dcnn, &mut self.rng, dcnn_probability);
         let answer = Answer::CalculatePriors {
             moves: moves,
             path: path,

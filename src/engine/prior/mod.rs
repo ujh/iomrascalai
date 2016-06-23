@@ -114,7 +114,7 @@ impl Prior {
     }
 }
 
-pub fn calculate(board: Board, child_moves: Vec<Move>, matcher: &Arc<Matcher>, config: &Arc<Config>, dcnn: &mut DCNN, rng: &mut XorShiftRng) -> Vec<Prior> {
+pub fn calculate(board: Board, child_moves: Vec<Move>, matcher: &Arc<Matcher>, config: &Arc<Config>, dcnn: &mut DCNN, rng: &mut XorShiftRng, dcnn_probability: f32) -> Vec<Prior> {
     let mut priors: Vec<Prior> = child_moves.iter()
         .map(|m| Prior::new(&board, m, matcher, config.clone()))
         .collect();
@@ -141,11 +141,11 @@ pub fn calculate(board: Board, child_moves: Vec<Move>, matcher: &Arc<Matcher>, c
             }
         }
     }
-    calculate_dcnn_priors(priors, &board, dcnn, rng)
+    calculate_dcnn_priors(priors, &board, dcnn, rng, dcnn_probability)
 }
 
-fn calculate_dcnn_priors(priors: Vec<Prior>, board: &Board, dcnn: &mut DCNN, rng: &mut XorShiftRng) -> Vec<Prior> {
-    if rng.gen_range(0f32, 1f32) < 0.1 {
+fn calculate_dcnn_priors(priors: Vec<Prior>, board: &Board, dcnn: &mut DCNN, rng: &mut XorShiftRng, dcnn_probability: f32) -> Vec<Prior> {
+    if rng.gen_range(0f32, 1f32) < dcnn_probability {
         dcnn.update_priors(priors, board)
     } else {
         priors
