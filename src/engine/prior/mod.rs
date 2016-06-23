@@ -20,6 +20,7 @@
  ************************************************************************/
 
 use board::Board;
+use board::Coord;
 use board::Empty;
 use board::Move;
 use config::Config;
@@ -54,6 +55,14 @@ impl Prior {
 
     pub fn wins(&self) -> usize {
         self.wins
+    }
+
+    pub fn coord(&self) -> Coord {
+        self.m.coord()
+    }
+
+    pub fn pass_move(&self) -> bool {
+        self.m.is_pass()
     }
 
     fn calculate(&mut self, board: &Board, m: &Move, matcher: &Arc<Matcher>, config: &Arc<Config>) {
@@ -94,7 +103,7 @@ impl Prior {
         self.wins += wins;
     }
 
-    fn record_even_prior(&mut self, prior: usize) {
+    pub fn record_even_prior(&mut self, prior: usize) {
         self.record_priors(prior, prior);
     }
 
@@ -103,7 +112,7 @@ impl Prior {
     }
 }
 
-pub fn calculate(board: Board, child_moves: Vec<Move>, matcher: &Arc<Matcher>, config: &Arc<Config>, dcnn: &DCNN) -> Vec<Prior> {
+pub fn calculate(board: Board, child_moves: Vec<Move>, matcher: &Arc<Matcher>, config: &Arc<Config>, dcnn: &mut DCNN) -> Vec<Prior> {
     let mut priors: Vec<Prior> = child_moves.iter()
         .map(|m| Prior::new(&board, m, matcher, config.clone()))
         .collect();
@@ -133,7 +142,6 @@ pub fn calculate(board: Board, child_moves: Vec<Move>, matcher: &Arc<Matcher>, c
     calculate_dcnn_priors(priors, &board, dcnn)
 }
 
-fn calculate_dcnn_priors(mut priors: Vec<Prior>, board: &Board, dcnn: &DCNN) -> Vec<Prior> {
-    dcnn.update_priors(&mut priors, board);
-    priors
+fn calculate_dcnn_priors(priors: Vec<Prior>, board: &Board, dcnn: &mut DCNN) -> Vec<Prior> {
+    dcnn.update_priors(priors, board)
 }

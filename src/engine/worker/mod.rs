@@ -154,12 +154,12 @@ impl Worker {
         self.respond(answer);
     }
 
-    fn run_prior_calculation(&self, path: Vec<usize>, moves: Vec<Move>, child_moves: Vec<Move>) {
+    fn run_prior_calculation(&mut self, path: Vec<usize>, moves: Vec<Move>, child_moves: Vec<Move>) {
         let mut b = self.board.clone().expect("no board for run_prior_calculation");
         for &m in moves.iter() {
             b.play_legal_move(m);
         }
-        let priors = prior::calculate(b, child_moves, &self.matcher, &self.config, &self.dcnn);
+        let priors = prior::calculate(b, child_moves, &self.matcher, &self.config, &mut self.dcnn);
         let answer = Answer::CalculatePriors {
             moves: moves,
             path: path,
