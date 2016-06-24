@@ -47,8 +47,8 @@ pub struct Node {
     m: Move,
     playouts: usize,
     plays: f32,
-    prior_plays: usize,
-    prior_wins: usize,
+    prior_plays: f32,
+    prior_wins: f32,
     wins: f32,
 }
 
@@ -113,8 +113,8 @@ impl Node {
         self.amaf_wins = 0.0;
         self.playouts = 0;
         self.plays = 0.0;
-        self.prior_plays = 0;
-        self.prior_wins = 0;
+        self.prior_plays = 0.0;
+        self.prior_wins = 0.0;
         self.wins = 0.0;
     }
 

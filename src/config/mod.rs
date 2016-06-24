@@ -123,29 +123,29 @@ pub struct PriorsConfig {
     /// The prior for a move that captures more than one stone. It is
     /// an even prior, i.e. `capture_many` is added to both the prior
     /// plays and wins.
-    pub capture_many: usize,
+    pub capture_many: f32,
     /// Same as `capture_many` but for the case where a move captures
     /// a single stone.
-    pub capture_one: usize,
+    pub capture_one: f32,
     /// The prior to assign a move that plays close to the border.
     /// It's a negative prior (i.e. only prior plays are increased)
     /// when playing on the 1st and 2nd line and an even prior for
     /// moves on the third line. This is only applied if the area
     /// around the move of a Manhattan distance of three is empty.
-    pub empty: usize,
+    pub empty: f32,
     /// The number of prior plays to start with. This is useful to
     /// simplify the calculations as we can avoid 0 values.
-    pub neutral_plays: usize,
+    pub neutral_plays: f32,
     /// The number of prior wins to start with. This is normally 0.5
     /// of `neutral_plays` so that we start of with a win rate of 50%.
-    pub neutral_wins: usize,
+    pub neutral_wins: f32,
     /// The prior to assign when one of the 3x3 pattern matches. This
     /// is an even prior.
-    pub patterns: usize,
+    pub patterns: f32,
     /// The prior to assign when the move puts one of our own groups
     /// in self atari. This is a negative prior (i.e. only prior plays
     /// are increased).
-    pub self_atari: usize,
+    pub self_atari: f32,
 }
 
 impl PriorsConfig {
@@ -158,13 +158,13 @@ impl PriorsConfig {
         table.extend(opts);
         PriorsConfig {
             best_move_factor: Self::as_float(&table, "best_move_factor"),
-            capture_many: Self::as_integer(&table, "capture_many"),
-            capture_one: Self::as_integer(&table, "capture_one"),
-            empty: Self::as_integer(&table, "empty"),
-            neutral_plays: Self::as_integer(&table, "neutral_plays"),
-            neutral_wins: Self::as_integer(&table, "neutral_wins"),
-            patterns: Self::as_integer(&table, "patterns"),
-            self_atari: Self::as_integer(&table, "self_atari"),
+            capture_many: Self::as_float(&table, "capture_many"),
+            capture_one: Self::as_float(&table, "capture_one"),
+            empty: Self::as_float(&table, "empty"),
+            neutral_plays: Self::as_float(&table, "neutral_plays"),
+            neutral_wins: Self::as_float(&table, "neutral_wins"),
+            patterns: Self::as_float(&table, "patterns"),
+            self_atari: Self::as_float(&table, "self_atari"),
         }
     }
 
@@ -172,14 +172,14 @@ impl PriorsConfig {
     /// turning of the code that calculates the empty area prior
     /// altogether.
     pub fn use_empty(&self) -> bool {
-        self.empty > 0
+        self.empty > 0.0
     }
 
     /// Returns false if the patterns prior is zero, which allows for
     /// turning of the code that calculates the empty area prior
     /// altogether.
     pub fn use_patterns(&self) -> bool {
-        self.patterns > 0
+        self.patterns > 0.0
     }
 }
 

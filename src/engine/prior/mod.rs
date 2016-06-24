@@ -32,17 +32,17 @@ use std::sync::Arc;
 
 pub struct Prior {
     m: Move,
-    plays: usize,
-    wins: usize,
+    plays: f32,
+    wins: f32,
 }
 
 impl Prior {
 
-    pub fn new(board: &Board, m: &Move, matcher: &Arc<Matcher>, config: Arc<Config>, dcnn_prior: usize) -> Prior {
+    pub fn new(board: &Board, m: &Move, matcher: &Arc<Matcher>, config: Arc<Config>, dcnn_prior: f32, rng: &mut XorShiftRng) -> Prior {
         let mut prior = Prior {
             m: *m,
-            plays: dcnn_prior,
-            wins: dcnn_prior,
+            plays: dcnn_prior + rng.gen_range(0f32, 0.05),
+            wins: dcnn_prior + rng.gen_range(0f32, 0.05),
         };
         if !m.is_pass() {
             prior.calculate(board, m, matcher, &config);
@@ -50,11 +50,11 @@ impl Prior {
         prior
     }
 
-    pub fn plays(&self) -> usize {
+    pub fn plays(&self) -> f32 {
         self.plays
     }
 
-    pub fn wins(&self) -> usize {
+    pub fn wins(&self) -> f32 {
         self.wins
     }
 
@@ -76,7 +76,7 @@ impl Prior {
         }
         if config.priors.use_patterns() {
             let count = self.matching_patterns_count(board, m, matcher);
-            let prior = count * config.priors.patterns;
+            let prior = count as f32 * config.priors.patterns;
             self.record_even_prior(prior);
         }
     }
@@ -91,17 +91,17 @@ impl Prior {
         matcher.pattern_count(board, &m.coord())
     }
 
-    fn record_priors(&mut self, plays: usize, wins: usize) {
+    fn record_priors(&mut self, plays: f32, wins: f32) {
         self.plays += plays;
         self.wins += wins;
     }
 
-    pub fn record_even_prior(&mut self, prior: usize) {
+    pub fn record_even_prior(&mut self, prior: f32) {
         self.record_priors(prior, prior);
     }
 
-    fn record_negative_prior(&mut self, prior: usize) {
-        self.record_priors(prior, 0);
+    fn record_negative_prior(&mut self, prior: f32) {
+        self.record_priors(prior, 0.0);
     }
 }
 
@@ -111,16 +111,16 @@ pub fn calculate(board: Board, child_moves: Vec<Move>, matcher: &Arc<Matcher>, c
     let mut priors: Vec<Prior> = child_moves.iter()
         .map(|m| {
             let dcnn_prior = if m.is_pass() {
-                0
+                0.0
             } else {
                 let idx = m.coord().to_index(size);
                 if idx >= dcnn_priors.len() {
-                    0
+                    0.0
                 } else {
                     dcnn_priors[idx]
                 }
             };
-            Prior::new(&board, m, matcher, config.clone(), dcnn_prior)
+            Prior::new(&board, m, matcher, config.clone(), dcnn_prior, rng)
         })
         .collect();
     let color = board.next_player().opposite();
@@ -149,7 +149,7 @@ pub fn calculate(board: Board, child_moves: Vec<Move>, matcher: &Arc<Matcher>, c
     priors
 }
 
-fn calculate_dcnn_priors(board: &Board, dcnn: &mut DCNN, rng: &mut XorShiftRng, dcnn_probability: f32) -> Vec<usize> {
+fn calculate_dcnn_priors(board: &Board, dcnn: &mut DCNN, rng: &mut XorShiftRng, dcnn_probability: f32) -> Vec<f32> {
     if rng.gen_range(0f32, 1f32) < dcnn_probability {
         dcnn.calculate_priors(board)
     } else {

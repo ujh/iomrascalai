@@ -41,12 +41,12 @@ impl DCNN {
         DCNN { net: net }
     }
 
-    pub fn calculate_priors(&mut self, board: &Board) -> Vec<usize> {
+    pub fn calculate_priors(&mut self, board: &Board) -> Vec<f32> {
         self.set_nn_input(board);
         self.run_net_and_return_priors(board)
     }
 
-    fn run_net_and_return_priors(&mut self, board: &Board) -> Vec<usize> {
+    fn run_net_and_return_priors(&mut self, board: &Board) -> Vec<f32> {
         self.net.forward_prefilled();
         let mut output = vec![0.0; 722];
         output.clone_from_slice(self.net.output());
@@ -54,8 +54,7 @@ impl DCNN {
         for coord in &Coord::for_board_size(board.size()) {
             let (j,k) = self.coord_as_dcnn_indexes(coord);
             let value = output[j*19+k];
-            let prior = (1000.0 * value).round() as usize;
-            priors.push(prior);
+            priors.push(value);
         }
         priors
     }
