@@ -105,19 +105,19 @@ impl Prior {
     }
 }
 
-pub fn calculate(board: Board, child_moves: Vec<Move>, matcher: &Arc<Matcher>, config: &Arc<Config>, dcnn: &mut DCNN, rng: &mut XorShiftRng, dcnn_probability: f32) -> Vec<Prior> {
-    let dcnn_priors = calculate_dcnn_priors(&board, dcnn, rng, dcnn_probability);
+pub fn calculate(board: Board, child_moves: Vec<Move>, matcher: &Arc<Matcher>, config: &Arc<Config>, dcnn: &mut DCNN, rng: &mut XorShiftRng) -> Vec<Prior> {
+    let dcnn_priors = calculate_dcnn_priors(&board, dcnn);
     let size = board.size();
     let mut priors: Vec<Prior> = child_moves.iter()
         .map(|m| {
             let dcnn_prior = if m.is_pass() {
                 0.0
             } else {
-                let idx = m.coord().to_index(size);
-                if idx >= dcnn_priors.len() {
-                    0.0
-                } else {
+                if board.size() == 19 {
+                    let idx = m.coord().to_index(size);
                     dcnn_priors[idx]
+                } else {
+                    0.0
                 }
             };
             Prior::new(&board, m, matcher, config.clone(), dcnn_prior, rng)
@@ -149,8 +149,8 @@ pub fn calculate(board: Board, child_moves: Vec<Move>, matcher: &Arc<Matcher>, c
     priors
 }
 
-fn calculate_dcnn_priors(board: &Board, dcnn: &mut DCNN, rng: &mut XorShiftRng, dcnn_probability: f32) -> Vec<f32> {
-    if rng.gen_range(0f32, 1f32) < dcnn_probability {
+fn calculate_dcnn_priors(board: &Board, dcnn: &mut DCNN) -> Vec<f32> {
+    if board.size() == 19 {
         dcnn.calculate_priors(board)
     } else {
         vec![]
