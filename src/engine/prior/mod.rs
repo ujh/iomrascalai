@@ -44,7 +44,7 @@ impl Prior {
             plays: dcnn_prior + rng.gen_range(0f32, 0.05),
             wins: dcnn_prior + rng.gen_range(0f32, 0.05),
         };
-        if !m.is_pass() {
+        if !m.is_pass() && board.size() != 19 {
             prior.calculate(board, m, matcher, &config);
         }
         prior
