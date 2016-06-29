@@ -1,6 +1,7 @@
 /************************************************************************
  *                                                                      *
  * Copyright 2015 Urban Hafner                                          *
+ * Copyright 2016 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -19,6 +20,6 @@
  *                                                                      *
  ************************************************************************/
 
-pub use self::matcher::Matcher;
+pub use self::small::Matcher as SmallPatternMatcher;
 
-mod matcher;
+mod small;

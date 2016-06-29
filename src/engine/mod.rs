@@ -32,7 +32,7 @@ use board::White;
 use config::Config;
 use game::Game;
 use ownership::OwnershipStatistics;
-use patterns::Matcher;
+use patterns::SmallPatternMatcher;
 use playout::Playout;
 use playout::PlayoutResult;
 use ruleset::KgsChinese;
@@ -104,7 +104,7 @@ pub struct Engine {
     config: Arc<Config>,
     halt_senders: Vec<Sender<()>>,
     id: usize,
-    matcher: Arc<Matcher>,
+    matcher: Arc<SmallPatternMatcher>,
     ownership: OwnershipStatistics,
     playout: Arc<Playout>,
     previous_node_count: usize,
@@ -116,7 +116,7 @@ pub struct Engine {
 
 impl Engine {
 
-    pub fn new(config: Arc<Config>, matcher: Arc<Matcher>) -> Engine {
+    pub fn new(config: Arc<Config>, matcher: Arc<SmallPatternMatcher>) -> Engine {
         let (send_to_main, receive_from_threads) = channel();
         Engine {
             config: config.clone(),

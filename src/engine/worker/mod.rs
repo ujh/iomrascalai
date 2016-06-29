@@ -22,7 +22,7 @@
 use board::Board;
 use board::Move;
 use config::Config;
-use patterns::Matcher;
+use patterns::SmallPatternMatcher;
 use playout::Playout;
 use super::Answer;
 use super::Message;
@@ -40,7 +40,7 @@ pub struct Worker {
     board: Board,
     config: Arc<Config>,
     id: usize,
-    matcher: Arc<Matcher>,
+    matcher: Arc<SmallPatternMatcher>,
     playout: Arc<Playout>,
     rng: XorShiftRng,
     send_to_main: Sender<Response>,
@@ -49,7 +49,7 @@ pub struct Worker {
 
 impl Worker {
 
-    pub fn new(config: &Arc<Config>, playout: &Arc<Playout>, matcher: &Arc<Matcher>, id: usize, board: Board, send_to_main: &Sender<Response>) -> Worker {
+    pub fn new(config: &Arc<Config>, playout: &Arc<Playout>, matcher: &Arc<SmallPatternMatcher>, id: usize, board: Board, send_to_main: &Sender<Response>) -> Worker {
         let rng = weak_rng();
         Worker {
             board: board,

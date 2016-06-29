@@ -1,6 +1,7 @@
 /************************************************************************
  *                                                                      *
  * Copyright 2015 Thomas Poinsot, Igor Polyakov, Urban Hafner           *
+ * Copyright 2016 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -25,7 +26,7 @@ use board::Black;
 use board::Board;
 use board::Play;
 use config::Config;
-use patterns::Matcher;
+use patterns::SmallPatternMatcher;
 use ruleset::KgsChinese;
 use super::Playout;
 
@@ -37,19 +38,19 @@ fn config() -> Arc<Config> {
     Arc::new(Config::test_config())
 }
 
-fn playout(matcher: Arc<Matcher>) -> Playout {
+fn playout(matcher: Arc<SmallPatternMatcher>) -> Playout {
     Playout::new(config(), matcher)
 }
 
 #[test]
 fn max_moves() {
-    assert_eq!(1083, playout(Arc::new(Matcher::new())).max_moves(19));
+    assert_eq!(1083, playout(Arc::new(SmallPatternMatcher::new())).max_moves(19));
 }
 
 #[bench]
 fn playout_09x09(b: &mut Bencher) {
     let board = Board::new(9, 6.5, KgsChinese);
-    let matcher = Arc::new(Matcher::new());
+    let matcher = Arc::new(SmallPatternMatcher::new());
     let playout = playout(matcher);
     let mut rng = weak_rng();
     b.iter(|| {
@@ -61,7 +62,7 @@ fn playout_09x09(b: &mut Bencher) {
 #[bench]
 fn playout_13x13(b: &mut Bencher) {
     let board = Board::new(13, 6.5, KgsChinese);
-    let matcher = Arc::new(Matcher::new());
+    let matcher = Arc::new(SmallPatternMatcher::new());
     let playout = playout(matcher);
     let mut rng = weak_rng();
     b.iter(|| {
@@ -73,7 +74,7 @@ fn playout_13x13(b: &mut Bencher) {
 #[bench]
 fn playout_19x19(b: &mut Bencher) {
     let board = Board::new(19, 6.5, KgsChinese);
-    let matcher = Arc::new(Matcher::new());
+    let matcher = Arc::new(SmallPatternMatcher::new());
     let playout = playout(matcher);
     let mut rng = weak_rng();
     b.iter(|| {
