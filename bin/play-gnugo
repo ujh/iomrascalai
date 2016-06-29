@@ -32,7 +32,7 @@ else
 fi
 
 if [ $SIZE == "9" ]; then
-    TIME="5m"
+    TIME="2m"
 elif [ $SIZE == "13" ]; then
     TIME="10m"
 elif [ $SIZE == "19" ]; then

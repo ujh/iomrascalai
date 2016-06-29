@@ -29,6 +29,7 @@
 #[cfg(test)]
 extern crate hamcrest;
 
+extern crate caffe;
 extern crate core;
 #[macro_use] extern crate enum_primitive;
 extern crate getopts;
@@ -58,6 +59,7 @@ use std::process::exit;
 
 mod board;
 mod config;
+mod dcnn;
 mod engine;
 mod fixtures;
 mod game;
