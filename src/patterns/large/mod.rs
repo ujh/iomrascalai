@@ -1,6 +1,5 @@
 /************************************************************************
  *                                                                      *
- * Copyright 2015 Urban Hafner                                          *
  * Copyright 2016 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
@@ -20,7 +19,4 @@
  *                                                                      *
  ************************************************************************/
 
-pub use self::small::Matcher as SmallPatternMatcher;
-
-mod large;
-mod small;
+const LARGE_PATTERN_INPUT: &'static str = include_str!("patterns.input");
