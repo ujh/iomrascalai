@@ -1,6 +1,7 @@
 /************************************************************************
  *                                                                      *
  * Copyright 2015 Urban Hafner, Igor Polyakov                           *
+ * Copyright 2016 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -28,7 +29,7 @@ pub use board::Play;
 pub use board::White;
 pub use config::Config;
 pub use game::Game;
-pub use patterns::Matcher;
+pub use patterns::SmallPatternMatcher;
 pub use playout::Playout;
 pub use playout::PlayoutResult;
 pub use ruleset::KgsChinese;

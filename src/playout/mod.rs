@@ -2,6 +2,7 @@
  *                                                                      *
  * Copyright 2014 Urban Hafner, Thomas Poinsot                          *
  * Copyright 2015 Urban Hafner, Thomas Poinsot, Igor Polyakov           *
+ * Copyright 2016 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -27,7 +28,7 @@ use board::Move;
 use board::Pass;
 use board::Play;
 use config::Config;
-use patterns::Matcher;
+use patterns::SmallPatternMatcher;
 use score::Score;
 
 use rand::Rng;
@@ -42,12 +43,12 @@ const ATARI_CUTOFF: usize = 7;
 
 pub struct Playout {
     config: Arc<Config>,
-    matcher: Arc<Matcher>
+    matcher: Arc<SmallPatternMatcher>
 }
 
 impl Playout {
 
-    pub fn new(config: Arc<Config>, matcher: Arc<Matcher>) -> Playout {
+    pub fn new(config: Arc<Config>, matcher: Arc<SmallPatternMatcher>) -> Playout {
         Playout { config: config, matcher: matcher }
     }
 

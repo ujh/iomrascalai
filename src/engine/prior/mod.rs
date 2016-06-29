@@ -23,7 +23,7 @@ use board::Board;
 use board::Empty;
 use board::Move;
 use config::Config;
-use patterns::Matcher;
+use patterns::SmallPatternMatcher;
 
 use std::sync::Arc;
 
@@ -35,7 +35,7 @@ pub struct Prior {
 
 impl Prior {
 
-    pub fn new(board: &Board, m: &Move, matcher: &Arc<Matcher>, config: Arc<Config>) -> Prior {
+    pub fn new(board: &Board, m: &Move, matcher: &Arc<SmallPatternMatcher>, config: Arc<Config>) -> Prior {
         let mut prior = Prior {
             m: *m,
             plays: 0,
@@ -55,7 +55,7 @@ impl Prior {
         self.wins
     }
 
-    fn calculate(&mut self, board: &Board, m: &Move, matcher: &Arc<Matcher>, config: &Arc<Config>) {
+    fn calculate(&mut self, board: &Board, m: &Move, matcher: &Arc<SmallPatternMatcher>, config: &Arc<Config>) {
         if !board.is_not_self_atari(m) {
             let value = config.priors.self_atari;
             self.record_negative_prior(value);
@@ -84,7 +84,7 @@ impl Prior {
             .all(|c| board.color(c) == Empty)
     }
 
-    fn matching_patterns_count(&self, board: &Board, m: &Move, matcher: &Arc<Matcher>) -> usize {
+    fn matching_patterns_count(&self, board: &Board, m: &Move, matcher: &Arc<SmallPatternMatcher>) -> usize {
         matcher.pattern_count(board, &m.coord())
     }
 
@@ -102,7 +102,7 @@ impl Prior {
     }
 }
 
-pub fn calculate(board: Board, child_moves: Vec<Move>, matcher: &Arc<Matcher>, config: &Arc<Config>) -> Vec<Prior> {
+pub fn calculate(board: Board, child_moves: Vec<Move>, matcher: &Arc<SmallPatternMatcher>, config: &Arc<Config>) -> Vec<Prior> {
     let mut priors: Vec<Prior> = child_moves.iter()
         .map(|m| Prior::new(&board, m, matcher, config.clone()))
         .collect();
