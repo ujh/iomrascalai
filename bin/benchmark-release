@@ -1,6 +1,7 @@
 #!/bin/bash
 #
 # Copyright (c) 2015 Urban Hafner
+# Copyright (c) 2016 Urban Hafner
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
@@ -28,6 +29,6 @@ cd $DIR/..
 
 set -x
 
-./bin/benchmark 9 $PREFIX
-./bin/benchmark 13 $PREFIX
-./bin/benchmark 19 $PREFIX
+./bin/benchmark.rb 9 $PREFIX
+./bin/benchmark.rb 13 $PREFIX
+./bin/benchmark.rb 19 $PREFIX

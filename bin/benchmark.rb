@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# coding: utf-8
 #
 # Copyright (c) 2016 Urban Hafner
 #
@@ -24,13 +25,28 @@
 
 require 'csv'
 require 'fileutils'
+require 'optparse'
+
+OptionParser.new do |opts|
+  # Use this when running on a 36 core machine. Then gogui-twogtp will start 4 games in parallel and
+  # Iomrascálaí will use 8 threads instead of all 36.
+  opts.on("--ec2") do |v|
+    $ec2 = true
+  end
+end.parse!
 
 SIZE = ARGV[0]
 PREFIX = ARGV[1] || `git rev-parse --short HEAD`.chop
 FILENAME = "#{PREFIX}-#{SIZE}x#{SIZE}"
 GNUGO="gnugo --mode gtp --level 0 --chinese-rules --positional-superko"
-IOMRASCALAI="cargo run --release -- --log --rules chinese"
 REFEREE="#{GNUGO}"
+
+
+if $ec2
+  IOMRASCALAI="cargo run --release -- --log --rules chinese --threads 8"
+else
+  IOMRASCALAI="cargo run --release -- --log --rules chinese"
+end
 
 case SIZE
 when "9"
@@ -47,6 +63,7 @@ else
 end
 
 GOGUI_TWOGTP = %Q/gogui-twogtp -auto -black "#{GNUGO}" -white "#{IOMRASCALAI}" -size #{SIZE} -alternate -games #{GAMES} -sgffile #{FILENAME} -time #{TIME} -referee "#{REFEREE}" -verbose/
+GOGUI_TWOGTP += " -threads 4" if $ec2
 
 DAT_FILE = "#{FILENAME}.dat"
 

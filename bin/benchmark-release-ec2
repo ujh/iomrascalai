@@ -28,6 +28,6 @@ cd $DIR/..
 
 set -x
 
-./bin/benchmark-ec2 9 $PREFIX
-./bin/benchmark-ec2 13 $PREFIX
-./bin/benchmark-ec2 19 $PREFIX
+./bin/benchmark.rb --ec2 9 $PREFIX
+./bin/benchmark.rb --ec2 13 $PREFIX
+./bin/benchmark.rb --ec2 19 $PREFIX
