@@ -19,35 +19,41 @@
  *                                                                      *
  ************************************************************************/
 
-const LARGE_PATTERN_INPUT: &'static str = include_str!("patterns.input");
+use std::fmt;
 
-pub use self::pattern::Pattern;
-use self::tree::Tree;
-
-mod pattern;
 mod test;
-mod tree;
 
-pub struct Matcher {
-    tree: Tree
+#[derive(Clone)]
+pub enum Point {
+    Black,
+    White,
+    Empty,
+    OffBoard
 }
 
-impl Matcher {
+impl Point {
 
-    pub fn new() -> Self {
-        Self::with_patterns(Self::expand_patterns(Self::patterns()))
+    pub fn from_char(c: char) -> Self {
+        match c {
+            'X' => Point::Black,
+            'O' => Point::White,
+            '.' => Point::Empty,
+            '#' => Point::OffBoard,
+            _ => panic!("Can't convert {:?} to Point", c)
+        }
     }
+}
 
-    fn with_patterns(patterns: Vec<Pattern>) -> Self {
-        Matcher { tree: Tree::from_patterns(patterns) }
-    }
+impl fmt::Display for Point {
 
-    fn expand_patterns(patterns: Vec<Pattern>) -> Vec<Pattern> {
-        patterns.iter().flat_map(|pattern| pattern.expand()).collect()
-    }
-
-    fn patterns() -> Vec<Pattern> {
-        vec!()
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let s = match *self {
+            Point::Black => "X",
+            Point::White => "O",
+            Point::Empty => ".",
+            Point::OffBoard => "#"
+        };
+        format!("{}", s).fmt(f)
     }
 
 }

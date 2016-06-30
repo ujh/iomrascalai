@@ -19,35 +19,19 @@
  *                                                                      *
  ************************************************************************/
 
-const LARGE_PATTERN_INPUT: &'static str = include_str!("patterns.input");
+use self::point::Point;
 
-pub use self::pattern::Pattern;
-use self::tree::Tree;
-
-mod pattern;
+mod point;
 mod test;
-mod tree;
 
-pub struct Matcher {
-    tree: Tree
+#[derive(Clone)]
+pub struct Pattern {
+    points: Vec<Point>
 }
 
-impl Matcher {
+impl Pattern {
 
-    pub fn new() -> Self {
-        Self::with_patterns(Self::expand_patterns(Self::patterns()))
+    pub fn expand(&self) -> Vec<Pattern> {
+        vec!(self.clone())
     }
-
-    fn with_patterns(patterns: Vec<Pattern>) -> Self {
-        Matcher { tree: Tree::from_patterns(patterns) }
-    }
-
-    fn expand_patterns(patterns: Vec<Pattern>) -> Vec<Pattern> {
-        patterns.iter().flat_map(|pattern| pattern.expand()).collect()
-    }
-
-    fn patterns() -> Vec<Pattern> {
-        vec!()
-    }
-
 }
