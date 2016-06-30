@@ -20,3 +20,16 @@
  ************************************************************************/
 
 #![cfg(test)]
+
+pub use super::Matcher;
+
+describe! matcher {
+
+    describe! patterns_from_str {
+
+        it "turns each line into a pattern" {
+            let patterns = Matcher::patterns_from_str("1.0 .....\n1.0 .XOXO\n");
+            assert_eq!(2, patterns.len());
+        }
+    }
+}

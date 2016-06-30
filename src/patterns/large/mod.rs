@@ -47,7 +47,11 @@ impl Matcher {
     }
 
     fn patterns() -> Vec<Pattern> {
-        vec!()
+        Self::patterns_from_str(LARGE_PATTERN_INPUT)
+    }
+
+    fn patterns_from_str(input: &'static str) -> Vec<Pattern> {
+        input.lines().map(|line| line.parse().unwrap()).collect()
     }
 
 }

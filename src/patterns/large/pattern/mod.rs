@@ -20,6 +20,7 @@
  ************************************************************************/
 
 use self::point::Point;
+use std::str::FromStr;
 
 mod point;
 mod test;
@@ -34,4 +35,15 @@ impl Pattern {
     pub fn expand(&self) -> Vec<Pattern> {
         vec!(self.clone())
     }
+}
+
+impl FromStr for Pattern {
+
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Pattern, Self::Err> {
+        // TODO: Actual implementation
+        Ok(Pattern { points: vec!() })
+    }
+
 }
