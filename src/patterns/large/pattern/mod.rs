@@ -27,7 +27,8 @@ mod test;
 
 #[derive(Clone)]
 pub struct Pattern {
-    points: Vec<Point>
+    points: Vec<Point>,
+    probability: f32,
 }
 
 impl Pattern {
@@ -42,8 +43,14 @@ impl FromStr for Pattern {
     type Err = String;
 
     fn from_str(s: &str) -> Result<Pattern, Self::Err> {
-        // TODO: Actual implementation
-        Ok(Pattern { points: vec!() })
+        let parts: Vec<_> = s.split(' ').collect();
+        let probability = parts[0].parse().unwrap();
+        let points = parts[1].chars().map(|c| Point::from_char(c)).collect();
+        let pattern = Pattern {
+            points: points,
+            probability: probability,
+        };
+        Ok(pattern)
     }
 
 }
