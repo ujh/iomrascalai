@@ -149,7 +149,7 @@ fn main() {
     // Instantiate only one matcher as it does a lot of computation
     // during setup.
     let small_pattern_matcher = Arc::new(SmallPatternMatcher::new());
-    let large_pattern_matcher = Arc::new(LargePatternMatcher::new());
+    let large_pattern_matcher = Arc::new(LargePatternMatcher::new(config.clone()));
 
     let engine = Engine::new(config.clone(), small_pattern_matcher);
 

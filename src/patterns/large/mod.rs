@@ -22,7 +22,10 @@
 const LARGE_PATTERN_INPUT: &'static str = include_str!("patterns.input");
 
 pub use self::pattern::Pattern;
+use config::Config;
 use self::tree::Tree;
+
+use std::sync::Arc;
 
 mod pattern;
 mod test;
@@ -34,8 +37,11 @@ pub struct Matcher {
 
 impl Matcher {
 
-    pub fn new() -> Self {
-        Self::with_patterns(Self::expand_patterns(Self::patterns()))
+    pub fn new(config: Arc<Config>) -> Self {
+        config.write(format!("Loading the large patterns ... "));
+        let matcher = Self::with_patterns(Self::expand_patterns(Self::patterns()));
+        config.log(format!("done"));
+        matcher
     }
 
     fn with_patterns(patterns: Vec<Pattern>) -> Self {
