@@ -44,7 +44,7 @@ describe! expand {
     }
 
     it "includes all variations" {
-        assert_that(expanded.len(), is(equal_to(12)));
+        assert_that(expanded.len(), is(equal_to(16)));
     }
 
     it "includes the original pattern" {

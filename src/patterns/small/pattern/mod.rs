@@ -74,13 +74,20 @@ impl Pattern {
     }
 
     fn rotated(&self) -> Vec<Pattern> {
-        vec!(
+        let rotated = vec!(
             self.clone(),
             self.rotated90(),
             self.rotated180(),
-            self.rotated270(),
-            self.horizontally_flipped(),
-            self.vertically_flipped())
+            self.rotated270()
+        );
+        let flipped = self.horizontally_flipped();
+        let fliped_n_rotated = vec!(
+            flipped.clone(),
+            flipped.rotated90(),
+            flipped.rotated180(),
+            flipped.rotated270()
+        );
+        rotated.iter().chain(fliped_n_rotated.iter()).cloned().collect()
     }
 
     fn swapped(&self) -> Vec<Pattern> {
@@ -124,13 +131,6 @@ impl Pattern {
             [self.at(2,0), self.at(2,1), self.at(2,2)],
             [self.at(1,0), self.at(1,1), self.at(1,2)],
             [self.at(0,0), self.at(0,1), self.at(0,2)]])
-    }
-
-    fn vertically_flipped(&self) -> Pattern {
-        Pattern::raw([
-            [self.at(0,2), self.at(0,1), self.at(0,0)],
-            [self.at(1,2), self.at(1,1), self.at(1,0)],
-            [self.at(2,2), self.at(2,1), self.at(2,0)]])
     }
 
     fn at(&self, row: usize, col: usize) -> Point {
