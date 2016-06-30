@@ -19,7 +19,9 @@
  *                                                                      *
  ************************************************************************/
 
+use board::Color;
 use self::point::Point;
+
 use std::str::FromStr;
 
 mod point;
@@ -35,6 +37,22 @@ impl Pattern {
 
     pub fn expand(&self) -> Vec<Pattern> {
         vec!(self.clone())
+    }
+
+    pub fn len(&self) -> usize {
+        self.points.len()
+    }
+
+    pub fn probability(&self) -> f32 {
+        self.probability
+    }
+
+    pub fn matches_color_at(&self, color: Option<Color>, level: usize) -> bool {
+        if level >= self.points.len() {
+            false
+        } else {
+            self.points[level].matches(color)
+        }
     }
 }
 

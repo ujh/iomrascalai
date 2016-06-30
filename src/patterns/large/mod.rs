@@ -38,18 +38,22 @@ pub struct Matcher {
 impl Matcher {
 
     pub fn new(config: Arc<Config>) -> Self {
-        config.write(format!("Loading the large patterns ... "));
-        let matcher = Self::with_patterns(Self::expand_patterns(Self::patterns()));
-        config.log(format!("done"));
+        let patterns = Self::expand_patterns(Self::patterns(), config.clone());
+        Self::with_patterns(patterns, config.clone())
+    }
+
+    fn with_patterns(patterns: Vec<Pattern>, config: Arc<Config>) -> Self {
+        config.write(format!("Building large pattern tree ... "));
+        let matcher = Matcher { tree: Tree::from_patterns(patterns) };
+        config.write(format!("done"));
         matcher
     }
 
-    fn with_patterns(patterns: Vec<Pattern>) -> Self {
-        Matcher { tree: Tree::from_patterns(patterns) }
-    }
-
-    fn expand_patterns(patterns: Vec<Pattern>) -> Vec<Pattern> {
-        patterns.iter().flat_map(|pattern| pattern.expand()).collect()
+    fn expand_patterns(patterns: Vec<Pattern>, config: Arc<Config>) -> Vec<Pattern> {
+        config.write(format!("Loading the large patterns ... "));
+        let patterns = patterns.iter().flat_map(|pattern| pattern.expand()).collect();
+        config.log(format!("done"));
+        patterns
     }
 
     fn patterns() -> Vec<Pattern> {

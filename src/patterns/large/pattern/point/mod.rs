@@ -19,6 +19,11 @@
  *                                                                      *
  ************************************************************************/
 
+use board::Black;
+use board::Color;
+use board::Empty;
+use board::White;
+
 use std::fmt;
 
 mod test;
@@ -42,6 +47,28 @@ impl Point {
             _ => panic!("Can't convert {:?} to Point", c)
         }
     }
+
+    pub fn matches(&self, opt_color: Option<Color>) -> bool {
+        match opt_color {
+            Some(color) => {
+                match *self {
+                    Point::Black => { color == Black },
+                    Point::Empty => { color == Empty },
+                    Point::OffBoard => false,
+                    Point::White => { color == White },
+                }
+            },
+            None => {
+                match *self {
+                    Point::Black => false,
+                    Point::Empty => false,
+                    Point::OffBoard => true,
+                    Point::White => false,
+                }
+            }
+        }
+    }
+
 }
 
 impl fmt::Display for Point {
