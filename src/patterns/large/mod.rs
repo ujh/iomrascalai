@@ -20,3 +20,13 @@
  ************************************************************************/
 
 const LARGE_PATTERN_INPUT: &'static str = include_str!("patterns.input");
+
+pub struct Matcher;
+
+impl Matcher {
+
+    pub fn new() -> Self {
+        Matcher
+    }
+
+}

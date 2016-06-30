@@ -46,6 +46,7 @@ extern crate toml;
 pub use config::*;
 use engine::Engine;
 use gtp::driver::Driver;
+use patterns::LargePatternMatcher;
 use patterns::SmallPatternMatcher;
 use ruleset::Ruleset;
 
@@ -147,9 +148,10 @@ fn main() {
     let config = Arc::new(config);
     // Instantiate only one matcher as it does a lot of computation
     // during setup.
-    let matcher = Arc::new(SmallPatternMatcher::new());
+    let small_pattern_matcher = Arc::new(SmallPatternMatcher::new());
+    let large_pattern_matcher = Arc::new(LargePatternMatcher::new());
 
-    let engine = Engine::new(config.clone(), matcher);
+    let engine = Engine::new(config.clone(), small_pattern_matcher);
 
     config.log(format!("Current configuration: {:#?}", config));
 
