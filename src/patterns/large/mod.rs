@@ -22,6 +22,8 @@
 const LARGE_PATTERN_INPUT: &'static str = include_str!("patterns.input");
 
 pub use self::pattern::Pattern;
+use board::Board;
+use board::Coord;
 use config::Config;
 use self::tree::Tree;
 
@@ -40,6 +42,14 @@ impl Matcher {
     pub fn new(config: Arc<Config>) -> Self {
         let patterns = Self::expand_patterns(Self::patterns(), config.clone());
         Self::with_patterns(patterns, config.clone())
+    }
+
+    pub fn test() -> Self {
+        Matcher { tree: Tree::from_patterns(vec!()) }
+    }
+
+    pub fn pattern_probability(&self, board: &Board, coord: &Coord) -> f32 {
+        0.0
     }
 
     fn with_patterns(patterns: Vec<Pattern>, config: Arc<Config>) -> Self {

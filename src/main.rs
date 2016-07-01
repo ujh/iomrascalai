@@ -151,7 +151,11 @@ fn main() {
     let small_pattern_matcher = Arc::new(SmallPatternMatcher::new());
     let large_pattern_matcher = Arc::new(LargePatternMatcher::new(config.clone()));
 
-    let engine = Engine::new(config.clone(), small_pattern_matcher);
+    let engine = Engine::new(
+        config.clone(),
+        small_pattern_matcher,
+        large_pattern_matcher,
+    );
 
     config.log(format!("Current configuration: {:#?}", config));
 
