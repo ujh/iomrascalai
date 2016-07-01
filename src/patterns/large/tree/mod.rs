@@ -20,9 +20,12 @@
  ************************************************************************/
 
 use board::Black;
+use board::Board;
 use board::Color;
+use board::Coord;
 use board::Empty;
 use board::White;
+use super::PATH;
 use super::Pattern;
 
 mod test;
@@ -51,6 +54,37 @@ impl Tree {
         match Self::build(&patterns, 0) {
             Some(tree) => *tree,
             None => Tree::empty()
+        }
+    }
+
+    pub fn pattern_probability(&self, board: &Board, coord: &Coord) -> f32 {
+        let colors = self.colors(board, coord);
+        self.walk(colors, 0, &self)
+    }
+
+    pub fn colors(&self, board: &Board, coord: &Coord) -> Vec<Option<Color>> {
+        PATH.iter()
+            .map(|&offset| board.coord_with_offset_from(coord, offset))
+            .collect()
+    }
+
+    fn walk(&self, colors: Vec<Option<Color>>, i: usize, subtree: &Tree) -> f32 {
+        if colors.len() == i {
+            return subtree.probability;
+        }
+        let child = match colors[i] {
+            Some(color) => {
+                match color {
+                    Black => &subtree.black,
+                    White => &subtree.white,
+                    Empty => &subtree.empty,
+                }
+            },
+            None => &subtree.off_board
+        };
+        match child {
+            &Some(ref c) => self.walk(colors, i + 1, c),
+            &None => 0.0
         }
     }
 
