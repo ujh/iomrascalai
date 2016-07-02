@@ -58,7 +58,7 @@ impl Pattern {
     }
 
     pub fn expand(&self) -> Vec<Pattern> {
-        self.rotated()
+        self.all_symmetries()
             .iter()
             .chain(self.swapped().iter())
             .cloned()
@@ -73,25 +73,23 @@ impl Pattern {
         }
     }
 
-    fn rotated(&self) -> Vec<Pattern> {
-        let rotated = vec!(
+    fn rotations(&self) -> Vec<Pattern> {
+        vec!(
             self.clone(),
             self.rotated90(),
             self.rotated180(),
             self.rotated270()
-        );
-        let mirrored = self.mirrored();
-        let mirrored_n_rotated = vec!(
-            mirrored.clone(),
-            mirrored.rotated90(),
-            mirrored.rotated180(),
-            mirrored.rotated270()
-        );
-        rotated.iter().chain(mirrored_n_rotated.iter()).cloned().collect()
+        )
+    }
+
+    fn all_symmetries(&self) -> Vec<Pattern> {
+        vec!(self.clone(), self.mirrored()).iter()
+            .flat_map(|pattern| pattern.rotations())
+            .collect()
     }
 
     fn swapped(&self) -> Vec<Pattern> {
-        self.rotated()
+        self.all_symmetries()
             .iter()
             .map(|pat| pat.swap())
             .collect()
