@@ -80,14 +80,14 @@ impl Pattern {
             self.rotated180(),
             self.rotated270()
         );
-        let flipped = self.horizontally_flipped();
-        let fliped_n_rotated = vec!(
-            flipped.clone(),
-            flipped.rotated90(),
-            flipped.rotated180(),
-            flipped.rotated270()
+        let mirrored = self.mirrored();
+        let mirrored_n_rotated = vec!(
+            mirrored.clone(),
+            mirrored.rotated90(),
+            mirrored.rotated180(),
+            mirrored.rotated270()
         );
-        rotated.iter().chain(fliped_n_rotated.iter()).cloned().collect()
+        rotated.iter().chain(mirrored_n_rotated.iter()).cloned().collect()
     }
 
     fn swapped(&self) -> Vec<Pattern> {
@@ -113,20 +113,14 @@ impl Pattern {
     }
 
     fn rotated180(&self) -> Pattern {
-        Pattern::raw([
-            [self.at(2,2), self.at(2,1), self.at(2,0)],
-            [self.at(1,2), self.at(1,1), self.at(1,0)],
-            [self.at(0,2), self.at(0,1), self.at(0,0)]])
+        self.rotated90().rotated90()
     }
 
     fn rotated270(&self) -> Pattern {
-        Pattern::raw([
-            [self.at(0,2), self.at(1,2), self.at(2,2)],
-            [self.at(0,1), self.at(1,1), self.at(2,1)],
-            [self.at(0,0), self.at(1,0), self.at(2,0)]])
+        self.rotated180().rotated90()
     }
 
-    fn horizontally_flipped(&self) -> Pattern {
+    fn mirrored(&self) -> Pattern {
         Pattern::raw([
             [self.at(2,0), self.at(2,1), self.at(2,2)],
             [self.at(1,0), self.at(1,1), self.at(1,2)],
