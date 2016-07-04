@@ -45,7 +45,7 @@ describe! expand_patterns {
 
     it "includes all variations" {
         let expanded = Matcher::expand_patterns(patterns);
-        assert_that(expanded.len(), is(equal_to(12)));
+        assert_that(expanded.len(), is(equal_to(16)));
     }
 
 }

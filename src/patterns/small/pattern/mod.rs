@@ -58,7 +58,7 @@ impl Pattern {
     }
 
     pub fn expand(&self) -> Vec<Pattern> {
-        self.rotated()
+        self.all_symmetries()
             .iter()
             .chain(self.swapped().iter())
             .cloned()
@@ -73,18 +73,23 @@ impl Pattern {
         }
     }
 
-    fn rotated(&self) -> Vec<Pattern> {
+    fn rotations(&self) -> Vec<Pattern> {
         vec!(
             self.clone(),
             self.rotated90(),
             self.rotated180(),
-            self.rotated270(),
-            self.horizontally_flipped(),
-            self.vertically_flipped())
+            self.rotated270()
+        )
+    }
+
+    fn all_symmetries(&self) -> Vec<Pattern> {
+        vec!(self.clone(), self.mirrored()).iter()
+            .flat_map(|pattern| pattern.rotations())
+            .collect()
     }
 
     fn swapped(&self) -> Vec<Pattern> {
-        self.rotated()
+        self.all_symmetries()
             .iter()
             .map(|pat| pat.swap())
             .collect()
@@ -106,31 +111,18 @@ impl Pattern {
     }
 
     fn rotated180(&self) -> Pattern {
-        Pattern::raw([
-            [self.at(2,2), self.at(2,1), self.at(2,0)],
-            [self.at(1,2), self.at(1,1), self.at(1,0)],
-            [self.at(0,2), self.at(0,1), self.at(0,0)]])
+        self.rotated90().rotated90()
     }
 
     fn rotated270(&self) -> Pattern {
-        Pattern::raw([
-            [self.at(0,2), self.at(1,2), self.at(2,2)],
-            [self.at(0,1), self.at(1,1), self.at(2,1)],
-            [self.at(0,0), self.at(1,0), self.at(2,0)]])
+        self.rotated180().rotated90()
     }
 
-    fn horizontally_flipped(&self) -> Pattern {
+    fn mirrored(&self) -> Pattern {
         Pattern::raw([
             [self.at(2,0), self.at(2,1), self.at(2,2)],
             [self.at(1,0), self.at(1,1), self.at(1,2)],
             [self.at(0,0), self.at(0,1), self.at(0,2)]])
-    }
-
-    fn vertically_flipped(&self) -> Pattern {
-        Pattern::raw([
-            [self.at(0,2), self.at(0,1), self.at(0,0)],
-            [self.at(1,2), self.at(1,1), self.at(1,0)],
-            [self.at(2,2), self.at(2,1), self.at(2,0)]])
     }
 
     fn at(&self, row: usize, col: usize) -> Point {
