@@ -43,6 +43,7 @@ use board::Coord;
 use config::Config;
 use self::tree::Tree;
 
+use rayon::prelude::*;
 use std::sync::Arc;
 
 mod pattern;
@@ -72,15 +73,18 @@ impl Matcher {
     fn with_patterns(patterns: Vec<Pattern>, config: Arc<Config>) -> Self {
         config.write(format!("Building large pattern tree ... "));
         let matcher = Matcher { tree: Tree::from_patterns(patterns) };
-        config.write(format!("done"));
+        config.log(format!("done"));
         matcher
     }
 
     fn expand_patterns(patterns: Vec<Pattern>, config: Arc<Config>) -> Vec<Pattern> {
         config.write(format!("Loading the large patterns ... "));
-        let patterns = patterns.iter().flat_map(|pattern| pattern.expand()).collect();
+        let mut expanded = vec!();
+        patterns.par_iter()
+            .map(|pattern| pattern.expand())
+            .collect_into(&mut expanded);
         config.log(format!("done"));
-        patterns
+        expanded.iter().flat_map(|iter| iter).cloned().collect()
     }
 
     fn patterns() -> Vec<Pattern> {

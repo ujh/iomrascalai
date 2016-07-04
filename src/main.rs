@@ -35,6 +35,7 @@ extern crate num;
 extern crate num_cpus;
 extern crate quicksort;
 extern crate rand;
+extern crate rayon;
 extern crate regex;
 extern crate smallvec;
 extern crate test;
