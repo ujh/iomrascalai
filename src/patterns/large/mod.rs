@@ -60,6 +60,7 @@ impl Matcher {
         Self::with_patterns(patterns, config.clone())
     }
 
+    #[test]
     pub fn test() -> Self {
         Matcher { tree: Tree::from_patterns(vec!()) }
     }

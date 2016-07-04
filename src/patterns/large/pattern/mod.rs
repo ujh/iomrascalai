@@ -21,6 +21,7 @@
 
 use board::Color;
 use self::point::Point;
+use super::PATH;
 
 use std::str::FromStr;
 
@@ -36,7 +37,7 @@ pub struct Pattern {
 impl Pattern {
 
     pub fn expand(&self) -> Vec<Pattern> {
-        vec!(self.clone())
+        self.all_symmetries()
     }
 
     pub fn len(&self) -> usize {
@@ -52,6 +53,69 @@ impl Pattern {
             false
         } else {
             self.points[level].matches(color)
+        }
+    }
+
+    fn all_symmetries(&self) -> Vec<Pattern> {
+        vec!(self.clone(), self.mirrored()).iter()
+            .flat_map(|pattern| pattern.rotations())
+            .collect()
+    }
+
+    fn mirrored(&self) -> Self {
+        self.transform(self.mirrored_path())
+    }
+
+    fn rotations(&self) -> Vec<Pattern> {
+        vec!(
+            self.clone(),
+            self.rotated90(),
+            self.rotated180(),
+            self.rotated270()
+        )
+    }
+
+    fn rotated90(&self) -> Self {
+        self.transform(self.rotated90deg_path())
+    }
+
+    fn rotated180(&self) -> Self {
+        self.rotated90().rotated90()
+    }
+
+    fn rotated270(&self) -> Self {
+        self.rotated180().rotated90()
+    }
+
+    // TODO: Calculate this only once at startup
+    fn mirrored_path(&self) -> Vec<(isize, isize)> {
+        PATH.iter()
+            .map(|&(col, row)| (col*-1,row))
+            .collect()
+    }
+
+    // TODO: Calulate this only once at startup
+    fn rotated90deg_path(&self) -> Vec<(isize, isize)> {
+        PATH.iter()
+            .map(|&(col, row)| (row,col*-1))
+            .collect()
+    }
+
+    /// Takes the transformed path (mirrored and/or rotated multiple times) and calculates the
+    /// indices into the points array. These new indeces can the be used to create a new pattern
+    /// that's been transformed into the new path.
+    fn indices_for_new_path(&self, new_path: Vec<(isize, isize)>) -> Vec<usize> {
+        new_path.iter()
+            .map(|new_c| PATH.iter().position(|old_c| new_c == old_c).unwrap())
+            .collect()
+    }
+
+    fn transform(&self, new_path: Vec<(isize, isize)>) -> Self {
+        let new_indices = self.indices_for_new_path(new_path);
+        let new_points = new_indices.iter().map(|&i| self.points[i].clone()).collect();
+        Pattern {
+            points: new_points,
+            probability: self.probability
         }
     }
 }
