@@ -127,7 +127,13 @@ impl Tree {
         } else if end_at_level.len() == 1 {
             end_at_level[0]
         } else {
-            panic!("{} patterns match at level {}", end_at_level.len(), level)
+            // TODO: Investigate why this is even possible.
+            let same = end_at_level.iter().all(|&p| p == end_at_level[0]);
+            if same {
+                end_at_level[0]
+            } else {
+                panic!("{} patterns match at level {} ({:?})", end_at_level.len(), level, end_at_level)
+            }
         }
     }
 

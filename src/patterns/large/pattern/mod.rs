@@ -110,9 +110,13 @@ impl Pattern {
             .collect()
     }
 
+
     fn transform(&self, new_path: Vec<(isize, isize)>) -> Self {
         let new_indices = self.indices_for_new_path(new_path);
-        let new_points = new_indices.iter().map(|&i| self.points[i].clone()).collect();
+        let new_points = new_indices.iter()
+            .take(self.len())
+            .map(|&i| self.points[i].clone())
+            .collect();
         Pattern {
             points: new_points,
             probability: self.probability
