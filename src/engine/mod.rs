@@ -22,7 +22,6 @@
 
 pub use self::controller::EngineController;
 pub use self::node::Node;
-use board::Board;
 use board::Color;
 use board::Move;
 use board::NoMove;
@@ -34,10 +33,12 @@ use game::Game;
 use ownership::OwnershipStatistics;
 use patterns::SmallPatternMatcher;
 use playout::Playout;
-use playout::PlayoutResult;
 use ruleset::KgsChinese;
 use score::FinalScore;
-use self::prior::Prior;
+use self::worker::Answer;
+use self::worker::DirectMessage;
+use self::worker::Message;
+use self::worker::Response;
 use self::worker::Worker;
 use timer::Timer;
 
@@ -71,38 +72,9 @@ mod node;
 mod prior;
 mod worker;
 
-pub enum Message {
-    RunPlayout {
-        id: usize,
-        moves: Vec<Move>,
-        nodes_added: usize,
-        path: Vec<usize>,
-    },
-    CalculatePriors {
-        child_moves: Vec<Move>,
-        id: usize,
-        moves: Vec<Move>,
-        path: Vec<usize>,
-    }
-}
-pub enum Answer {
-    RunPlayout {
-        nodes_added: usize,
-        path: Vec<usize>,
-        playout_result: PlayoutResult
-    },
-    CalculatePriors {
-        moves: Vec<Move>,
-        path: Vec<usize>,
-        priors: Vec<Prior>,
-    },
-    SpinUp
-}
-pub type Response = (Answer, usize, Sender<Message>);
-
 pub struct Engine {
     config: Arc<Config>,
-    halt_senders: Vec<Sender<()>>,
+    direct_message_senders: Vec<Sender<DirectMessage>>,
     id: usize,
     matcher: Arc<SmallPatternMatcher>,
     ownership: OwnershipStatistics,
@@ -118,9 +90,9 @@ impl Engine {
 
     pub fn new(config: Arc<Config>, matcher: Arc<SmallPatternMatcher>) -> Engine {
         let (send_to_main, receive_from_threads) = channel();
-        Engine {
+        let mut engine = Engine {
             config: config.clone(),
-            halt_senders: vec!(),
+            direct_message_senders: vec!(),
             id: 0,
             matcher: matcher.clone(),
             ownership: OwnershipStatistics::new(config.clone(), 0, 0.0),
@@ -130,7 +102,9 @@ impl Engine {
             root: Node::new(NoMove, config),
             send_to_main: send_to_main,
             start: PreciseTime::now(),
-        }
+        };
+        engine.spin_up();
+        engine
     }
 
     pub fn ownership(&self) -> &OwnershipStatistics {
@@ -162,7 +136,7 @@ impl Engine {
     }
 
     fn search<F>(&mut self, game: &Game, stop: F) where F: Fn(f32, usize) -> bool {
-        self.spin_up(game);
+        self.send_new_state_to_workers(game);
         loop {
             let win_ratio = {
                 let (best, _) = self.root.best();
@@ -171,9 +145,7 @@ impl Engine {
             let done = {
                 stop(win_ratio, self.root.playouts())
             };
-            if done {
-                return self.spin_down();
-            }
+            if done { return; }
             let r = self.receive_from_threads.recv();
             check!(self.config, res = r => {
                 self.handle_response(res, &game);
@@ -206,7 +178,7 @@ impl Engine {
         // Ignore responses from the previous genmove
         if self.id == id {
             let message = match answer {
-                Answer::SpinUp => {
+                Answer::NewState => {
                     self.expand(game)
                 },
                 Answer::RunPlayout {path, nodes_added, playout_result} => {
@@ -221,7 +193,6 @@ impl Engine {
                     let nodes_added = priors.len();
                     self.root.record_priors(&path, priors);
                     Message::RunPlayout {
-                        id: self.id,
                         moves: moves,
                         nodes_added: nodes_added,
                         path: path,
@@ -239,13 +210,11 @@ impl Engine {
         if nodes_added > 0 {
             Message::CalculatePriors {
                 child_moves: child_moves,
-                id: self.id,
                 moves: moves,
                 path: path,
             }
         } else {
             Message::RunPlayout {
-                id: self.id,
                 moves: moves,
                 nodes_added: nodes_added,
                 path: path,
@@ -315,32 +284,47 @@ impl Engine {
     }
 
     fn spin_down(&mut self) {
-        self.id += 1;
-        for halt_sender in &self.halt_senders {
-            check!(self.config, halt_sender.send(()));
+        for direct_message_sender in &self.direct_message_senders {
+            check!(self.config, direct_message_sender.send(DirectMessage::SpinDown));
         }
-        self.halt_senders = vec!();
+        self.direct_message_senders = vec!();
     }
 
-    fn spin_up(&mut self, game: &Game) {
-        self.halt_senders = vec!();
+    fn spin_up(&mut self) {
+        self.direct_message_senders = vec!();
         for _ in 0..self.config.threads {
-            self.spin_up_worker(game.board());
+            self.spin_up_worker();
         }
     }
 
-    fn spin_up_worker(&mut self, board: Board) {
+    fn send_new_state_to_workers(&mut self, game: &Game) {
+        self.id += 1;
+        for direct_message_sender in &self.direct_message_senders {
+            let dm = DirectMessage::NewState {
+                board: game.board(),
+                id: self.id,
+            };
+            check!(self.config, direct_message_sender.send(dm));
+        }
+    }
+
+    fn spin_up_worker(&mut self) {
         let mut worker = Worker::new(
             &self.config,
             &self.playout,
             &self.matcher,
-            self.id,
-            board,
             &self.send_to_main
         );
-        let (send_halt, receive_halt) = channel();
-        self.halt_senders.push(send_halt);
-        spawn(move || worker.run(receive_halt));
+        let (send_direct_message, receive_direct_message) = channel();
+        self.direct_message_senders.push(send_direct_message);
+        spawn(move || worker.run(receive_direct_message));
     }
 
+}
+
+impl Drop for Engine {
+
+    fn drop(&mut self) {
+        self.spin_down();
+    }
 }

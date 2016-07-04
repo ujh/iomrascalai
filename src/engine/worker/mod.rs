@@ -24,10 +24,9 @@ use board::Move;
 use config::Config;
 use patterns::SmallPatternMatcher;
 use playout::Playout;
-use super::Answer;
-use super::Message;
-use super::Response;
+use playout::PlayoutResult;
 use super::prior;
+use super::prior::Prior;
 
 use rand::XorShiftRng;
 use rand::weak_rng;
@@ -36,10 +35,45 @@ use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 use std::sync::mpsc::channel;
 
+pub enum DirectMessage {
+    SpinDown,
+    NewState {
+        board: Board,
+        id: usize,
+    }
+}
+
+pub enum Message {
+    RunPlayout {
+        moves: Vec<Move>,
+        nodes_added: usize,
+        path: Vec<usize>,
+    },
+    CalculatePriors {
+        child_moves: Vec<Move>,
+        moves: Vec<Move>,
+        path: Vec<usize>,
+    }
+}
+pub enum Answer {
+    RunPlayout {
+        nodes_added: usize,
+        path: Vec<usize>,
+        playout_result: PlayoutResult
+    },
+    CalculatePriors {
+        moves: Vec<Move>,
+        path: Vec<usize>,
+        priors: Vec<Prior>,
+    },
+    NewState
+}
+pub type Response = (Answer, usize, Sender<Message>);
+
 pub struct Worker {
-    board: Board,
+    board: Option<Board>,
     config: Arc<Config>,
-    id: usize,
+    id: Option<usize>,
     matcher: Arc<SmallPatternMatcher>,
     playout: Arc<Playout>,
     rng: XorShiftRng,
@@ -49,12 +83,12 @@ pub struct Worker {
 
 impl Worker {
 
-    pub fn new(config: &Arc<Config>, playout: &Arc<Playout>, matcher: &Arc<SmallPatternMatcher>, id: usize, board: Board, send_to_main: &Sender<Response>) -> Worker {
+    pub fn new(config: &Arc<Config>, playout: &Arc<Playout>, matcher: &Arc<SmallPatternMatcher>, send_to_main: &Sender<Response>) -> Worker {
         let rng = weak_rng();
         Worker {
-            board: board,
+            board: None,
             config: config.clone(),
-            id: id,
+            id: None,
             matcher: matcher.clone(),
             playout: playout.clone(),
             rng: rng,
@@ -63,21 +97,29 @@ impl Worker {
         }
     }
 
-    pub fn run(&mut self, stop: Receiver<()>) {
+    pub fn run(&mut self, direct_messages: Receiver<DirectMessage>) {
         let (send_to_self, receive_from_main) = channel();
         self.send_to_self = Some(send_to_self);
-        self.init();
         loop {
             select!(
-                _ = stop.recv() => { break; },
+                r = direct_messages.recv() => {
+                    check!(self.config, direct_message = r => {
+                        match direct_message {
+                            DirectMessage::SpinDown => { break; },
+                            DirectMessage::NewState {board, id} => {
+                                self.set_new_state(board, id);
+                            }
+                        }
+                    });
+                },
                 r = receive_from_main.recv() => {
                     check!(self.config, message = r => {
                         match message {
-                            Message::RunPlayout {path, moves, nodes_added, id} => {
-                                self.run_playout(path, moves, nodes_added, id);
+                            Message::RunPlayout {path, moves, nodes_added} => {
+                                self.run_playout(path, moves, nodes_added);
                             },
-                            Message::CalculatePriors {path, moves, child_moves, id} => {
-                                self.run_prior_calculation(path, moves, child_moves, id);
+                            Message::CalculatePriors {path, moves, child_moves} => {
+                                self.run_prior_calculation(path, moves, child_moves);
                             }
                         }
                     });
@@ -87,12 +129,14 @@ impl Worker {
 
     }
 
-    fn init(&self) {
-        self.respond(Answer::SpinUp, self.id);
+    fn set_new_state(&mut self, board: Board, id: usize) {
+        self.board = Some(board);
+        self.id = Some(id);
+        self.respond(Answer::NewState);
     }
 
-    fn run_playout(&mut self, path: Vec<usize>, moves: Vec<Move>, nodes_added: usize, id: usize) {
-        let mut b = self.board.clone();
+    fn run_playout(&mut self, path: Vec<usize>, moves: Vec<Move>, nodes_added: usize) {
+        let mut b = self.board.clone().expect("no board for run_playout");
         for &m in moves.iter() {
             b.play_legal_move(m);
         }
@@ -104,11 +148,11 @@ impl Worker {
             path: path,
             playout_result: playout_result
         };
-        self.respond(answer, id);
+        self.respond(answer);
     }
 
-    fn run_prior_calculation(&self, path: Vec<usize>, moves: Vec<Move>, child_moves: Vec<Move>, id: usize) {
-        let mut b = self.board.clone();
+    fn run_prior_calculation(&self, path: Vec<usize>, moves: Vec<Move>, child_moves: Vec<Move>) {
+        let mut b = self.board.clone().expect("no board for run_prior_calculation");
         for &m in moves.iter() {
             b.play_legal_move(m);
         }
@@ -118,13 +162,13 @@ impl Worker {
             path: path,
             priors: priors,
         };
-        self.respond(answer, id);
+        self.respond(answer);
     }
 
-    fn respond(&self, answer: Answer, id: usize) {
+    fn respond(&self, answer: Answer) {
         match self.send_to_self {
             Some(ref sender) => {
-                let response = (answer, id, sender.clone());
+                let response = (answer, self.id.unwrap(), sender.clone());
                 check!(self.config, self.send_to_main.send(response));
             }
             None => {
