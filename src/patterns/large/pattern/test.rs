@@ -20,3 +20,23 @@
  ************************************************************************/
 
 #![cfg(test)]
+
+pub use hamcrest::*;
+pub use super::Pattern;
+pub use super::point::Point;
+
+describe! from_str {
+
+    it "sets the probability" {
+        let pattern: Pattern = "1.0 .....".parse().unwrap();
+        assert_that(1.0, is(equal_to(pattern.probability())));
+    }
+
+    it "sets the points" {
+        let pattern: Pattern = "1.0 .....".parse().unwrap();
+        assert_that(
+            vec!(Point::Empty, Point::Empty, Point::Empty, Point::Empty, Point::Empty),
+            is(equal_to(pattern.points))
+        );
+    }
+}
