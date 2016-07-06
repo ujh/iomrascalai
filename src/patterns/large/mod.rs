@@ -45,6 +45,7 @@ use self::tree::Tree;
 
 use rayon::prelude::*;
 use std::sync::Arc;
+use time::PreciseTime;
 
 mod pattern;
 mod test;
@@ -71,19 +72,23 @@ impl Matcher {
     }
 
     fn with_patterns(patterns: Vec<Pattern>, config: Arc<Config>) -> Self {
-        config.write(format!("Building large pattern tree ... "));
+        config.write(format!("Building the large pattern tree ... "));
+        let start = PreciseTime::now();
         let matcher = Matcher { tree: Tree::from_patterns(patterns) };
-        config.log(format!("done"));
+        let duration = start.to(PreciseTime::now());
+        config.log(format!("done (took {}s)", duration.num_seconds()));
         matcher
     }
 
     fn expand_patterns(patterns: Vec<Pattern>, config: Arc<Config>) -> Vec<Pattern> {
         config.write(format!("Loading the large patterns ... "));
+        let start = PreciseTime::now();
         let mut expanded = vec!();
         patterns.par_iter()
             .map(|pattern| pattern.expand())
             .collect_into(&mut expanded);
-        config.log(format!("done"));
+        let duration = start.to(PreciseTime::now());
+        config.log(format!("done (took {}s)", duration.num_seconds()));
         expanded.iter().flat_map(|iter| iter).cloned().collect()
     }
 
