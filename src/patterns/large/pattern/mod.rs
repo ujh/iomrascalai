@@ -24,6 +24,7 @@ use self::point::Point;
 use super::PATH;
 
 use std::collections::HashSet;
+use std::fmt;
 use std::hash::Hash;
 use std::hash::Hasher;
 use std::str::FromStr;
@@ -163,4 +164,13 @@ impl Hash for Pattern {
         self.points.hash(state);
     }
 
+}
+
+impl fmt::Debug for Pattern {
+
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let s = self.points.iter()
+            .fold(String::new(), |acc, p| format!("{}{}", acc, p));
+        s.fmt(f)
+    }
 }

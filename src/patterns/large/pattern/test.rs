@@ -47,4 +47,57 @@ describe! expand {
         let pattern: Pattern = "1.0 .....".parse().unwrap();
         assert_that(1, is(equal_to(pattern.expand().len())));
     }
+
+    describe! unique_symmetries {
+
+        before_each {
+            let pattern: Pattern = "1.0 ....X#..O#.#.".parse().unwrap();
+            let expanded = pattern.expand();
+        }
+
+        it "produces all symmetries" {
+            assert_that(8, is(equal_to(expanded.len())));
+        }
+
+        it "includes the original pattern" {
+            assert_that(&expanded, contains(vec!(pattern)));
+        }
+
+        it "includes the 90deg rotation" {
+            let rotated90deg = "1.0 .X....O#...##.".parse().unwrap();
+            assert_that(&expanded, contains(vec!(rotated90deg)));
+        }
+
+        it "includes the 180deg rotation" {
+            let rotated180deg = "1.0 ...X.O..#.#.#".parse().unwrap();
+            assert_that(&expanded, contains(vec!(rotated180deg)));
+        }
+
+        it "includes the 270deg rotation" {
+            let rotated270deg = "1.0 ..X...#O.#..#".parse().unwrap();
+            assert_that(&expanded, contains(vec!(rotated270deg)));
+        }
+
+        it "includes the mirrored original" {
+            let mirrored = "1.0 ...X..#O.#..#".parse().unwrap();
+            assert_that(&expanded, contains(vec!(mirrored)));
+        }
+
+        it "includes the mirrored 90deg rotation" {
+            let rotated90degmirrored = "1.0 .X...O..#.#.#".parse().unwrap();
+            assert_that(&expanded, contains(vec!(rotated90degmirrored)));
+        }
+
+        it "includes the mirrored 180deg rotation" {
+            let rotated180degmirrored = "1.0 ....X.O#..##.".parse().unwrap();
+            assert_that(&expanded, contains(vec!(rotated180degmirrored)));
+        }
+
+        it "includes the mirrored 270deg rotation" {
+            let rotated270degmirrored = "1.0 ..X..#..O#.#.".parse().unwrap();
+            assert_that(&expanded, contains(vec!(rotated270degmirrored)));
+        }
+
+    }
+
 }
