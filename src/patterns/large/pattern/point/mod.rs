@@ -28,7 +28,7 @@ use std::fmt;
 
 mod test;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Hash)]
 pub enum Point {
     Black,
     White,

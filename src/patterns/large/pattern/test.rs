@@ -40,3 +40,11 @@ describe! from_str {
         );
     }
 }
+
+describe! expand {
+
+    it "doesn't produce duplicates" {
+        let pattern: Pattern = "1.0 .....".parse().unwrap();
+        assert_that(1, is(equal_to(pattern.expand().len())));
+    }
+}

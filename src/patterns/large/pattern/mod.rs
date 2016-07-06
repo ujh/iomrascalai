@@ -23,6 +23,9 @@ use board::Color;
 use self::point::Point;
 use super::PATH;
 
+use std::collections::HashSet;
+use std::hash::Hash;
+use std::hash::Hasher;
 use std::str::FromStr;
 
 mod point;
@@ -37,7 +40,7 @@ pub struct Pattern {
 impl Pattern {
 
     pub fn expand(&self) -> Vec<Pattern> {
-        self.all_symmetries()
+        self.all_symmetries().into_iter().collect()
     }
 
     pub fn len(&self) -> usize {
@@ -56,7 +59,7 @@ impl Pattern {
         }
     }
 
-    fn all_symmetries(&self) -> Vec<Pattern> {
+    fn all_symmetries(&self) -> HashSet<Pattern> {
         vec!(self.clone(), self.mirrored()).iter()
             .flat_map(|pattern| pattern.rotations())
             .collect()
@@ -137,6 +140,27 @@ impl FromStr for Pattern {
             probability: probability,
         };
         Ok(pattern)
+    }
+
+}
+
+// Two patterns are considered equal if their points are equal. We don't care about the pattern
+// probability.
+impl PartialEq for Pattern {
+
+    fn eq(&self, other: &Pattern) -> bool {
+        self.points == other.points
+    }
+}
+
+impl Eq for Pattern {}
+
+// Two patterns generate the same hash if they have the same points. We don't include the
+// probability when calculating the hash.
+impl Hash for Pattern {
+
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.points.hash(state);
     }
 
 }
