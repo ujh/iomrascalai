@@ -64,7 +64,7 @@ describe! expand {
         }
 
         it "includes the 90deg rotation" {
-            let rotated90deg = "1.0 .X....O#...##.".parse().unwrap();
+            let rotated90deg = "1.0 .X....O#..##.".parse().unwrap();
             assert_that(&expanded, contains(vec!(rotated90deg)));
         }
 
