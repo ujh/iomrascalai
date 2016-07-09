@@ -56,7 +56,7 @@ when "13"
   TIME = "10m"
   GAMES = "1000"
 when "19"
-  TIME = "20m"
+  TIME = "30m"
   GAMES = "1000"
 else
   raise "Size #{SIZE} isn't supported!"
