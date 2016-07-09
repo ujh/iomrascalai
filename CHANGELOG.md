@@ -1,3 +1,7 @@
+## 0.3.2 [☰](https://github.com/ujh/iomrascalai/compare/0.3.1...0.3.2)
+
+TBD
+
 ## 0.3.1 [☰](https://github.com/ujh/iomrascalai/compare/0.3.0...0.3.1)
 
 * Implemented `gogui-analyze_commands` and `imrscl-safe_territory`
