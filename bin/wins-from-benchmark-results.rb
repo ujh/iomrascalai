@@ -40,7 +40,7 @@ def wins(fn)
   black = data.find_all {|row| row[RES_R] =~ /B\+/ }.count
   n = white + black
   p = white.to_f/n
-  "#{(p*100).round(2)}% wins (#{white} games of #{n}, ± #{error(p: p, n: n, confidence: 0.95).round(2)} at 95%, ± #{error(p: p, n: n, confidence: 0.99).round(2)} at 99%)"
+  "#{(p*100).round(2)}% wins (#{white} games of #{n}, ± #{error(p, n, 0.95).round(2)} at 95%, ± #{error(p, n, 0.99).round(2)} at 99%)"
 end
 
 def scoring(fn)
@@ -49,16 +49,16 @@ def scoring(fn)
   agreeing = relevant.find_all {|row| row[RES_W] == row[RES_B] }.count
   n = relevant.length
   p = agreeing.to_f/n
-  "#{(p*100).round(2)}% same score as GnuGo (#{agreeing} of #{n}, ± #{error(p: p, n: n, confidence: 0.95).round(2)} at 95%, ± #{error(p: p, n: n, confidence: 0.99).round(2)} at 99%)"
+  "#{(p*100).round(2)}% same score as GnuGo (#{agreeing} of #{n}, ± #{error(p, n, 0.95).round(2)} at 95%, ± #{error(p, n, 0.99).round(2)} at 99%)"
 end
 
-def z(confidence:)
+def z(confidence)
   alpha = 1 - confidence
   (1 - 0.5*alpha)*2
 end
 
-def error(p:, n:, confidence:)
-  (z(confidence: confidence) * Math.sqrt((1.0/n)*p*(1-p)))*100
+def error(p, n, confidence)
+  (z(confidence) * Math.sqrt((1.0/n)*p*(1-p)))*100
 end
 
 Dir["*.dat"].each do |fn|
