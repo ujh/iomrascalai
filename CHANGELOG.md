@@ -24,7 +24,7 @@ minutes (sudden death) the win rate against GnuGo 3.8 level 0 was
 configuration. It agreed on the final score with GnuGo in **74.09% (± 4.35 at
 95%, ± 4.44 at 99%)** of games.
 
-After running 500 games on 13x13 with komi 6.5 and a time limit of 10
+After running 1000 games on 13x13 with komi 6.5 and a time limit of 10
 minutes (sudden death) the win rate against GnuGo 3.8 level 0 was
 **42.8% (± 3.05 at 95%, ± 3.11 at 99%)** with the default
 configuration. It agreed on the final score with GnuGo in **59.78% (± 4.53 at
