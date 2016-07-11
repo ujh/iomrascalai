@@ -1,6 +1,35 @@
 ## 0.3.2 [☰](https://github.com/ujh/iomrascalai/compare/0.3.1...0.3.2)
 
-TBD
+* Fixes a bug where the bot passed too early and lost won games because of it.
+  #261
+* Resign lost games earlier. This speeds up the benchmark and is also nicer for
+  humans. #264
+* Speed up the calculations of the priors by moving them into the worker
+  threads. #275
+* Implement the `reg_genmove` GTP command. #289
+* Implement the `kgs-genmove_cleanup` GTP command. #290
+* Improve the scoring accuracy when the game is over. #292
+* Fix bug where some rotations of the small patterns were missing. #299
+* Implemented the `imrscl-uct_gfx` custom GTP command. A GoGui analyze
+  compatible command to show the number of playouts that went through each child
+  node of the root (i.e. each point on the board) #293
+
+### Performance
+
+*The benchmarks were run on a c4.8xlarge EC2 instance with 8 worker threads.*
+
+After running 500 games on 9x9 with komi 6.5 and a time limit of 2
+minutes (sudden death) the win rate against GnuGo 3.8 level 0 was
+**76.2% (± 3.71 at 95%, ± 3.79 at 99%)** with the default
+configuration. It agreed on the final score with GnuGo in **74.09% (± 4.35 at
+95%, ± 4.44 at 99%)** of games.
+
+After running 500 games on 13x13 with komi 6.5 and a time limit of 10
+minutes (sudden death) the win rate against GnuGo 3.8 level 0 was
+**42.8% (± 3.05 at 95%, ± 3.11 at 99%)** with the default
+configuration. It agreed on the final score with GnuGo in **59.78% (± 4.53 at
+95%, ± 4.63 at 99%)** of games.
+
 
 ## 0.3.1 [☰](https://github.com/ujh/iomrascalai/compare/0.3.0...0.3.1)
 
