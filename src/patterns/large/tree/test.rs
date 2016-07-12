@@ -20,3 +20,52 @@
  ************************************************************************/
 
 #![cfg(test)]
+
+pub use super::Tree;
+
+pub use hamcrest::*;
+
+describe! from_patterns {
+
+    it "builds the correct tree" {
+        let patterns = vec!("1.0 .OX#".parse().unwrap());
+        let tree = Tree::from_patterns(patterns);
+        let expected_tree = Tree {
+            // root
+            probability: 0.0,
+            black: None,
+            white: None,
+            off_board: None,
+            empty: Some(Box::new(Tree {
+                // ply 1
+                probability: 0.0,
+                black: None,
+                empty: None,
+                off_board: None,
+                white: Some(Box::new(Tree {
+                    // ply 2
+                    probability: 0.0,
+                    white: None,
+                    empty: None,
+                    off_board: None,
+                    black: Some(Box::new(Tree {
+                        // ply 3
+                        probability: 0.0,
+                        black: None,
+                        white: None,
+                        empty: None,
+                        off_board: Some(Box::new(Tree {
+                            // ply 4
+                            probability: 1.0,
+                            black: None,
+                            white: None,
+                            empty: None,
+                            off_board: None
+                        }))
+                    }))
+                }))
+            }))
+        };
+        assert_that(tree, is(equal_to(expected_tree)));
+    }
+}

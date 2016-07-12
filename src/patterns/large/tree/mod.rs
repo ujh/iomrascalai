@@ -28,8 +28,11 @@ use board::White;
 use super::PATH;
 use super::Pattern;
 
+use core::fmt;
+
 mod test;
 
+#[derive(PartialEq)]
 pub struct Tree {
     probability: f32,
     black: Option<Box<Tree>>,
@@ -138,4 +141,35 @@ impl Tree {
             .collect()
     }
 
+    fn as_string(&self, level: usize) -> String {
+        let mut prefix = String::new();
+        for _ in 0..level {
+            prefix.push_str("    ");
+        }
+        let prefix1 = format!("{} +--", prefix);
+        let black = format!("{}black{}", prefix1, match self.black {
+            None => String::new(),
+            Some(ref subtree) => subtree.as_string(level + 1)
+        });
+        let white = format!("{}white{}", prefix1, match self.white {
+            None => String::new(),
+            Some(ref subtree) => subtree.as_string(level + 1)
+        });
+        let empty = format!("{}empty{}", prefix1, match self.empty {
+            None => String::new(),
+            Some(ref subtree) => subtree.as_string(level + 1)
+        });
+        let off_board = format!("{}off_board{}", prefix1, match self.off_board {
+            None => String::new(),
+            Some(ref subtree) => subtree.as_string(level + 1)
+        });
+        format!("\n{}Tree({})\n{}\n{}\n{}\n{}", prefix, self.probability, black, white, empty, off_board)
+    }
+
+}
+
+impl fmt::Debug for Tree {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.as_string(0))
+    }
 }
