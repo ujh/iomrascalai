@@ -21,9 +21,13 @@
 
 #![cfg(test)]
 
+pub use board::Coord;
+pub use sgf::Parser;
 pub use super::Tree;
+pub use board::Move;
 
 pub use hamcrest::*;
+pub use std::path::Path;
 
 describe! from_patterns {
 
@@ -68,4 +72,30 @@ describe! from_patterns {
         };
         assert_that(tree, is(equal_to(expected_tree)));
     }
+}
+
+describe! pattern_probability {
+
+    before_each {
+        // This pattern translates to:
+        //
+        // . O .
+        // . . #
+        // . X .
+        //
+        let patterns = vec!("1.0 .OX#".parse().unwrap());
+        let tree = Tree::from_patterns(patterns);
+        let parser = Parser::from_path(Path::new("fixtures/sgf/pattern/two-stones.sgf")).unwrap();
+        let game = parser.game().unwrap();
+        let board = game.board();
+    }
+
+    it "returns the pattern probability if it matches" {
+        assert_that(tree.pattern_probability(&board, &Coord::from_gtp("e3")), is(equal_to(1.0)));
+    }
+
+    it "returns 0.0 if the pattern doesn't match" {
+        assert_that(tree.pattern_probability(&board, &Coord::from_gtp("a1")), is(equal_to(0.0)));
+    }
+
 }
