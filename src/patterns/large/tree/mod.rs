@@ -72,6 +72,9 @@ impl Tree {
     }
 
     fn walk(&self, colors: Vec<Option<Color>>, i: usize, subtree: &Tree) -> f32 {
+        if colors.len() <= i {
+            return subtree.probability
+        }
         let child = match colors[i] {
             Some(color) => {
                 match color {
