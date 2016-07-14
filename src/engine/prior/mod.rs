@@ -77,7 +77,8 @@ impl Prior {
             let prior = count * config.priors.patterns;
             self.record_even_prior(prior);
         }
-        let prior = 100.0 * self.large_pattern_probability(board, m, large_pattern_matcher);
+        let probability = self.large_pattern_probability(board, m, large_pattern_matcher);
+        let prior = config.priors.large_pattern_factor * probability;
         self.record_even_prior(prior.round() as usize);
     }
 

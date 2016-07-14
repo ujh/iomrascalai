@@ -133,6 +133,9 @@ pub struct PriorsConfig {
     /// moves on the third line. This is only applied if the area
     /// around the move of a Manhattan distance of three is empty.
     pub empty: usize,
+    /// Factor to multiply the probability of the matching large
+    /// pattern by.
+    pub large_pattern_factor: f32,
     /// The number of prior plays to start with. This is useful to
     /// simplify the calculations as we can avoid 0 values.
     pub neutral_plays: usize,
@@ -161,6 +164,7 @@ impl PriorsConfig {
             capture_many: Self::as_integer(&table, "capture_many"),
             capture_one: Self::as_integer(&table, "capture_one"),
             empty: Self::as_integer(&table, "empty"),
+            large_pattern_factor: Self::as_float(&table, "large_pattern_factor"),
             neutral_plays: Self::as_integer(&table, "neutral_plays"),
             neutral_wins: Self::as_integer(&table, "neutral_wins"),
             patterns: Self::as_integer(&table, "patterns"),
