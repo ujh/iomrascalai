@@ -21,5 +21,5 @@
  ************************************************************************/
 
 pub fn version() -> &'static str {
-    "0.3.2"
+    concat!("0.3.2 (", include_str!(concat!(env!("OUT_DIR"), "/REVISION")), ")")
 }
