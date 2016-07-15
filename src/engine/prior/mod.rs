@@ -29,6 +29,7 @@ use patterns::SmallPatternMatcher;
 use std::sync::Arc;
 
 pub struct Prior {
+    large_pattern_matched: bool,
     m: Move,
     plays: usize,
     wins: usize,
@@ -38,6 +39,7 @@ impl Prior {
 
     pub fn new(board: &Board, m: &Move, small_pattern_matcher: &Arc<SmallPatternMatcher>, large_pattern_matcher: &Arc<LargePatternMatcher>, config: Arc<Config>) -> Prior {
         let mut prior = Prior {
+            large_pattern_matched: false,
             m: *m,
             plays: 0,
             wins: 0,
@@ -54,6 +56,10 @@ impl Prior {
 
     pub fn wins(&self) -> usize {
         self.wins
+    }
+
+    pub fn large_pattern_matched(&self) -> bool {
+        self.large_pattern_matched
     }
 
     fn calculate(&mut self, board: &Board, m: &Move, small_pattern_matcher: &Arc<SmallPatternMatcher>, large_pattern_matcher: &Arc<LargePatternMatcher>, config: &Arc<Config>) {
@@ -78,6 +84,7 @@ impl Prior {
             self.record_even_prior(prior);
         }
         let probability = self.large_pattern_probability(board, m, large_pattern_matcher);
+        self.large_pattern_matched = probability > 0.0;
         let prior = config.priors.large_pattern_factor * probability;
         self.record_even_prior(prior.round() as usize);
     }

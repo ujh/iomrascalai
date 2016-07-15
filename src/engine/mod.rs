@@ -36,6 +36,7 @@ use patterns::SmallPatternMatcher;
 use playout::Playout;
 use ruleset::KgsChinese;
 use score::FinalScore;
+use self::prior::Prior;
 use self::worker::Answer;
 use self::worker::DirectMessage;
 use self::worker::Message;
@@ -78,6 +79,7 @@ pub struct Engine {
     direct_message_senders: Vec<Sender<DirectMessage>>,
     id: usize,
     large_pattern_matcher: Arc<LargePatternMatcher>,
+    large_pattern_stats: usize,
     ownership: OwnershipStatistics,
     playout: Arc<Playout>,
     previous_node_count: usize,
@@ -97,6 +99,7 @@ impl Engine {
             direct_message_senders: vec!(),
             id: 0,
             large_pattern_matcher: large_pattern_matcher.clone(),
+            large_pattern_stats: 0,
             ownership: OwnershipStatistics::new(config.clone(), 0, 0.0),
             playout: Arc::new(Playout::new(config.clone(), small_pattern_matcher.clone())),
             previous_node_count: 0,
@@ -130,12 +133,23 @@ impl Engine {
         }
         let stop = |win_ratio, _| { timer.ran_out_of_time(win_ratio) };
         self.search(game, stop);
-        let msg = format!("{} simulations ({}% wins on average, {} nodes)", self.root.playouts(), self.root.win_ratio()*100.0, self.root.descendants());
-        self.config.log(msg);
+        self.genmove_log();
         let playouts = self.root.playouts();
         let m = self.best_move(game, color, cleanup);
         self.set_new_root(&game.play(m).unwrap(), color);
         (m,playouts)
+    }
+
+    fn genmove_log(&self) {
+        self.config.log(
+            format!(
+                "{} simulations ({}% wins on average, {} nodes)",
+                self.root.playouts(),
+                self.root.win_ratio()*100.0,
+                self.root.descendants()
+            )
+        );
+        self.config.log(format!("{} large patterns matched", self.large_pattern_stats));
     }
 
     fn search<F>(&mut self, game: &Game, stop: F) where F: Fn(f32, usize) -> bool {
@@ -194,6 +208,7 @@ impl Engine {
                 },
                 Answer::CalculatePriors {path, moves, priors} => {
                     let nodes_added = priors.len();
+                    self.record_large_pattern_stats(&priors);
                     self.root.record_priors(&path, priors);
                     Message::RunPlayout {
                         moves: moves,
@@ -205,6 +220,13 @@ impl Engine {
             };
             check!(self.config, send_to_thread.send(message));
         }
+    }
+
+    fn record_large_pattern_stats(&mut self, priors: &Vec<Prior>) {
+        let large_patterns_matched = priors.iter()
+            .filter(|p| p.large_pattern_matched())
+            .count();
+        self.large_pattern_stats += large_patterns_matched;
     }
 
     fn expand(&mut self, game: &Game) -> Message {
@@ -247,6 +269,7 @@ impl Engine {
             let msg = format!("Reusing {} nodes ({}%)", reused_node_count, percentage*100.0);
             self.config.log(msg);
         }
+        self.large_pattern_stats = 0;
     }
 
     fn best_move(&self, game: &Game, color: Color, cleanup: bool) -> Move {
