@@ -28,6 +28,7 @@ use board::Move;
 use board::Pass;
 use board::Play;
 use config::Config;
+use patterns::LargePatternMatcher;
 use patterns::SmallPatternMatcher;
 use score::Score;
 
@@ -43,15 +44,17 @@ const ATARI_CUTOFF: usize = 7;
 
 pub struct Playout {
     config: Arc<Config>,
+    large_pattern_matcher: Arc<LargePatternMatcher>,
     small_pattern_matcher: Arc<SmallPatternMatcher>
 }
 
 impl Playout {
 
-    pub fn new(config: Arc<Config>, small_pattern_matcher: Arc<SmallPatternMatcher>) -> Playout {
+    pub fn new(config: Arc<Config>, large_pattern_matcher: Arc<LargePatternMatcher>, small_pattern_matcher: Arc<SmallPatternMatcher>) -> Playout {
         Playout {
             config: config,
-            small_pattern_matcher: small_pattern_matcher
+            large_pattern_matcher: large_pattern_matcher,
+            small_pattern_matcher: small_pattern_matcher,
         }
     }
 
@@ -122,7 +125,13 @@ impl Playout {
             }
         }
         if self.use_patterns(rng) {
-            let possible_move = self.small_pattern_move(color, heuristic_set, board);
+            let possible_move = self.small_pattern_move(color, &heuristic_set, board);
+            if possible_move.is_some() {
+                return possible_move.unwrap();
+            }
+        }
+        if self.use_large_patterns(rng) {
+            let possible_move = self.large_pattern_move(color, &heuristic_set, board, rng);
             if possible_move.is_some() {
                 return possible_move.unwrap();
             }
@@ -175,7 +184,7 @@ impl Playout {
         }
     }
 
-    fn small_pattern_move(&self, color: Color, coords: Vec<Coord>, board: &Board) -> Option<Move> {
+    fn small_pattern_move(&self, color: Color, coords: &Vec<Coord>, board: &Board) -> Option<Move> {
         // This works as coords is randomly ordered, so taking the
         // first we find is OK.
         coords.iter()
@@ -183,6 +192,22 @@ impl Playout {
             .find(|&m| {
                 board.is_legal(m).is_ok() && self.small_pattern_matches(board, &m)
             })
+    }
+
+    fn large_pattern_move(&self, color: Color, coords: &Vec<Coord>, board: &Board, rng: &mut XorShiftRng) -> Option<Move> {
+        // This works as coords is randomly ordered, so taking the
+        // first we find is OK.
+        coords.iter()
+            .map(|c| Play(color, c.col, c.row))
+            .find(|&m| {
+                board.is_legal(m).is_ok() && self.large_pattern_matches(board, &m, rng)
+            })
+    }
+
+    fn large_pattern_matches(&self, board: &Board, m: &Move, rng: &mut XorShiftRng) -> bool {
+        let p = self.large_pattern_matcher.pattern_probability(board, &m.coord()) *
+            self.config.playout.large_pattern_factor;
+        rng.gen_range(0f32, 1f32) <= p
     }
 
     fn small_pattern_matches(&self, board: &Board, m: &Move) -> bool {
@@ -236,6 +261,10 @@ impl Playout {
 
     fn do_captures(&self, rng: &mut XorShiftRng) -> bool {
         rng.gen_range(0f32, 1f32) <= self.config.playout.captures_probability
+    }
+
+    fn use_large_patterns(&self, rng: &mut XorShiftRng) -> bool {
+        rng.gen_range(0f32, 1f32) <= self.config.playout.large_pattern_probability
     }
 
     fn play_in_middle_of_eye(&self, rng: &mut XorShiftRng) -> bool {

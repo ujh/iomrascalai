@@ -101,7 +101,11 @@ impl Engine {
             large_pattern_matcher: large_pattern_matcher.clone(),
             large_pattern_stats: 0,
             ownership: OwnershipStatistics::new(config.clone(), 0, 0.0),
-            playout: Arc::new(Playout::new(config.clone(), small_pattern_matcher.clone())),
+            playout: Arc::new(Playout::new(
+                config.clone(),
+                large_pattern_matcher.clone(),
+                small_pattern_matcher.clone()
+            )),
             previous_node_count: 0,
             receive_from_threads: receive_from_threads,
             root: Node::new(NoMove, config),
