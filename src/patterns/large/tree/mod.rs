@@ -61,21 +61,20 @@ impl Tree {
     }
 
     pub fn pattern_probability(&self, board: &Board, coord: &Coord) -> f32 {
-        let colors = self.colors(board, coord);
-        self.walk(colors, 0, &self)
+        self.walk(board, coord, 0, &self)
     }
 
-    pub fn colors(&self, board: &Board, coord: &Coord) -> Vec<Option<Color>> {
-        PATH.iter()
-            .map(|&offset| board.coord_with_offset_from(coord, offset))
-            .collect()
+    pub fn color(&self, board: &Board, coord: &Coord, i: usize) -> Option<Color> {
+        let offset = PATH[i];
+        board.coord_with_offset_from(coord, offset)
     }
 
-    fn walk(&self, colors: Vec<Option<Color>>, i: usize, subtree: &Tree) -> f32 {
-        if colors.len() <= i {
+    fn walk(&self, board: &Board, coord: &Coord, i: usize, subtree: &Tree) -> f32 {
+        if PATH.len() <= i {
             return subtree.probability
         }
-        let child = match colors[i] {
+        let color = self.color(board, coord, i);
+        let child = match color {
             Some(color) => {
                 match color {
                     Black => &subtree.black,
@@ -86,7 +85,7 @@ impl Tree {
             None => &subtree.off_board
         };
         match child {
-            &Some(ref c) => self.walk(colors, i + 1, c),
+            &Some(ref c) => self.walk(board, coord, i + 1, c),
             &None => subtree.probability
         }
     }
