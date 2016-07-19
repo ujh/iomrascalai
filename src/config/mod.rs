@@ -180,10 +180,16 @@ impl PriorsConfig {
     }
 
     /// Returns false if the patterns prior is zero, which allows for
-    /// turning of the code that calculates the empty area prior
+    /// turning of the code that calculates the small pattern prior
     /// altogether.
     pub fn use_patterns(&self) -> bool {
         self.patterns > 0
+    }
+
+    /// Returns false if the large pattern factor is zero, which then turns
+    /// off the code that calculates the large patterns prior.
+    pub fn use_large_patterns(&self) -> bool {
+        self.large_pattern_factor > 0.0
     }
 }
 
