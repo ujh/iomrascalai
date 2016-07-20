@@ -58,10 +58,6 @@ impl Prior {
         self.wins
     }
 
-    pub fn large_pattern_matched(&self) -> bool {
-        self.large_pattern_matched
-    }
-
     fn calculate(&mut self, board: &Board, m: &Move, small_pattern_matcher: &Arc<SmallPatternMatcher>, large_pattern_matcher: &Arc<LargePatternMatcher>, config: &Arc<Config>) {
         if !board.is_not_self_atari(m) {
             let value = config.priors.self_atari;
