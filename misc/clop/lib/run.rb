@@ -57,11 +57,11 @@ end
 def time(seed)
   case size(seed)
   when 9
-    "5m"
+    "2m"
   when 13
-    "10m"
+    "5m"
   when 19
-    "20m"
+    "5m"
   else
     $stderr.puts "Size #{size(seed)} not supported!"
     exit 1
