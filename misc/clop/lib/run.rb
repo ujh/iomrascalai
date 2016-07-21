@@ -69,7 +69,7 @@ def time(seed)
 end
 
 def opponent
-  gnugo
+  master
 end
 
 def master
