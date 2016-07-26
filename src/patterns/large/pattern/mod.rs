@@ -52,11 +52,11 @@ impl Pattern {
         self.probability
     }
 
-    pub fn matches_color_at(&self, color: Option<Color>, level: usize) -> bool {
+    pub fn color_at(&self, level: usize) -> Option<Option<Color>> {
         if level >= self.points.len() {
-            false
+            None
         } else {
-            self.points[level].matches(color)
+            Some(self.points[level].color())
         }
     }
 

@@ -48,24 +48,12 @@ impl Point {
         }
     }
 
-    pub fn matches(&self, opt_color: Option<Color>) -> bool {
-        match opt_color {
-            Some(color) => {
-                match *self {
-                    Point::Black => { color == Black },
-                    Point::Empty => { color == Empty },
-                    Point::OffBoard => false,
-                    Point::White => { color == White },
-                }
-            },
-            None => {
-                match *self {
-                    Point::Black => false,
-                    Point::Empty => false,
-                    Point::OffBoard => true,
-                    Point::White => false,
-                }
-            }
+    pub fn color(&self) -> Option<Color> {
+        match *self {
+            Point::Black => Some(Black),
+            Point::Empty => Some(Empty),
+            Point::OffBoard => None,
+            Point::White => Some(White),
         }
     }
 

@@ -54,7 +54,7 @@ impl Tree {
     }
 
     pub fn from_patterns(patterns: Vec<Pattern>) -> Tree {
-        match Self::build(&patterns, 0) {
+        match Self::build(patterns, 0) {
             Some(tree) => *tree,
             None => Tree::empty()
         }
@@ -90,30 +90,23 @@ impl Tree {
         }
     }
 
-    fn build(patterns: &Vec<Pattern>, level: usize) -> Option<Box<Tree>> {
+    fn build(patterns: Vec<Pattern>, level: usize) -> Option<Box<Tree>> {
         let count = patterns.len();
         if count == 0  {
             None
         } else {
-            let bn = Self::build(
-                &Self::filter_patterns(patterns, Some(Black), level),
-                level + 1);
-            let wn = Self::build(
-                &Self::filter_patterns(patterns, Some(White), level),
-                level + 1);
-            let en = Self::build(
-                &Self::filter_patterns(patterns, Some(Empty), level),
-                level + 1);
-            let obn = Self::build(
-                &Self::filter_patterns(patterns, None, level),
-                level + 1);
-            let probability = Self::probability_at(patterns, level);
+            let probability = Self::probability_at(&patterns, level);
+            let (black, white, empty, off_board) = Self::filter_patterns(patterns, level);
+            let bn = Self::build(black, level + 1);
+            let wn = Self::build(white, level + 1);
+            let en = Self::build(empty, level + 1);
+            let obn = Self::build(off_board, level + 1);
             let node = Tree {
                 probability: probability,
                 black: bn,
                 white: wn,
                 empty: en,
-                off_board: obn
+                off_board: obn,
             };
             Some(Box::new(node))
         }
@@ -133,11 +126,22 @@ impl Tree {
         }
     }
 
-    fn filter_patterns(patterns: &Vec<Pattern>, color: Option<Color>, level: usize) -> Vec<Pattern> {
-        patterns.iter()
-            .filter(|p| p.matches_color_at(color, level))
-            .cloned()
-            .collect()
+    fn filter_patterns(patterns: Vec<Pattern>, level: usize) -> (Vec<Pattern>, Vec<Pattern>, Vec<Pattern>, Vec<Pattern>) {
+        let mut black = vec!();
+        let mut white = vec!();
+        let mut empty = vec!();
+        let mut off_board = vec!();
+        for pattern in patterns.into_iter() {
+            if let Some(opt_color) = pattern.color_at(level) {
+                match opt_color {
+                    Some(Black) => { black.push(pattern) },
+                    Some(White) => { white.push(pattern) },
+                    Some(Empty) => { empty.push(pattern) },
+                    None => { off_board.push(pattern) },
+                }
+            }
+        }
+        (black, white, empty, off_board)
     }
 
     fn as_string(&self, level: usize) -> String {
