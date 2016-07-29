@@ -78,6 +78,9 @@ trait FromToml {
 pub struct TreeConfig {
     /// The number of plays before a leaf will be expanded.
     pub expand_after: usize,
+    /// Percentage of nodes of child nodes to keep after expanding a node. Children will be ordered
+    /// based on their priors and the worst 1.0 - prune_after percent won't be expanded.
+    pub prune_after: f32,
     /// Configuration factor for the RAVE part of the node selection
     /// algorithm. There's no clear way to set this value. It's best
     /// to use parameter optimization to find the best value.
@@ -97,6 +100,7 @@ impl TreeConfig {
         table.extend(opts);
         TreeConfig {
             expand_after: Self::as_integer(&table, "expand_after"),
+            prune_after: Self::as_float(&table, "prune_after"),
             rave_equiv: Self::as_float(&table, "rave_equiv"),
             score_weight: Self::as_float(&table, "score_weight"),
         }

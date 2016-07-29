@@ -27,6 +27,7 @@ min_stones = 35
 [tree]
 
 expand_after = 1
+prune_after = 0.8
 rave_equiv = 20.0
 score_weight = 0.0653414
 
