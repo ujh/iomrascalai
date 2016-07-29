@@ -44,6 +44,7 @@ pub struct Node {
     children: Vec<Node>,
     config: Arc<Config>,
     descendants: usize,
+    expandable: bool,
     m: Move,
     playouts: usize,
     plays: f32,
@@ -61,6 +62,7 @@ impl Node {
             children: vec!(),
             config: config.clone(),
             descendants: 0,
+            expandable: true,
             m: m,
             playouts: 0,
             plays: 0.0,
@@ -334,6 +336,7 @@ impl Node {
         let mut best = 0;
         let plays = self.plays_with_prior_factor();
         for i in 1..self.children.len() {
+            if !self.children[i].expandable { continue; }
             if self.children[i].child_value(plays) > self.children[best].child_value(plays) {
                 best = i;
             }
