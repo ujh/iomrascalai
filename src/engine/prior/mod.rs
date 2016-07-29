@@ -25,6 +25,7 @@ use board::Move;
 use config::Config;
 use patterns::SmallPatternMatcher;
 
+use std::cmp::max;
 use std::sync::Arc;
 
 pub struct Prior {
@@ -59,6 +60,10 @@ impl Prior {
 
     pub fn index(&self) -> usize {
         self.index
+    }
+
+    fn ratio(&self) -> f32 {
+        max(1, self.wins()) as f32 / max(1, self.plays()) as f32
     }
 
     fn calculate(&mut self, board: &Board, m: &Move, matcher: &Arc<SmallPatternMatcher>, config: &Arc<Config>) {
@@ -136,5 +141,6 @@ pub fn calculate(board: Board, child_moves: Vec<Move>, matcher: &Arc<SmallPatter
             }
         }
     }
+    priors.sort_by(|p1, p2| p2.ratio().partial_cmp(&p1.ratio()).expect("prior sorting failed"));
     priors
 }
