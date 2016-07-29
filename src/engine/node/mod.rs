@@ -252,8 +252,8 @@ impl Node {
 
     pub fn record_priors(&mut self, path: &[usize], priors: Vec<Prior>) {
         if path.len() == 0 {
-            for (index, prior) in priors.iter().enumerate() {
-                self.children[index].update_prior(prior);
+            for prior in &priors {
+                self.children[prior.index()].update_prior(prior);
             }
         } else {
             self.children[path[0]].record_priors(&path[1..], priors);
