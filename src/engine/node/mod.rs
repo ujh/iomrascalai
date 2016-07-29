@@ -252,8 +252,10 @@ impl Node {
 
     pub fn record_priors(&mut self, path: &[usize], priors: Vec<Prior>) {
         if path.len() == 0 {
-            for prior in &priors {
+            let cutoff = (self.config.tree.prune_after * priors.len() as f32).round() as usize;
+            for (i, prior) in priors.iter().enumerate() {
                 self.children[prior.index()].update_prior(prior);
+                self.children[prior.index()].expandable = i <= cutoff;
             }
         } else {
             self.children[path[0]].record_priors(&path[1..], priors);
