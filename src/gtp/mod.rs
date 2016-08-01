@@ -32,6 +32,7 @@ use sgf::parser::Parser;
 use timer::Timer;
 use version;
 
+use regex::Regex;
 use std::path::Path;
 use std::sync::Arc;
 use time::precise_time_ns;
@@ -358,7 +359,7 @@ impl<'a> GTPInterpreter<'a> {
             None => Err("missing argument(s)".to_string())
         }
     }
-    
+
     fn execute_uct_gfx(&mut self, _: &[&str]) -> Result<String, String> {
         let stats = self.controller.uct_gfx();
         Ok(stats)
@@ -424,13 +425,13 @@ impl<'a> GTPInterpreter<'a> {
 
     fn preprocess(&self, input: &str) -> String {
         // Convert tab to space
-        let horizontal_tab = regex!(r"\t");
+        let horizontal_tab = Regex::new(r"\t").unwrap();
         let without_tabs = horizontal_tab.replace_all(input, " ");
         // Remove all control characters
-        let cntrls = regex!(r"[:cntrl:]");
+        let cntrls = Regex::new(r"[:cntrl:]").unwrap();
         let without_ctrls = cntrls.replace_all(without_tabs.as_ref(), "");
         // Then we remove anything after a #
-        let comment = regex!(r"#.*");
+        let comment = Regex::new(r"#.*").unwrap();
         let without_comment = comment.replace(without_ctrls.as_ref(), "");
         // We remove the whitespaces before/after the string
         without_comment.trim().to_string()

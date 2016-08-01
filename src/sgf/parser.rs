@@ -2,6 +2,7 @@
  *                                                                      *
  * Copyright 2014 Urban Hafner                                          *
  * Copyright 2015 Urban Hafner, Igor Polyakov                           *
+ * Copyright 2016 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -19,9 +20,7 @@
  * along with Iomrascálaí.  If not, see <http://www.gnu.org/licenses/>. *
  *                                                                      *
  ************************************************************************/
-use std::io::prelude::*;
-use std::fs::File;
-use std::path::Path;
+
 use board::Black;
 use board::Color;
 use board::Empty;
@@ -31,6 +30,11 @@ use board::Play;
 use board::White;
 use game::Game;
 use ruleset::Minimal;
+
+use regex::Regex;
+use std::io::prelude::*;
+use std::fs::File;
+use std::path::Path;
 
 pub struct Parser {
     sgf: String
@@ -137,7 +141,7 @@ impl Parser {
     fn tokenize<'a>(&'a self) -> Vec<Property<'a>> {
         let mut tokens = Vec::new();
         let mut prev_name = "";
-        let re = regex!(r"([:upper:]{1,2})?\[([^]]*)\]");
+        let re = Regex::new(r"([:upper:]{1,2})?\[([^]]*)\]").unwrap();
         for caps in re.captures_iter(self.sgf.as_ref()) {
             match caps.at(1) {
                 Some(name) => {
