@@ -1,5 +1,7 @@
 target/
 .project
+.idea
+*.iml
 
 # Ignore gogui-twogtp output in the root directory
 /*.sgf
