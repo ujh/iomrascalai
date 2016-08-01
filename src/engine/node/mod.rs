@@ -20,6 +20,7 @@
  *                                                                      *
  ************************************************************************/
 
+pub use super::prior::Prior;
 use board::Board;
 use board::Color;
 use board::Move;
@@ -30,7 +31,6 @@ use config::Config;
 use game::Game;
 use playout::PlayoutResult;
 use score::Score;
-use super::prior::Prior;
 
 use std::f32;
 use std::sync::Arc;
@@ -252,7 +252,7 @@ impl Node {
 
     pub fn record_priors(&mut self, path: &[usize], priors: Vec<Prior>) {
         if path.len() == 0 {
-            let cutoff = (self.config.tree.prune_after * priors.len() as f32).round() as usize;
+            let cutoff = (self.config.tree.prune_after * priors.len() as f32).floor() as usize;
             for (i, prior) in priors.iter().enumerate() {
                 self.children[prior.index()].update_prior(prior);
                 self.children[prior.index()].expandable = i <= cutoff;

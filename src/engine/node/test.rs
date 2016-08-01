@@ -24,6 +24,7 @@
 
 pub use board::Black;
 pub use board::Board;
+pub use board::NoMove;
 pub use board::Pass;
 pub use board::Play;
 pub use board::White;
@@ -36,7 +37,9 @@ pub use ruleset::KgsChinese;
 pub use score::Score;
 pub use sgf::Parser;
 pub use super::Node;
+pub use super::Prior;
 
+pub use hamcrest::*;
 pub use rand::weak_rng;
 pub use std::collections::HashMap;
 pub use std::path::Path;
@@ -241,4 +244,33 @@ fn remove_illegal_children_removes_superko_violations() {
     node.children.push(Node::new(Play(White, 2, 9), config()));
     node.remove_illegal_children(&game);
     assert!(node.children.iter().all(|n| n.m() != Play(White, 2, 9)));
+}
+
+describe! record_priors {
+
+    before_each {
+        let config = {
+            let mut c = Config::test_config();
+            c.tree.prune_after = 0.5;
+            Arc::new(c)
+        };
+        let mut node = Node::new(Pass(Black), config.clone());
+        node.children = vec!(
+            Node::new(Pass(White), config.clone()),
+            Node::new(Pass(White), config.clone()),
+            Node::new(Pass(White), config.clone()),
+        );
+        let priors = vec!(
+            Prior::test(2, NoMove, 0, 0),
+            Prior::test(0, NoMove, 0, 0),
+            Prior::test(1, NoMove, 0, 0),
+        );
+    }
+
+    it "sets expandable to false for nodes after the cutoff" {
+        node.record_priors(vec!().as_slice(), priors);
+        assert_that(true, is(equal_to(node.children[2].expandable)));
+        assert_that(true, is(equal_to(node.children[0].expandable)));
+        assert_that(false, is(equal_to(node.children[1].expandable)));
+    }
 }

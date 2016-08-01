@@ -50,6 +50,16 @@ impl Prior {
         prior
     }
 
+    #[test]
+    pub fn test(index: usize, m: Move, plays: usize, wins: usize) -> Self {
+        Prior {
+            index: index,
+            m: m,
+            plays: plays,
+            wins: wins,
+        }
+    }
+
     pub fn plays(&self) -> usize {
         self.plays
     }
