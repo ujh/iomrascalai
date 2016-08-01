@@ -1,0 +1,8 @@
+# Use for the naming of the .log and .dat files
+Name expand_after
+Processor main
+Script ./prune-tree-runner
+Replications 1
+
+# [tree]
+LinearParameter tree.prune_after 0.0 1.0
