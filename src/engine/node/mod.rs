@@ -20,6 +20,7 @@
  *                                                                      *
  ************************************************************************/
 
+pub use super::prior::Prior;
 use board::Board;
 use board::Color;
 use board::Move;
@@ -30,7 +31,6 @@ use config::Config;
 use game::Game;
 use playout::PlayoutResult;
 use score::Score;
-use super::prior::Prior;
 
 use std::f32;
 use std::sync::Arc;
@@ -44,6 +44,7 @@ pub struct Node {
     children: Vec<Node>,
     config: Arc<Config>,
     descendants: usize,
+    expandable: bool,
     m: Move,
     playouts: usize,
     plays: f32,
@@ -61,6 +62,7 @@ impl Node {
             children: vec!(),
             config: config.clone(),
             descendants: 0,
+            expandable: true,
             m: m,
             playouts: 0,
             plays: 0.0,
@@ -250,8 +252,10 @@ impl Node {
 
     pub fn record_priors(&mut self, path: &[usize], priors: Vec<Prior>) {
         if path.len() == 0 {
-            for (index, prior) in priors.iter().enumerate() {
-                self.children[index].update_prior(prior);
+            let cutoff = (self.config.tree.prune_after * priors.len() as f32).floor() as usize;
+            for (i, prior) in priors.iter().enumerate() {
+                self.children[prior.index()].update_prior(prior);
+                self.children[prior.index()].expandable = i <= cutoff;
             }
         } else {
             self.children[path[0]].record_priors(&path[1..], priors);
@@ -334,6 +338,7 @@ impl Node {
         let mut best = 0;
         let plays = self.plays_with_prior_factor();
         for i in 1..self.children.len() {
+            if !self.children[i].expandable { continue; }
             if self.children[i].child_value(plays) > self.children[best].child_value(plays) {
                 best = i;
             }

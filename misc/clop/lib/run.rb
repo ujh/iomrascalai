@@ -25,9 +25,9 @@ def run(toml:, seed:, outfile:)
   File.open("config.toml", "w") {|f| f.puts toml }
   if rand(2).zero?
     white = iomrascalai
-    black = gnugo
+    black = opponent
   else
-    white = gnugo
+    white = opponent
     black = iomrascalai
   end
   execute(twogtp({
@@ -57,15 +57,23 @@ end
 def time(seed)
   case size(seed)
   when 9
-    "5m"
+    "2m"
   when 13
-    "10m"
+    "5m"
   when 19
-    "20m"
+    "10m"
   else
     $stderr.puts "Size #{size(seed)} not supported!"
     exit 1
   end
+end
+
+def opponent
+  master
+end
+
+def master
+  "cargo run --release -- --rules chinese"
 end
 
 def gnugo

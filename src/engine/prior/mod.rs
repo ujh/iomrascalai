@@ -25,9 +25,11 @@ use board::Move;
 use config::Config;
 use patterns::SmallPatternMatcher;
 
+use std::cmp::max;
 use std::sync::Arc;
 
 pub struct Prior {
+    index: usize,
     m: Move,
     plays: usize,
     wins: usize,
@@ -35,8 +37,9 @@ pub struct Prior {
 
 impl Prior {
 
-    pub fn new(board: &Board, m: &Move, matcher: &Arc<SmallPatternMatcher>, config: Arc<Config>) -> Prior {
+    pub fn new(board: &Board, m: &Move, index: usize, matcher: &Arc<SmallPatternMatcher>, config: Arc<Config>) -> Prior {
         let mut prior = Prior {
+            index: index,
             m: *m,
             plays: 0,
             wins: 0,
@@ -47,12 +50,30 @@ impl Prior {
         prior
     }
 
+    #[test]
+    pub fn test(index: usize, m: Move, plays: usize, wins: usize) -> Self {
+        Prior {
+            index: index,
+            m: m,
+            plays: plays,
+            wins: wins,
+        }
+    }
+
     pub fn plays(&self) -> usize {
         self.plays
     }
 
     pub fn wins(&self) -> usize {
         self.wins
+    }
+
+    pub fn index(&self) -> usize {
+        self.index
+    }
+
+    fn ratio(&self) -> f32 {
+        max(1, self.wins()) as f32 / max(1, self.plays()) as f32
     }
 
     fn calculate(&mut self, board: &Board, m: &Move, matcher: &Arc<SmallPatternMatcher>, config: &Arc<Config>) {
@@ -104,7 +125,8 @@ impl Prior {
 
 pub fn calculate(board: Board, child_moves: Vec<Move>, matcher: &Arc<SmallPatternMatcher>, config: &Arc<Config>) -> Vec<Prior> {
     let mut priors: Vec<Prior> = child_moves.iter()
-        .map(|m| Prior::new(&board, m, matcher, config.clone()))
+        .enumerate()
+        .map(|(i, m)| Prior::new(&board, m, i, matcher, config.clone()))
         .collect();
     let color = board.next_player().opposite();
     let in_danger = board.chains().iter()
@@ -129,5 +151,6 @@ pub fn calculate(board: Board, child_moves: Vec<Move>, matcher: &Arc<SmallPatter
             }
         }
     }
+    priors.sort_by(|p1, p2| p2.ratio().partial_cmp(&p1.ratio()).expect("prior sorting failed"));
     priors
 }
