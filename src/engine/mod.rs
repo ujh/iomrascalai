@@ -82,6 +82,7 @@ pub struct Engine {
     previous_node_count: usize,
     receive_from_threads: Receiver<Response>,
     root: Node,
+    search_cycles: usize,
     send_to_main: Sender<Response>,
     start: PreciseTime,
 }
@@ -100,6 +101,7 @@ impl Engine {
             previous_node_count: 0,
             receive_from_threads: receive_from_threads,
             root: Node::new(NoMove, config),
+            search_cycles: 0,
             send_to_main: send_to_main,
             start: PreciseTime::now(),
         };
@@ -125,12 +127,27 @@ impl Engine {
             self.config.log(format!("No moves to simulate!"));
             return (Pass(color), self.root.playouts());
         }
-        let stop = |win_ratio, _| { timer.ran_out_of_time(win_ratio) };
-        self.search(game, stop);
+        let mut internal_timer = timer.clone();
+        loop {
+            let t2 = internal_timer.clone();
+            let stop = |win_ratio, _| { t2.ran_out_of_time(win_ratio) };
+            self.search(game, stop);
+            internal_timer.stop();
+            internal_timer.start(game);
+            self.search_cycles += 1;
+            if self.search_cycles >= self.config.time_control.search_cycles {
+                break;
+            }
+            let m = self.best_move_on_plays(game, color, cleanup);
+            let m2 = self.best_move_on_win_ratio(game, color, cleanup);
+            if m == m2 {
+                break;
+            }
+        }
         let msg = format!("{} simulations ({}% wins on average, {} nodes)", self.root.playouts(), self.root.win_ratio()*100.0, self.root.descendants());
         self.config.log(msg);
         let playouts = self.root.playouts();
-        let m = self.best_move(game, color, cleanup);
+        let m = self.best_move_on_plays(game, color, cleanup);
         self.set_new_root(&game.play(m).unwrap(), color);
         (m,playouts)
     }
@@ -234,6 +251,7 @@ impl Engine {
 
     fn genmove_setup(&mut self, color: Color, game: &Game) {
         self.start = PreciseTime::now();
+        self.search_cycles = 0;
         self.config.gfx(self.ownership.gfx());
         self.ownership = OwnershipStatistics::new(self.config.clone(), game.size(), game.komi());
         self.previous_node_count = self.root.descendants();
@@ -246,27 +264,28 @@ impl Engine {
         }
     }
 
-    fn best_move(&self, game: &Game, color: Color, cleanup: bool) -> Move {
-        let (best_node, pass) = self.root.best();
-        let best_win_ratio = best_node.win_ratio();
-        let pass_win_ratio = pass.win_ratio();
-        let allow_pass = match game.ruleset() {
-            KgsChinese => {
-                // If cleanup is true it means this code was called by kgs-genmove_cleanup so we can
-                // only pass if there are no dead stones on the board.
-                if cleanup {
-                    !self.dead_stones_on_board(game)
-                } else {
-                    true
-                }
-            },
-            _ => {
-                // Only allow passing under Tromp/Taylor and CGOS when we are winning.
-                game.winner() == color
+    fn best_move_on_win_ratio(&self, game: &Game, color: Color, cleanup: bool) -> Move {
+        let (best_node, pass) = self.root.best_win_ratio();
+        let n = if self.pass_allowed(game, color, cleanup) {
+            if best_node.win_ratio() > pass.win_ratio() {
+                best_node
+            } else {
+                pass
             }
+        } else {
+            best_node
         };
-        let n = if allow_pass {
-            if best_win_ratio > pass_win_ratio { best_node } else { pass }
+        n.m()
+    }
+
+    fn best_move_on_plays(&self, game: &Game, color: Color, cleanup: bool) -> Move {
+        let (best_node, pass) = self.root.best();
+        let n = if self.pass_allowed(game, color, cleanup) {
+            if best_node.plays() > pass.plays() {
+                best_node
+            } else {
+                pass
+            }
         } else {
             best_node
         };
@@ -280,6 +299,24 @@ impl Engine {
             Resign(color)
         } else {
             n.m()
+        }
+    }
+
+    fn pass_allowed(&self, game: &Game, color: Color, cleanup: bool) -> bool {
+        match game.ruleset() {
+            KgsChinese => {
+                // If cleanup is true it means this code was called by kgs-genmove_cleanup so we can
+                // only pass if there are no dead stones on the board.
+                if cleanup {
+                    !self.dead_stones_on_board(game)
+                } else {
+                    true
+                }
+            },
+            _ => {
+                // Only allow passing under Tromp/Taylor and CGOS when we are winning.
+                game.winner() == color
+            }
         }
     }
 

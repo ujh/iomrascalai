@@ -209,7 +209,7 @@ pub struct TimeControlConfig {
     pub min_stones: usize,
     /// The number of times to take a slice of the remaining time (as calculated with the help of
     /// the other variables in this struct) when the result of the search is inconclusive.
-    pub search_cyles: usize,
+    pub search_cycles: usize,
 }
 
 impl TimeControlConfig {
@@ -225,7 +225,7 @@ impl TimeControlConfig {
             fastplay_budget: Self::as_float(&table, "fastplay_budget"),
             fastplay_threshold: Self::as_float(&table, "fastplay_threshold"),
             min_stones: Self::as_integer(&table, "min_stones"),
-            search_cyles: Self::as_integer(&table, "search_cycles"),
+            search_cycles: Self::as_integer(&table, "search_cycles"),
         }
     }
 }
