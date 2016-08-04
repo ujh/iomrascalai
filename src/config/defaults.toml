@@ -1,6 +1,7 @@
 [playout]
 
 atari_check = 0.743349
+captures_probability = 0.9
 ladder_check = 0.702563
 last_moves_for_heuristics = 2
 pattern_probability = 0.9

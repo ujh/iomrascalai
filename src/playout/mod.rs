@@ -124,7 +124,28 @@ impl Playout {
                 return possible_move.unwrap();
             }
         }
+        if self.do_captures(rng) {
+            if let Some(m) = self.capture_move(color, board, rng) {
+                return m;
+            }
+        }
         self.random_move(color, board, rng)
+    }
+
+    fn capture_move(&self, color: Color, board: &Board, rng: &mut XorShiftRng) -> Option<Move> {
+        let opposite = color.opposite();
+        let captures: Vec<_> = board.chains()
+            .iter()
+            .filter(|chain| chain.color() == opposite && chain.liberties().len() == 1)
+            .flat_map(|chain| chain.liberties().iter())
+            .collect();
+        if captures.len() == 0 {
+            None
+        } else {
+            let index = rng.gen_range(0, captures.len());
+            let coord = captures[index];
+            Some(Play(color, coord.col, coord.row))
+        }
     }
 
     // If own group of more than one stone has one liberty, check if it can be captured
@@ -208,6 +229,10 @@ impl Playout {
 
     fn use_patterns(&self, rng: &mut XorShiftRng) -> bool {
         rng.gen_range(0f32, 1f32) <= self.config.playout.pattern_probability
+    }
+
+    fn do_captures(&self, rng: &mut XorShiftRng) -> bool {
+        rng.gen_range(0f32, 1f32) <= self.config.playout.captures_probability
     }
 
     fn play_in_middle_of_eye(&self, rng: &mut XorShiftRng) -> bool {
