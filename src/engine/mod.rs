@@ -128,6 +128,7 @@ impl Engine {
             return (Pass(color), self.root.playouts());
         }
         let mut internal_timer = timer.clone();
+        let mut m = None;
         loop {
             let t2 = internal_timer.clone();
             let stop = |win_ratio, _| { t2.ran_out_of_time(win_ratio) };
@@ -138,18 +139,19 @@ impl Engine {
             if self.search_cycles >= self.config.time_control.search_cycles {
                 break;
             }
-            let m = self.best_move_on_plays(game, color, cleanup);
+            m = Some(self.best_move_on_plays(game, color, cleanup));
             let m2 = self.best_move_on_win_ratio(game, color, cleanup);
-            if m == m2 {
+            if m.unwrap() == m2 {
                 break;
             }
+            let msg = format!("Search inconclusive (cycle {}). Continuing", self.search_cycles);
+            self.config.log(msg);
         }
         let msg = format!("{} simulations ({}% wins on average, {} nodes)", self.root.playouts(), self.root.win_ratio()*100.0, self.root.descendants());
         self.config.log(msg);
         let playouts = self.root.playouts();
-        let m = self.best_move_on_plays(game, color, cleanup);
-        self.set_new_root(&game.play(m).unwrap(), color);
-        (m,playouts)
+        self.set_new_root(&game.play(m.unwrap()).unwrap(), color);
+        (m.unwrap(),playouts)
     }
 
     fn search<F>(&mut self, game: &Game, stop: F) where F: Fn(f32, usize) -> bool {
