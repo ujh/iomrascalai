@@ -133,13 +133,13 @@ impl Engine {
             let t2 = internal_timer.clone();
             let stop = |win_ratio, _| { t2.ran_out_of_time(win_ratio) };
             self.search(game, stop);
+            m = Some(self.best_move_on_plays(game, color, cleanup));
             internal_timer.stop();
             internal_timer.start(game);
             self.search_cycles += 1;
             if self.search_cycles >= self.config.time_control.search_cycles {
                 break;
             }
-            m = Some(self.best_move_on_plays(game, color, cleanup));
             let m2 = self.best_move_on_win_ratio(game, color, cleanup);
             if m.unwrap() == m2 {
                 break;
