@@ -271,6 +271,20 @@ impl Node {
         (best, pass)
     }
 
+    pub fn best_win_ratio(&self) -> (&Node, &Node) {
+        let mut best = &self.children[0];
+        let mut pass = &self.children[0];
+        for n in self.children.iter() {
+            if n.m().is_pass() {
+                pass = n;
+            } else if n.win_ratio_with_priors() > best.win_ratio_with_priors() {
+                best = n;
+            }
+        }
+        (best, pass)
+
+    }
+
     fn weighted_win(&self, score: &Score) -> f32 {
         let weight = self.config.tree.score_weight;
         (weight * score.adjusted()) + (1.0 - weight)
@@ -382,4 +396,7 @@ impl Node {
         &self.children
     }
 
+    pub fn plays(&self) -> f32 {
+        self.plays_with_prior_factor()
+    }
 }
