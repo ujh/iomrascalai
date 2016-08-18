@@ -6,3 +6,4 @@ Replications 1
 
 # [priors]
 IntegerParameter priors.large_pattern_factor 0 10000
+IntegerParameter priors.small_patterns 0 10000
