@@ -15,11 +15,11 @@ best_move_factor = 1.0
 capture_many = 30
 capture_one = 15
 empty = 20
-large_pattern_factor = 0
+large_pattern_factor = 165
 neutral_plays = 10
 neutral_wins = 5
 self_atari = 10
-small_patterns = 10
+small_patterns = 14
 
 [time_control]
 
