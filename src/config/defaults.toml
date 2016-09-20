@@ -3,8 +3,8 @@
 atari_check = 0.743349
 captures_probability = 0.44147
 ladder_check = 0.702563
-large_pattern_factor = 1000.0
-large_pattern_probability = 0.0
+large_pattern_factor = 657.371
+large_pattern_probability = 0.440244
 last_moves_for_heuristics = 2
 pattern_probability = 0.868737
 play_in_middle_of_eye = 1.0
