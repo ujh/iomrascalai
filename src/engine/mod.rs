@@ -31,6 +31,7 @@ use board::White;
 use config::Config;
 use game::Game;
 use ownership::OwnershipStatistics;
+use patterns::LargePatternMatcher;
 use patterns::SmallPatternMatcher;
 use playout::Playout;
 use ruleset::KgsChinese;
@@ -76,31 +77,37 @@ pub struct Engine {
     config: Arc<Config>,
     direct_message_senders: Vec<Sender<DirectMessage>>,
     id: usize,
-    matcher: Arc<SmallPatternMatcher>,
+    large_pattern_matcher: Arc<LargePatternMatcher>,
     ownership: OwnershipStatistics,
     playout: Arc<Playout>,
     previous_node_count: usize,
     receive_from_threads: Receiver<Response>,
     root: Node,
     send_to_main: Sender<Response>,
+    small_pattern_matcher: Arc<SmallPatternMatcher>,
     start: PreciseTime,
 }
 
 impl Engine {
 
-    pub fn new(config: Arc<Config>, matcher: Arc<SmallPatternMatcher>) -> Engine {
+    pub fn new(config: Arc<Config>, small_pattern_matcher: Arc<SmallPatternMatcher>, large_pattern_matcher: Arc<LargePatternMatcher>) -> Engine {
         let (send_to_main, receive_from_threads) = channel();
         let mut engine = Engine {
             config: config.clone(),
             direct_message_senders: vec!(),
             id: 0,
-            matcher: matcher.clone(),
+            large_pattern_matcher: large_pattern_matcher.clone(),
             ownership: OwnershipStatistics::new(config.clone(), 0, 0.0),
-            playout: Arc::new(Playout::new(config.clone(), matcher.clone())),
+            playout: Arc::new(Playout::new(
+                config.clone(),
+                large_pattern_matcher.clone(),
+                small_pattern_matcher.clone()
+            )),
             previous_node_count: 0,
             receive_from_threads: receive_from_threads,
             root: Node::new(NoMove, config),
             send_to_main: send_to_main,
+            small_pattern_matcher: small_pattern_matcher.clone(),
             start: PreciseTime::now(),
         };
         engine.spin_up();
@@ -127,12 +134,22 @@ impl Engine {
         }
         let stop = |win_ratio, _| { timer.ran_out_of_time(win_ratio) };
         self.search(game, stop);
-        let msg = format!("{} simulations ({}% wins on average, {} nodes)", self.root.playouts(), self.root.win_ratio()*100.0, self.root.descendants());
-        self.config.log(msg);
+        self.genmove_log();
         let playouts = self.root.playouts();
         let m = self.best_move(game, color, cleanup);
         self.set_new_root(&game.play(m).unwrap(), color);
         (m,playouts)
+    }
+
+    fn genmove_log(&self) {
+        self.config.log(
+            format!(
+                "{} simulations ({}% wins on average, {} nodes)",
+                self.root.playouts(),
+                self.root.win_ratio()*100.0,
+                self.root.descendants()
+            )
+        );
     }
 
     fn search<F>(&mut self, game: &Game, stop: F) where F: Fn(f32, usize) -> bool {
@@ -312,7 +329,8 @@ impl Engine {
         let mut worker = Worker::new(
             &self.config,
             &self.playout,
-            &self.matcher,
+            &self.small_pattern_matcher,
+            &self.large_pattern_matcher,
             &self.send_to_main
         );
         let (send_direct_message, receive_direct_message) = channel();

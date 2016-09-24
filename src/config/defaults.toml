@@ -3,6 +3,8 @@
 atari_check = 0.743349
 captures_probability = 0.44147
 ladder_check = 0.702563
+large_pattern_factor = 657.371
+large_pattern_probability = 0.440244
 last_moves_for_heuristics = 2
 pattern_probability = 0.868737
 play_in_middle_of_eye = 1.0
@@ -13,10 +15,11 @@ best_move_factor = 1.0
 capture_many = 30
 capture_one = 15
 empty = 20
+large_pattern_factor = 165
 neutral_plays = 10
 neutral_wins = 5
-patterns = 10
 self_atari = 10
+small_patterns = 14
 
 [time_control]
 

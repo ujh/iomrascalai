@@ -1,0 +1,9 @@
+# Use for the naming of the .log and .dat files
+Name large-patterns-in-prior
+Processor main
+Script ./large-patterns-in-prior
+Replications 1
+
+# [priors]
+IntegerParameter priors.large_pattern_factor 0 200
+IntegerParameter priors.small_patterns 0 200

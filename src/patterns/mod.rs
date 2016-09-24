@@ -20,6 +20,8 @@
  *                                                                      *
  ************************************************************************/
 
+pub use self::large::Matcher as LargePatternMatcher;
 pub use self::small::Matcher as SmallPatternMatcher;
 
+mod large;
 mod small;
