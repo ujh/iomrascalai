@@ -1,0 +1,9 @@
+# Use for the naming of the .log and .dat files
+Name time-settings
+Processor main
+Script ./time-settings-runner
+Replications 1
+
+# [time_settings]
+IntegerParameter time_settings.min_stones 1 50
+LinearParameter  time_settings.c 0.001 2.0
