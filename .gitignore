@@ -16,3 +16,4 @@ misc/clop/*.log
 
 # Ignore KGS config files as they contain passwords
 misc/kgs/*.cfg
+misc/kgs/*.log
