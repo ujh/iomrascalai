@@ -49,43 +49,29 @@ def execute(command)
 end
 
 def size(seed)
-  19
+  13
 end
 
 def opponent
-  master
+  gnugo
 end
 
 def time(seed)
-  if opponent == gnugo
-    case size(seed)
-    when 9
-      "5m"
-    when 13
-      "10m"
-    when 19
-      "20m"
-    else
-      $stderr.puts "Size #{size(seed)} not supported!"
-      exit 1
-    end
+  case size(seed)
+  when 9
+    "2m"
+  when 13
+    "10m"
+  when 15
+    "17m"
+  when 17
+    "24m"
+  when 19
+    "30m"
   else
-    case size(seed)
-    when 9
-      "2m"
-    when 13
-      "5m"
-    when 19
-      "10m"
-    else
-      $stderr.puts "Size #{size(seed)} not supported!"
-      exit 1
-    end
+    $stderr.puts "Size #{size(seed)} not supported!"
+    exit 1
   end
-end
-
-def master
-  "cargo run --release -- --rules chinese"
 end
 
 def gnugo
