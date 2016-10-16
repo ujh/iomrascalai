@@ -30,8 +30,8 @@ min_stones = 24
 
 [tree]
 
-expand_after = 8
-rave_equiv = 59.0946
+expand_after = 6
+rave_equiv = 24.8829
 score_weight = 0.0653414
 
 [scoring]
