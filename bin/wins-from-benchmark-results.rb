@@ -61,7 +61,22 @@ def error(p, n, confidence)
   (z(confidence) * Math.sqrt((1.0/n)*p*(1-p)))*100
 end
 
-Dir["*.dat"].each do |fn|
+files = Dir["*.dat"].sort do |a, b|
+  a =~ /(.*)-(\d+)x\d+/
+  prefix_a = $1
+  size_a = $2.to_i
+  b =~ /(.*)-(\d+)x\d+/
+  prefix_b = $1
+  size_b = $2.to_i
+  prefix_comparision = prefix_a <=> prefix_b
+  if prefix_comparision.zero?
+    size_a <=> size_b
+  else
+    prefix_comparision
+  end
+end
+
+files.each do |fn|
   next if fn =~ /summary\.dat/
   puts "#{fn}:"
   puts "\t\t#{wins(fn)}"
