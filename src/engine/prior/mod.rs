@@ -79,12 +79,12 @@ impl Prior {
             let prior = count * config.priors.small_patterns;
             self.record_even_prior(prior);
         }
-        if config.priors.use_large_patterns() {
-            let probability = self.large_pattern_probability(board, m, large_pattern_matcher);
-            self.large_pattern_matched = probability > 0.0;
-            let prior = config.priors.large_pattern_factor * probability;
-            self.record_even_prior(prior.round() as usize);
-        }
+        // if config.priors.use_large_patterns() {
+        //     let probability = self.large_pattern_probability(board, m, large_pattern_matcher);
+        //     self.large_pattern_matched = probability > 0.0;
+        //     let prior = config.priors.large_pattern_factor * probability;
+        //     self.record_even_prior(prior.round() as usize);
+        // }
     }
 
     fn in_empty_area(&self, board: &Board, m: &Move) -> bool {

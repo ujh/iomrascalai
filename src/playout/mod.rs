@@ -130,12 +130,12 @@ impl Playout {
                 return possible_move.unwrap();
             }
         }
-        if self.use_large_patterns(rng) {
-            let possible_move = self.large_pattern_move(color, &heuristic_set, board, rng);
-            if possible_move.is_some() {
-                return possible_move.unwrap();
-            }
-        }
+        // if self.use_large_patterns(rng) {
+        //     let possible_move = self.large_pattern_move(color, &heuristic_set, board, rng);
+        //     if possible_move.is_some() {
+        //         return possible_move.unwrap();
+        //     }
+        // }
         if self.do_captures(rng) {
             if let Some(m) = self.capture_move(color, board, rng) {
                 return m;
