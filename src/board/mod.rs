@@ -39,7 +39,7 @@ use quicksort::quicksort;
 use std::collections::HashSet;
 use std::fmt;
 use std::sync::Arc;
-use smallvec::SmallVec4;
+use smallvec::SmallVec;
 
 mod chain;
 mod coord;
@@ -426,7 +426,7 @@ impl Board {
         let color = *m.color();
 
         for &coord in self.adv_stones_removed.iter() {
-            let chain_ids: SmallVec4<_> = self.neighbours(coord).iter()
+            let chain_ids: SmallVec<[usize;4]> = self.neighbours(coord).iter()
                 .filter(|&c| self.color(c) == color)
                 .map(|c| self.chain_id(c))
                 .collect();
@@ -441,7 +441,7 @@ impl Board {
         let color = m.color().opposite();
 
         for &coord in self.adv_stones_removed.iter() {
-            let chain_ids: SmallVec4<_> = self.neighbours(coord).iter()
+            let chain_ids: SmallVec<[usize;4]> = self.neighbours(coord).iter()
                 .filter(|&c| self.color(c) == color)
                 .map(|c| self.chain_id(c))
                 .collect();
@@ -455,7 +455,7 @@ impl Board {
     fn update_libs_of_adjacent_opposing_chains(&mut self, m: &Move) {
         let coord = m.coord();
         let color = m.color().opposite();
-        let adv_chains_ids: SmallVec4<usize> = self.neighbours(coord)
+        let adv_chains_ids: SmallVec<[usize;4]> = self.neighbours(coord)
             .iter()
             .filter(|&c| self.color(c) == color)
             .map(|c| self.chain_id(c))
@@ -541,7 +541,7 @@ impl Board {
         quicksort(&mut *coords_to_remove);
         coords_to_remove.dedup();
 
-        let mut chains_to_remove: SmallVec4<_> = SmallVec4::new();
+        let mut chains_to_remove = SmallVec::<[usize;4]>::new();
         {
            let it = self.neighbours(coord)
                 .iter()

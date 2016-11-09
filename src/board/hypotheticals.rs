@@ -18,18 +18,18 @@
  * along with Iomrascálaí.  If not, see <http://www.gnu.org/licenses/>. *
  *                                                                      *
  ************************************************************************/
- 
+
 use board::{Board, Move};
 use board::Color::Empty;
 use board::coord::Coord;
 
-use smallvec::SmallVec4;
- 
+use smallvec::SmallVec;
+
  impl Board {
- 
+
     pub fn is_not_self_atari(&self, m: &Move) -> bool {
         let empty = self.liberty_count(m.coord()); //empty coordinates next to the move
-        
+
         empty > 1 ||    //then we are definitely going to be fine for now
         {
             let (removes_stone, removes_stones) = self.removes_multiple_enemy_neighbouring_stones(*m); //do we capture at least one stone
@@ -47,16 +47,16 @@ use smallvec::SmallVec4;
     pub fn liberty_count(&self, c: Coord) -> usize {
         self.neighbours(c).iter().filter(|c| self.color(c) == Empty).count()
     }
-    
+
     pub fn removes_multiple_enemy_neighbouring_stones(&self, m: Move) -> (bool, bool) {
         let enemy = m.color().opposite();
         let mut found_one = false;
-        
+
         let chains = self.neighbours(m.coord()).iter()
             .filter(|c| self.color(c) == enemy)
             .map(|&c| self.get_chain(c).unwrap())
             .filter(|chain| chain.liberties().len() == 1);
-        
+
         for chain in chains {
             if found_one || chain.coords().len() > 1 {
                 return (true, true);
@@ -64,7 +64,7 @@ use smallvec::SmallVec4;
                 found_one = true;
             }
         }
-        
+
         (found_one, false)
     }
 
@@ -80,7 +80,7 @@ use smallvec::SmallVec4;
                 return true;
             }
         }
-        
+
         false
     }
 
@@ -105,53 +105,53 @@ use smallvec::SmallVec4;
                 }
             }
         }
-        
+
         false
     }
-    
+
     pub fn new_chain_liberties_greater_than(&self, m: Move, limit: usize) -> bool {
         let liberty_iterator = self.neighbours(m.coord()).iter()
             .filter(|c| self.color(&c) == *m.color())
             .flat_map(|&c| self.get_chain(c).unwrap().liberties())
             .filter(|&liberty| *liberty != m.coord());
-         
+
          let empty_iterator = self.neighbours(m.coord()).iter()
             .filter(|c| self.color(&c) == Empty);
-         
-         let mut liberties = SmallVec4::new();
+
+         let mut liberties = SmallVec::<[Coord;4]>::new();
          for liberty in liberty_iterator.chain(empty_iterator) {
             if !liberties.contains(liberty) {
                 liberties.push(*liberty);
             }
-            
+
             if liberties.len() > limit {
                 return true;
             }
          }
-         
+
          false
     }
-    
+
     pub fn new_chain_length_less_than(&self, m: Move, limit: usize) -> bool {
-        let mut chain_ids = SmallVec4::new();
+        let mut chain_ids = SmallVec::<[usize;4]>::new();
         let mut length = 0;
-        
+
         for &c in self.neighbours(m.coord()).iter() {
             if self.color(&c) == *m.color() {
                 let chain = self.get_chain(c).unwrap();
-                
+
                 if !chain_ids.contains(&chain.id()) {
                     length += chain.coords().len();
                     chain_ids.push(chain.id());
                 }
-   
+
                 if length + 1 > limit {
                     return false;
                 }
             }
         }
-        
+
         true
     }
- 
+
  }
