@@ -29,12 +29,12 @@ describe! from_str {
 
     it "sets the probability" {
         let pattern: Pattern = "1.0 .....".parse().unwrap();
-        assert_that(1.0, is(equal_to(pattern.probability())));
+        assert_that!(1.0, is(equal_to(pattern.probability())));
     }
 
     it "sets the points" {
         let pattern: Pattern = "1.0 .....".parse().unwrap();
-        assert_that(
+        assert_that!(
             vec!(Point::Empty, Point::Empty, Point::Empty, Point::Empty, Point::Empty),
             is(equal_to(pattern.points))
         );
@@ -45,7 +45,7 @@ describe! expand {
 
     it "doesn't produce duplicates" {
         let pattern: Pattern = "1.0 .....".parse().unwrap();
-        assert_that(1, is(equal_to(pattern.expand().len())));
+        assert_that!(1, is(equal_to(pattern.expand().len())));
     }
 
     describe! unique_symmetries {
@@ -56,46 +56,46 @@ describe! expand {
         }
 
         it "produces all symmetries" {
-            assert_that(8, is(equal_to(expanded.len())));
+            assert_that!(8, is(equal_to(expanded.len())));
         }
 
         it "includes the original pattern" {
-            assert_that(&expanded, contains(vec!(pattern)));
+            assert_that!(&expanded, contains(vec!(pattern)));
         }
 
         it "includes the 90deg rotation" {
             let rotated90deg = "1.0 .X....O#..##.".parse().unwrap();
-            assert_that(&expanded, contains(vec!(rotated90deg)));
+            assert_that!(&expanded, contains(vec!(rotated90deg)));
         }
 
         it "includes the 180deg rotation" {
             let rotated180deg = "1.0 ...X.O..#.#.#".parse().unwrap();
-            assert_that(&expanded, contains(vec!(rotated180deg)));
+            assert_that!(&expanded, contains(vec!(rotated180deg)));
         }
 
         it "includes the 270deg rotation" {
             let rotated270deg = "1.0 ..X...#O.#..#".parse().unwrap();
-            assert_that(&expanded, contains(vec!(rotated270deg)));
+            assert_that!(&expanded, contains(vec!(rotated270deg)));
         }
 
         it "includes the mirrored original" {
             let mirrored = "1.0 ...X..#O.#..#".parse().unwrap();
-            assert_that(&expanded, contains(vec!(mirrored)));
+            assert_that!(&expanded, contains(vec!(mirrored)));
         }
 
         it "includes the mirrored 90deg rotation" {
             let rotated90degmirrored = "1.0 .X...O..#.#.#".parse().unwrap();
-            assert_that(&expanded, contains(vec!(rotated90degmirrored)));
+            assert_that!(&expanded, contains(vec!(rotated90degmirrored)));
         }
 
         it "includes the mirrored 180deg rotation" {
             let rotated180degmirrored = "1.0 ....X.O#..##.".parse().unwrap();
-            assert_that(&expanded, contains(vec!(rotated180degmirrored)));
+            assert_that!(&expanded, contains(vec!(rotated180degmirrored)));
         }
 
         it "includes the mirrored 270deg rotation" {
             let rotated270degmirrored = "1.0 ..X..#..O#.#.".parse().unwrap();
-            assert_that(&expanded, contains(vec!(rotated270degmirrored)));
+            assert_that!(&expanded, contains(vec!(rotated270degmirrored)));
         }
 
     }

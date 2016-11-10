@@ -25,8 +25,7 @@
 #![feature(test)]
 #![cfg_attr(test, plugin(stainless))]
 
-#[cfg(test)]
-extern crate hamcrest;
+#[cfg(test)] #[macro_use] extern crate hamcrest;
 
 extern crate core;
 #[macro_use] extern crate enum_primitive;

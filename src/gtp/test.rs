@@ -31,10 +31,7 @@ pub use ruleset::CGOS;
 pub use ruleset::KgsChinese;
 pub use super::GTPInterpreter;
 
-pub use hamcrest::assert_that;
-pub use hamcrest::equal_to;
-pub use hamcrest::is;
-pub use hamcrest::is_not;
+pub use hamcrest::prelude::*;
 pub use std::sync::Arc;
 
 pub fn err(s: &'static str) -> Result<String, String> {
@@ -61,19 +58,19 @@ describe! interpreter {
 
         it "empty string" {
             let response = interpreter.read("");
-            assert_that(response, is(equal_to(err("empty command"))));
+            assert_that!(response, is(equal_to(err("empty command"))));
         }
 
         describe! loadsgf {
 
             it "wrong file" {
                 let response = interpreter.read("loadsgf wrongfileactually\n");
-                assert_that(response, is(equal_to(err("cannot load file"))));
+                assert_that!(response, is(equal_to(err("cannot load file"))));
             }
 
             it "one argument" {
                 let response = interpreter.read("loadsgf\n");
-                assert_that(response, is(equal_to(err("missing argument"))));
+                assert_that!(response, is(equal_to(err("missing argument"))));
             }
 
         }
@@ -82,21 +79,21 @@ describe! interpreter {
 
             it "one argument" {
                 let response = interpreter.read("time_left\n");
-                assert_that(response, is(equal_to(err("missing argument(s)"))));
+                assert_that!(response, is(equal_to(err("missing argument(s)"))));
             }
 
             it "sets the main time" {
                 let response = interpreter.read("time_left b 30 0");
-                assert_that(response, is(equal_to(ok(""))));
-                assert_that(interpreter.timer.main_time_left(), is(equal_to(30_000)));
+                assert_that!(response, is(equal_to(ok(""))));
+                assert_that!(interpreter.timer.main_time_left(), is(equal_to(30_000)));
             }
 
             it "sets the over time" {
                 let response = interpreter.read("time_left b 30 1");
-                assert_that(response, is(equal_to(ok(""))));
-                assert_that(interpreter.timer.main_time_left(), is(equal_to(0)));
-                assert_that(interpreter.timer.byo_time_left(), is(equal_to(30_000)));
-                assert_that(interpreter.timer.byo_stones_left(), is(equal_to(1)));
+                assert_that!(response, is(equal_to(ok(""))));
+                assert_that!(interpreter.timer.main_time_left(), is(equal_to(0)));
+                assert_that!(interpreter.timer.byo_time_left(), is(equal_to(30_000)));
+                assert_that!(interpreter.timer.byo_stones_left(), is(equal_to(1)));
             }
 
         }
@@ -105,15 +102,15 @@ describe! interpreter {
 
             it "one argument" {
                 let response = interpreter.read("time_settings\n");
-                assert_that(response, is(equal_to(err("missing argument(s)"))));
+                assert_that!(response, is(equal_to(err("missing argument(s)"))));
             }
 
             it "sets the time" {
                 let response = interpreter.read("time_settings 30 20 10\n");
-                assert_that(response, is(equal_to(ok(""))));
-                assert_that(interpreter.main_time, is(equal_to(30)));
-                assert_that(interpreter.byo_time, is(equal_to(20)));
-                assert_that(interpreter.byo_stones, is(equal_to(10)));
+                assert_that!(response, is(equal_to(ok(""))));
+                assert_that!(interpreter.main_time, is(equal_to(30)));
+                assert_that!(interpreter.byo_time, is(equal_to(20)));
+                assert_that!(interpreter.byo_stones, is(equal_to(10)));
             }
 
         }
@@ -122,13 +119,13 @@ describe! interpreter {
 
             it "one argument" {
                 let response = interpreter.read("play\n");
-                assert_that(response, is(equal_to(err("missing argument"))));
+                assert_that!(response, is(equal_to(err("missing argument"))));
             }
 
             it "plays a move" {
                 let response = interpreter.read("play b a1\n");
-                assert_that(response, is(equal_to(ok(""))));
-                assert_that(interpreter.game.board().vacant_point_count(), is(equal_to(360)));
+                assert_that!(response, is(equal_to(ok(""))));
+                assert_that!(interpreter.game.board().vacant_point_count(), is(equal_to(360)));
             }
 
         }
@@ -137,7 +134,7 @@ describe! interpreter {
 
             it "one argument" {
                 let response = interpreter.read("genmove\n");
-                assert_that(response, is(equal_to(err("missing argument"))));
+                assert_that!(response, is(equal_to(err("missing argument"))));
             }
 
             it "generates a move" {
@@ -152,7 +149,7 @@ describe! interpreter {
 
                 it "one argument" {
                     let response = interpreter.read("kgs-genmove_cleanup\n");
-                    assert_that(response, is(equal_to(err("missing argument"))));
+                    assert_that!(response, is(equal_to(err("missing argument"))));
                 }
 
                 it "generates a move" {
@@ -177,13 +174,13 @@ describe! interpreter {
 
             it "one argument" {
                 let response = interpreter.read("komi\n");
-                assert_that(response, is(equal_to(err("missing argument"))));
+                assert_that!(response, is(equal_to(err("missing argument"))));
             }
 
             it "sets the komi" {
                 let response = interpreter.read("komi 10\n");
-                assert_that(response, is(equal_to(ok(""))));
-                assert_that(interpreter.komi(), is(equal_to(10.0)));
+                assert_that!(response, is(equal_to(ok(""))));
+                assert_that!(interpreter.komi(), is(equal_to(10.0)));
             }
 
         }
@@ -192,20 +189,20 @@ describe! interpreter {
 
             it "one argument" {
                 let response = interpreter.read("boardsize\n");
-                assert_that(response, is(equal_to(err("missing argument"))));
+                assert_that!(response, is(equal_to(err("missing argument"))));
             }
 
             it "sets the correct size" {
-                assert_that(interpreter.game.size(), is(equal_to(19)));
+                assert_that!(interpreter.game.size(), is(equal_to(19)));
                 let response = interpreter.read("boardsize 9\n");
-                assert_that(response, is(equal_to(ok(""))));
-                assert_that(interpreter.game.size(), is(equal_to(9)));
+                assert_that!(response, is(equal_to(ok(""))));
+                assert_that!(interpreter.game.size(), is(equal_to(9)));
             }
 
             it "boardsize resets the board" {
                 interpreter.read("play b a1\n").unwrap();
                 interpreter.read("boardsize 9\n").unwrap();
-                assert_that(interpreter.game.board().vacant_point_count(), is(equal_to(81)));
+                assert_that!(interpreter.game.board().vacant_point_count(), is(equal_to(81)));
             }
 
         }
@@ -214,17 +211,17 @@ describe! interpreter {
 
             it "one argument" {
                 let response = interpreter.read("known_command\n");
-                assert_that(response, is(equal_to(err("missing argument"))));
+                assert_that!(response, is(equal_to(err("missing argument"))));
             }
 
             it "known command" {
                 let response = interpreter.read("known_command play\n");
-                assert_that(response, is(equal_to(ok("true"))));
+                assert_that!(response, is(equal_to(ok("true"))));
             }
 
             it "unknown command" {
                 let response = interpreter.read("known_command XXX\n");
-                assert_that(response, is(equal_to(ok("false"))));
+                assert_that!(response, is(equal_to(ok("false"))));
             }
 
         }
@@ -234,7 +231,7 @@ describe! interpreter {
             it "no newline at end" {
                 let response = interpreter.read("list_commands\n");
                 let expected = "boardsize\nclear_board\nfinal_score\nfinal_status_list\ngenmove\ngogui-analyze_commands\nimrscl-donplayouts\nimrscl-ownership\nimrscl-uct_gfx\nkgs-genmove_cleanup\nknown_command\nkomi\nlist_commands\nloadsgf\nname\nplay\nprotocol_version\nquit\nreg_genmove\nshowboard\ntime_left\ntime_settings\nversion";
-                assert_that(response, is(equal_to(ok(expected))));
+                assert_that!(response, is(equal_to(ok(expected))));
             }
 
         }
@@ -244,7 +241,7 @@ describe! interpreter {
             it "resets the board" {
                 interpreter.read("play b a1\n").unwrap();
                 let response = interpreter.read("clear_board\n");
-                assert_that(response, is(equal_to(ok(""))));
+                assert_that!(response, is(equal_to(ok(""))));
                 assert_eq!(361, interpreter.game.board().vacant_point_count());
             }
 
@@ -268,7 +265,7 @@ describe! interpreter {
                 interpreter.read("boardsize 9\n").unwrap();
                 interpreter.read("clear_board\n").unwrap();
                 let response = interpreter.read("final_score\n");
-                assert_that(response, is(equal_to(ok("W+6.5"))));
+                assert_that!(response, is(equal_to(ok("W+6.5"))));
             }
 
             it "one move" {
@@ -276,7 +273,7 @@ describe! interpreter {
                 interpreter.read("clear_board\n").unwrap();
                 interpreter.read("play b c2\n").unwrap();
                 let response = interpreter.read("final_score\n");
-                assert_that(response, is(equal_to(ok("B+9.5"))));
+                assert_that!(response, is(equal_to(ok("B+9.5"))));
             }
 
             it "doesn't crash after loading a SGF file" {
@@ -291,13 +288,13 @@ describe! interpreter {
                 interpreter.read("play b pass\n").unwrap();
                 interpreter.read("play w pass\n").unwrap();
                 let response = interpreter.read("final_score\n");
-                assert_that(response, is(equal_to(ok("W+6.5"))));
+                assert_that!(response, is(equal_to(ok("W+6.5"))));
             }
 
             it "doesn't crash after loading a game with no legal moves" {
                 interpreter.read("loadsgf fixtures/sgf/no-legal-moves-left.sgf\n").unwrap();
                 let response = interpreter.read("final_score\n");
-                assert_that(response, is(equal_to(ok("B+9"))));
+                assert_that!(response, is(equal_to(ok("B+9"))));
             }
         }
 
@@ -305,7 +302,7 @@ describe! interpreter {
 
             it "returns the engine name" {
                 let response = interpreter.read("name\n");
-                assert_that(response, is(equal_to(ok("Iomrascalai"))));
+                assert_that!(response, is(equal_to(ok("Iomrascalai"))));
             }
 
         }
@@ -314,7 +311,7 @@ describe! interpreter {
 
             it "returns 2" {
                 let response = interpreter.read("protocol_version\n");
-                assert_that(response, is(equal_to(ok("2"))));
+                assert_that!(response, is(equal_to(ok("2"))));
             }
 
         }
@@ -325,7 +322,7 @@ describe! interpreter {
                 interpreter.read("boardsize 3\n").unwrap();
                 let response = interpreter.read("showboard\n");
                 let expected = "\nkomi: 6.5\n 3 . . . \n 2 . . . \n 1 . . . \n   1 2 3 \n";
-                assert_that(response, is(equal_to(ok(expected))));
+                assert_that!(response, is(equal_to(ok(expected))));
             }
 
         }
@@ -334,7 +331,7 @@ describe! interpreter {
 
             it "returns the current version" {
                 let response = interpreter.read("version\n");
-                assert_that(response, is(equal_to(ok(::version::version()))));
+                assert_that!(response, is(equal_to(ok(::version::version()))));
             }
         }
 
@@ -342,7 +339,7 @@ describe! interpreter {
 
             it "shuts down the interpreter" {
                 let response = interpreter.read("quit\n");
-                assert_that(response, is(equal_to(ok(""))));
+                assert_that!(response, is(equal_to(ok(""))));
                 assert!(!interpreter.running);
             }
         }
@@ -358,27 +355,27 @@ describe! interpreter {
 
             it "reports no dead stones" {
                 let response = interpreter.read("final_status_list dead\n");
-                assert_that(response, is(equal_to(ok(""))));
+                assert_that!(response, is(equal_to(ok(""))));
             }
 
             it "reports two alive stones" {
                 let response = interpreter.read("final_status_list alive\n");
-                assert_that(response, is(equal_to(ok("A1 B9"))));
+                assert_that!(response, is(equal_to(ok("A1 B9"))));
             }
 
             it "reports no seki stones" {
                 let response = interpreter.read("final_status_list seki\n");
-                assert_that(response, is(equal_to(ok(""))));
+                assert_that!(response, is(equal_to(ok(""))));
             }
 
             it "returns an error on other arguments" {
                 let response = interpreter.read("final_status_list other\n");
-                assert_that(response, is(equal_to(err("unknown argument"))));
+                assert_that!(response, is(equal_to(err("unknown argument"))));
             }
 
             it "returns an error when no argument is given" {
                 let response = interpreter.read("final_status_list\n");
-                assert_that(response, is(equal_to(err("missing argument"))));
+                assert_that!(response, is(equal_to(err("missing argument"))));
             }
 
             it "doesn't crash after loading a SGF file" {
@@ -393,13 +390,13 @@ describe! interpreter {
                 interpreter.read("play b pass\n").unwrap();
                 interpreter.read("play w pass\n").unwrap();
                 let response = interpreter.read("final_status_list dead\n");
-                assert_that(response, is(equal_to(ok(""))));
+                assert_that!(response, is(equal_to(ok(""))));
             }
 
             it "doesn't crash after loading a game with no legal moves" {
                 interpreter.read("loadsgf fixtures/sgf/no-legal-moves-left.sgf\n").unwrap();
                 let response = interpreter.read("final_status_list dead\n");
-                assert_that(response, is(equal_to(ok(""))));
+                assert_that!(response, is(equal_to(ok(""))));
             }
 
         }
@@ -412,7 +409,7 @@ describe! interpreter {
                 it "returns the supported analyze commands" {
                     let expected = "dboard/Ownership/imrscl-ownership\nplist/Final Status List Dead/final_status_list dead\nplist/Final Status List Alive/final_status_list alive\ngfx/Uct Gfx/imrscl-uct_gfx";
                     let response = interpreter.read("gogui-analyze_commands\n");
-                    assert_that(response, is(equal_to(ok(expected))));
+                    assert_that!(response, is(equal_to(ok(expected))));
                 }
 
             }
@@ -429,7 +426,7 @@ describe! interpreter {
                     interpreter.read("clear_board\n").unwrap();
                     interpreter.read("genmove b\n").unwrap();
                     let response = interpreter.read("imrscl-ownership\n");
-                    assert_that(response, is(equal_to(ok("0 0 0 \n0 0 0 \n0 0 0 \n"))));
+                    assert_that!(response, is(equal_to(ok("0 0 0 \n0 0 0 \n0 0 0 \n"))));
                 }
             }
 
@@ -455,7 +452,7 @@ describe! interpreter {
                 interpreter.read("boardsize 9\n").unwrap();
                 interpreter.read("clear_board\n").unwrap();
                 let response = interpreter.read("final_score\n");
-                assert_that(response, is(equal_to(ok("W+6.5"))));
+                assert_that!(response, is(equal_to(ok("W+6.5"))));
             }
 
             it "one move" {
@@ -463,7 +460,7 @@ describe! interpreter {
                 interpreter.read("clear_board\n").unwrap();
                 interpreter.read("play b c2\n").unwrap();
                 let response = interpreter.read("final_score\n");
-                assert_that(response, is(equal_to(ok("B+9.5"))));
+                assert_that!(response, is(equal_to(ok("B+9.5"))));
             }
 
         }
@@ -479,27 +476,27 @@ describe! interpreter {
 
             it "reports no dead stones" {
                 let response = interpreter.read("final_status_list dead\n");
-                assert_that(response, is(equal_to(ok(""))));
+                assert_that!(response, is(equal_to(ok(""))));
             }
 
             it "reports two alive stone" {
                 let response = interpreter.read("final_status_list alive\n");
-                assert_that(response, is(equal_to(ok("A1 B9"))));
+                assert_that!(response, is(equal_to(ok("A1 B9"))));
             }
 
             it "reports no seki stones" {
                 let response = interpreter.read("final_status_list seki\n");
-                assert_that(response, is(equal_to(ok(""))));
+                assert_that!(response, is(equal_to(ok(""))));
             }
 
             it "returns an error on other arguments" {
                 let response = interpreter.read("final_status_list other\n");
-                assert_that(response, is(equal_to(err("unknown argument"))));
+                assert_that!(response, is(equal_to(err("unknown argument"))));
             }
 
             it "returns an error when no argument is given" {
                 let response = interpreter.read("final_status_list\n");
-                assert_that(response, is(equal_to(err("missing argument"))));
+                assert_that!(response, is(equal_to(err("missing argument"))));
             }
         }
 

@@ -70,7 +70,7 @@ describe! from_patterns {
                 }))
             }))
         };
-        assert_that(tree, is(equal_to(expected_tree)));
+        assert_that!(tree, is(equal_to(expected_tree)));
     }
 }
 
@@ -91,11 +91,11 @@ describe! pattern_probability {
     }
 
     it "returns the pattern probability if it matches" {
-        assert_that(tree.pattern_probability(&board, &Coord::from_gtp("e3")), is(equal_to(1.0)));
+        assert_that!(tree.pattern_probability(&board, &Coord::from_gtp("e3")), is(equal_to(1.0)));
     }
 
     it "returns 0.0 if the pattern doesn't match" {
-        assert_that(tree.pattern_probability(&board, &Coord::from_gtp("a1")), is(equal_to(0.0)));
+        assert_that!(tree.pattern_probability(&board, &Coord::from_gtp("a1")), is(equal_to(0.0)));
     }
 
 }

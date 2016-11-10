@@ -21,9 +21,7 @@
 
 #![cfg(test)]
 
-pub use hamcrest::assert_that;
-pub use hamcrest::equal_to;
-pub use hamcrest::is;
+pub use hamcrest::prelude::*;
 pub use std::path::Path;
 
 pub use board::Board;
@@ -45,7 +43,7 @@ describe! expand_patterns {
 
     it "includes all variations" {
         let expanded = Matcher::expand_patterns(patterns);
-        assert_that(expanded.len(), is(equal_to(16)));
+        assert_that!(expanded.len(), is(equal_to(16)));
     }
 
 }
@@ -70,8 +68,8 @@ describe! pattern_count {
             ['.', '.', '.']]);
         let matcher = Matcher::with_patterns(vec!(pattern));
         let board = &board_from_sgf("3x3/one-black-w.sgf");
-        assert_that(matcher.pattern_count(board, center), is(equal_to(1)));
-        assert_that(matcher.pattern_count(board, off_center), is(equal_to(0)));
+        assert_that!(matcher.pattern_count(board, center), is(equal_to(1)));
+        assert_that!(matcher.pattern_count(board, off_center), is(equal_to(0)));
     }
 
     it "matches patterns with white stones" {
@@ -81,8 +79,8 @@ describe! pattern_count {
             ['.', '.', '.']]);
         let matcher = Matcher::with_patterns(vec!(pattern));
         let board = &board_from_sgf("3x3/one-white-w.sgf");
-        assert_that(matcher.pattern_count(board, center), is(equal_to(1)));
-        assert_that(matcher.pattern_count(board, off_center), is(equal_to(0)));
+        assert_that!(matcher.pattern_count(board, center), is(equal_to(1)));
+        assert_that!(matcher.pattern_count(board, off_center), is(equal_to(0)));
     }
 
     it "matches patterns with non-black stones" {
@@ -92,8 +90,8 @@ describe! pattern_count {
             ['.', '.', '.']]);
         let matcher = Matcher::with_patterns(vec!(pattern));
         let board = &board_from_sgf("3x3/one-white-w.sgf");
-        assert_that(matcher.pattern_count(board, center), is(equal_to(1)));
-        assert_that(matcher.pattern_count(board, off_center), is(equal_to(0)));
+        assert_that!(matcher.pattern_count(board, center), is(equal_to(1)));
+        assert_that!(matcher.pattern_count(board, off_center), is(equal_to(0)));
     }
 
     it "matches patterns with non-white stones" {
@@ -103,8 +101,8 @@ describe! pattern_count {
             ['.', '.', '.']]);
         let matcher = Matcher::with_patterns(vec!(pattern));
         let board = &board_from_sgf("3x3/one-black-w.sgf");
-        assert_that(matcher.pattern_count(board, center), is(equal_to(1)));
-        assert_that(matcher.pattern_count(board, off_center), is(equal_to(0)));
+        assert_that!(matcher.pattern_count(board, center), is(equal_to(1)));
+        assert_that!(matcher.pattern_count(board, off_center), is(equal_to(0)));
     }
 
     it "matches patterns with wildcards" {
@@ -114,14 +112,14 @@ describe! pattern_count {
             ['.', '.', '.']]);
         let matcher = Matcher::with_patterns(vec!(pattern));
         let black_board = &board_from_sgf("3x3/one-black-w.sgf");
-        assert_that(matcher.pattern_count(black_board, center), is(equal_to(1)));
-        assert_that(matcher.pattern_count(black_board, off_center), is(equal_to(0)));
+        assert_that!(matcher.pattern_count(black_board, center), is(equal_to(1)));
+        assert_that!(matcher.pattern_count(black_board, off_center), is(equal_to(0)));
         let white_board = &board_from_sgf("3x3/one-white-w.sgf");
-        assert_that(matcher.pattern_count(white_board, center), is(equal_to(1)));
-        assert_that(matcher.pattern_count(white_board, off_center), is(equal_to(0)));
+        assert_that!(matcher.pattern_count(white_board, center), is(equal_to(1)));
+        assert_that!(matcher.pattern_count(white_board, off_center), is(equal_to(0)));
         let empty_board = &board_from_sgf("empty.sgf");
-        assert_that(matcher.pattern_count(empty_board, center), is(equal_to(1)));
-        assert_that(matcher.pattern_count(empty_board, off_center), is(equal_to(1)));
+        assert_that!(matcher.pattern_count(empty_board, center), is(equal_to(1)));
+        assert_that!(matcher.pattern_count(empty_board, off_center), is(equal_to(1)));
     }
 
     it "matches off board patterns" {
@@ -131,8 +129,8 @@ describe! pattern_count {
             [' ', ' ', ' ']]);
         let matcher = Matcher::with_patterns(vec!(pattern));
         let board = &board_from_sgf("empty.sgf");
-        assert_that(matcher.pattern_count(board, &Coord::new(1,1)), is(equal_to(1)));
-        assert_that(matcher.pattern_count(board, center), is(equal_to(0)));
-        assert_that(matcher.pattern_count(board, off_center), is(equal_to(0)));
+        assert_that!(matcher.pattern_count(board, &Coord::new(1,1)), is(equal_to(1)));
+        assert_that!(matcher.pattern_count(board, center), is(equal_to(0)));
+        assert_that!(matcher.pattern_count(board, off_center), is(equal_to(0)));
     }
 }

@@ -22,10 +22,7 @@
 
 #![cfg(test)]
 
-pub use hamcrest::assert_that;
-pub use hamcrest::contains;
-pub use hamcrest::equal_to;
-pub use hamcrest::is;
+pub use hamcrest::prelude::*;
 
 pub use board::Black;
 pub use board::Board;
@@ -62,21 +59,21 @@ describe! score {
         }
 
         it "counting" {
-            assert_that(score.black_stones, is(equal_to(8)));
-            assert_that(score.white_stones, is(equal_to(8)));
+            assert_that!(score.black_stones, is(equal_to(8)));
+            assert_that!(score.white_stones, is(equal_to(8)));
         }
 
         it "score" {
-            assert_that(score.color(), is(equal_to(White)));
-            assert_that(score.score(), is(equal_to(6.5)));
-            assert_that(format!("{}", score), is(equal_to("W+6.5".to_string())));
+            assert_that!(score.color(), is(equal_to(White)));
+            assert_that!(score.score(), is(equal_to(6.5)));
+            assert_that!(format!("{}", score), is(equal_to("W+6.5".to_string())));
         }
 
         describe! ownership {
 
             after_each {
                 let actual = points_for_color(&score, &board, color);
-                assert_that(&actual, contains(expected).exactly());
+                assert_that!(&actual, contains(expected).exactly());
             }
 
             it "black" {
@@ -106,21 +103,21 @@ describe! score {
         }
 
         it "counting" {
-            assert_that(score.black_stones, is(equal_to(9)));
-            assert_that(score.white_stones, is(equal_to(16)));
+            assert_that!(score.black_stones, is(equal_to(9)));
+            assert_that!(score.white_stones, is(equal_to(16)));
         }
 
         it "score" {
-            assert_that(score.color(), is(equal_to(White)));
-            assert_that(score.score(), is(equal_to(13.5)));
-            assert_that(format!("{}", score), is(equal_to("W+13.5".to_string())));
+            assert_that!(score.color(), is(equal_to(White)));
+            assert_that!(score.score(), is(equal_to(13.5)));
+            assert_that!(format!("{}", score), is(equal_to("W+13.5".to_string())));
         }
 
         describe! ownership {
 
             after_each {
                 let actual = points_for_color(&score, &board, color);
-                assert_that(&actual, contains(expected).exactly());
+                assert_that!(&actual, contains(expected).exactly());
             }
 
             it "black" {
@@ -151,21 +148,21 @@ describe! score {
         }
 
         it "counting" {
-            assert_that(score.black_stones, is(equal_to(4)));
-            assert_that(score.white_stones, is(equal_to(20)));
+            assert_that!(score.black_stones, is(equal_to(4)));
+            assert_that!(score.white_stones, is(equal_to(20)));
         }
 
         it "score" {
-            assert_that(score.color(), is(equal_to(White)));
-            assert_that(score.score(), is(equal_to(22.5)));
-            assert_that(format!("{}", score), is(equal_to("W+22.5".to_string())));
+            assert_that!(score.color(), is(equal_to(White)));
+            assert_that!(score.score(), is(equal_to(22.5)));
+            assert_that!(format!("{}", score), is(equal_to("W+22.5".to_string())));
         }
 
         describe! ownership {
 
             after_each {
                 let actual = points_for_color(&score, &board, color);
-                assert_that(&actual, contains(expected).exactly());
+                assert_that!(&actual, contains(expected).exactly());
             }
 
             it "black" {
@@ -203,18 +200,18 @@ describe! score {
 
         it "returns the correct score when black wins" {
             score.black_stones = 10;
-            assert_that(score.adjusted(), is(equal_to(0.043209877)));
+            assert_that!(score.adjusted(), is(equal_to(0.043209877)));
         }
 
         it "returns the correct score when white wins" {
             score.white_stones = 10;
-            assert_that(score.adjusted(), is(equal_to(0.188571429)));
+            assert_that!(score.adjusted(), is(equal_to(0.188571429)));
         }
 
         it "returns the correct score on a draw" {
             score.komi = 7.0;
             score.black_stones = 7;
-            assert_that(score.adjusted(), is(equal_to(0.0)));
+            assert_that!(score.adjusted(), is(equal_to(0.0)));
         }
     }
 }
