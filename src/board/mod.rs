@@ -225,13 +225,6 @@ impl Board {
         self.board[c.to_index(self.size)].color
     }
 
-    pub fn coord_with_offset_from(&self, c: &Coord, offset: (isize, isize)) -> Option<Color> {
-        match c.offset_by(offset, self.size) {
-            Some(coord) => Some(self.color(&coord)),
-            None => None
-        }
-    }
-
     /// Remove dead stone for scoring. Board becomes unplayable after
     /// doing this!
     pub fn remove_dead_stone(&mut self, c: &Coord) {

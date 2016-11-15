@@ -26,7 +26,6 @@ use board::Black;
 use board::Board;
 use board::Play;
 use config::Config;
-use patterns::LargePatternMatcher;
 use patterns::SmallPatternMatcher;
 use ruleset::KgsChinese;
 use super::Playout;
@@ -40,9 +39,8 @@ fn config() -> Arc<Config> {
 }
 
 fn playout() -> Playout {
-    let large_pattern_matcher = Arc::new(LargePatternMatcher::test());
     let small_pattern_matcher = Arc::new(SmallPatternMatcher::new());
-    Playout::new(config(), large_pattern_matcher, small_pattern_matcher)
+    Playout::new(config(), small_pattern_matcher)
 }
 
 #[test]
