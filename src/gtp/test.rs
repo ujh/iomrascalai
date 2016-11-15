@@ -25,7 +25,6 @@
 
 pub use config::Config;
 pub use engine::Engine;
-pub use patterns::LargePatternMatcher;
 pub use patterns::SmallPatternMatcher;
 pub use ruleset::CGOS;
 pub use ruleset::KgsChinese;
@@ -51,8 +50,7 @@ describe! interpreter {
             c.ruleset = CGOS;
             let config = Arc::new(c);
             let small_pattern_matcher = Arc::new(SmallPatternMatcher::new());
-            let large_pattern_matcher = Arc::new(LargePatternMatcher::test());
-            let engine = Engine::new(config.clone(), small_pattern_matcher, large_pattern_matcher);
+            let engine = Engine::new(config.clone(), small_pattern_matcher);
             let mut interpreter = GTPInterpreter::new(config.clone(), engine);
         }
 
@@ -441,8 +439,7 @@ describe! interpreter {
             c.ruleset = KgsChinese;
             let config = Arc::new(c);
             let small_pattern_matcher = Arc::new(SmallPatternMatcher::new());
-            let large_pattern_matcher = Arc::new(LargePatternMatcher::test());
-            let engine = Engine::new(config.clone(), small_pattern_matcher, large_pattern_matcher);
+            let engine = Engine::new(config.clone(), small_pattern_matcher);
             let mut interpreter = GTPInterpreter::new(config.clone(), engine);
         }
 

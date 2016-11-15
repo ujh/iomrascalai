@@ -133,9 +133,6 @@ pub struct PriorsConfig {
     /// moves on the third line. This is only applied if the area
     /// around the move of a Manhattan distance of three is empty.
     pub empty: usize,
-    /// Factor to multiply the probability of the matching large
-    /// pattern by.
-    pub large_pattern_factor: f32,
     /// The number of prior plays to start with. This is useful to
     /// simplify the calculations as we can avoid 0 values.
     pub neutral_plays: usize,
@@ -164,7 +161,6 @@ impl PriorsConfig {
             capture_many: Self::as_integer(&table, "capture_many"),
             capture_one: Self::as_integer(&table, "capture_one"),
             empty: Self::as_integer(&table, "empty"),
-            large_pattern_factor: Self::as_float(&table, "large_pattern_factor"),
             neutral_plays: Self::as_integer(&table, "neutral_plays"),
             neutral_wins: Self::as_integer(&table, "neutral_wins"),
             self_atari: Self::as_integer(&table, "self_atari"),
@@ -184,12 +180,6 @@ impl PriorsConfig {
     /// altogether.
     pub fn use_small_patterns(&self) -> bool {
         self.small_patterns > 0
-    }
-
-    /// Returns false if the large pattern factor is zero, which then turns
-    /// off the code that calculates the large patterns prior.
-    pub fn use_large_patterns(&self) -> bool {
-        self.large_pattern_factor > 0.0
     }
 }
 
@@ -252,12 +242,6 @@ pub struct PlayoutConfig {
     /// expensive) during atari resolution. Set to 1.0 to always use
     /// it.
     pub ladder_check: f32,
-    /// Multiplication factor of the probability of a matched large
-    /// pattern. The larger the value the more likely it is that a
-    /// matched move is being played.
-    pub large_pattern_factor: f32,
-    /// Probability of playing a move found by matching large patterns.
-    pub large_pattern_probability: f32,
     /// The number of most recently played moves to consider when
     /// selecting moves based on heuristics.
     pub last_moves_for_heuristics: usize,
@@ -282,8 +266,6 @@ impl PlayoutConfig {
             atari_check: Self::as_float(&table, "atari_check"),
             captures_probability: Self::as_float(&table, "captures_probability"),
             ladder_check: Self::as_float(&table, "ladder_check"),
-            large_pattern_factor: Self::as_float(&table, "large_pattern_factor"),
-            large_pattern_probability: Self::as_float(&table, "large_pattern_probability"),
             last_moves_for_heuristics: Self::as_integer(&table, "last_moves_for_heuristics"),
             pattern_probability: Self::as_float(&table, "pattern_probability"),
             play_in_middle_of_eye: Self::as_float(&table, "play_in_middle_of_eye"),

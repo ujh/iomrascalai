@@ -31,7 +31,6 @@ use board::White;
 use config::Config;
 use game::Game;
 use ownership::OwnershipStatistics;
-use patterns::LargePatternMatcher;
 use patterns::SmallPatternMatcher;
 use playout::Playout;
 use ruleset::KgsChinese;
@@ -77,7 +76,6 @@ pub struct Engine {
     config: Arc<Config>,
     direct_message_senders: Vec<Sender<DirectMessage>>,
     id: usize,
-    large_pattern_matcher: Arc<LargePatternMatcher>,
     ownership: OwnershipStatistics,
     playout: Arc<Playout>,
     previous_node_count: usize,
@@ -90,17 +88,15 @@ pub struct Engine {
 
 impl Engine {
 
-    pub fn new(config: Arc<Config>, small_pattern_matcher: Arc<SmallPatternMatcher>, large_pattern_matcher: Arc<LargePatternMatcher>) -> Engine {
+    pub fn new(config: Arc<Config>, small_pattern_matcher: Arc<SmallPatternMatcher>) -> Engine {
         let (send_to_main, receive_from_threads) = channel();
         let mut engine = Engine {
             config: config.clone(),
             direct_message_senders: vec!(),
             id: 0,
-            large_pattern_matcher: large_pattern_matcher.clone(),
             ownership: OwnershipStatistics::new(config.clone(), 0, 0.0),
             playout: Arc::new(Playout::new(
                 config.clone(),
-                large_pattern_matcher.clone(),
                 small_pattern_matcher.clone()
             )),
             previous_node_count: 0,
@@ -330,7 +326,6 @@ impl Engine {
             &self.config,
             &self.playout,
             &self.small_pattern_matcher,
-            &self.large_pattern_matcher,
             &self.send_to_main
         );
         let (send_direct_message, receive_direct_message) = channel();

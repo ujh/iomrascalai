@@ -34,7 +34,6 @@ extern crate num;
 extern crate num_cpus;
 extern crate quicksort;
 extern crate rand;
-extern crate rayon;
 extern crate regex;
 extern crate smallvec;
 extern crate test;
@@ -46,7 +45,6 @@ extern crate toml;
 pub use config::*;
 use engine::Engine;
 use gtp::driver::Driver;
-use patterns::LargePatternMatcher;
 use patterns::SmallPatternMatcher;
 use ruleset::Ruleset;
 
@@ -149,12 +147,10 @@ fn main() {
     // Instantiate only one matcher as it does a lot of computation
     // during setup.
     let small_pattern_matcher = Arc::new(SmallPatternMatcher::new());
-    let large_pattern_matcher = Arc::new(LargePatternMatcher::new(config.clone()));
 
     let engine = Engine::new(
         config.clone(),
         small_pattern_matcher,
-        large_pattern_matcher,
     );
 
     config.log(format!("Current configuration: {:#?}", config));

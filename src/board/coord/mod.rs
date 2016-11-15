@@ -100,22 +100,6 @@ impl Coord {
         1 <= self.col && self.col <= board_size && 1 <= self.row && self.row <= board_size
     }
 
-    pub fn offset_by(&self, offset: (isize, isize), board_size: u8) -> Option<Coord> {
-        let (offset_col, offset_row) = offset;
-        let new_col = self.col as isize + offset_col;
-        let new_row = self.row as isize + offset_row;
-        if new_col <= 0 || new_row <= 0 {
-            None
-        } else {
-            let new_coord = Self::new(new_col as u8, new_row as u8);
-            if new_coord.is_inside(board_size) {
-                Some(new_coord)
-            } else {
-                None
-            }
-        }
-    }
-
     pub fn distance_to_border(&self, board_size: u8) -> u8 {
         *[self.col-1, self.row-1, board_size - self.col, board_size - self.row]
             .iter()
