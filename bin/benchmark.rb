@@ -157,9 +157,11 @@ def remove_first_error
   # shift following rows down (change GAME IDs)
   contents = shift_game_ids(error_id, contents)
   # save updated file to disk
-  FileUtils.mv(DAT_FILE, "#{DAT_FILE}-#{Time.now.to_f}")
+  backup = "#{DAT_FILE}-#{Time.now.to_f}"
+  FileUtils.mv(DAT_FILE, backup)
   File.open(DAT_FILE, 'w') {|f| f.write header }
   CSV.open(DAT_FILE, 'a', col_sep: "\t") {|csv| contents.each {|row| csv << row }}
+  File.unlink(backup)
 end
 
 def check_for_crashes
