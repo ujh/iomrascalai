@@ -174,15 +174,17 @@ def check_for_crashes
 end
 
 def done?
-  return true unless File.exists?(DAT_FILE)
+  return false unless File.exists?(DAT_FILE)
   br = BenchmarkResults.new(DAT_FILE)
   # Continue if less than 100 games were played
   return false if br.games < 100
   # Stop at 1000 games
   return true if br.games >= 1000
   # Stop if the error is below 3 percent
-  br.error95 <= 0.03
+  br.error95 <= 3.0
 end
+
+exit if done?
 
 loop do
   check_for_crashes
