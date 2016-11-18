@@ -190,17 +190,18 @@ impl FromToml for PriorsConfig {
 /// Holds all settings related to time control.
 #[derive(Debug, PartialEq)]
 pub struct TimeControlConfig {
-    /// The percentage of the allocated time for the current move
-    /// after which to check for early termination of the search.
-    pub fastplay_budget: f32,
-    /// Once `fastplay_budget` percent of the allocated time for a
-    /// move have passed check if the best move has a win rate that is
-    /// higher than this value. If so then stop the search and return
-    /// this move.
-    pub fastplay_threshold: f32,
+    /// Factor by which to scale the static calulation of the time
+    /// for the next move. This is used to "use up" the time that's
+    /// save from early stopping when the best move can't change
+    /// anymore. Normally this value is greater than 1.
+    pub f_earlystop: f32,
     /// Minimum number of stones to use when calculating the budget
     /// for the next move.
-    pub min_stones: usize,
+    pub min_stones: f32,
+    /// This factor approximates the number of times the second
+    /// best move is selected for playouts. This improves the calculation
+    /// of when the second best move can still overtake the best move.
+    pub p_earlystop: f32,
     /// Scaling factor by which to multiply the empty intersections
     /// on the board. It is used to improve the estimate of remaining
     /// moves by giving a rough estimate on how many empty intersections
@@ -218,9 +219,9 @@ impl TimeControlConfig {
         table.extend(default_table);
         table.extend(opts);
         TimeControlConfig {
-            fastplay_budget: Self::as_float(&table, "fastplay_budget"),
-            fastplay_threshold: Self::as_float(&table, "fastplay_threshold"),
-            min_stones: Self::as_integer(&table, "min_stones"),
+            f_earlystop: Self::as_float(&table, "f_earlystop"),
+            min_stones: Self::as_float(&table, "min_stones"),
+            p_earlystop: Self::as_float(&table, "p_earlystop"),
             vacant_point_scaling_factor: Self::as_float(&table, "vacant_point_scaling_factor"),
         }
     }

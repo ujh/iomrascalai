@@ -128,7 +128,9 @@ impl Engine {
             self.config.log(format!("No moves to simulate!"));
             return (Pass(color), self.root.playouts());
         }
-        let stop = |win_ratio, _| { timer.ran_out_of_time(win_ratio) };
+        let stop = |playouts, plays_best, plays_second_best| {
+            timer.ran_out_of_time(playouts, plays_best, plays_second_best)
+        };
         self.search(game, stop);
         self.genmove_log();
         let playouts = self.root.playouts();
@@ -148,15 +150,12 @@ impl Engine {
         );
     }
 
-    fn search<F>(&mut self, game: &Game, stop: F) where F: Fn(f32, usize) -> bool {
+    fn search<F>(&mut self, game: &Game, stop: F) where F: Fn(usize, f32, f32) -> bool {
         self.send_new_state_to_workers(game);
         loop {
-            let win_ratio = {
-                let (best, _) = self.root.best();
-                best.win_ratio()
-            };
+            let (plays_best, plays_second_best) = self.root.best2_plays();
             let done = {
-                stop(win_ratio, self.root.playouts())
+                stop(self.root.playouts(), plays_best, plays_second_best)
             };
             if done { return; }
             let r = self.receive_from_threads.recv();
@@ -176,7 +175,7 @@ impl Engine {
             self.root = Node::root(game, color, self.config.clone());
         }
         let initial_playouts = self.root.playouts();
-        let stop = |_, current_playouts: usize| {
+        let stop = |current_playouts: usize, _, _| {
             (current_playouts - initial_playouts) > playouts
         };
         self.search(game, stop);

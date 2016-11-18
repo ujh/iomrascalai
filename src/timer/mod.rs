@@ -85,16 +85,16 @@ impl Timer {
         self.config.log(msg);
     }
 
-    pub fn ran_out_of_time(&self, win_ratio: f32) -> bool {
-        let fastplay_budget = (1.0 / self.config.time_control.fastplay_budget).floor() as i32;
-        let budget5 = self.current_budget / fastplay_budget;
+    pub fn ran_out_of_time(&self, playouts: usize, plays_best: f32, plays_second_best: f32) -> bool {
         let elapsed = self.elapsed();
-        if elapsed > budget5 && win_ratio > self.config.time_control.fastplay_threshold {
-            self.config.log(format!("Search stopped early. Fastplay rule triggered."));
-            true
-        } else {
-            elapsed > self.current_budget
+        if elapsed > self.current_budget {
+            return true;
         }
+        let remaining = self.current_budget - elapsed;
+        let remaining_playouts = (playouts as f32 * remaining.num_milliseconds() as f32) / elapsed.num_milliseconds() as f32;
+        let scaled_remaining_playouts = remaining_playouts * self.config.time_control.p_earlystop;
+        let playout_difference = plays_best - plays_second_best;
+        scaled_remaining_playouts < playout_difference
     }
 
     pub fn stop(&mut self) {
@@ -165,7 +165,7 @@ impl Timer {
     fn budget<T: Info>(&self, game: &T) -> Duration {
         // If there's still main time left
         let ms = if self.main_time_left > 0 {
-            let min_stones = self.config.time_control.min_stones as f32;
+            let min_stones = self.config.time_control.min_stones;
             let vacant = game.vacant_point_count() as f32 * self.config.time_control.vacant_point_scaling_factor;
             (self.main_time_left as f32 / vacant.max(min_stones)).floor() as i64
         } else if self.byo_time_left() == 0 {

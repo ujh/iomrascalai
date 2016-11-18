@@ -271,6 +271,19 @@ impl Node {
         (best, pass)
     }
 
+    pub fn best2_plays(&self) -> (f32, f32) {
+        let mut most_plays = 0.0;
+        let mut second_most_plays = 0.0;
+        for n in &self.children {
+            if n.plays > most_plays {
+                most_plays = n.plays;
+            } else if n.plays > second_most_plays {
+                second_most_plays = n.plays;
+            }
+        }
+        (most_plays, second_most_plays)
+    }
+
     fn weighted_win(&self, score: &Score) -> f32 {
         let weight = self.config.tree.score_weight;
         (weight * score.adjusted()) + (1.0 - weight)
