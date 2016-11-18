@@ -1,0 +1,14 @@
+# Use for the naming of the .log and .dat files
+Name time-control
+Processor main
+Script ./time-control-runner
+Replications 1
+
+# [tree]
+# IntegerParameter tree.expand_after 0 20
+# LinearParameter tree.rave_equiv 0.0 100.0
+
+
+# [time_control]
+LinearParameter time_control.f_earlystop 1.0 5.0
+LinearParameter time_control.p_earlystop 0.0 1.0
