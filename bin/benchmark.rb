@@ -27,6 +27,8 @@ require 'csv'
 require 'fileutils'
 require 'optparse'
 
+require_relative "../misc/lib/benchmark_results"
+
 OptionParser.new do |opts|
   # Use this when running on a 36 core machine. Then gogui-twogtp will start 4 games in parallel and
   # Iomrascálaí will use 8 threads instead of all 36.
@@ -51,25 +53,23 @@ end
 case SIZE
 when "9"
   TIME = "2m"
-  GAMES = "500"
 when "13"
   TIME = "10m"
-  GAMES = "700"
 when "15"
   TIME="17m"
-  GAMES="200"
 when "17"
   TIME="24m"
-  GAMES="100"
 when "19"
   TIME = "30m"
-  GAMES = "100"
 else
   raise "Size #{SIZE} isn't supported!"
 end
 
-GOGUI_TWOGTP = %Q/gogui-twogtp -auto -black "#{GNUGO}" -white "#{IOMRASCALAI}" -size #{SIZE} -alternate -games #{GAMES} -sgffile #{FILENAME} -time #{TIME} -referee "#{REFEREE}" -verbose/
-GOGUI_TWOGTP += " -threads 4" if $ec2
+def gogui_twogtp(games)
+  cmd = %Q/gogui-twogtp -auto -black "#{GNUGO}" -white "#{IOMRASCALAI}" -size #{SIZE} -alternate -games #{games} -sgffile #{FILENAME} -time #{TIME} -referee "#{REFEREE}" -verbose/
+  cmd += " -threads 4" if $ec2
+  cmd
+end
 
 DAT_FILE = "#{FILENAME}.dat"
 
@@ -79,7 +79,12 @@ def run(cmd)
 end
 
 def run_benchmark
-  run(GOGUI_TWOGTP)
+  games = if File.exists?(DAT_FILE)
+    BenchmarkResults.new(DAT_FILE).games
+  else
+    0
+  end
+  run(gogui_twogtp(games+10))
 end
 
 def data
@@ -152,9 +157,11 @@ def remove_first_error
   # shift following rows down (change GAME IDs)
   contents = shift_game_ids(error_id, contents)
   # save updated file to disk
-  FileUtils.mv(DAT_FILE, "#{DAT_FILE}-#{Time.now.to_f}")
+  backup = "#{DAT_FILE}-#{Time.now.to_f}"
+  FileUtils.mv(DAT_FILE, backup)
   File.open(DAT_FILE, 'w') {|f| f.write header }
   CSV.open(DAT_FILE, 'a', col_sep: "\t") {|csv| contents.each {|row| csv << row }}
+  File.unlink(backup)
 end
 
 def check_for_crashes
@@ -167,10 +174,17 @@ def check_for_crashes
 end
 
 def done?
-  return true unless File.exists?(DAT_FILE)
-  _, contents = parse_file
-  contents.length == GAMES.to_i
+  return false unless File.exists?(DAT_FILE)
+  br = BenchmarkResults.new(DAT_FILE)
+  # Continue if less than 100 games were played
+  return false if br.games < 100
+  # Stop at 1000 games
+  return true if br.games >= 1000
+  # Stop if the error is below 3 percent
+  br.error95 <= 3.0
 end
+
+exit if done?
 
 loop do
   check_for_crashes
