@@ -276,6 +276,7 @@ impl Node {
         let mut second_most_playouts = 0;
         for n in &self.children {
             if n.playouts > most_playouts {
+                second_most_playouts = most_playouts;
                 most_playouts = n.playouts;
             } else if n.playouts > second_most_playouts {
                 second_most_playouts = n.playouts;

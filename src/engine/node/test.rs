@@ -242,3 +242,19 @@ fn remove_illegal_children_removes_superko_violations() {
     node.remove_illegal_children(&game);
     assert!(node.children.iter().all(|n| n.m() != Play(White, 2, 9)));
 }
+
+describe! best2_playouts {
+
+    it "returns the two highest play counts" {
+        let mut root = Node::new(Pass(Black), config().clone());
+        let child_template = Node::new(Play(White, 1, 1), config().clone());
+        let mut child1 = child_template.clone();
+        child1.playouts = 100;
+        let mut child2 = child_template.clone();
+        child2.playouts = 200;
+        let mut child3 = child_template.clone();
+        child3.playouts = 50;
+        root.children = vec!(child1, child2, child3);
+        assert_eq!((200,100), root.best2_playouts());
+    }
+}
