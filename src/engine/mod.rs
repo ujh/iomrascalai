@@ -152,10 +152,11 @@ impl Engine {
 
     fn search<F>(&mut self, game: &Game, stop: F) where F: Fn(usize, usize, usize) -> bool {
         self.send_new_state_to_workers(game);
+        let initial_playouts = self.root.playouts();
         loop {
             let (playouts_best, playouts_second_best) = self.root.best2_playouts();
             let done = {
-                stop(self.root.playouts(), playouts_best, playouts_second_best)
+                stop(self.root.playouts() - initial_playouts, playouts_best, playouts_second_best)
             };
             if done { return; }
             let r = self.receive_from_threads.recv();
@@ -174,10 +175,7 @@ impl Engine {
             };
             self.root = Node::root(game, color, self.config.clone());
         }
-        let initial_playouts = self.root.playouts();
-        let stop = |current_playouts: usize, _, _| {
-            (current_playouts - initial_playouts) > playouts
-        };
+        let stop = |current_playouts, _, _| { current_playouts > playouts };
         self.search(game, stop);
     }
 
