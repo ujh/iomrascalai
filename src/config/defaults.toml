@@ -23,7 +23,7 @@ small_patterns = 14
 c = 0.928949
 fastplay_threshold = 0.811985
 fastplay_budget = 0.305821
-min_stones = 24
+min_stones = 30
 
 [tree]
 
