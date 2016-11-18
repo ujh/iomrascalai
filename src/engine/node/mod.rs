@@ -271,17 +271,17 @@ impl Node {
         (best, pass)
     }
 
-    pub fn best2_plays(&self) -> (f32, f32) {
-        let mut most_plays = 0.0;
-        let mut second_most_plays = 0.0;
+    pub fn best2_playouts(&self) -> (usize, usize) {
+        let mut most_playouts = 0;
+        let mut second_most_playouts = 0;
         for n in &self.children {
-            if n.plays > most_plays {
-                most_plays = n.plays;
-            } else if n.plays > second_most_plays {
-                second_most_plays = n.plays;
+            if n.playouts > most_playouts {
+                most_playouts = n.playouts;
+            } else if n.playouts > second_most_playouts {
+                second_most_playouts = n.playouts;
             }
         }
-        (most_plays, second_most_plays)
+        (most_playouts, second_most_playouts)
     }
 
     fn weighted_win(&self, score: &Score) -> f32 {

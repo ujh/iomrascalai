@@ -150,12 +150,12 @@ impl Engine {
         );
     }
 
-    fn search<F>(&mut self, game: &Game, stop: F) where F: Fn(usize, f32, f32) -> bool {
+    fn search<F>(&mut self, game: &Game, stop: F) where F: Fn(usize, usize, usize) -> bool {
         self.send_new_state_to_workers(game);
         loop {
-            let (plays_best, plays_second_best) = self.root.best2_plays();
+            let (playouts_best, playouts_second_best) = self.root.best2_playouts();
             let done = {
-                stop(self.root.playouts(), plays_best, plays_second_best)
+                stop(self.root.playouts(), playouts_best, playouts_second_best)
             };
             if done { return; }
             let r = self.receive_from_threads.recv();

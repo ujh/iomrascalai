@@ -85,7 +85,7 @@ impl Timer {
         self.config.log(msg);
     }
 
-    pub fn ran_out_of_time(&self, playouts: usize, plays_best: f32, plays_second_best: f32) -> bool {
+    pub fn ran_out_of_time(&self, playouts: usize, playouts_best: usize, playouts_second_best: usize) -> bool {
         let elapsed = self.elapsed();
         if elapsed > self.current_budget {
             return true;
@@ -93,12 +93,8 @@ impl Timer {
         let remaining = self.current_budget - elapsed;
         let remaining_playouts = (playouts as f32 * remaining.num_milliseconds() as f32) / elapsed.num_milliseconds() as f32;
         let scaled_remaining_playouts = remaining_playouts * self.config.time_control.p_earlystop;
-        let playout_difference = plays_best - plays_second_best;
-        let check = scaled_remaining_playouts < playout_difference;
-        if check {
-            self.config.log(format!("Search stopped early."));
-        }
-        check
+        let playout_difference = playouts_best - playouts_second_best;
+        scaled_remaining_playouts < playout_difference as f32
     }
 
     pub fn stop(&mut self) {
