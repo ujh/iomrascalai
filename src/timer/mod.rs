@@ -94,7 +94,11 @@ impl Timer {
         let remaining_playouts = (playouts as f32 * remaining.num_milliseconds() as f32) / elapsed.num_milliseconds() as f32;
         let scaled_remaining_playouts = remaining_playouts * self.config.time_control.p_earlystop;
         let playout_difference = plays_best - plays_second_best;
-        scaled_remaining_playouts < playout_difference
+        let check = scaled_remaining_playouts < playout_difference;
+        if check {
+            self.config.log(format!("Search stopped early."));
+        }
+        check
     }
 
     pub fn stop(&mut self) {
