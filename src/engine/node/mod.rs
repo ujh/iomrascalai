@@ -264,7 +264,7 @@ impl Node {
         for n in self.children.iter() {
             if n.m().is_pass() {
                 pass = n;
-            } else if n.plays_with_prior_factor() > best.plays_with_prior_factor() {
+            } else if n.plays > best.plays {
                 best = n;
             }
         }
