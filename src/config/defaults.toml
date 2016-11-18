@@ -20,10 +20,10 @@ small_patterns = 14
 
 [time_control]
 
-c = 0.928949
 fastplay_threshold = 0.811985
 fastplay_budget = 0.305821
 min_stones = 30
+vacant_point_scaling_factor = 0.75
 
 [tree]
 

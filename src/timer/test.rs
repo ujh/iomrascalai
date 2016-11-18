@@ -62,9 +62,9 @@ describe! timer {
 
     before_each {
         let mut c = Config::test_config();
-        c.time_control.c = 0.5;
         c.time_control.fastplay_budget = 0.05;
         c.time_control.min_stones = 30;
+        c.time_control.vacant_point_scaling_factor = 1.0;
         let config = Arc::new(c);
         let mut timer = Timer::new(config.clone());
     }
@@ -186,13 +186,13 @@ describe! timer {
         it "uses the vacant points to calculate during main time" {
             timer.setup(100, 0, 0);
             let game_info = &TestGameInfo::new(100);
-            assert_that!(timer.budget(game_info).num_milliseconds(), is(equal_to(2_000)));
+            assert_that!(timer.budget(game_info).num_milliseconds(), is(equal_to(1_000)));
         }
 
         it "uses a minimum of 30 points to calculate during main time" {
             timer.setup(300, 0, 0);
             let game_info = &TestGameInfo::new(10);
-            assert_that!(timer.budget(game_info).num_milliseconds(), is(equal_to(20_000)));
+            assert_that!(timer.budget(game_info).num_milliseconds(), is(equal_to(10_000)));
         }
     }
 

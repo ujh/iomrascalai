@@ -22,7 +22,6 @@
 use config::Config;
 use game::Info;
 
-use std::cmp::max;
 use std::sync::Arc;
 use time::Duration;
 use time::PreciseTime;
@@ -163,16 +162,12 @@ impl Timer {
         }
     }
 
-    fn c(&self) -> f32 {
-        self.config.time_control.c
-    }
-
     fn budget<T: Info>(&self, game: &T) -> Duration {
         // If there's still main time left
         let ms = if self.main_time_left > 0 {
-            let min_stones = self.config.time_control.min_stones as u16;
-            let vacant = max(game.vacant_point_count(), min_stones) as f32;
-            (self.main_time_left as f32 / (self.c() * vacant)).floor() as i64
+            let min_stones = self.config.time_control.min_stones as f32;
+            let vacant = game.vacant_point_count() as f32 * self.config.time_control.vacant_point_scaling_factor;
+            (self.main_time_left as f32 / vacant.max(min_stones)).floor() as i64
         } else if self.byo_time_left() == 0 {
             0
         } else {

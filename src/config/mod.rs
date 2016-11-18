@@ -190,12 +190,6 @@ impl FromToml for PriorsConfig {
 /// Holds all settings related to time control.
 #[derive(Debug, PartialEq)]
 pub struct TimeControlConfig {
-    /// Scaling factor for allocating the time for the next move. We
-    /// devide the remaining time by `c * <EMPTY INTERSECTION COUNT>`.
-    /// To make sure we never run out of time we set the empty
-    /// intersection count to 30 if there are less than 30 empty
-    /// intersections on the board.
-    pub c: f32,
     /// The percentage of the allocated time for the current move
     /// after which to check for early termination of the search.
     pub fastplay_budget: f32,
@@ -207,6 +201,12 @@ pub struct TimeControlConfig {
     /// Minimum number of stones to use when calculating the budget
     /// for the next move.
     pub min_stones: usize,
+    /// Scaling factor by which to multiply the empty intersections
+    /// on the board. It is used to improve the estimate of remaining
+    /// moves by giving a rough estimate on how many empty intersections
+    /// will remain on the finished board. That's why it's usually
+    /// smaller than 1.0.
+    pub vacant_point_scaling_factor: f32,
 }
 
 impl TimeControlConfig {
@@ -218,10 +218,10 @@ impl TimeControlConfig {
         table.extend(default_table);
         table.extend(opts);
         TimeControlConfig {
-            c: Self::as_float(&table, "c"),
             fastplay_budget: Self::as_float(&table, "fastplay_budget"),
             fastplay_threshold: Self::as_float(&table, "fastplay_threshold"),
             min_stones: Self::as_integer(&table, "min_stones"),
+            vacant_point_scaling_factor: Self::as_float(&table, "vacant_point_scaling_factor"),
         }
     }
 }
