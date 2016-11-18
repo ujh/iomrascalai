@@ -156,7 +156,9 @@ impl Engine {
         loop {
             let (playouts_best, playouts_second_best) = self.root.best2_playouts();
             let done = {
-                stop(self.root.playouts() - initial_playouts, playouts_best, playouts_second_best)
+                // So as to not pass in 0 as it will mess up the calculation
+                let playouts_run = self.root.playouts() - initial_playouts + 1;
+                stop(playouts_run, playouts_best, playouts_second_best)
             };
             if done { return; }
             let r = self.receive_from_threads.recv();
