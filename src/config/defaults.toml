@@ -20,9 +20,9 @@ small_patterns = 14
 
 [time_control]
 
-f_earlystop = 2.5
+f_earlystop = 1.94976
 min_stones = 30
-p_earlystop = 0.4
+p_earlystop = 0.600313
 vacant_point_scaling_factor = 0.75
 
 [tree]
