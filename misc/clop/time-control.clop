@@ -10,5 +10,5 @@ Replications 1
 
 
 # [time_control]
-LinearParameter time_control.f_earlystop 1.0 3.0
-LinearParameter time_control.p_earlystop 0.3 1.0
+LinearParameter time_control.vacant_point_scaling_factor 0.5 1.0
+IntegerParameter time_control.min_stones 10 40
