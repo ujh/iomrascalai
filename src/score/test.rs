@@ -186,32 +186,4 @@ describe! score {
 
     }
 
-    describe! adjusted {
-
-        before_each {
-            let mut score = Score {
-                black_stones: 0,
-                komi: 6.5,
-                owner: vec!(),
-                size: 9,
-                white_stones: 0,
-            };
-        }
-
-        it "returns the correct score when black wins" {
-            score.black_stones = 10;
-            assert_that!(score.adjusted(), is(equal_to(0.043209877)));
-        }
-
-        it "returns the correct score when white wins" {
-            score.white_stones = 10;
-            assert_that!(score.adjusted(), is(equal_to(0.188571429)));
-        }
-
-        it "returns the correct score on a draw" {
-            score.komi = 7.0;
-            score.black_stones = 7;
-            assert_that!(score.adjusted(), is(equal_to(0.0)));
-        }
-    }
 }
