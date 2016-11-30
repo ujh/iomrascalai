@@ -84,7 +84,7 @@ def run_benchmark
   else
     0
   end
-  run(gogui_twogtp(games+10))
+  run(gogui_twogtp(games+1))
 end
 
 def data
