@@ -62,9 +62,8 @@ describe! timer {
 
     before_each {
         let mut c = Config::test_config();
-        c.time_control.c = 0.5;
-        c.time_control.fastplay_budget = 0.05;
-        c.time_control.min_stones = 30;
+        c.time_control.min_stones = 30.0;
+        c.time_control.vacant_point_scaling_factor = 1.0;
         let config = Arc::new(c);
         let mut timer = Timer::new(config.clone());
     }
@@ -186,13 +185,13 @@ describe! timer {
         it "uses the vacant points to calculate during main time" {
             timer.setup(100, 0, 0);
             let game_info = &TestGameInfo::new(100);
-            assert_that!(timer.budget(game_info).num_milliseconds(), is(equal_to(2_000)));
+            assert_that!(timer.budget(game_info).num_milliseconds(), is(equal_to(1_000)));
         }
 
         it "uses a minimum of 30 points to calculate during main time" {
             timer.setup(300, 0, 0);
             let game_info = &TestGameInfo::new(10);
-            assert_that!(timer.budget(game_info).num_milliseconds(), is(equal_to(20_000)));
+            assert_that!(timer.budget(game_info).num_milliseconds(), is(equal_to(10_000)));
         }
     }
 
@@ -291,37 +290,4 @@ describe! timer {
 
     }
 
-    describe! ran_out_of_time {
-
-        it "returns false if there's still time left" {
-            timer.current_budget = Duration::seconds(1);
-            assert!(!timer.ran_out_of_time(0.5));
-        }
-
-        it "returns true if the time is up" {
-            timer.current_budget = Duration::milliseconds(1);
-            sleep_ms(10);
-            assert!(timer.ran_out_of_time(0.5));
-        }
-
-        describe! over_5_percent_threshold {
-
-            before_each {
-                let win_ratio = config.time_control.fastplay_threshold + 0.01;
-            }
-
-            it "returns false if less than 5% of the time is up" {
-                timer.current_budget = Duration::seconds(1);
-                assert!(!timer.ran_out_of_time(win_ratio));
-            }
-
-            it "returns true if more than 5% of the time is up" {
-                timer.current_budget = Duration::milliseconds(100);
-                sleep_ms(10);
-                assert!(timer.ran_out_of_time(win_ratio));
-            }
-
-        }
-
-    }
 }

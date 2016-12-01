@@ -29,8 +29,8 @@ cd $DIR/..
 
 set -x
 
-./bin/benchmark.rb 9 $PREFIX
 ./bin/benchmark.rb 13 $PREFIX
 ./bin/benchmark.rb 15 $PREFIX
 ./bin/benchmark.rb 17 $PREFIX
 ./bin/benchmark.rb 19 $PREFIX
+./bin/benchmark.rb 9 $PREFIX

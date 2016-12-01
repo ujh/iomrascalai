@@ -264,11 +264,25 @@ impl Node {
         for n in self.children.iter() {
             if n.m().is_pass() {
                 pass = n;
-            } else if n.plays_with_prior_factor() > best.plays_with_prior_factor() {
+            } else if n.playouts > best.playouts {
                 best = n;
             }
         }
         (best, pass)
+    }
+
+    pub fn best2_playouts(&self) -> (usize, usize) {
+        let mut most_playouts = 0;
+        let mut second_most_playouts = 0;
+        for n in &self.children {
+            if n.playouts > most_playouts {
+                second_most_playouts = most_playouts;
+                most_playouts = n.playouts;
+            } else if n.playouts > second_most_playouts {
+                second_most_playouts = n.playouts;
+            }
+        }
+        (most_playouts, second_most_playouts)
     }
 
     fn weighted_win(&self, score: &Score) -> f32 {
