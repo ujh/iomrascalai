@@ -40,7 +40,6 @@ pub struct Score {
     black_stones: usize,
     komi: f32,
     owner: Vec<Color>,
-    size: u8,
     white_stones: usize,
 }
 
@@ -52,7 +51,6 @@ impl Score {
             black_stones: bs,
             komi: board.komi(),
             owner: owners,
-            size: board.size(),
             white_stones: ws,
         }
     }
@@ -74,18 +72,6 @@ impl Score {
 
     fn score(&self) -> f32 {
         (self.black_stones as f32 - (self.white_stones as f32 + self.komi)).abs()
-    }
-
-    pub fn adjusted(&self) -> f32 {
-        let max = self.size as f32 * self.size as f32;
-        match self.color() {
-            White => {
-                self.score() / (max + self.komi)
-            },
-            _ => {
-                self.score() / max
-            }
-        }
     }
 
     fn score_tt(board: &Board) -> (usize, usize, Vec<Color>) {
