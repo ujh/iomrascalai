@@ -1,0 +1,12 @@
+# Use for the naming of the .log and .dat files
+Name small-patterns
+Processor main
+Script ./small-patterns-runner
+Replications 1
+
+# [tree]
+# IntegerParameter tree.expand_after 0 20
+# LinearParameter tree.rave_equiv 0.0 100.0
+
+IntegerParameter priors.small_patterns 0 50
+LinearParameter playout.pattern_probability 0.0 1.0
