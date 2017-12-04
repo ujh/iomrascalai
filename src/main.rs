@@ -28,7 +28,6 @@
 #[cfg(test)] #[macro_use] extern crate hamcrest;
 
 extern crate core;
-#[macro_use] extern crate enum_primitive;
 extern crate getopts;
 extern crate num;
 extern crate num_cpus;
