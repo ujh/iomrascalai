@@ -12,7 +12,6 @@ license = "GPL-3.0+"
 build = "build.rs"
 
 [dependencies]
-enum_primitive = "*"
 getopts = "*"
 num = "*"
 num_cpus = "*"
