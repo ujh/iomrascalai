@@ -143,13 +143,14 @@ impl Parser {
         let mut prev_name = "";
         let re = Regex::new(r"([:upper:]{1,2})?\[([^]]*)\]").unwrap();
         for caps in re.captures_iter(self.sgf.as_ref()) {
-            match caps.at(1) {
+            match caps.get(1) {
                 Some(name) => {
-                    tokens.push(Property {name: name, val: caps.at(2).unwrap()});
-                    prev_name = name;
+                    let new_name = name.as_str();
+                    tokens.push(Property {name: new_name, val: &caps[2]});
+                    prev_name = new_name;
                 }
                 None => {
-                    tokens.push(Property {name: prev_name, val: caps.at(2).unwrap()});
+                    tokens.push(Property {name: prev_name, val: &caps[2]});
                 }
             }
         }
