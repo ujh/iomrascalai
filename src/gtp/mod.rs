@@ -428,7 +428,7 @@ impl<'a> GTPInterpreter<'a> {
         let horizontal_tab = Regex::new(r"\t").unwrap();
         let without_tabs = horizontal_tab.replace_all(input, " ");
         // Remove all control characters
-        let cntrls = Regex::new(r"[:cntrl:]").unwrap();
+        let cntrls = Regex::new(r"[[:cntrl:]]").unwrap();
         let without_ctrls = cntrls.replace_all(without_tabs.as_ref(), "");
         // Then we remove anything after a #
         let comment = Regex::new(r"#.*").unwrap();
