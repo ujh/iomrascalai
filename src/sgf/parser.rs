@@ -142,7 +142,7 @@ impl Parser {
     fn tokenize<'a>(&'a self) -> Vec<Property<'a>> {
         let mut tokens = Vec::new();
         let mut prev_name = "";
-        let re = Regex::new(r"([:upper:]{1,2})?\[([^]]*)\]").unwrap();
+        let re = Regex::new(r"([[:upper:]]{1,2})?\[([^]]*)\]").unwrap();
         for caps in re.captures_iter(self.sgf.as_ref()) {
             match caps.get(1) {
                 Some(name) => {
