@@ -30,10 +30,12 @@ use std::io::prelude::*;
 use std::io::stderr;
 use std::process::exit;
 use toml;
+use toml::value::Table;
+use toml::Value;
 
 trait FromToml {
 
-    fn as_float(table: &toml::Table, field: &'static str) -> f32 {
+    fn as_float(table: &Table, field: &'static str) -> f32 {
         let value = &table[field];
         match value.type_str() {
             "integer" => value.as_integer().unwrap() as f32,
@@ -42,7 +44,7 @@ trait FromToml {
         }
     }
 
-    fn as_integer(table: &toml::Table, field: &'static str) -> usize {
+    fn as_integer(table: &Table, field: &'static str) -> usize {
         let value = &table[field];
         match value.type_str() {
             "integer" => value.as_integer().unwrap() as usize,
@@ -51,7 +53,7 @@ trait FromToml {
         }
     }
 
-    fn as_bool(table: &toml::Table, field: &'static str) -> bool {
+    fn as_bool(table: &Table, field: &'static str) -> bool {
         let value = &table[field];
         match value.as_bool() {
             Some(v) => v,
@@ -59,7 +61,7 @@ trait FromToml {
         }
     }
 
-    fn fail(field: &'static str, value: &toml::Value, expected: &'static str) -> ! {
+    fn fail(field: &'static str, value: &Value, expected: &'static str) -> ! {
         let long_name = match Self::name() {
             Some(name) => format!("{}.{}", name, field),
             None => format!("{}", field)
@@ -92,7 +94,7 @@ impl TreeConfig {
     fn new(value: toml::Value, default: toml::Value) -> TreeConfig {
         let opts = value.as_table().unwrap().clone();
         let default_table = default.as_table().unwrap().clone();
-        let mut table = toml::Table::new();
+        let mut table = Table::new();
         table.extend(default_table);
         table.extend(opts);
         TreeConfig {
@@ -153,7 +155,7 @@ impl PriorsConfig {
     fn new(value: toml::Value, default: toml::Value) -> PriorsConfig {
         let opts = value.as_table().unwrap().clone();
         let default_table = default.as_table().unwrap().clone();
-        let mut table = toml::Table::new();
+        let mut table = Table::new();
         table.extend(default_table);
         table.extend(opts);
         PriorsConfig {
@@ -214,7 +216,7 @@ impl TimeControlConfig {
     fn new(value: toml::Value, default: toml::Value) -> TimeControlConfig {
         let opts = value.as_table().unwrap().clone();
         let default_table = default.as_table().unwrap().clone();
-        let mut table = toml::Table::new();
+        let mut table = Table::new();
         table.extend(default_table);
         table.extend(opts);
         TimeControlConfig {
@@ -257,7 +259,7 @@ impl PlayoutConfig {
     fn new(value: toml::Value, default: toml::Value) -> PlayoutConfig {
         let opts = value.as_table().unwrap().clone();
         let default_table = default.as_table().unwrap().clone();
-        let mut table = toml::Table::new();
+        let mut table = Table::new();
         table.extend(default_table);
         table.extend(opts);
         PlayoutConfig {
@@ -295,7 +297,7 @@ impl ScoringConfig {
     fn new(value: toml::Value, default: toml::Value) -> ScoringConfig {
         let opts = value.as_table().unwrap().clone();
         let default_table = default.as_table().unwrap().clone();
-        let mut table = toml::Table::new();
+        let mut table = Table::new();
         table.extend(default_table);
         table.extend(opts);
         ScoringConfig {
@@ -384,22 +386,18 @@ impl Config {
     }
 
     fn new(toml_str: String, default_toml_str: String, log: bool, gfx: bool, ruleset: Ruleset, threads: Option<usize>) -> Config {
-        let opts = toml::Parser::new(&toml_str).parse().unwrap();
-        let default_table = toml::Parser::new(&default_toml_str).parse().unwrap();
-        let mut table = toml::Table::new();
+        let opts : Table = toml::from_str(&toml_str).unwrap();
+        let default_table : Table = toml::from_str(&default_toml_str).unwrap();
+        let mut table = Table::new();
         table.extend(default_table.clone());
-        let default_threads = toml::Parser::new(
-            &format!("threads = {}", num_cpus::get()-1)
-        ).parse().unwrap();
+        let default_threads : Table = toml::from_str(&format!("threads = {}", num_cpus::get()-1)).unwrap();
         table.extend(default_threads);
         // The threads value set in the config file overrides the default threads value.
         table.extend(opts.clone());
         // The threads command line switch overrides the threads value set in the config file.
         match threads {
             Some(ts) => {
-                let cmd_threads = toml::Parser::new(
-                    &format!("threads = {}", ts)
-                ).parse().unwrap();
+                let cmd_threads : Table = toml::from_str(&format!("threads = {}", ts)).unwrap();
                 table.extend(cmd_threads);
             },
             None => {}
