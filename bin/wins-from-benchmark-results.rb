@@ -22,48 +22,29 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-require 'csv'
+require_relative "../misc/lib/benchmark_results"
 
-def parse_file(fn)
-  contents = File.read(fn)
-  relevant_lines = contents.each_line.find_all {|l| l !~ /^#/ }
-  CSV.parse(relevant_lines.map(&:strip).join("\n"), col_sep: "\t")
+files = Dir["*.dat"].sort do |a, b|
+  a =~ /(.*)-(\d+)x\d+/
+  prefix_a = $1
+  size_a = $2.to_i
+  b =~ /(.*)-(\d+)x\d+/
+  prefix_b = $1
+  size_b = $2.to_i
+  prefix_comparision = prefix_a <=> prefix_b
+  if prefix_comparision.zero?
+    size_a <=> size_b
+  else
+    prefix_comparision
+  end
 end
 
-RES_B = 1
-RES_W = 2
-RES_R = 3
-
-def wins(fn)
-  data = parse_file(fn)
-  white = data.find_all {|row| row[RES_R] =~ /W\+/ }.count
-  black = data.find_all {|row| row[RES_R] =~ /B\+/ }.count
-  n = white + black
-  p = white.to_f/n
-  "#{(p*100).round(2)}% wins (#{white} games of #{n}, ± #{error(p, n, 0.95).round(2)} at 95%, ± #{error(p, n, 0.99).round(2)} at 99%)"
-end
-
-def scoring(fn)
-  data = parse_file(fn)
-  relevant = data.find_all {|row| row[RES_R] !~ /[BW]\+R/ }
-  agreeing = relevant.find_all {|row| row[RES_W] == row[RES_B] }.count
-  n = relevant.length
-  p = agreeing.to_f/n
-  "#{(p*100).round(2)}% same score as GnuGo (#{agreeing} of #{n}, ± #{error(p, n, 0.95).round(2)} at 95%, ± #{error(p, n, 0.99).round(2)} at 99%)"
-end
-
-def z(confidence)
-  alpha = 1 - confidence
-  (1 - 0.5*alpha)*2
-end
-
-def error(p, n, confidence)
-  (z(confidence) * Math.sqrt((1.0/n)*p*(1-p)))*100
-end
-
-Dir["*.dat"].each do |fn|
+files.each do |fn|
   next if fn =~ /summary\.dat/
   puts "#{fn}:"
-  puts "\t\t#{wins(fn)}"
-  puts "\t\t#{scoring(fn)}"
+  br = BenchmarkResults.new(fn)
+  puts "\t\t#{(br.win_percentage*100).round(2)}% wins (#{br.wins} games of #{br.games}, ± #{br.error95.round(2)} at 95%, ± #{br.error99.round(2)} at 99%)"
+
+  scoring = br.scoring
+  puts "\t\t#{(scoring[:same_score_percentage]*100).round(2)}% same score as GnuGo (#{scoring[:same_score]} of #{scoring[:games]}, ± #{scoring[:error95].round(2)} at 95%, ± #{scoring[:error99].round(2)} at 99%)"
 end
