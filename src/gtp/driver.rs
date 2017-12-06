@@ -25,6 +25,7 @@ use config::Config;
 use engine::Engine;
 use super::GTPInterpreter;
 
+use regex::Regex;
 use std::io::stdin;
 use std::sync::Arc;
 
@@ -35,7 +36,7 @@ impl Driver {
         let mut interpreter = GTPInterpreter::new(config, engine);
         let reader = stdin();
         let mut command = String::new();
-        let regex = regex!(r"^quit");
+        let regex = Regex::new(r"^quit");
         loop {
             command.clear();
             reader.read_line(&mut command).unwrap();

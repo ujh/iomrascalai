@@ -23,7 +23,6 @@
 #![feature(mpsc_select)]
 #![feature(plugin)]
 #![feature(test)]
-#![plugin(regex_macros)]
 #![cfg_attr(test, plugin(stainless))]
 
 #[cfg(test)]
@@ -37,7 +36,6 @@ extern crate num_cpus;
 extern crate quicksort;
 extern crate rand;
 extern crate regex;
-#[no_link] extern crate regex_macros;
 extern crate smallvec;
 extern crate test;
 extern crate time;

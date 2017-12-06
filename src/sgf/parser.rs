@@ -2,6 +2,8 @@
  *                                                                      *
  * Copyright 2014 Urban Hafner                                          *
  * Copyright 2015 Urban Hafner, Igor Polyakov                           *
+ * Copyright 2016 Urban Hafner                                          *
+ * Copyright 2017 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
@@ -19,9 +21,7 @@
  * along with Iomrascálaí.  If not, see <http://www.gnu.org/licenses/>. *
  *                                                                      *
  ************************************************************************/
-use std::io::prelude::*;
-use std::fs::File;
-use std::path::Path;
+
 use board::Black;
 use board::Color;
 use board::Empty;
@@ -31,6 +31,11 @@ use board::Play;
 use board::White;
 use game::Game;
 use ruleset::Minimal;
+
+use regex::Regex;
+use std::io::prelude::*;
+use std::fs::File;
+use std::path::Path;
 
 pub struct Parser {
     sgf: String
@@ -137,15 +142,16 @@ impl Parser {
     fn tokenize<'a>(&'a self) -> Vec<Property<'a>> {
         let mut tokens = Vec::new();
         let mut prev_name = "";
-        let re = regex!(r"([:upper:]{1,2})?\[([^]]*)\]");
+        let re = Regex::new(r"([:upper:]{1,2})?\[([^]]*)\]");
         for caps in re.captures_iter(self.sgf.as_ref()) {
-            match caps.at(1) {
+            match caps.get(1) {
                 Some(name) => {
-                    tokens.push(Property {name: name, val: caps.at(2).unwrap()});
-                    prev_name = name;
+                    let new_name = name.as_str();
+                    tokens.push(Property {name: new_name, val: caps.get(2).unwrap().as_str()});
+                    prev_name = new_name;
                 }
                 None => {
-                    tokens.push(Property {name: prev_name, val: caps.at(2).unwrap()});
+                    tokens.push(Property {name: prev_name, val: caps.get(2).unwrap().as_str()});
                 }
             }
         }
