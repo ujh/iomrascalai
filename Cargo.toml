@@ -11,7 +11,6 @@ repository = "https://github.com/ujh/iomrascalai"
 license = "GPL-3.0+"
 
 [dependencies]
-enum_primitive  = "*"
 getopts         = "*"
 num             = "*"
 num_cpus        = "*"
