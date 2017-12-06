@@ -20,9 +20,7 @@
  ************************************************************************/
 #![cfg(test)]
 
-pub use hamcrest::assert_that;
-pub use hamcrest::equal_to;
-pub use hamcrest::is;
+pub use hamcrest::prelude::*;
 
 pub use super::Coord;
 
@@ -138,23 +136,23 @@ describe! indexing {
 
     it "a1" {
         let coord = Coord::from_gtp("a1");
-        assert_that(coord, is(equal_to(Coord::new(1,1))));
-        assert_that(coord.to_index(9), is(equal_to(0)));
-        assert_that(Coord::from_index(0, 9), is(equal_to(coord)));
+        assert_that!(coord, is(equal_to(Coord::new(1,1))));
+        assert_that!(coord.to_index(9), is(equal_to(0)));
+        assert_that!(Coord::from_index(0, 9), is(equal_to(coord)));
     }
 
     it "j9" {
         let coord = Coord::from_gtp("j9");
-        assert_that(coord, is(equal_to(Coord::new(9,9))));
-        assert_that(coord.to_index(9), is(equal_to(80)));
-        assert_that(Coord::from_index(80, 9), is(equal_to(coord)));
+        assert_that!(coord, is(equal_to(Coord::new(9,9))));
+        assert_that!(coord.to_index(9), is(equal_to(80)));
+        assert_that!(Coord::from_index(80, 9), is(equal_to(coord)));
     }
 
     it "g6" {
         let coord = Coord::from_gtp("g6");
-        assert_that(coord, is(equal_to(Coord::new(7,6))));
-        assert_that(coord.to_index(9), is(equal_to(51)));
-        assert_that(Coord::from_index(51, 9), is(equal_to(coord)));
+        assert_that!(coord, is(equal_to(Coord::new(7,6))));
+        assert_that!(coord.to_index(9), is(equal_to(51)));
+        assert_that!(Coord::from_index(51, 9), is(equal_to(coord)));
     }
 
 }

@@ -26,9 +26,7 @@ pub use config::Config;
 pub use ruleset::KgsChinese;
 pub use super::OwnershipStatistics;
 
-pub use hamcrest::assert_that;
-pub use hamcrest::equal_to;
-pub use hamcrest::is;
+pub use hamcrest::prelude::*;
 pub use std::sync::Arc;
 pub use test::Bencher;
 
@@ -50,7 +48,7 @@ describe! ownership {
             it "returns 0 by default" {
                 let formatted = format!("{}", stats);
 
-                assert_that(formatted, is(equal_to("0 0 0 \n0 0 0 \n0 0 0 \n".to_string())));
+                assert_that!(formatted, is(equal_to("0 0 0 \n0 0 0 \n0 0 0 \n".to_string())));
             }
         }
     }

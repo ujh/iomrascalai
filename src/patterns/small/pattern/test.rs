@@ -21,10 +21,7 @@
 
 #![cfg(test)]
 
-pub use hamcrest::assert_that;
-pub use hamcrest::contains;
-pub use hamcrest::equal_to;
-pub use hamcrest::is;
+pub use hamcrest::prelude::*;
 pub use std::path::Path;
 
 pub use board::Board;
@@ -44,11 +41,11 @@ describe! expand {
     }
 
     it "includes all variations" {
-        assert_that(expanded.len(), is(equal_to(16)));
+        assert_that!(expanded.len(), is(equal_to(16)));
     }
 
     it "includes the original pattern" {
-        assert_that(&expanded, contains(vec!(pattern)));
+        assert_that!(&expanded, contains(vec!(pattern)));
     }
 
     it "includes the orginal pattern swapped" {
@@ -56,7 +53,7 @@ describe! expand {
             ['O', 'X', '.'],
             ['o', 'x', '?'],
             [' ', ' ', ' ']]);
-        assert_that(&expanded, contains(vec!(pattern)));
+        assert_that!(&expanded, contains(vec!(pattern)));
     }
 
     it "includes the 90deg rotated pattern" {
@@ -64,7 +61,7 @@ describe! expand {
             [' ', 'x', 'X'],
             [' ', 'o', 'O'],
             [' ', '?', '.']]);
-        assert_that(&expanded, contains(vec!(pattern)));
+        assert_that!(&expanded, contains(vec!(pattern)));
     }
 
     it "includes the 90deg rotated pattern swapped" {
@@ -72,7 +69,7 @@ describe! expand {
             [' ', 'o', 'O'],
             [' ', 'x', 'X'],
             [' ', '?', '.']]);
-        assert_that(&expanded, contains(vec!(pattern)));
+        assert_that!(&expanded, contains(vec!(pattern)));
     }
 
     it "includes the 180deg rotated pattern" {
@@ -80,7 +77,7 @@ describe! expand {
             [' ', ' ', ' '],
             ['?', 'o', 'x'],
             ['.', 'O', 'X']]);
-        assert_that(&expanded, contains(vec!(pattern)));
+        assert_that!(&expanded, contains(vec!(pattern)));
     }
 
     it "includes the 180deg rotated pattern swapped" {
@@ -88,7 +85,7 @@ describe! expand {
             [' ', ' ', ' '],
             ['?', 'x', 'o'],
             ['.', 'X', 'O']]);
-        assert_that(&expanded, contains(vec!(pattern)));
+        assert_that!(&expanded, contains(vec!(pattern)));
     }
 
     it "includes the 270deg rotated pattern" {
@@ -96,7 +93,7 @@ describe! expand {
             ['.', '?', ' '],
             ['O', 'o', ' '],
             ['X', 'x', ' ']]);
-        assert_that(&expanded, contains(vec!(pattern)));
+        assert_that!(&expanded, contains(vec!(pattern)));
     }
 
     it "includes the 270deg rotated pattern swapped" {
@@ -104,7 +101,7 @@ describe! expand {
             ['.', '?', ' '],
             ['X', 'x', ' '],
             ['O', 'o', ' ']]);
-        assert_that(&expanded, contains(vec!(pattern)));
+        assert_that!(&expanded, contains(vec!(pattern)));
     }
 
     it "includes the horizontally flipped pattern" {
@@ -112,7 +109,7 @@ describe! expand {
             [' ', ' ', ' '],
             ['x', 'o', '?'],
             ['X', 'O', '.']]);
-        assert_that(&expanded, contains(vec!(pattern)));
+        assert_that!(&expanded, contains(vec!(pattern)));
     }
 
     it "includes the horizontally flipped pattern swapped" {
@@ -120,7 +117,7 @@ describe! expand {
             [' ', ' ', ' '],
             ['o', 'x', '?'],
             ['O', 'X', '.']]);
-        assert_that(&expanded, contains(vec!(pattern)));
+        assert_that!(&expanded, contains(vec!(pattern)));
     }
 
     it "includes the vertially flipped pattern" {
@@ -128,7 +125,7 @@ describe! expand {
             ['.', 'O', 'X'],
             ['?', 'o', 'x'],
             [' ', ' ', ' ']]);
-        assert_that(&expanded, contains(vec!(pattern)));
+        assert_that!(&expanded, contains(vec!(pattern)));
     }
 
     it "includes the vertically flipped pattern swapped" {
@@ -136,7 +133,7 @@ describe! expand {
             ['.', 'X', 'O'],
             ['?', 'x', 'o'],
             [' ', ' ', ' ']]);
-        assert_that(&expanded, contains(vec!(pattern)));
+        assert_that!(&expanded, contains(vec!(pattern)));
     }
 
 }
