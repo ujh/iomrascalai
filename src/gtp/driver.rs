@@ -36,7 +36,7 @@ impl Driver {
         let mut interpreter = GTPInterpreter::new(config, engine);
         let reader = stdin();
         let mut command = String::new();
-        let regex = Regex::new(r"^quit");
+        let regex = Regex::new(r"^quit").unwrap();
         loop {
             command.clear();
             reader.read_line(&mut command).unwrap();

@@ -425,13 +425,13 @@ impl<'a> GTPInterpreter<'a> {
 
     fn preprocess(&self, input: &str) -> String {
         // Convert tab to space
-        let horizontal_tab = Regex::new(r"\t");
+        let horizontal_tab = Regex::new(r"\t").unwrap();
         let without_tabs = horizontal_tab.replace_all(input, " ");
         // Remove all control characters
-        let cntrls = Regex::new(r"[:cntrl:]");
+        let cntrls = Regex::new(r"[:cntrl:]").unwrap();
         let without_ctrls = cntrls.replace_all(without_tabs.as_ref(), "");
         // Then we remove anything after a #
-        let comment = Regex::new(r"#.*");
+        let comment = Regex::new(r"#.*").unwrap();
         let without_comment = comment.replace(without_ctrls.as_ref(), "");
         // We remove the whitespaces before/after the string
         without_comment.trim().to_string()
