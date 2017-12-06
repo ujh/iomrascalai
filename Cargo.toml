@@ -9,17 +9,18 @@ authors = ["Urban Hafner <contact@urbanhafner.com>",
 homepage = "https://github.com/ujh/iomrascalai"
 repository = "https://github.com/ujh/iomrascalai"
 license = "GPL-3.0+"
+build = "build.rs"
 
 [dependencies]
-getopts         = "*"
-num             = "*"
-num_cpus        = "*"
-quicksort       = "*"
-rand            = "*"
-regex           = "*"
-smallvec        = "*"
-time            = "*"
-toml            = "*"
+getopts = "*"
+num = "*"
+num_cpus = "*"
+quicksort = "*"
+rand = "*"
+regex = "*"
+smallvec = "*"
+time = "*"
+toml = "*"
 
 [dev-dependencies]
 hamcrest = "*"
