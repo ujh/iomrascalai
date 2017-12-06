@@ -25,9 +25,9 @@ def run(toml:, seed:, outfile:)
   File.open("config.toml", "w") {|f| f.puts toml }
   if rand(2).zero?
     white = iomrascalai
-    black = gnugo
+    black = opponent
   else
-    white = gnugo
+    white = opponent
     black = iomrascalai
   end
   execute(twogtp({
@@ -48,20 +48,26 @@ def execute(command)
   system command
 end
 
-# Select size based on the module of the seed (see Replications in the
-# experiments file). For now we just always use 13.
 def size(seed)
   13
+end
+
+def opponent
+  gnugo
 end
 
 def time(seed)
   case size(seed)
   when 9
-    "5m"
+    "2m"
   when 13
     "10m"
+  when 15
+    "17m"
+  when 17
+    "24m"
   when 19
-    "20m"
+    "30m"
   else
     $stderr.puts "Size #{size(seed)} not supported!"
     exit 1
