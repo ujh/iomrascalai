@@ -1,5 +1,7 @@
 target/
 .project
+.idea
+*.iml
 
 # Ignore gogui-twogtp output in the root directory
 /*.sgf
@@ -11,3 +13,7 @@ target/
 misc/clop/experiments
 misc/clop/*.dat
 misc/clop/*.log
+
+# Ignore KGS config files as they contain passwords
+misc/kgs/*.cfg
+misc/kgs/*.log
