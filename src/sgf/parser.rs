@@ -3,7 +3,6 @@
  * Copyright 2014 Urban Hafner                                          *
  * Copyright 2015 Urban Hafner, Igor Polyakov                           *
  * Copyright 2016 Urban Hafner                                          *
- * Copyright 2017 Urban Hafner                                          *
  *                                                                      *
  * This file is part of Iomrascálaí.                                    *
  *                                                                      *
