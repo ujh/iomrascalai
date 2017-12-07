@@ -43,13 +43,16 @@ const ATARI_CUTOFF: usize = 7;
 
 pub struct Playout {
     config: Arc<Config>,
-    matcher: Arc<SmallPatternMatcher>
+    small_pattern_matcher: Arc<SmallPatternMatcher>
 }
 
 impl Playout {
 
-    pub fn new(config: Arc<Config>, matcher: Arc<SmallPatternMatcher>) -> Playout {
-        Playout { config: config, matcher: matcher }
+    pub fn new(config: Arc<Config>, small_pattern_matcher: Arc<SmallPatternMatcher>) -> Playout {
+        Playout {
+            config: config,
+            small_pattern_matcher: small_pattern_matcher,
+        }
     }
 
     pub fn run(&self, board: &mut Board, initial_move: Option<&Move>, rng: &mut XorShiftRng) -> PlayoutResult {
@@ -119,7 +122,7 @@ impl Playout {
             }
         }
         if self.use_patterns(rng) {
-            let possible_move = self.pattern_move(color, heuristic_set, board);
+            let possible_move = self.small_pattern_move(color, &heuristic_set, board);
             if possible_move.is_some() {
                 return possible_move.unwrap();
             }
@@ -151,18 +154,18 @@ impl Playout {
         }
     }
 
-    fn pattern_move(&self, color: Color, coords: Vec<Coord>, board: &Board) -> Option<Move> {
+    fn small_pattern_move(&self, color: Color, coords: &Vec<Coord>, board: &Board) -> Option<Move> {
         // This works as coords is randomly ordered, so taking the
         // first we find is OK.
         coords.iter()
             .map(|c| Play(color, c.col, c.row))
             .find(|&m| {
-                board.is_legal(m).is_ok() && self.matches(board, &m)
+                board.is_legal(m).is_ok() && self.small_pattern_matches(board, &m)
             })
     }
 
-    fn matches(&self, board: &Board, m: &Move) -> bool {
-        self.matcher.pattern_count(board, &m.coord()) > 0
+    fn small_pattern_matches(&self, board: &Board, m: &Move) -> bool {
+        self.small_pattern_matcher.pattern_count(board, &m.coord()) > 0
     }
 
     fn random_move(&self, color: Color, board: &Board, rng: &mut XorShiftRng) -> Move {
