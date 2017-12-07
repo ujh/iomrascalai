@@ -38,20 +38,20 @@ fn config() -> Arc<Config> {
     Arc::new(Config::test_config())
 }
 
-fn playout(matcher: Arc<SmallPatternMatcher>) -> Playout {
-    Playout::new(config(), matcher)
+fn playout() -> Playout {
+    let small_pattern_matcher = Arc::new(SmallPatternMatcher::new());
+    Playout::new(config(), small_pattern_matcher)
 }
 
 #[test]
 fn max_moves() {
-    assert_eq!(1083, playout(Arc::new(SmallPatternMatcher::new())).max_moves(19));
+    assert_eq!(1083, playout().max_moves(19));
 }
 
 #[bench]
 fn playout_09x09(b: &mut Bencher) {
     let board = Board::new(9, 6.5, KgsChinese);
-    let matcher = Arc::new(SmallPatternMatcher::new());
-    let playout = playout(matcher);
+    let playout = playout(); // Only instantiate once
     let mut rng = weak_rng();
     b.iter(|| {
         let mut b = board.clone();
@@ -62,8 +62,7 @@ fn playout_09x09(b: &mut Bencher) {
 #[bench]
 fn playout_13x13(b: &mut Bencher) {
     let board = Board::new(13, 6.5, KgsChinese);
-    let matcher = Arc::new(SmallPatternMatcher::new());
-    let playout = playout(matcher);
+    let playout = playout(); // Only instantiate once
     let mut rng = weak_rng();
     b.iter(|| {
         let mut b = board.clone();
@@ -74,8 +73,7 @@ fn playout_13x13(b: &mut Bencher) {
 #[bench]
 fn playout_19x19(b: &mut Bencher) {
     let board = Board::new(19, 6.5, KgsChinese);
-    let matcher = Arc::new(SmallPatternMatcher::new());
-    let playout = playout(matcher);
+    let playout = playout(); // Only instantiate once
     let mut rng = weak_rng();
     b.iter(|| {
         let mut b = board.clone();
