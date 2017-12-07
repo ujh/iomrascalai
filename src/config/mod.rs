@@ -390,14 +390,18 @@ impl Config {
         let default_table : Table = toml::from_str(&default_toml_str).unwrap();
         let mut table = Table::new();
         table.extend(default_table.clone());
-        let default_threads : Table = toml::from_str(&format!("threads = {}", num_cpus::get()-1)).unwrap();
+        let default_threads : Table = toml::from_str(
+            &format!("threads = {}", num_cpus::get()-1)
+        ).unwrap();
         table.extend(default_threads);
         // The threads value set in the config file overrides the default threads value.
         table.extend(opts.clone());
         // The threads command line switch overrides the threads value set in the config file.
         match threads {
             Some(ts) => {
-                let cmd_threads : Table = toml::from_str(&format!("threads = {}", ts)).unwrap();
+                let cmd_threads : Table = toml::from_str(
+                    &format!("threads = {}", ts)
+                ).unwrap();
                 table.extend(cmd_threads);
             },
             None => {}
@@ -415,11 +419,17 @@ impl Config {
         }
     }
 
-    /// If logging is turned on then the string passed will be printed
-    /// to standard error. Otherwise it's silently discarded.
+    /// If logging is turned on then the string passed will be printed to standard error with a
+    /// newline added to the end. Otherwise it's silently discarded.
     pub fn log(&self, s: String) {
+        self.write(format!("{}\n", s));
+    }
+
+    /// If logging is turned on then the string will be printed to standard error (without adding a
+    /// newline). Otherwise it's silently discarded.
+    pub fn write(&self, s: String) {
         if self.log {
-            match stderr().write(format!("{}\n", s).as_bytes()) {
+            match stderr().write(s.as_bytes()) {
                 Ok(_) => {},
                 Err(x) => panic!("Unable to write to stderr: {}", x)
             }
