@@ -279,7 +279,7 @@ impl Engine {
         // Special case, when we are winning and all moves are played.
         if win_ratio == 0.0 {
             Pass(color)
-        } else if win_ratio < 0.15 {
+        } else if win_ratio < self.config.scoring.resignation_percentage {
             Resign(color)
         } else {
             n.m()

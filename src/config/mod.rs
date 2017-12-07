@@ -290,6 +290,8 @@ pub struct ScoringConfig {
     pub ownership_cutoff: f32,
     /// Number of playouts to run when trying to determine the final score of a board.
     pub playouts: usize,
+    /// Win percentage for the best move below which we resign a game.
+    pub resignation_percentage: f32,
 }
 
 impl ScoringConfig {
@@ -304,6 +306,7 @@ impl ScoringConfig {
             ownership_prior: Self::as_integer(&table, "ownership_prior"),
             ownership_cutoff: Self::as_float(&table, "ownership_cutoff"),
             playouts: Self::as_integer(&table, "playouts"),
+            resignation_percentage: Self::as_float(&table, "resignation_percentage"),
         }
     }
 

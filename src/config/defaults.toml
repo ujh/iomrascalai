@@ -35,3 +35,4 @@ score_weight = 0.0653414
 ownership_prior = 87
 ownership_cutoff = 0.892867
 playouts = 10000
+resignation_percentage = 0.15
