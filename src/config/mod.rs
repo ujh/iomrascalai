@@ -91,7 +91,7 @@ pub struct TreeConfig {
 
 impl TreeConfig {
 
-    fn new(value: toml::Value, default: toml::Value) -> TreeConfig {
+    fn new(value: Value, default: Value) -> TreeConfig {
         let opts = value.as_table().unwrap().clone();
         let default_table = default.as_table().unwrap().clone();
         let mut table = Table::new();
@@ -152,7 +152,7 @@ pub struct PriorsConfig {
 
 impl PriorsConfig {
 
-    fn new(value: toml::Value, default: toml::Value) -> PriorsConfig {
+    fn new(value: Value, default: Value) -> PriorsConfig {
         let opts = value.as_table().unwrap().clone();
         let default_table = default.as_table().unwrap().clone();
         let mut table = Table::new();
@@ -213,7 +213,7 @@ pub struct TimeControlConfig {
 
 impl TimeControlConfig {
 
-    fn new(value: toml::Value, default: toml::Value) -> TimeControlConfig {
+    fn new(value: Value, default: Value) -> TimeControlConfig {
         let opts = value.as_table().unwrap().clone();
         let default_table = default.as_table().unwrap().clone();
         let mut table = Table::new();
@@ -256,7 +256,7 @@ pub struct PlayoutConfig {
 
 impl PlayoutConfig {
 
-    fn new(value: toml::Value, default: toml::Value) -> PlayoutConfig {
+    fn new(value: Value, default: Value) -> PlayoutConfig {
         let opts = value.as_table().unwrap().clone();
         let default_table = default.as_table().unwrap().clone();
         let mut table = Table::new();
@@ -294,7 +294,7 @@ pub struct ScoringConfig {
 
 impl ScoringConfig {
 
-    fn new(value: toml::Value, default: toml::Value) -> ScoringConfig {
+    fn new(value: Value, default: Value) -> ScoringConfig {
         let opts = value.as_table().unwrap().clone();
         let default_table = default.as_table().unwrap().clone();
         let mut table = Table::new();
