@@ -74,26 +74,26 @@ pub struct Worker {
     board: Option<Board>,
     config: Arc<Config>,
     id: Option<usize>,
-    matcher: Arc<SmallPatternMatcher>,
     playout: Arc<Playout>,
     rng: XorShiftRng,
     send_to_main: Sender<Response>,
     send_to_self: Option<Sender<Message>>,
+    small_pattern_matcher: Arc<SmallPatternMatcher>,
 }
 
 impl Worker {
 
-    pub fn new(config: &Arc<Config>, playout: &Arc<Playout>, matcher: &Arc<SmallPatternMatcher>, send_to_main: &Sender<Response>) -> Worker {
+    pub fn new(config: &Arc<Config>, playout: &Arc<Playout>, small_pattern_matcher: &Arc<SmallPatternMatcher>, send_to_main: &Sender<Response>) -> Worker {
         let rng = weak_rng();
         Worker {
             board: None,
             config: config.clone(),
             id: None,
-            matcher: matcher.clone(),
             playout: playout.clone(),
             rng: rng,
             send_to_main: send_to_main.clone(),
             send_to_self: None,
+            small_pattern_matcher: small_pattern_matcher.clone(),
         }
     }
 
@@ -156,7 +156,7 @@ impl Worker {
         for &m in moves.iter() {
             b.play_legal_move(m);
         }
-        let priors = prior::calculate(b, child_moves, &self.matcher, &self.config);
+        let priors = prior::calculate(b, child_moves, &self.small_pattern_matcher, &self.config);
         let answer = Answer::CalculatePriors {
             moves: moves,
             path: path,
