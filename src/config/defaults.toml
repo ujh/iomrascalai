@@ -14,8 +14,8 @@ capture_one = 15
 empty = 20
 neutral_plays = 10
 neutral_wins = 5
-patterns = 10
 self_atari = 10
+small_patterns = 10
 
 [time_control]
 

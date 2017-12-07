@@ -143,7 +143,7 @@ pub struct PriorsConfig {
     pub neutral_wins: usize,
     /// The prior to assign when one of the 3x3 pattern matches. This
     /// is an even prior.
-    pub patterns: usize,
+    pub small_patterns: usize,
     /// The prior to assign when the move puts one of our own groups
     /// in self atari. This is a negative prior (i.e. only prior plays
     /// are increased).
@@ -165,8 +165,8 @@ impl PriorsConfig {
             empty: Self::as_integer(&table, "empty"),
             neutral_plays: Self::as_integer(&table, "neutral_plays"),
             neutral_wins: Self::as_integer(&table, "neutral_wins"),
-            patterns: Self::as_integer(&table, "patterns"),
             self_atari: Self::as_integer(&table, "self_atari"),
+            small_patterns: Self::as_integer(&table, "small_patterns"),
         }
     }
 
@@ -178,10 +178,10 @@ impl PriorsConfig {
     }
 
     /// Returns false if the patterns prior is zero, which allows for
-    /// turning of the code that calculates the empty area prior
+    /// turning of the code that calculates the small pattern prior
     /// altogether.
-    pub fn use_patterns(&self) -> bool {
-        self.patterns > 0
+    pub fn use_small_patterns(&self) -> bool {
+        self.small_patterns > 0
     }
 }
 

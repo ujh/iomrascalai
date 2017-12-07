@@ -71,9 +71,9 @@ impl Prior {
                 }
             }
         }
-        if config.priors.use_patterns() {
+        if config.priors.use_small_patterns() {
             let count = self.matching_patterns_count(board, m, small_pattern_matcher);
-            let prior = count * config.priors.patterns;
+            let prior = count * config.priors.small_patterns;
             self.record_even_prior(prior);
         }
     }
