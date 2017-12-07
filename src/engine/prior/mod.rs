@@ -35,14 +35,14 @@ pub struct Prior {
 
 impl Prior {
 
-    pub fn new(board: &Board, m: &Move, matcher: &Arc<SmallPatternMatcher>, config: Arc<Config>) -> Prior {
+    pub fn new(board: &Board, m: &Move, small_pattern_matcher: &Arc<SmallPatternMatcher>, config: Arc<Config>) -> Prior {
         let mut prior = Prior {
             m: *m,
             plays: 0,
             wins: 0,
         };
         if !m.is_pass() {
-            prior.calculate(board, m, matcher, &config);
+            prior.calculate(board, m, small_pattern_matcher, &config);
         }
         prior
     }
@@ -55,7 +55,7 @@ impl Prior {
         self.wins
     }
 
-    fn calculate(&mut self, board: &Board, m: &Move, matcher: &Arc<SmallPatternMatcher>, config: &Arc<Config>) {
+    fn calculate(&mut self, board: &Board, m: &Move, small_pattern_matcher: &Arc<SmallPatternMatcher>, config: &Arc<Config>) {
         if !board.is_not_self_atari(m) {
             let value = config.priors.self_atari;
             self.record_negative_prior(value);
@@ -72,7 +72,7 @@ impl Prior {
             }
         }
         if config.priors.use_patterns() {
-            let count = self.matching_patterns_count(board, m, matcher);
+            let count = self.matching_patterns_count(board, m, small_pattern_matcher);
             let prior = count * config.priors.patterns;
             self.record_even_prior(prior);
         }
@@ -102,9 +102,9 @@ impl Prior {
     }
 }
 
-pub fn calculate(board: Board, child_moves: Vec<Move>, matcher: &Arc<SmallPatternMatcher>, config: &Arc<Config>) -> Vec<Prior> {
+pub fn calculate(board: Board, child_moves: Vec<Move>, small_pattern_matcher: &Arc<SmallPatternMatcher>, config: &Arc<Config>) -> Vec<Prior> {
     let mut priors: Vec<Prior> = child_moves.iter()
-        .map(|m| Prior::new(&board, m, matcher, config.clone()))
+        .map(|m| Prior::new(&board, m, small_pattern_matcher, config.clone()))
         .collect();
     let color = board.next_player().opposite();
     let in_danger = board.chains().iter()
