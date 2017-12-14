@@ -43,6 +43,7 @@ extern crate toml;
 // documentation.
 pub use config::*;
 use engine::Engine;
+use gtp::driver::BenchmarkDriver;
 use gtp::driver::Driver;
 use patterns::SmallPatternMatcher;
 use ruleset::Ruleset;
@@ -85,6 +86,7 @@ fn main() {
     );
     let r_expl = format!("cgos|chinese|tromp-taylor (defaults to {})", default_ruleset);
     opts.optopt("r", "rules", "Pick ruleset", &r_expl);
+    opts.optopt("b", "benchmark", "Run benchmark on provided board size", "INTEGER");
     let args : Vec<String> = args().collect();
 
     let (_, tail) = args.split_first().unwrap();
@@ -154,5 +156,14 @@ fn main() {
 
     config.log(format!("Current configuration: {:#?}", config));
 
-    Driver::new(config, engine);
+    match matches.opt_str("b") {
+        Some(bs) => match bs.parse() {
+            Ok(board_size) => BenchmarkDriver::new(config, engine, board_size),
+            Err(error) => {
+                println!("{}", error);
+                exit(1);
+            }
+        },
+        None => Driver::new(config, engine)
+    }
 }
