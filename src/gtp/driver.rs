@@ -56,3 +56,23 @@ impl Driver {
 
     }
 }
+
+pub struct BenchmarkDriver;
+
+impl BenchmarkDriver {
+    pub fn new(config: Arc<Config>, engine: Engine, board_size: usize) {
+        let mut interpreter = GTPInterpreter::new(config, engine);
+        let time_settings = match board_size {
+            9 => 300,
+            13 => 600,
+            15 => 1020,
+            17 => 1440,
+            19 => 1800,
+            _ => unreachable!("board size not supported"),
+        };
+        interpreter.read(&format!("boardsize {}\n", board_size)).unwrap();
+        interpreter.read("clear_board\n").unwrap();
+        interpreter.read(&format!("time_settings {} 0 0 \n", time_settings)).unwrap();
+        interpreter.read("genmove b\n").unwrap();
+    }
+}
