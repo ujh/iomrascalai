@@ -43,7 +43,6 @@ pub struct Node {
     amaf_wins: f32,
     children: Vec<Node>,
     config: Arc<Config>,
-    descendants: usize,
     m: Move,
     playouts: usize,
     plays: f32,
@@ -60,7 +59,6 @@ impl Node {
             amaf_wins: 0.0,
             children: vec!(),
             config: config.clone(),
-            descendants: 0,
             m: m,
             playouts: 0,
             plays: 0.0,
@@ -134,7 +132,6 @@ impl Node {
         }
         to_remove.reverse();
         for &index in to_remove.iter() {
-            self.descendants -= self.children[index].descendants;
             self.children.remove(index);
         }
     }
@@ -176,7 +173,6 @@ impl Node {
                 .map(|&m| Node::new(m, self.config.clone()))
                 .collect();
             self.children.push(Node::new(Pass(game.next_player()), self.config.clone()));
-            self.descendants = self.children.len();
         }
  }
 
@@ -189,7 +185,6 @@ impl Node {
                 .collect();
             self.children.push(Node::new(Pass(board.next_player()), self.config.clone()));
         }
-        self.descendants = self.children.len();
         let child_moves = self.children.iter().map(|n| n.m()).collect();
         (not_terminal, child_moves)
     }
@@ -220,7 +215,7 @@ impl Node {
         }
     }
 
-    pub fn record_on_path(&mut self, path: &[usize], new_nodes: usize, playout_result: &PlayoutResult) {
+    pub fn record_on_path(&mut self, path: &[usize], playout_result: &PlayoutResult) {
         let winner = playout_result.winner();
         let amaf = playout_result.amaf();
         if self.color() == winner {
@@ -243,8 +238,7 @@ impl Node {
             }
         }
         if path.len() > 0 {
-            self.descendants += new_nodes;
-            self.children[path[0]].record_on_path(&path[1..], new_nodes, playout_result);
+            self.children[path[0]].record_on_path(&path[1..], playout_result);
         }
     }
 
@@ -307,10 +301,6 @@ impl Node {
 
     pub fn playouts(&self) -> usize {
         self.playouts
-    }
-
-    pub fn descendants(&self) -> usize {
-        self.descendants
     }
 
     pub fn find_child(&self, m: Move) -> Node {
