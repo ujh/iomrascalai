@@ -5,7 +5,7 @@
 
 require 'open3'
 
-THREADS = ARGV[0] ? ARGV[0].to_i : 36
+THREADS = ARGV[0] ? ARGV[0].to_i : 10
 
 INPUT = "boardsize 9\nclear_board\ntime_settings 300 0 0\ngenmove b\nboardsize 13\nclear_board\ntime_settings 600 0 0\ngenmove b\nboardsize 19\nclear_board\ntime_settings 1200 0 0\ngenmove b\n"
 
