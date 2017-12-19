@@ -48,6 +48,16 @@ pub struct Path {
     pub path: Vec<usize>
 }
 
+impl Path {
+    fn setup_board(&self, board: &Option<Board>) -> Board {
+        let mut b = board.clone().expect("no board for run_playout");
+        for &m in self.moves.iter() {
+            b.play_legal_move(m);
+        }
+        b
+    }
+}
+
 pub enum Message {
     RunPlayout { path: Path },
     CalculatePriors {
@@ -134,10 +144,7 @@ impl Worker {
     }
 
     fn run_playout(&mut self, path: Path) {
-        let mut b = self.board.clone().expect("no board for run_playout");
-        for &m in path.moves.iter() {
-            b.play_legal_move(m);
-        }
+        let mut b = path.setup_board(&self.board);
         // Playout is smart enough to correctly handle the case where
         // the game is already over.
         let playout_result = self.playout.run(&mut b, None, &mut self.rng);
@@ -149,10 +156,7 @@ impl Worker {
     }
 
     fn run_prior_calculation(&self, path: Path, child_moves: Vec<Move>) {
-        let mut b = self.board.clone().expect("no board for run_prior_calculation");
-        for &m in path.moves.iter() {
-            b.play_legal_move(m);
-        }
+        let b = path.setup_board(&self.board);
         let priors = prior::calculate(b, child_moves, &self.small_pattern_matcher, &self.config);
         let answer = Answer::CalculatePriors {
             path: path,
