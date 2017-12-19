@@ -27,6 +27,7 @@ use board::NoMove;
 use board::Pass;
 use board::Play;
 use config::Config;
+use engine::worker::Path;
 use game::Game;
 use playout::PlayoutResult;
 use score::Score;
@@ -136,7 +137,7 @@ impl Node {
         }
     }
 
-    pub fn find_leaf_and_expand(&mut self, game: &Game) -> (Vec<usize>, Vec<Move>, Vec<Move>) {
+    pub fn find_leaf_and_expand(&mut self, game: &Game) -> (Path, Vec<Move>) {
         let (path, moves, leaf) = self.find_leaf_and_mark(vec!(), vec!());
         let mut board = game.board();
         for &m in moves.iter() {
@@ -147,7 +148,7 @@ impl Node {
             let is_win = board.winner() == leaf.color();
             leaf.mark_as_terminal(is_win);
         }
-        (path, moves, child_moves)
+        (Path::new(moves, path), child_moves)
     }
 
     /// Finds the next leave to simulate. To make sure that different

@@ -38,7 +38,6 @@ use score::FinalScore;
 use self::worker::Answer;
 use self::worker::DirectMessage;
 use self::worker::Message;
-use self::worker::Path;
 use self::worker::Response;
 use self::worker::Worker;
 use timer::Timer;
@@ -200,16 +199,16 @@ impl Engine {
     }
 
     fn expand(&mut self, game: &Game) -> Message {
-        let (path, moves, child_moves) = self.root.find_leaf_and_expand(game);
+        let (path, child_moves) = self.root.find_leaf_and_expand(game);
         let nodes_added = child_moves.len();
         if nodes_added > 0 {
             Message::CalculatePriors {
-                child_moves: child_moves,
-                path: Path::new(moves, path),
+                child_moves,
+                path,
             }
         } else {
             Message::RunPlayout {
-                path: Path::new(moves, path),
+                path
             }
         }
     }

@@ -123,7 +123,7 @@ fn find_leaf_and_expand_sets_play_on_the_root() {
 fn find_leaf_and_expand_returns_the_number_of_nodes_added() {
     let game = Game::new(2, 0.5, KgsChinese);
     let mut root = Node::root(&game, Black, config());
-    let (_,_, child_moves) = root.find_leaf_and_expand(&game);
+    let (_, child_moves) = root.find_leaf_and_expand(&game);
     assert_eq!(4, child_moves.len());
 }
 
