@@ -187,11 +187,11 @@ impl Engine {
                 },
                 Answer::RunPlayout {path, playout_result} => {
                     self.ownership.merge(playout_result.score());
-                    self.root.record_on_path(&path.path, &playout_result);
+                    self.root.record_on_path(path.path(), &playout_result);
                     self.expand(game)
                 },
                 Answer::CalculatePriors {path, priors} => {
-                    self.root.record_priors(&path.path, priors);
+                    self.root.record_priors(path.path(), priors);
                     Message::RunPlayout { path: path }
                 }
             };
@@ -205,11 +205,11 @@ impl Engine {
         if nodes_added > 0 {
             Message::CalculatePriors {
                 child_moves: child_moves,
-                path: Path { moves: moves, path: path },
+                path: Path::new(moves, path),
             }
         } else {
             Message::RunPlayout {
-                path: Path { moves: moves, path: path },
+                path: Path::new(moves, path),
             }
         }
     }

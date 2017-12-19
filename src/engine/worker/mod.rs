@@ -44,14 +44,27 @@ pub enum DirectMessage {
 }
 
 pub struct Path {
-    pub moves: Vec<Move>,
-    pub path: Vec<usize>
+    moves: Vec<Move>,
+    path: Vec<usize>
 }
 
 impl Path {
+
+    pub fn new(moves: Vec<Move>, path: Vec<usize>) -> Path {
+        Path { moves, path }
+    }
+
+    pub fn path(&self) -> &Vec<usize> {
+        &self.path
+    }
+
+    pub fn moves(&self) -> &Vec<Move> {
+        &self.moves
+    }
+
     fn setup_board(&self, board: &Option<Board>) -> Board {
         let mut b = board.clone().expect("no board for run_playout");
-        for &m in self.moves.iter() {
+        for &m in self.moves().iter() {
             b.play_legal_move(m);
         }
         b
