@@ -38,6 +38,7 @@ use score::FinalScore;
 use self::worker::Answer;
 use self::worker::DirectMessage;
 use self::worker::Message;
+use self::worker::Path;
 use self::worker::Response;
 use self::worker::Worker;
 use timer::Timer;
@@ -186,16 +187,12 @@ impl Engine {
                 },
                 Answer::RunPlayout {path, playout_result} => {
                     self.ownership.merge(playout_result.score());
-                    self.root.record_on_path(&path, &playout_result);
+                    self.root.record_on_path(&path.path, &playout_result);
                     self.expand(game)
                 },
-                Answer::CalculatePriors {path, moves, priors} => {
-                    self.root.record_priors(&path, priors);
-                    Message::RunPlayout {
-                        moves: moves,
-                        path: path,
-                    }
-
+                Answer::CalculatePriors {path, priors} => {
+                    self.root.record_priors(&path.path, priors);
+                    Message::RunPlayout { path: path }
                 }
             };
             check!(self.config, send_to_thread.send(message));
@@ -208,13 +205,11 @@ impl Engine {
         if nodes_added > 0 {
             Message::CalculatePriors {
                 child_moves: child_moves,
-                moves: moves,
-                path: path,
+                path: Path { moves: moves, path: path },
             }
         } else {
             Message::RunPlayout {
-                moves: moves,
-                path: path,
+                path: Path { moves: moves, path: path },
             }
         }
     }

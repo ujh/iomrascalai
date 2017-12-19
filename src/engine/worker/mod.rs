@@ -43,25 +43,25 @@ pub enum DirectMessage {
     }
 }
 
+pub struct Path {
+    pub moves: Vec<Move>,
+    pub path: Vec<usize>
+}
+
 pub enum Message {
-    RunPlayout {
-        moves: Vec<Move>,
-        path: Vec<usize>,
-    },
+    RunPlayout { path: Path },
     CalculatePriors {
         child_moves: Vec<Move>,
-        moves: Vec<Move>,
-        path: Vec<usize>,
+        path: Path,
     }
 }
 pub enum Answer {
     RunPlayout {
-        path: Vec<usize>,
+        path: Path,
         playout_result: PlayoutResult
     },
     CalculatePriors {
-        moves: Vec<Move>,
-        path: Vec<usize>,
+        path: Path,
         priors: Vec<Prior>,
     },
     NewState
@@ -113,11 +113,11 @@ impl Worker {
                 r = receive_from_main.recv() => {
                     check!(self.config, message = r => {
                         match message {
-                            Message::RunPlayout {path, moves} => {
-                                self.run_playout(path, moves);
+                            Message::RunPlayout {path} => {
+                                self.run_playout(path);
                             },
-                            Message::CalculatePriors {path, moves, child_moves} => {
-                                self.run_prior_calculation(path, moves, child_moves);
+                            Message::CalculatePriors {path, child_moves} => {
+                                self.run_prior_calculation(path, child_moves);
                             }
                         }
                     });
@@ -133,9 +133,9 @@ impl Worker {
         self.respond(Answer::NewState);
     }
 
-    fn run_playout(&mut self, path: Vec<usize>, moves: Vec<Move>) {
+    fn run_playout(&mut self, path: Path) {
         let mut b = self.board.clone().expect("no board for run_playout");
-        for &m in moves.iter() {
+        for &m in path.moves.iter() {
             b.play_legal_move(m);
         }
         // Playout is smart enough to correctly handle the case where
@@ -148,14 +148,13 @@ impl Worker {
         self.respond(answer);
     }
 
-    fn run_prior_calculation(&self, path: Vec<usize>, moves: Vec<Move>, child_moves: Vec<Move>) {
+    fn run_prior_calculation(&self, path: Path, child_moves: Vec<Move>) {
         let mut b = self.board.clone().expect("no board for run_prior_calculation");
-        for &m in moves.iter() {
+        for &m in path.moves.iter() {
             b.play_legal_move(m);
         }
         let priors = prior::calculate(b, child_moves, &self.small_pattern_matcher, &self.config);
         let answer = Answer::CalculatePriors {
-            moves: moves,
             path: path,
             priors: priors,
         };
