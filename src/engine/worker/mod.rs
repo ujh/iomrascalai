@@ -46,7 +46,6 @@ pub enum DirectMessage {
 pub enum Message {
     RunPlayout {
         moves: Vec<Move>,
-        nodes_added: usize,
         path: Vec<usize>,
     },
     CalculatePriors {
@@ -57,7 +56,6 @@ pub enum Message {
 }
 pub enum Answer {
     RunPlayout {
-        nodes_added: usize,
         path: Vec<usize>,
         playout_result: PlayoutResult
     },
@@ -115,8 +113,8 @@ impl Worker {
                 r = receive_from_main.recv() => {
                     check!(self.config, message = r => {
                         match message {
-                            Message::RunPlayout {path, moves, nodes_added} => {
-                                self.run_playout(path, moves, nodes_added);
+                            Message::RunPlayout {path, moves} => {
+                                self.run_playout(path, moves);
                             },
                             Message::CalculatePriors {path, moves, child_moves} => {
                                 self.run_prior_calculation(path, moves, child_moves);
@@ -135,7 +133,7 @@ impl Worker {
         self.respond(Answer::NewState);
     }
 
-    fn run_playout(&mut self, path: Vec<usize>, moves: Vec<Move>, nodes_added: usize) {
+    fn run_playout(&mut self, path: Vec<usize>, moves: Vec<Move>) {
         let mut b = self.board.clone().expect("no board for run_playout");
         for &m in moves.iter() {
             b.play_legal_move(m);
@@ -144,7 +142,6 @@ impl Worker {
         // the game is already over.
         let playout_result = self.playout.run(&mut b, None, &mut self.rng);
         let answer = Answer::RunPlayout {
-            nodes_added: nodes_added,
             path: path,
             playout_result: playout_result
         };

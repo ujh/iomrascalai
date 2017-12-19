@@ -130,7 +130,7 @@ impl Engine {
         }
         let stop = |win_ratio, _| { timer.ran_out_of_time(win_ratio) };
         self.search(game, stop);
-        let msg = format!("{} simulations ({}% wins on average, {} nodes)", self.root.playouts(), self.root.win_ratio()*100.0, self.root.descendants());
+        let msg = format!("{} simulations ({}% wins on average)", self.root.playouts(), self.root.win_ratio()*100.0);
         self.config.log(msg);
         let playouts = self.root.playouts();
         let m = self.best_move(game, color, cleanup);
@@ -184,20 +184,15 @@ impl Engine {
                 Answer::NewState => {
                     self.expand(game)
                 },
-                Answer::RunPlayout {path, nodes_added, playout_result} => {
+                Answer::RunPlayout {path, playout_result} => {
                     self.ownership.merge(playout_result.score());
-                    self.root.record_on_path(
-                        &path,
-                        nodes_added,
-                        &playout_result);
+                    self.root.record_on_path(&path, &playout_result);
                     self.expand(game)
                 },
                 Answer::CalculatePriors {path, moves, priors} => {
-                    let nodes_added = priors.len();
                     self.root.record_priors(&path, priors);
                     Message::RunPlayout {
                         moves: moves,
-                        nodes_added: nodes_added,
                         path: path,
                     }
 
@@ -219,7 +214,6 @@ impl Engine {
         } else {
             Message::RunPlayout {
                 moves: moves,
-                nodes_added: nodes_added,
                 path: path,
             }
         }
@@ -239,14 +233,7 @@ impl Engine {
         self.start = PreciseTime::now();
         self.config.gfx(self.ownership.gfx());
         self.ownership = OwnershipStatistics::new(self.config.clone(), game.size(), game.komi());
-        self.previous_node_count = self.root.descendants();
         self.set_new_root(game, color);
-        let reused_node_count = self.root.descendants();
-        if self.previous_node_count > 0 {
-            let percentage = reused_node_count as f32 / self.previous_node_count as f32;
-            let msg = format!("Reusing {} nodes ({}%)", reused_node_count, percentage*100.0);
-            self.config.log(msg);
-        }
     }
 
     fn best_move(&self, game: &Game, color: Color, cleanup: bool) -> Move {
