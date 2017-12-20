@@ -50,8 +50,21 @@ pub struct Path {
 
 impl Path {
 
-    pub fn new(moves: Vec<Move>, path: Vec<usize>) -> Path {
-        Path { moves, path }
+    pub fn new() -> Path {
+        Path { moves: vec![], path: vec![] }
+    }
+
+    pub fn clear(&mut self) {
+        self.moves.clear();
+        self.path.clear();
+    }
+
+    pub fn push_move(&mut self, m: Move) {
+        self.moves.push(m);
+    }
+
+    pub fn push_path(&mut self, path: usize) {
+        self.path.push(path);
     }
 
     pub fn path(&self) -> &Vec<usize> {

@@ -38,6 +38,7 @@ use score::FinalScore;
 use self::worker::Answer;
 use self::worker::DirectMessage;
 use self::worker::Message;
+use self::worker::Path;
 use self::worker::Response;
 use self::worker::Worker;
 use timer::Timer;
@@ -182,12 +183,12 @@ impl Engine {
         if self.id == id {
             let message = match answer {
                 Answer::NewState => {
-                    self.expand(game)
+                    self.expand(game, Path::new())
                 },
                 Answer::RunPlayout {path, playout_result} => {
                     self.ownership.merge(playout_result.score());
                     self.root.record_on_path(path.path(), &playout_result);
-                    self.expand(game)
+                    self.expand(game, path)
                 },
                 Answer::CalculatePriors {path, priors} => {
                     self.root.record_priors(path.path(), priors);
@@ -198,8 +199,8 @@ impl Engine {
         }
     }
 
-    fn expand(&mut self, game: &Game) -> Message {
-        let (path, child_moves) = self.root.find_leaf_and_expand(game);
+    fn expand(&mut self, game: &Game, path: Path) -> Message {
+        let (path, child_moves) = self.root.find_leaf_and_expand(game, path);
         let nodes_added = child_moves.len();
         if nodes_added > 0 {
             Message::CalculatePriors {

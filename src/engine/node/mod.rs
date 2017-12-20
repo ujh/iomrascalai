@@ -137,10 +137,11 @@ impl Node {
         }
     }
 
-    pub fn find_leaf_and_expand(&mut self, game: &Game) -> (Path, Vec<Move>) {
-        let (path, moves, leaf) = self.find_leaf_and_mark(vec!(), vec!());
+    pub fn find_leaf_and_expand(&mut self, game: &Game, mut path: Path) -> (Path, Vec<Move>) {
+        path.clear();
+        let (path, leaf) = self.find_leaf_and_mark(path);
         let mut board = game.board();
-        for &m in moves.iter() {
+        for &m in path.moves().iter() {
             board.play_legal_move(m);
         }
         let (not_terminal, child_moves) = leaf.expand(&board);
@@ -148,22 +149,22 @@ impl Node {
             let is_win = board.winner() == leaf.color();
             leaf.mark_as_terminal(is_win);
         }
-        (Path::new(moves, path), child_moves)
+        (path, child_moves)
     }
 
     /// Finds the next leave to simulate. To make sure that different
     /// paths are taken through the tree (as we execute the
     /// simulations in parallel) we already increase the play count
     /// here instead of when recording the wins in the tree.
-    pub fn find_leaf_and_mark(&mut self, mut path: Vec<usize>, mut moves: Vec<Move>) -> (Vec<usize>, Vec<Move>, &mut Node) {
+    pub fn find_leaf_and_mark(&mut self, mut path: Path) -> (Path, &mut Node) {
         self.record_play();
         if self.is_leaf() {
-            (path, moves, self)
+            (path, self)
         } else {
             let index = self.next_child_index();
-            path.push(index);
-            moves.push(self.children[index].m());
-            self.children[index].find_leaf_and_mark(path, moves)
+            path.push_path(index);
+            path.push_move(self.children[index].m());
+            self.children[index].find_leaf_and_mark(path)
         }
     }
 
