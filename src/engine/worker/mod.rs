@@ -43,25 +43,61 @@ pub enum DirectMessage {
     }
 }
 
+pub struct Path {
+    moves: Vec<Move>,
+    path: Vec<usize>
+}
+
+impl Path {
+
+    pub fn new() -> Path {
+        Path { moves: vec![], path: vec![] }
+    }
+
+    pub fn clear(&mut self) {
+        self.moves.clear();
+        self.path.clear();
+    }
+
+    pub fn push_move(&mut self, m: Move) {
+        self.moves.push(m);
+    }
+
+    pub fn push_path(&mut self, path: usize) {
+        self.path.push(path);
+    }
+
+    pub fn path(&self) -> &Vec<usize> {
+        &self.path
+    }
+
+    pub fn moves(&self) -> &Vec<Move> {
+        &self.moves
+    }
+
+    fn setup_board(&self, board: &Option<Board>) -> Board {
+        let mut b = board.clone().expect("no board for run_playout");
+        for &m in self.moves().iter() {
+            b.play_legal_move(m);
+        }
+        b
+    }
+}
+
 pub enum Message {
-    RunPlayout {
-        moves: Vec<Move>,
-        path: Vec<usize>,
-    },
+    RunPlayout { path: Path },
     CalculatePriors {
         child_moves: Vec<Move>,
-        moves: Vec<Move>,
-        path: Vec<usize>,
+        path: Path,
     }
 }
 pub enum Answer {
     RunPlayout {
-        path: Vec<usize>,
+        path: Path,
         playout_result: PlayoutResult
     },
     CalculatePriors {
-        moves: Vec<Move>,
-        path: Vec<usize>,
+        path: Path,
         priors: Vec<Prior>,
     },
     NewState
@@ -113,11 +149,11 @@ impl Worker {
                 r = receive_from_main.recv() => {
                     check!(self.config, message = r => {
                         match message {
-                            Message::RunPlayout {path, moves} => {
-                                self.run_playout(path, moves);
+                            Message::RunPlayout {path} => {
+                                self.run_playout(path);
                             },
-                            Message::CalculatePriors {path, moves, child_moves} => {
-                                self.run_prior_calculation(path, moves, child_moves);
+                            Message::CalculatePriors {path, child_moves} => {
+                                self.run_prior_calculation(path, child_moves);
                             }
                         }
                     });
@@ -133,11 +169,8 @@ impl Worker {
         self.respond(Answer::NewState);
     }
 
-    fn run_playout(&mut self, path: Vec<usize>, moves: Vec<Move>) {
-        let mut b = self.board.clone().expect("no board for run_playout");
-        for &m in moves.iter() {
-            b.play_legal_move(m);
-        }
+    fn run_playout(&mut self, path: Path) {
+        let mut b = path.setup_board(&self.board);
         // Playout is smart enough to correctly handle the case where
         // the game is already over.
         let playout_result = self.playout.run(&mut b, None, &mut self.rng);
@@ -148,14 +181,10 @@ impl Worker {
         self.respond(answer);
     }
 
-    fn run_prior_calculation(&self, path: Vec<usize>, moves: Vec<Move>, child_moves: Vec<Move>) {
-        let mut b = self.board.clone().expect("no board for run_prior_calculation");
-        for &m in moves.iter() {
-            b.play_legal_move(m);
-        }
+    fn run_prior_calculation(&self, path: Path, child_moves: Vec<Move>) {
+        let b = path.setup_board(&self.board);
         let priors = prior::calculate(b, child_moves, &self.small_pattern_matcher, &self.config);
         let answer = Answer::CalculatePriors {
-            moves: moves,
             path: path,
             priors: priors,
         };

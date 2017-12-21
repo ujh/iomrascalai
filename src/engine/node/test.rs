@@ -28,6 +28,7 @@ pub use board::Pass;
 pub use board::Play;
 pub use board::White;
 pub use config::Config;
+pub use engine::worker::Path as WorkerPath;
 pub use game::Game;
 pub use patterns::SmallPatternMatcher;
 pub use playout::Playout;
@@ -99,7 +100,7 @@ fn find_leaf_and_expand_expands_the_leaves() {
     let game = Game::new(2, 0.5, KgsChinese);
     let mut root = Node::root(&game, Black, config());
     for _ in 0..5 {
-        root.find_leaf_and_expand(&game);
+        root.find_leaf_and_expand(&game, WorkerPath::new());
     }
     assert_eq!(5, root.children.len());
     assert!(root.children.iter().all({|n|
@@ -115,7 +116,7 @@ fn find_leaf_and_expand_expands_the_leaves() {
 fn find_leaf_and_expand_sets_play_on_the_root() {
     let game = Game::new(2, 0.5, KgsChinese);
     let mut root = Node::root(&game, Black, config());
-    root.find_leaf_and_expand(&game);
+    root.find_leaf_and_expand(&game, WorkerPath::new());
     assert_eq!(2.0, root.plays);
 }
 
@@ -123,7 +124,7 @@ fn find_leaf_and_expand_sets_play_on_the_root() {
 fn find_leaf_and_expand_returns_the_number_of_nodes_added() {
     let game = Game::new(2, 0.5, KgsChinese);
     let mut root = Node::root(&game, Black, config());
-    let (_,_, child_moves) = root.find_leaf_and_expand(&game);
+    let (_, child_moves) = root.find_leaf_and_expand(&game, WorkerPath::new());
     assert_eq!(4, child_moves.len());
 }
 
