@@ -238,6 +238,8 @@ pub struct PlayoutConfig {
     /// The probability of checking for atari moves (and playing one
     /// if there are any). Set to 1.0 to always check.
     pub atari_check: f32,
+    /// The probability of checking for capture moves during playouts
+    pub captures_probability: f32,
     /// The probability of using the ladder checker (which is
     /// expensive) during atari resolution. Set to 1.0 to always use
     /// it.
@@ -264,6 +266,7 @@ impl PlayoutConfig {
         table.extend(opts);
         PlayoutConfig {
             atari_check: Self::as_float(&table, "atari_check"),
+            captures_probability: Self::as_float(&table, "captures_probability"),
             ladder_check: Self::as_float(&table, "ladder_check"),
             last_moves_for_heuristics: Self::as_integer(&table, "last_moves_for_heuristics"),
             pattern_probability: Self::as_float(&table, "pattern_probability"),
