@@ -1,3 +1,25 @@
+# master
+
+At db420564342099369003b8f1e466e7e20bc4d4b1 the performace is:
+
+```
+refactorings-9x9.dat:
+		83.8% wins (481 games of 574, ± 3.0 at 95%, ± 3.06 at 99%)
+		73.14% same score as GnuGo (354 of 484, ± 3.93 at 95%, ± 4.01 at 99%)
+refactorings-13x13.dat:
+		42.0% wins (420 games of 1000, ± 3.04 at 95%, ± 3.11 at 99%)
+		64.52% same score as GnuGo (280 of 434, ± 4.48 at 95%, ± 4.57 at 99%)
+refactorings-15x15.dat:
+		17.22% wins (104 games of 604, ± 3.0 at 95%, ± 3.06 at 99%)
+		57.41% same score as GnuGo (62 of 108, ± 9.28 at 95%, ± 9.47 at 99%)
+refactorings-17x17.dat:
+		2.0% wins (2 games of 100, ± 2.73 at 95%, ± 2.79 at 99%)
+		50.0% same score as GnuGo (1 of 2, ± 68.94 at 95%, ± 70.36 at 99%)
+refactorings-19x19.dat:
+		0.0% wins (0 games of 100, ± 0.0 at 95%, ± 0.0 at 99%)
+		NaN% same score as GnuGo (0 of 0, ± NaN at 95%, ± NaN at 99%)
+```
+
 ## 0.3.2 [☰](https://github.com/ujh/iomrascalai/compare/0.3.1...0.3.2)
 
 * Fixes a bug where the bot passed too early and lost won games because of it.
