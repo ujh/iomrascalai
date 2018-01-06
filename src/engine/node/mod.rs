@@ -27,6 +27,7 @@ use board::NoMove;
 use board::Pass;
 use board::Play;
 use config::Config;
+use engine::worker::Path;
 use game::Game;
 use playout::PlayoutResult;
 use score::Score;
@@ -43,7 +44,6 @@ pub struct Node {
     amaf_wins: f32,
     children: Vec<Node>,
     config: Arc<Config>,
-    descendants: usize,
     m: Move,
     playouts: usize,
     plays: f32,
@@ -60,7 +60,6 @@ impl Node {
             amaf_wins: 0.0,
             children: vec!(),
             config: config.clone(),
-            descendants: 0,
             m: m,
             playouts: 0,
             plays: 0.0,
@@ -134,15 +133,15 @@ impl Node {
         }
         to_remove.reverse();
         for &index in to_remove.iter() {
-            self.descendants -= self.children[index].descendants;
             self.children.remove(index);
         }
     }
 
-    pub fn find_leaf_and_expand(&mut self, game: &Game) -> (Vec<usize>, Vec<Move>, Vec<Move>) {
-        let (path, moves, leaf) = self.find_leaf_and_mark(vec!(), vec!());
+    pub fn find_leaf_and_expand(&mut self, game: &Game, mut path: Path) -> (Path, Vec<Move>) {
+        path.clear();
+        let (path, leaf) = self.find_leaf_and_mark(path);
         let mut board = game.board();
-        for &m in moves.iter() {
+        for &m in path.moves().iter() {
             board.play_legal_move(m);
         }
         let (not_terminal, child_moves) = leaf.expand(&board);
@@ -150,22 +149,22 @@ impl Node {
             let is_win = board.winner() == leaf.color();
             leaf.mark_as_terminal(is_win);
         }
-        (path, moves, child_moves)
+        (path, child_moves)
     }
 
     /// Finds the next leave to simulate. To make sure that different
     /// paths are taken through the tree (as we execute the
     /// simulations in parallel) we already increase the play count
     /// here instead of when recording the wins in the tree.
-    pub fn find_leaf_and_mark(&mut self, mut path: Vec<usize>, mut moves: Vec<Move>) -> (Vec<usize>, Vec<Move>, &mut Node) {
+    pub fn find_leaf_and_mark(&mut self, mut path: Path) -> (Path, &mut Node) {
         self.record_play();
         if self.is_leaf() {
-            (path, moves, self)
+            (path, self)
         } else {
             let index = self.next_child_index();
-            path.push(index);
-            moves.push(self.children[index].m());
-            self.children[index].find_leaf_and_mark(path, moves)
+            path.push_path(index);
+            path.push_move(self.children[index].m());
+            self.children[index].find_leaf_and_mark(path)
         }
     }
 
@@ -176,7 +175,6 @@ impl Node {
                 .map(|&m| Node::new(m, self.config.clone()))
                 .collect();
             self.children.push(Node::new(Pass(game.next_player()), self.config.clone()));
-            self.descendants = self.children.len();
         }
  }
 
@@ -189,7 +187,6 @@ impl Node {
                 .collect();
             self.children.push(Node::new(Pass(board.next_player()), self.config.clone()));
         }
-        self.descendants = self.children.len();
         let child_moves = self.children.iter().map(|n| n.m()).collect();
         (not_terminal, child_moves)
     }
@@ -220,7 +217,7 @@ impl Node {
         }
     }
 
-    pub fn record_on_path(&mut self, path: &[usize], new_nodes: usize, playout_result: &PlayoutResult) {
+    pub fn record_on_path(&mut self, path: &[usize], playout_result: &PlayoutResult) {
         let winner = playout_result.winner();
         let amaf = playout_result.amaf();
         if self.color() == winner {
@@ -243,8 +240,7 @@ impl Node {
             }
         }
         if path.len() > 0 {
-            self.descendants += new_nodes;
-            self.children[path[0]].record_on_path(&path[1..], new_nodes, playout_result);
+            self.children[path[0]].record_on_path(&path[1..], playout_result);
         }
     }
 
@@ -307,10 +303,6 @@ impl Node {
 
     pub fn playouts(&self) -> usize {
         self.playouts
-    }
-
-    pub fn descendants(&self) -> usize {
-        self.descendants
     }
 
     pub fn find_child(&self, m: Move) -> Node {

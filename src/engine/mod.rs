@@ -38,6 +38,7 @@ use score::FinalScore;
 use self::worker::Answer;
 use self::worker::DirectMessage;
 use self::worker::Message;
+use self::worker::Path;
 use self::worker::Response;
 use self::worker::Worker;
 use timer::Timer;
@@ -130,7 +131,7 @@ impl Engine {
         }
         let stop = |win_ratio, _| { timer.ran_out_of_time(win_ratio) };
         self.search(game, stop);
-        let msg = format!("{} simulations ({}% wins on average, {} nodes)", self.root.playouts(), self.root.win_ratio()*100.0, self.root.descendants());
+        let msg = format!("{} simulations ({}% wins on average)", self.root.playouts(), self.root.win_ratio()*100.0);
         self.config.log(msg);
         let playouts = self.root.playouts();
         let m = self.best_move(game, color, cleanup);
@@ -182,45 +183,33 @@ impl Engine {
         if self.id == id {
             let message = match answer {
                 Answer::NewState => {
-                    self.expand(game)
+                    self.expand(game, Path::new())
                 },
-                Answer::RunPlayout {path, nodes_added, playout_result} => {
+                Answer::RunPlayout {path, playout_result} => {
                     self.ownership.merge(playout_result.score());
-                    self.root.record_on_path(
-                        &path,
-                        nodes_added,
-                        &playout_result);
-                    self.expand(game)
+                    self.root.record_on_path(path.path(), &playout_result);
+                    self.expand(game, path)
                 },
-                Answer::CalculatePriors {path, moves, priors} => {
-                    let nodes_added = priors.len();
-                    self.root.record_priors(&path, priors);
-                    Message::RunPlayout {
-                        moves: moves,
-                        nodes_added: nodes_added,
-                        path: path,
-                    }
-
+                Answer::CalculatePriors {path, priors} => {
+                    self.root.record_priors(path.path(), priors);
+                    Message::RunPlayout { path: path }
                 }
             };
             check!(self.config, send_to_thread.send(message));
         }
     }
 
-    fn expand(&mut self, game: &Game) -> Message {
-        let (path, moves, child_moves) = self.root.find_leaf_and_expand(game);
+    fn expand(&mut self, game: &Game, path: Path) -> Message {
+        let (path, child_moves) = self.root.find_leaf_and_expand(game, path);
         let nodes_added = child_moves.len();
         if nodes_added > 0 {
             Message::CalculatePriors {
-                child_moves: child_moves,
-                moves: moves,
-                path: path,
+                child_moves,
+                path,
             }
         } else {
             Message::RunPlayout {
-                moves: moves,
-                nodes_added: nodes_added,
-                path: path,
+                path
             }
         }
     }
@@ -239,14 +228,7 @@ impl Engine {
         self.start = PreciseTime::now();
         self.config.gfx(self.ownership.gfx());
         self.ownership = OwnershipStatistics::new(self.config.clone(), game.size(), game.komi());
-        self.previous_node_count = self.root.descendants();
         self.set_new_root(game, color);
-        let reused_node_count = self.root.descendants();
-        if self.previous_node_count > 0 {
-            let percentage = reused_node_count as f32 / self.previous_node_count as f32;
-            let msg = format!("Reusing {} nodes ({}%)", reused_node_count, percentage*100.0);
-            self.config.log(msg);
-        }
     }
 
     fn best_move(&self, game: &Game, color: Color, cleanup: bool) -> Move {
